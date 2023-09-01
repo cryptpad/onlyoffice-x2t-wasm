@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -71,10 +71,9 @@ namespace PdfWriter
 	//----------------------------------------------------------------------------------------
 	// CFontFileBase
 	//----------------------------------------------------------------------------------------
-	CFontCidTrueType::CFontCidTrueType(CXref* pXref, CDocument* pDocument, const std::wstring& wsFontPath, unsigned int unIndex) : CFontDict(pXref, pDocument)
+	CFontCidTrueType::CFontCidTrueType(CXref* pXref, CDocument* pDocument, const std::wstring& wsFontPath, unsigned int unIndex, CFontFileTrueType* pFontTT) : CFontDict(pXref, pDocument)
 	{
 		m_bNeedAddFontName = true;
-		CFontFileTrueType* pFontTT = CFontFileTrueType::LoadFromFile(wsFontPath, unIndex);
 		m_pFontFile = pFontTT;
 
 		m_wsFontPath  = wsFontPath;
@@ -99,7 +98,7 @@ namespace PdfWriter
 		CreateCIDFont2(pFont);
 
 		m_pFace         = NULL;
-		m_pFaceMemory   = NULL;	
+		m_pFaceMemory   = NULL;
 		m_nGlyphsCount  = 0;
 		m_nSymbolicCmap = -1;
 		m_ushCodesCount = 0;
@@ -181,6 +180,13 @@ namespace PdfWriter
 			return false;
 
 		return (!!GetGID(m_pFace, unUnicode));
+	}
+	unsigned int CFontCidTrueType::GetChar(const unsigned int &unUnicode)
+	{
+		if (!OpenFontFace())
+			return 0;
+
+		return GetGID(m_pFace, unUnicode);
 	}
 	unsigned int   CFontCidTrueType::GetWidth(unsigned short ushCode)
 	{

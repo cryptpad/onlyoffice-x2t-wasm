@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -190,7 +190,15 @@ Aggplus::CBrush* CGraphicsRenderer::CreateBrush(NSStructures::CBrush* pBrush)
 	}
 	else
 	{
-		Aggplus::CBrushTexture* pNew = new Aggplus::CBrushTexture(pBrush->TexturePath, /*(Aggplus::WrapMode)TextureMode*/Aggplus::WrapModeClamp);
+		Aggplus::CBrushTexture* pNew;
+
+		if (NULL != pBrush->Image)
+			pNew = new Aggplus::CBrushTexture(pBrush->Image, Aggplus::WrapModeClamp);
+		else
+			pNew = new Aggplus::CBrushTexture(pBrush->TexturePath, Aggplus::WrapModeClamp);
+
+		pNew->SetTransform(&m_oBrush.Transform);
+
 		return pNew;
 	}
 }
@@ -548,6 +556,23 @@ HRESULT CGraphicsRenderer::put_BrushTexturePath(const std::wstring& bsPath)
 	m_oBrush.TexturePath = bsPath;
 	return S_OK;
 }
+HRESULT CGraphicsRenderer::get_BrushTextureImage(Aggplus::CImage** pImage)
+{
+	*pImage = m_oBrush.Image;
+	return S_OK;
+}
+HRESULT CGraphicsRenderer::put_BrushTextureImage(Aggplus::CImage *pImage)
+{
+	if (NULL == pImage)
+		return S_FALSE;
+
+	RELEASEINTERFACE(m_oBrush.Image);
+
+	m_oBrush.Image = pImage;
+	m_oBrush.Image->AddRef();
+
+	return S_OK;
+}
 HRESULT CGraphicsRenderer::get_BrushTextureMode(LONG* lMode)
 {
 	*lMode = m_oBrush.TextureMode;
@@ -576,6 +601,16 @@ HRESULT CGraphicsRenderer::get_BrushLinearAngle(double* dAngle)
 HRESULT CGraphicsRenderer::put_BrushLinearAngle(const double& dAngle)
 {
 	m_oBrush.LinearAngle = dAngle;
+	return S_OK;
+}
+HRESULT CGraphicsRenderer::get_BrushTransform(Aggplus::CMatrix &oMatrix)
+{
+	oMatrix = m_oBrush.Transform;
+	return S_OK;
+}
+HRESULT CGraphicsRenderer::put_BrushTransform(const Aggplus::CMatrix& oMatrix)
+{
+	m_oBrush.Transform = oMatrix;
 	return S_OK;
 }
 HRESULT CGraphicsRenderer::BrushRect(const INT& val, const double& left, const double& top, const double& width, const double& height)
@@ -759,6 +794,11 @@ HRESULT CGraphicsRenderer::BeginCommand(const DWORD& lType)
 		{
 			return NewPage();
 		}
+	case c_nMaskType:
+		{
+			m_pRenderer->CreateAlphaMask();
+			break;
+		}
 	default:
 		break;
 	};
@@ -786,6 +826,16 @@ HRESULT CGraphicsRenderer::EndCommand(const DWORD& lType)
 		{
 			m_pRenderer->ResetClip();
 			m_bIsSetupClip = FALSE;
+			break;
+		}
+	case c_nMaskType:
+		{
+			m_pRenderer->StartApplyingAlphaMask();
+			break;
+		}
+	case c_nResetMaskType:
+		{
+			m_pRenderer->ResetAlphaMask();
 			break;
 		}
 	default:
@@ -943,12 +993,17 @@ HRESULT CGraphicsRenderer::DrawPath(const LONG& nType)
 							RELEASEARRAYOBJECTS(pImageData);
 					}
 				#else
-					pTextureBrush = new Aggplus::CBrushTexture(m_oBrush.TexturePath, oMode);
+					if (NULL != m_oBrush.Image)
+						pTextureBrush = new Aggplus::CBrushTexture(m_oBrush.Image, oMode);
+					else
+						pTextureBrush = new Aggplus::CBrushTexture(m_oBrush.TexturePath, oMode);
                 #endif
 				}
 
 				if( pTextureBrush )
 				{
+					pTextureBrush->SetTransform(&m_oBrush.Transform);
+
 					pTextureBrush->Alpha = (BYTE)m_oBrush.TextureAlpha;
 
                     if (m_oBrush.Rectable == 1)
@@ -1158,6 +1213,9 @@ HRESULT CGraphicsRenderer::CommandLong(const LONG& lType, const LONG& lCommand)
         m_pRenderer->m_bIsDarkMode = (1 == lCommand);
 	if (c_nUseDictionaryFonts == lType && m_pFontManager)
 		m_pFontManager->SetUseCorrentFontByName((1 == lCommand) ? true : false);
+	if (c_nPenWidth0As1px == lType && m_pRenderer)
+		m_pRenderer->m_bIs0PenWidthAs1px = (1 == lCommand) ? true : false;
+
 	return S_OK;
 }
 HRESULT CGraphicsRenderer::CommandDouble(const LONG& lType, const double& dCommand)
@@ -1339,6 +1397,11 @@ void CGraphicsRenderer::CreateFlip(BYTE* pPixels, const Aggplus::CDoubleRect& oR
 	m_pRenderer->SetPageWidth(m_dWidth, Aggplus::UnitMillimeter);
 	m_pRenderer->SetPageHeight(m_dHeight, Aggplus::UnitMillimeter);
 	m_pRenderer->SetPageUnit(Aggplus::UnitMillimeter);
+}
+
+void CGraphicsRenderer::SetAlphaMask(Aggplus::CAlphaMask* pAlphaMask)
+{
+	m_pRenderer->SetAlphaMask(pAlphaMask);
 }
 
 void CGraphicsRenderer::put_GlobalAlphaEnabled(const bool& bEnabled, const double& dVal)

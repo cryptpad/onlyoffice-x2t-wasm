@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -169,28 +169,32 @@ bool parse_clipping(std::wstring strClipping,std::wstring fileName, double_4 & c
 	return false;
 }
 
-_CP_OPT(border_widths) GetBorderLineWidths(const graphic_format_properties & graphicProperties, BorderSide borderSide)
+_CP_OPT(border_widths) GetBorderLineWidths(const graphic_format_properties_ptr & graphicProperties, BorderSide borderSide)
 {
-    _CP_OPT(border_widths) widths = graphicProperties.common_border_line_width_attlist_.style_border_line_width_;
-    if (widths)
-        return widths;
-    
-    switch(borderSide)
-    {
-    case sideTop:       widths = graphicProperties.common_border_line_width_attlist_.style_border_line_width_top_; break;
-    case sideBottom:    widths = graphicProperties.common_border_line_width_attlist_.style_border_line_width_bottom_; break;
-    case sideLeft:      widths = graphicProperties.common_border_line_width_attlist_.style_border_line_width_left_; break;
-    case sideRight:     widths = graphicProperties.common_border_line_width_attlist_.style_border_line_width_right_; break;
-    default:    
-        widths = graphicProperties.common_border_line_width_attlist_.style_border_line_width_top_;
-        if (widths)
-            break;
-        else
-            widths = graphicProperties.common_border_line_width_attlist_.style_border_line_width_bottom_;
-    }
+	_CP_OPT(border_widths) widths;	
+	if (graphicProperties)
+	{
+		widths = graphicProperties->common_border_line_width_attlist_.style_border_line_width_;
+		if (widths)
+			return widths;
+
+		switch (borderSide)
+		{
+		case sideTop:       widths = graphicProperties->common_border_line_width_attlist_.style_border_line_width_top_; break;
+		case sideBottom:    widths = graphicProperties->common_border_line_width_attlist_.style_border_line_width_bottom_; break;
+		case sideLeft:      widths = graphicProperties->common_border_line_width_attlist_.style_border_line_width_left_; break;
+		case sideRight:     widths = graphicProperties->common_border_line_width_attlist_.style_border_line_width_right_; break;
+		default:
+			widths = graphicProperties->common_border_line_width_attlist_.style_border_line_width_top_;
+			if (widths)
+				break;
+			else
+				widths = graphicProperties->common_border_line_width_attlist_.style_border_line_width_bottom_;
+		}
+	}
     return widths;
 }
-_CP_OPT(length) GetConsistentBorderValue(const graphic_format_properties & graphicProperties, const border_style & borderStyle, BorderSide borderSide)
+_CP_OPT(length) GetConsistentBorderValue(const graphic_format_properties_ptr & graphicProperties, const border_style & borderStyle, BorderSide borderSide)
 {
     if ((borderStyle.get_style() ==  border_style::double_))
     {
@@ -210,17 +214,19 @@ _CP_OPT(length) GetConsistentBorderValue(const graphic_format_properties & graph
     }
     return _CP_OPT(length)();
 }
-int GetMargin(const graphic_format_properties & graphicProperties, BorderSide borderSide)//emu
+int GetMargin(const graphic_format_properties_ptr & graphicProperties, BorderSide borderSide)//emu
 {
+	if (!graphicProperties) return 0;
+
 	int margin = 0;
     _CP_OPT(length_or_percent) marginVal;
 
     switch(borderSide)
     {
-		case sideTop:       marginVal = graphicProperties.common_vertical_margin_attlist_.fo_margin_top_; break;
-		case sideBottom:    marginVal = graphicProperties.common_vertical_margin_attlist_.fo_margin_bottom_; break;
-		case sideLeft:      marginVal = graphicProperties.common_horizontal_margin_attlist_.fo_margin_left_; break;
-		case sideRight:     marginVal = graphicProperties.common_horizontal_margin_attlist_.fo_margin_right_; break;
+		case sideTop:       marginVal = graphicProperties->common_vertical_margin_attlist_.fo_margin_top_; break;
+		case sideBottom:    marginVal = graphicProperties->common_vertical_margin_attlist_.fo_margin_bottom_; break;
+		case sideLeft:      marginVal = graphicProperties->common_horizontal_margin_attlist_.fo_margin_left_; break;
+		case sideRight:     marginVal = graphicProperties->common_horizontal_margin_attlist_.fo_margin_right_; break;
     }
 
     if (marginVal && marginVal->get_type() == length_or_percent::Length)
@@ -230,21 +236,24 @@ int GetMargin(const graphic_format_properties & graphicProperties, BorderSide bo
     
     return margin;
 }
-int Compute_BorderWidth(const graphic_format_properties & graphicProperties, BorderSide borderSide)
+int Compute_BorderWidth(const graphic_format_properties_ptr & graphicProperties, BorderSide borderSide)
 {
+	if (!graphicProperties)
+		return 0;
+
     _CP_OPT(border_style)	borderValue;
     _CP_OPT(length)			lengthValue;
 
     switch(borderSide)
     {
-		case sideTop:       borderValue = graphicProperties.common_border_attlist_.fo_border_top_; break;
-		case sideBottom:    borderValue = graphicProperties.common_border_attlist_.fo_border_bottom_; break;
-		case sideLeft:      borderValue = graphicProperties.common_border_attlist_.fo_border_left_; break;
-		case sideRight:     borderValue = graphicProperties.common_border_attlist_.fo_border_right_; break;    
+		case sideTop:       borderValue = graphicProperties->common_border_attlist_.fo_border_top_; break;
+		case sideBottom:    borderValue = graphicProperties->common_border_attlist_.fo_border_bottom_; break;
+		case sideLeft:      borderValue = graphicProperties->common_border_attlist_.fo_border_left_; break;
+		case sideRight:     borderValue = graphicProperties->common_border_attlist_.fo_border_right_; break;
     }
 
     if (!borderValue)
-        borderValue = graphicProperties.common_border_attlist_.fo_border_;                
+        borderValue = graphicProperties->common_border_attlist_.fo_border_;
 
     if (borderValue)
         lengthValue = GetConsistentBorderValue(graphicProperties, *borderValue, borderSide);
@@ -286,97 +295,115 @@ void Compute_HatchFill(draw_hatch * image_style,oox::oox_hatch_fill_ptr fill)
 		break;
 	}
 }
-void Compute_GradientFill(draw_gradient * image_style,oox::oox_gradient_fill_ptr fill)
+void Compute_GradientFill(draw_gradient* gradient_style, oox::oox_gradient_fill_ptr fill)
 {
-	int style =0;
-	if (image_style->draw_style_)style = image_style->draw_style_->get_type();
+	int style = 0;
+	if (gradient_style->draw_style_)  style = gradient_style->draw_style_->get_type();
 
-	if (image_style->draw_angle_) fill->angle = 90 - image_style->draw_angle_->get_value();
-	if (fill->angle < 0) fill->angle +=360;
+	if (gradient_style->draw_angle_) fill->angle = 90 - gradient_style->draw_angle_->get_value();
+	if (fill->angle < 0) fill->angle += 360;
 
-	oox::oox_gradient_fill::_color_position point={};
-	switch(style)
+	for (size_t i = 0; i < gradient_style->content_.size(); ++i)
 	{
-	case gradient_style::linear:
-		{	
-			fill->style = 0;
-		
-			point.pos = 0;
-			if (image_style->draw_start_color_)		point.color_ref = image_style->draw_start_color_->get_hex_value();
-			//if (image_style->draw_start_intensity_)	point.opacity	= image_style->draw_start_intensity_->get_value();
-
-			fill->colors.push_back(point);
-
-			point.pos = 100;
-			if (image_style->draw_end_color_)		point.color_ref = image_style->draw_end_color_->get_hex_value();
-			if (image_style->draw_end_intensity_)	point.opacity	= image_style->draw_end_intensity_->get_value();
-	
-			fill->colors.push_back(point);
-		}break;
-	case gradient_style::axial:
+		loext_gradient_stop* gradient_stop = dynamic_cast<loext_gradient_stop*>(gradient_style->content_[i].get());
+		if (gradient_stop)
 		{
-			fill->style = 0;
-			
-			point.pos = 0;
-			if (image_style->draw_end_color_)		point.color_ref = image_style->draw_end_color_->get_hex_value();
-			//if (image_style->draw_end_intensity_)	point.opacity	= image_style->draw_end_intensity_->get_value();
-	
-			fill->colors.push_back(point);
+			if (fill->colors.size() <= i) fill->colors.emplace_back();
 
-			point.pos = 50;
-			if (image_style->draw_start_color_)		point.color_ref = image_style->draw_start_color_->get_hex_value();
-			if (image_style->draw_start_intensity_)	point.opacity	= image_style->draw_start_intensity_->get_value();
+			if (gradient_stop->color_value_)
+				fill->colors[i].color_ref = gradient_stop->color_value_->get_hex_value();
+			if (gradient_stop->svg_offset_)
+				fill->colors[i].pos = 100 - *gradient_stop->svg_offset_ * 100;
+		}
+	}
+	fill->style = 0;
+	if (style == gradient_style::radial ||
+		style == gradient_style::ellipsoid)			fill->style = 2;
+	else if (style == gradient_style::square)		fill->style = 1;
+	else if (style == gradient_style::rectangular)	fill->style = 3;
 
-			fill->colors.push_back(point);
-
-			point.pos = 100;
-			if (image_style->draw_end_color_)		point.color_ref = image_style->draw_end_color_->get_hex_value();
-			//if (image_style->draw_end_intensity_)	point.opacity	= image_style->draw_end_intensity_->get_value();
-	
-			fill->colors.push_back(point);
-		}break;
-	case gradient_style::radial:
-	case gradient_style::ellipsoid:
-	case gradient_style::square:
-	case gradient_style::rectangular:
+	if (fill->colors.empty())
+	{
+		oox::oox_gradient_fill::_color_position point = {};
+		switch (style)
 		{
-			if (style == gradient_style::radial ||
-				style == gradient_style::ellipsoid)		fill->style = 2;
-			if (style == gradient_style::square )		fill->style = 1;
-			if (style == gradient_style::rectangular)	fill->style = 3;
-			
-			point.pos = 0;
-			if (image_style->draw_start_color_)		point.color_ref = image_style->draw_start_color_->get_hex_value();
-			//if (image_style->draw_start_intensity_)	point.opacity	= image_style->draw_start_intensity_->get_value();
+			case gradient_style::linear:
+			{
+				point.pos = 0;
+				if (gradient_style->draw_start_color_)		point.color_ref = gradient_style->draw_start_color_->get_hex_value();
+				//if (gradient_style->draw_start_intensity_)	point.opacity	= gradient_style->draw_start_intensity_->get_value();
+
+				fill->colors.push_back(point);
+
+				point.pos = 100;
+				if (gradient_style->draw_end_color_)		point.color_ref = gradient_style->draw_end_color_->get_hex_value();
+				if (gradient_style->draw_end_intensity_)	point.opacity = gradient_style->draw_end_intensity_->get_value();
+
+				fill->colors.push_back(point);
+			}break;
+			case gradient_style::axial:
+			{
+				point.pos = 0;
+				if (gradient_style->draw_end_color_)		point.color_ref = gradient_style->draw_end_color_->get_hex_value();
+				//if (gradient_style->draw_end_intensity_)	point.opacity	= gradient_style->draw_end_intensity_->get_value();
+
+				fill->colors.push_back(point);
+
+				point.pos = 50;
+				if (gradient_style->draw_start_color_)		point.color_ref = gradient_style->draw_start_color_->get_hex_value();
+				if (gradient_style->draw_start_intensity_)	point.opacity = gradient_style->draw_start_intensity_->get_value();
+
+				fill->colors.push_back(point);
+
+				point.pos = 100;
+				if (gradient_style->draw_end_color_)		point.color_ref = gradient_style->draw_end_color_->get_hex_value();
+				//if (gradient_style->draw_end_intensity_)	point.opacity	= gradient_style->draw_end_intensity_->get_value();
+
+				fill->colors.push_back(point);
+			}break;
+			case gradient_style::radial:
+			case gradient_style::ellipsoid:
+			case gradient_style::square:
+			case gradient_style::rectangular:
+			{
+				point.pos = 0;
+				if (gradient_style->draw_start_color_)		point.color_ref = gradient_style->draw_end_color_->get_hex_value();
+				//if (gradient_style->draw_start_intensity_)	point.opacity	= gradient_style->draw_end_intensity_->get_value();
+
+				fill->colors.push_back(point);
+
+				point.pos = 100;
+				if (gradient_style->draw_end_color_)		point.color_ref = gradient_style->draw_start_color_->get_hex_value();
+				//if (gradient_style->draw_end_intensity_)	point.opacity	= gradient_style->draw_start_intensity_->get_value();
+
+				fill->colors.push_back(point);
+			}break;
+		}
+	}
 	
-			fill->colors.push_back(point);
+	if (fill->style > 1)
+	{
+		fill->rect[0] = fill->rect[1] = 0;
+		fill->rect[2] = fill->rect[3] = 100;
 
-			point.pos = 100;
-			if (image_style->draw_end_color_)		point.color_ref = image_style->draw_end_color_->get_hex_value();
-			//if (image_style->draw_end_intensity_)	point.opacity	= image_style->draw_end_intensity_->get_value();
-
-			fill->colors.push_back(point);
-
-			fill->rect[0] = fill->rect[1] = 0;
-			fill->rect[2] = fill->rect[3] = 100;
-		
-			if (image_style->draw_cx_)
-			{
-				fill->rect[0] = 100 - image_style->draw_cx_->get_value();
-				fill->rect[2] = image_style->draw_cx_->get_value();
-			}
-			if (image_style->draw_cy_)
-			{
-				fill->rect[1] = 100 - image_style->draw_cy_->get_value();
-				fill->rect[3] = image_style->draw_cy_->get_value();
-			}
-		}break;
+		if (gradient_style->draw_cx_)
+		{
+			fill->rect[0] = 100 - gradient_style->draw_cx_->get_value();
+			fill->rect[2] = gradient_style->draw_cx_->get_value();
+		}
+		if (gradient_style->draw_cy_)
+		{
+			fill->rect[1] = 100 - gradient_style->draw_cy_->get_value();
+			fill->rect[3] = gradient_style->draw_cy_->get_value();
+		}
 	}
 }
 
 
-void Compute_GraphicFill(const common_draw_fill_attlist & props, const office_element_ptr & style_image, styles_lite_container &styles, oox::_oox_fill & fill, bool txbx, bool reset_fill)
+void Compute_GraphicFill(const common_draw_fill_attlist & props, const office_element_ptr & style_image, odf_document* document, oox::_oox_fill & fill, bool txbx, bool reset_fill)
 {
+	styles_lite_container& styles = document->odf_context().drawStyles();
+
 	if (fill.type < 1 && reset_fill) fill.type = 0; 
 
 	if (props.draw_opacity_) 
@@ -390,15 +417,23 @@ void Compute_GraphicFill(const common_draw_fill_attlist & props, const office_el
 		
 		if (office_element_ptr style = styles.find_by_style_name(style_name))
 		{
-			if (draw_opacity * image_style = dynamic_cast<draw_opacity *>(style.get()))
+			if (draw_opacity * opacity_style = dynamic_cast<draw_opacity *>(style.get()))
 			{	
-				//увы и ах но ms  не поддерживает градиентную прозрачность - сделаем средненькую
-				if (image_style->draw_start_ && image_style->draw_end_)
+				if (opacity_style->draw_start_ && opacity_style->draw_end_ || opacity_style->content_.size() > 1)
 				{
-					fill.opacity = (image_style->draw_start_->get_value() + image_style->draw_end_->get_value())/2.;
+					fill.gradient = oox::oox_gradient_fill::create();
+					fill.type = 3;  //?? градиентная прозрачность на картинку 
+
+					for (size_t i = 0; i < opacity_style->content_.size(); ++i)
+					{
+						loext_opacity_stop* opacity_stop = dynamic_cast<loext_opacity_stop*>(opacity_style->content_[i].get());
+						fill.gradient->colors.emplace_back();
+						fill.gradient->colors.back().opacity = 100  * opacity_stop->stop_opacity_.get_value_or(0);
+						fill.gradient->colors.back().pos = opacity_stop->svg_offset_.get_value_or(0) * 100;
+					}
 				}
-				else if (image_style->draw_start_)fill.opacity = image_style->draw_start_->get_value();
-				else if (image_style->draw_end_)fill.opacity = image_style->draw_end_->get_value();
+				else if (opacity_style->draw_start_) fill.opacity = opacity_style->draw_start_->get_value();
+				else if (opacity_style->draw_end_) fill.opacity = opacity_style->draw_end_->get_value();
 			}
 		}
 	}
@@ -412,6 +447,14 @@ void Compute_GraphicFill(const common_draw_fill_attlist & props, const office_el
 		fill.solid->color = props.draw_fill_color_->get_hex_value();
 		
 		if (fill.type <= 0 && !txbx ) fill.type = 1;	//в этом случае тип может и не быть задан явно
+
+		if (fill.gradient)
+		{
+			for (size_t i = 0; i < fill.gradient->colors.size(); ++i)
+			{
+				fill.gradient->colors[i].color_ref = props.draw_fill_color_->get_hex_value();
+			}
+		}
 	}
 	
 	if (props.draw_fill_image_name_)
@@ -424,14 +467,27 @@ void Compute_GraphicFill(const common_draw_fill_attlist & props, const office_el
 			{			
 				fill.bitmap = oox::oox_bitmap_fill::create();
 				fill.bitmap->bTile = true;
-				fill.bitmap->xlink_href_ = fill_image->xlink_attlist_.href_.get_value_or(L"");
+				
+				std::wstring href = fill_image->xlink_attlist_.href_.get_value_or(L"");
+				if ( href.empty() )
+				{
+					office_binary_data* binary_data = dynamic_cast<office_binary_data*>(fill_image->office_binary_data_.get());
+					if (binary_data)
+					{
+						fill.bitmap->xlink_href_ = binary_data->write_to(document->get_folder());
+					}
+				}
+				else
+				{
+					fill.bitmap->xlink_href_ = href;
+				}
 			}
 		}
 	}
 
 	if (style_image)
 	{
-		if (style_background_image * image = dynamic_cast<style_background_image *>(style_image.get()))
+		if (style_background_image * image = dynamic_cast<style_background_image*>(style_image.get()))
 		{
 			if ((image) && (image->xlink_attlist_))
 			{
@@ -502,12 +558,13 @@ void Compute_GraphicFill(const common_draw_fill_attlist & props, const office_el
 		const std::wstring style_name = L"gradient:" + *props.draw_fill_gradient_name_;
 		if (office_element_ptr style = styles.find_by_style_name(style_name))
 		{
-			if (draw_gradient * image_style = dynamic_cast<draw_gradient *>(style.get()))
+			if (draw_gradient *gradient_style = dynamic_cast<draw_gradient *>(style.get()))
 			{			
-				fill.type	= 3;
-				fill.gradient = oox::oox_gradient_fill::create();
+				fill.type = 3;
+				
+				if  (!fill.gradient) fill.gradient = oox::oox_gradient_fill::create();
 
-				Compute_GradientFill(image_style, fill.gradient);
+				Compute_GradientFill(gradient_style, fill.gradient);
 
 				if (fill.opacity)
 				{
@@ -583,10 +640,10 @@ void draw_a::add_attributes( const xml::attributes_wc_ptr & Attributes )
 {
 	xlink_attlist_.add_attributes(Attributes);
 
-    CP_APPLY_ATTR(L"office:name"				, office_name_				, std::wstring(L""));
-    CP_APPLY_ATTR(L"office:target-frame-name"	, office_target_frame_name_);
-    CP_APPLY_ATTR(L"text:style-name"			, text_style_name_			, std::wstring(L""));
-    CP_APPLY_ATTR(L"text:visited-style-name"	, text_visited_style_name_	, std::wstring(L""));
+    CP_APPLY_ATTR(L"office:name", office_name_, std::wstring(L""));
+    CP_APPLY_ATTR(L"office:target-frame-name", office_target_frame_name_);
+    CP_APPLY_ATTR(L"text:style-name", text_style_name_, std::wstring(L""));
+    CP_APPLY_ATTR(L"text:visited-style-name", text_visited_style_name_, std::wstring(L""));
 
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,6 +34,7 @@
 #include "../Drawing/Document.h"
 
 #include "ImageManager.h"
+#include "../../../Common/MS-LCID.h"
 
 namespace PPT
 {
@@ -134,25 +135,27 @@ namespace PPT
 	class CShapeWriter
 	{
 	private:
-        PPT::CStringWriter		m_oWriterPath;
-        PPT::CStringWriter		m_oWriterVML;
-        PPT::CStringWriter		m_oWriter;
+        PPT::CStringWriter m_oWriterPath;
+        PPT::CStringWriter m_oWriterVML;
+        PPT::CStringWriter m_oWriter;
 
-        PPT::CElementPtr		m_pElement;
+        PPT::CElementPtr m_pElement;
 		
 		CRelsGenerator*	m_pRels;
 
-        PPT::CTheme*			m_pTheme;
+        PPT::CTheme* m_pTheme;
 
-        LONG									m_lNextShapeID;
+        LONG m_lNextShapeID;
 
-		bool									m_bWordArt;
-		bool									m_bTextBox;
+		bool m_bWordArt;
+		bool m_bTextBox;
 		
-		std::wstring							m_xmlGeomAlternative;
-		std::wstring							m_xmlTxBodyAlternative;
-		std::wstring							m_xmlAlternative;
-	public:	
+		std::wstring m_xmlGeomAlternative;
+		std::wstring m_xmlTxBodyAlternative;
+		std::wstring m_xmlAlternative;
+
+		MS_LCID_converter m_lcidConverter;
+	public:
 
 		CShapeWriter();
 		~CShapeWriter()

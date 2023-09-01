@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -159,26 +159,27 @@ void draw_frame::pptx_convert(oox::pptx_conversion_context & Context)
 
 			instances.push_back(grStyleInst);
 		}
-		graphic_format_properties properties = calc_graphic_properties_content(instances);
-
-		////////////////////////////////////////////////////////////////////
-		properties.apply_to(Context.get_slide_context().get_properties());
-
 		oox::_oox_fill fill;
-		Compute_GraphicFill(properties.common_draw_fill_attlist_, properties.style_background_image_,
-			Context.root()->odf_context().drawStyles(), fill);
-		if (properties.fo_clip_)
+		
+		graphic_format_properties_ptr properties = calc_graphic_properties_content(instances);
+		if (properties)
 		{
-			std::wstring strRectClip = properties.fo_clip_.get();
-			Context.get_slide_context().set_clipping(strRectClip.substr(5, strRectClip.length() - 6));
+			properties->apply_to(Context.get_slide_context().get_properties());
+
+			Compute_GraphicFill(properties->common_draw_fill_attlist_, properties->style_background_image_, Context.root(), fill);
+			if (properties->fo_clip_)
+			{
+				std::wstring strRectClip = properties->fo_clip_.get();
+				Context.get_slide_context().set_clipping(strRectClip.substr(5, strRectClip.length() - 6));
+			}
+			
+			Context.get_slide_context().set_property(odf_reader::_property(L"border_width_left", Compute_BorderWidth(properties, sideLeft)));
+			Context.get_slide_context().set_property(odf_reader::_property(L"border_width_top", Compute_BorderWidth(properties, sideTop)));
+			Context.get_slide_context().set_property(odf_reader::_property(L"border_width_right", Compute_BorderWidth(properties, sideRight)));
+			Context.get_slide_context().set_property(odf_reader::_property(L"border_width_bottom", Compute_BorderWidth(properties, sideBottom)));
 		}
 
 		Context.get_slide_context().set_fill(fill);
-
-		Context.get_slide_context().set_property(odf_reader::_property(L"border_width_left", Compute_BorderWidth(properties, sideLeft)));
-		Context.get_slide_context().set_property(odf_reader::_property(L"border_width_top", Compute_BorderWidth(properties, sideTop)));
-		Context.get_slide_context().set_property(odf_reader::_property(L"border_width_right", Compute_BorderWidth(properties, sideRight)));
-		Context.get_slide_context().set_property(odf_reader::_property(L"border_width_bottom", Compute_BorderWidth(properties, sideBottom)));
 
 		if (common_presentation_attlist_.presentation_class_)
 		{
@@ -234,7 +235,12 @@ void draw_image::pptx_convert(oox::pptx_conversion_context & Context)
 
 	if (true == href.empty())
 	{
+		office_binary_data* binary_data = dynamic_cast<office_binary_data*>(office_binary_data_.get());
 
+		if (binary_data)
+		{
+			href = binary_data->write_to(Context.root()->get_folder());
+		}
 	}
 	else
 	{
@@ -343,7 +349,7 @@ void draw_object::pptx_convert(oox::pptx_conversion_context & Context)
 		}
 		object_odf_context objectBuild(href);
 
-		process_build_object process_build_object_(objectBuild, odf_document_->odf_context() );
+		process_build_object process_build_object_(objectBuild, odf_document_.get());
 		contentSubDoc->accept(process_build_object_); 
 		
 		if (objectBuild.table_table_)
@@ -406,10 +412,8 @@ void draw_object::pptx_convert(oox::pptx_conversion_context & Context)
 			{
 				std::wstring text_content = L"<a:p><a14:m xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\">";
 				text_content += L"<m:oMathPara xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\">";
-				text_content += L"<m:oMathParaPr/>";
-				text_content += L"<m:oMath xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\">";
 				text_content += math_content;
-				text_content += L"</m:oMath></m:oMathPara></a14:m></a:p>";
+				text_content += L"</m:oMathPara></a14:m></a:p>";
 
 				if (bNewObject)
 				{

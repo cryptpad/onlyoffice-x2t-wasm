@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -94,7 +94,8 @@ void draw_image::add_attributes( const xml::attributes_wc_ptr & Attributes )
 	{
 		draw_frame_ptr = office_element_creator::get()->create(L"draw", L"frame", getContext(), false);
 		draw_frame_ptr->add_attributes(Attributes);
-	}
+	}	
+	CP_APPLY_ATTR(L"draw:mime-type", draw_mime_type_);
 	
 	draw_image_attlist_.add_attributes(Attributes);
     xlink_attlist_.add_attributes(Attributes);
@@ -109,7 +110,6 @@ void draw_image::add_child_element( xml::sax * Reader, const std::wstring & Ns, 
     else
     {
         CP_CREATE_ELEMENT(content_);
-        //CP_NOT_APPLICABLE_ELM();
     }
 }
 std::wostream & draw_image::text_to_stream(std::wostream & _Wostream, bool bXmlEncode) const

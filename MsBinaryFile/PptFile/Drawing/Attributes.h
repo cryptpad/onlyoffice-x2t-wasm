@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -111,7 +111,7 @@ public:
     static int GetSlideNumber(const std::wstring &str)
     {
         std::wstring sldHeader = L"Slide ";
-        int strIter = str.find(sldHeader);
+        int strIter = (int)str.find(sldHeader);
         if (strIter != -1)
         {
             std::wstring sNum(str.begin() + sldHeader.size() + strIter, str.end());
@@ -142,15 +142,15 @@ public:
     }
     static bool isHTTPLink(const std::wstring &str)
     {
-        int iter1 = str.find(L"http://");
-        int iter2 = str.find(L"https://");
+        int iter1 = (int)str.find(L"http://");
+        int iter2 = (int)str.find(L"https://");
         return iter1 != -1 || iter2 != -1;
     }
     static bool isAudioLink(const std::wstring &str)
     {
-        int iter1 = str.find(L".mp3");
-        int iter2 = str.find(L".wav");
-        int iter3 = str.find(L".waw");
+        int iter1 = (int)str.find(L".mp3");
+        int iter2 = (int)str.find(L".wav");
+        int iter3 = (int)str.find(L".waw");
         return iter1 != -1 || iter2 != -1 || iter3 != -1;
     }
 };

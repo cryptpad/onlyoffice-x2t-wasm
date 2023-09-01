@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -65,6 +65,8 @@ void graphic_format_properties::apply_from(const graphic_format_properties & Oth
     _CP_APPLY_PROP2(draw_wrap_influence_on_position_);
     _CP_APPLY_PROP2(draw_ole_draw_aspect_);
 
+	_CP_APPLY_PROP2(draw_stroke_gradient_name_);
+
 	_CP_APPLY_PROP2(svg_stroke_color_); 
 	_CP_APPLY_PROP2(svg_stroke_width_);	
 	_CP_APPLY_PROP2(svg_stroke_opacity_); 
@@ -110,12 +112,6 @@ void graphic_format_properties::apply_from(const graphic_format_properties & Oth
 
 void graphic_format_properties::serialize(std::wostream & _Wostream ,const wchar_t * ns, const wchar_t * name )
 {
-	if (common_draw_fill_attlist_.draw_fill_gradient_name_ || 
-		common_draw_fill_attlist_.draw_fill_image_name_)
-	{
-		common_draw_fill_attlist_.draw_opacity_ = boost::none;
-	}
-
 	CP_XML_WRITER(_Wostream)
     {
 		CP_XML_NODE_SIMPLE()
@@ -141,6 +137,8 @@ void graphic_format_properties::serialize(std::wostream & _Wostream ,const wchar
 			CP_XML_ATTR_OPT(L"svg:stroke-color",		svg_stroke_color_); 
 			CP_XML_ATTR_OPT(L"svg:stroke-width",		svg_stroke_width_);	
 			CP_XML_ATTR_OPT(L"svg:stroke-opacity",		svg_stroke_opacity_); 
+
+			CP_XML_ATTR_OPT(L"draw:stroke-gradient-name", draw_stroke_gradient_name_);
 
 			CP_XML_ATTR_OPT(L"fo:min-width",			fo_min_width_);
 			CP_XML_ATTR_OPT(L"fo:min-height",			fo_min_height_);

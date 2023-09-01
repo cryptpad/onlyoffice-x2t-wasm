@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -382,14 +382,22 @@ public:
 	void add_child_element( const office_element_ptr & child_element);
 
 	void start_conditional_formats();
-		void start_conditional_format(std::wstring ref);
+		void start_conditional_format(const std::wstring& ref);
             void start_conditional_rule(int rule_type, _CP_OPT(unsigned int) rank, _CP_OPT(bool) bottom, _CP_OPT(bool) percent);
-				void set_conditional_formula(std::wstring formula);
-                void set_conditional_value(int type, std::wstring value );
-                void set_conditional_iconset(int type_iconset);
-				void add_conditional_colorscale(int index, _CP_OPT(odf_types::color) color);
-				void set_conditional_databar_color(_CP_OPT(odf_types::color) color);
+				void set_conditional_formula(const std::wstring& formula);
+                void set_conditional_value(int type, const std::wstring& value );
+                
+				void set_conditional_iconset(int type_iconset);
 				
+				void set_conditional_show_value(bool value);
+
+				void add_conditional_colorscale(int index, _CP_OPT(odf_types::color) & color);
+				
+				void set_conditional_databar_color(_CP_OPT(odf_types::color) & color);
+				void set_conditional_databar_negative_color(_CP_OPT(odf_types::color) & color);
+				void set_conditional_databar_axis_color(_CP_OPT(odf_types::color) & color);
+				void set_conditional_databar_axis_position(const std::wstring& value);
+
 				void set_conditional_style_name(const std::wstring &style_name);
                 void set_conditional_operator(int _operator);
 
@@ -403,6 +411,44 @@ public:
 	void start_pilot_table(office_element_ptr & elm);
 	void end_pilot_table();
 
+	void start_sparkline_groups();
+		void start_sparkline_group();
+		void set_sparkline_id(const std::wstring& val);
+		void set_sparkline_type(int type);
+		void set_sparkline_manual_max(double val);
+		void set_sparkline_manual_min(double val);
+		void set_sparkline_line_weight(double val);
+		void set_sparkline_minAxisType(int val);
+		void set_sparkline_maxAxisType(int val);
+		void set_sparkline_emptyCellsAs(int val);
+		void set_sparkline_markers(bool val);
+		void set_sparkline_date_axis(bool val);
+		void set_sparkline_high(bool val);
+		void set_sparkline_low(bool val);
+		void set_sparkline_first(bool val);
+		void set_sparkline_last(bool val);
+		void set_sparkline_negative(bool val);
+		void set_sparkline_display_xAxis(bool val);
+		void set_sparkline_display_hidden(bool val);
+		void set_sparkline_rtl(bool val);
+
+		void set_sparkline_color_series(_CP_OPT(odf_types::color) &color);
+		void set_sparkline_color_negative(_CP_OPT(odf_types::color)& color);
+		void set_sparkline_color_axis(_CP_OPT(odf_types::color)& color);
+		void set_sparkline_color_markers(_CP_OPT(odf_types::color)& color);
+		void set_sparkline_color_first(_CP_OPT(odf_types::color)& color);
+		void set_sparkline_color_last(_CP_OPT(odf_types::color)& color);
+		void set_sparkline_color_high(_CP_OPT(odf_types::color)& color);
+		void set_sparkline_color_low(_CP_OPT(odf_types::color)& color);
+
+			void start_sparklines();
+				void start_sparkline();
+					void set_sparkline_range(const std::wstring& ref);
+					void set_sparkline_cell(const std::wstring& ref);
+				void end_sparkline();
+			void end_sparklines();
+		void end_sparkline_group();
+	void end_sparkline_groups();
 ///////////////////////////////
     void add_hyperlink(const std::wstring & ref,int col, int row, const std::wstring & link, const std::wstring & location);
 	
@@ -433,6 +479,11 @@ public:
 
 	ods_hyperlink_state & current_hyperlink();
 
+	std::vector<table_part_state> & table_parts() 
+	{
+		return table_parts_;
+	}
+
     int current_column() const;
     int current_row() const;
 
@@ -450,8 +501,8 @@ public:
 	odf_drawing_context*	drawing_context(){return  drawing_context_.get();}
 	odf_controls_context*	controls_context(){return  &controls_context_;}
 
-	std::wstring					office_table_name_;
-	std::vector<ods_comment_state>	comments_;
+	std::wstring office_table_name_;
+	std::vector<ods_comment_state> comments_;
 
 	std::map<std::wstring, office_element_ptr> mapHeaderFooterImages;
 private:

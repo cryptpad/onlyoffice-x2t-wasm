@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -51,13 +51,17 @@ std::string GetRecordName(PPT::RecordType dwType);
 
 namespace PPT
 {
+    struct _commonInfo
+    {
+        std::wstring tempPath;
+    };
 class SRecordHeader
 {
 public:
-    unsigned char           RecVersion;
-    unsigned short          RecInstance;
-    RecordType	RecType;
-    _UINT32                 RecLen;
+    unsigned char   RecVersion;
+    unsigned short  RecInstance;
+    RecordType	    RecType;
+    _UINT32         RecLen;
 
     bool bBadHeader;
 
@@ -77,6 +81,7 @@ class IRecord
 {
 public:
     SRecordHeader m_oHeader;
+    _commonInfo* m_pCommonInfo = NULL;
 
     virtual ~IRecord();
     virtual void ReadFromStream(SRecordHeader & oHeader, const XLS::CFStreamPtr &pStream) = 0;
@@ -85,9 +90,6 @@ public:
 
 class CUnknownRecord : public IRecord
 {
-    // этот класс - просто для того, чтобы нигде не проверять,
-    // реализована ли у нас такая запись
-
 public:
     CUnknownRecord();
 
@@ -99,7 +101,7 @@ public:
     std::string	 ReadStringA(const XLS::CFStreamPtr &pStream, int size);
 };
 
-IRecord* CreateByType(SRecordHeader oHeader);
+IRecord* CreateByType(SRecordHeader oHeader, _commonInfo* commonInfo);
 
 class CRecordsContainer : public CUnknownRecord
 {

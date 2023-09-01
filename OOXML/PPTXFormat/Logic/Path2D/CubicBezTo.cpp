@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -52,22 +52,22 @@ namespace PPTX
 		}
 		void CubicBezTo::fromXML(XmlUtils::CXmlNode& node)
 		{
-			XmlUtils::CXmlNodes oNodes;
+			std::vector<XmlUtils::CXmlNode> oNodes;
 
 			if (node.GetNodes(_T("a:pt"), oNodes))
 			{
-				int count = oNodes.GetCount();
+				size_t count = oNodes.size();
 				if(count >= 3)
 				{
 					XmlUtils::CXmlNode oNode;
 
-					oNodes.GetAt(0, oNode);
+					oNode = oNodes[0];
 					x[0] = oNode.GetAttribute(_T("x"));
 					y[0] = oNode.GetAttribute(_T("y"));
-					oNodes.GetAt(1, oNode);
+					oNode = oNodes[1];
 					x[1] = oNode.GetAttribute(_T("x"));
 					y[1] = oNode.GetAttribute(_T("y"));
-					oNodes.GetAt(2, oNode);
+					oNode = oNodes[2];
 					x[2] = oNode.GetAttribute(_T("x"));
 					y[2] = oNode.GetAttribute(_T("y"));
 				}

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -41,6 +41,7 @@
 #include "../../../OOXML/PPTXFormat/Logic/Pic.h"
 #include "../../../OOXML/PPTXFormat/Logic/Shape.h"
 #include "../../../OOXML/PPTXFormat/Logic/Colors/SchemeClr.h"
+#include "../../../OOXML/DocxFormat/Logic/VmlWord.h"
 
 #include "../../../OdfFile/Reader/Format/svg_parser.h"
 #include <boost/algorithm/string.hpp>
@@ -737,22 +738,23 @@ void OOXShapeReader::Parse(ReaderParameter oParam, PPTX::Logic::SolidFill *oox_s
 	//   }
 }
 //-----------------------------------------------------------------------------------------------------------------
-void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::SolidFill *oox_solid_fill, std::wstring *change_sheme_color)
+void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::SolidFill *oox_solid_fill, PPTX::Logic::SchemeClr* change_color)
 {
-	if (!oox_solid_fill)return;
+	if (!oox_solid_fill) return;
 
 	unsigned int nColor = 0xffffff; //white
 	_CP_OPT(double) opacity;
 	
-	if (change_sheme_color && oox_solid_fill->Color.getType() == OOX::et_a_schemeClr)
+	if (change_color && oox_solid_fill->Color.getType() == OOX::et_a_schemeClr)
 	{
-		PPTX::Logic::SchemeClr *pSchemeColor = new PPTX::Logic::SchemeClr();
-		pSchemeColor->val.set(*change_sheme_color);
-
-		oox_solid_fill->Color.Color.reset(pSchemeColor);
+		nColor = oParam.oDocx->m_pTheme->themeElements.clrScheme.GetABGRFromScheme(change_color->val.get());
+		opacity = nColor & 0xff000000;
+		nColor = nColor & 0x00ffffff;
 	}
-	
-	Parse(oParam, oox_solid_fill, nColor, opacity);
+	else
+	{
+		Parse(oParam, oox_solid_fill, nColor, opacity);
+	}
 
 	pOutput->m_nFillColor = nColor;
 
@@ -872,7 +874,7 @@ bool OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::L
 	}
 	return result;
 }
-void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::GradFill *oox_grad_fill, std::wstring *change_sheme_color)
+void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::GradFill *oox_grad_fill, PPTX::Logic::SchemeClr* change_color)
 {
 	if (!oox_grad_fill)return;
 
@@ -919,41 +921,46 @@ void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::L
 		
 		for (size_t i = 0; i < oox_grad_fill->GsLst.size(); i++)
 		{
-			unsigned int hexColor;
+			unsigned int nColor;
 			_CP_OPT(double) opacity;
 
-			if (change_sheme_color && oox_grad_fill->GsLst[i].color.getType() == OOX::et_a_schemeClr)
+			if (change_color && oox_grad_fill->GsLst[i].color.getType() == OOX::et_a_schemeClr)
 			{
-				//oox_grad_fill->GsLst[i]->m_oShemeClr.m_oVal.FromString(*change_sheme_color);
+				nColor = oParam.oDocx->m_pTheme->themeElements.clrScheme.GetABGRFromScheme(change_color->val.get());
+				opacity = nColor & 0xff000000;
+				nColor = nColor & 0x00ffffff;
 			}
-			Parse(oParam, oox_grad_fill->GsLst[i].color.Color.GetPointer(), hexColor, opacity);
+			else
+			{
+				Parse(oParam, oox_grad_fill->GsLst[i].color.Color.GetPointer(), nColor, opacity);
+			}
 
 			if (i == 0)
 			{
-				pOutput->m_nFillColor = hexColor;
+				pOutput->m_nFillColor = nColor;
 				if (opacity)
 					pOutput->m_nFillOpacity = (int)(*opacity * 100);
 			}
 			else if (i == oox_grad_fill->GsLst.size() - 1 && i > 0)
 			{
-				pOutput->m_nFillColor2 = hexColor;
+				pOutput->m_nFillColor2 = nColor;
 				if (opacity)
 					pOutput->m_nFillOpacity2 = (int)(*opacity * 100);
 			}
 
 			if (bColorsSet)
 			{
-				pOutput->m_aFillShadeColors.push_back(std::make_pair((int)hexColor, oox_grad_fill->GsLst[i].pos));
+				pOutput->m_aFillShadeColors.push_back(std::make_pair((int)nColor, oox_grad_fill->GsLst[i].pos));
 			}
 		}
 	}
 }
-void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::PattFill *oox_pattern_fill, std::wstring *change_sheme_color)
+void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::PattFill *oox_pattern_fill, PPTX::Logic::SchemeClr* change_color)
 {
 	if (!oox_pattern_fill)return;
 
 }
-void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::Ln *oox_line_prop, std::wstring *change_sheme_color)
+void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::Ln *oox_line_prop, PPTX::Logic::SchemeClr* change_color)
 {
 	if (!oox_line_prop)return;
 
@@ -970,17 +977,18 @@ void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::L
 		}
 		else if (fill.IsInit())
 		{
-			if (change_sheme_color && fill->Color.getType() == OOX::et_a_schemeClr)
-			{
-				PPTX::Logic::SchemeClr *pSchemeColor = new PPTX::Logic::SchemeClr();
-				pSchemeColor->val.set(*change_sheme_color);
-
-				fill->Color.Color.reset(pSchemeColor);
-			}
 			unsigned int nColor = 0; //black
 			_CP_OPT(double) opacity;
-			
-			Parse(oParam, fill.GetPointer(), nColor, opacity);
+			if (change_color && fill->Color.getType() == OOX::et_a_schemeClr)
+			{
+				nColor = oParam.oDocx->m_pTheme->themeElements.clrScheme.GetABGRFromScheme(change_color->val.get());
+				opacity = nColor & 0xff000000;
+				nColor = nColor & 0x00ffffff;
+			}
+			else
+			{
+				Parse(oParam, fill.GetPointer(), nColor, opacity);
+			}			
 			pOutput->m_nLineColor = nColor;
 		}
 		else
@@ -1042,29 +1050,29 @@ void OOXShapeReader::Parse( ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::
 
 	if (!oParam.oDocx->m_pTheme || fmt_index <0) return;
 
-	if (style_ref->Color.is<PPTX::Logic::SchemeClr>() == false) return;
+	PPTX::Logic::SchemeClr* pSchemeClr = NULL;
+	if (style_ref->Color.is<PPTX::Logic::SchemeClr>())
+	{
+		pSchemeClr = dynamic_cast<PPTX::Logic::SchemeClr*>(style_ref->Color.Color.GetPointer());
+	}
 
-	PPTX::Logic::SchemeClr & schemeClr = style_ref->Color.as<PPTX::Logic::SchemeClr>();
-
-	std::wstring color = schemeClr.val.get();
-	
 	if (type == 1)
 	{
 		if (fmt_index < 1000 && fmt_index < (int)oParam.oDocx->m_pTheme->themeElements.fmtScheme.fillStyleLst.size())
 		{
-			Parse(oParam, pOutput, &oParam.oDocx->m_pTheme->themeElements.fmtScheme.fillStyleLst[fmt_index], &color);
+			Parse(oParam, pOutput, &oParam.oDocx->m_pTheme->themeElements.fmtScheme.fillStyleLst[fmt_index], pSchemeClr);
 		}
 		else if (fmt_index > 1000 && ((fmt_index-1000) < (int)oParam.oDocx->m_pTheme->themeElements.fmtScheme.bgFillStyleLst.size()))
 		{
 			fmt_index -= 1000;
 
-			Parse(oParam, pOutput, &oParam.oDocx->m_pTheme->themeElements.fmtScheme.bgFillStyleLst[fmt_index], &color);
+			Parse(oParam, pOutput, &oParam.oDocx->m_pTheme->themeElements.fmtScheme.bgFillStyleLst[fmt_index], pSchemeClr);
 		}
 	}
 
 	if (type == 2 && fmt_index < (int)oParam.oDocx->m_pTheme->themeElements.fmtScheme.lnStyleLst.size())
 	{
-		Parse(oParam, pOutput, &oParam.oDocx->m_pTheme->themeElements.fmtScheme.lnStyleLst[fmt_index], &color);
+		Parse(oParam, pOutput, &oParam.oDocx->m_pTheme->themeElements.fmtScheme.lnStyleLst[fmt_index], pSchemeClr);
 	}
 
 	//if (style_matrix_ref->getType() == OOX::et_a_effectRef && fmt_index < theme->m_oThemeElements.m_oFmtScheme.m_oEffectStyleLst.m_arrEffectStyle.size())
@@ -1174,7 +1182,8 @@ bool OOXShapeReader::ParseShape( ReaderParameter oParam, RtfShapePtr& pOutput)
 	{
 		XmlUtils::CXmlNode xmlNode;
 		xmlNode.FromXmlString(strXml);
-		PPTX::Logic::Geometry geom(xmlNode);
+		PPTX::Logic::Geometry geom;
+		geom = xmlNode;
 
 		std::wstring strVmlPath, strVmlRect;
 
@@ -1582,16 +1591,16 @@ bool OOXShapeReader::ParseVmlObject	( ReaderParameter oParam , RtfShapePtr& pOut
 	}
 	return true;
 }
-void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::UniFill *oox_fill, std::wstring *change_sheme_color)
+void OOXShapeReader::Parse(ReaderParameter oParam, RtfShapePtr& pOutput, PPTX::Logic::UniFill *oox_fill, PPTX::Logic::SchemeClr* change_color)
 {
 	if (!oox_fill) return;
 
 	switch(oox_fill->m_type)
 	{
 	case PPTX::Logic::UniFill::blipFill:	Parse(oParam, pOutput, dynamic_cast<PPTX::Logic::BlipFill*>(oox_fill->Fill.operator ->()));	break;
-	case PPTX::Logic::UniFill::gradFill:	Parse(oParam, pOutput, dynamic_cast<PPTX::Logic::GradFill*>(oox_fill->Fill.operator ->()), change_sheme_color);	break;
-	case PPTX::Logic::UniFill::pattFill:	Parse(oParam, pOutput, dynamic_cast<PPTX::Logic::PattFill*>(oox_fill->Fill.operator ->()), change_sheme_color);	break;
-	case PPTX::Logic::UniFill::solidFill:	Parse(oParam, pOutput, dynamic_cast<PPTX::Logic::SolidFill*>(oox_fill->Fill.operator ->()), change_sheme_color);break;
+	case PPTX::Logic::UniFill::gradFill:	Parse(oParam, pOutput, dynamic_cast<PPTX::Logic::GradFill*>(oox_fill->Fill.operator ->()), change_color);	break;
+	case PPTX::Logic::UniFill::pattFill:	Parse(oParam, pOutput, dynamic_cast<PPTX::Logic::PattFill*>(oox_fill->Fill.operator ->()), change_color);	break;
+	case PPTX::Logic::UniFill::solidFill:	Parse(oParam, pOutput, dynamic_cast<PPTX::Logic::SolidFill*>(oox_fill->Fill.operator ->()), change_color);break;
 	}
 }
 bool OOXShapeReader::ParseVml(ReaderParameter oParam, RtfShapePtr& pOutput, bool bUsedType)

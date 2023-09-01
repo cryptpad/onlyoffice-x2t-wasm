@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -58,6 +58,8 @@
 #include "EndnoteDescriptor.h"
 #include "FieldCharacter.h"
 #include "IVisitable.h"
+
+#include "../../Common/MS-LCID.h"
 
 namespace CRYPT
 {
@@ -144,10 +146,12 @@ namespace DocFileFormat
 		std::vector<wchar_t>* GetChars			(int fcStart, int fcEnd, int cp);
 		
 		std::vector<int>*							GetFileCharacterPositions		( int fcMin, int fcMax );
-		std::list<CharacterPropertyExceptions*>*	GetCharacterPropertyExceptions	( int fcMin, int fcMax );
+		std::vector<CharacterPropertyExceptions*>*	GetCharacterPropertyExceptions	( int fcMin, int fcMax );
 		
 		void Clear();
 
+		MS_LCID_converter		m_lcidConverter;
+		
 		std::wstring			m_sFileName;
 		std::wstring			m_sPassword;	
 		std::wstring			m_sTempFolder;
@@ -162,14 +166,16 @@ namespace DocFileFormat
 		StructuredStorageReader	* m_pStorage;			//POLE::Storage* Storage
 		
 		std::vector<wchar_t>						* Text;			// All text of the Word document
-		std::list<FormattedDiskPagePAPX*>			* AllPapxFkps;	// A list of all FKPs that contain PAPX
-		std::list<FormattedDiskPageCHPX*>			* AllChpxFkps;	// A list of all FKPs that contain CHPX
+		std::vector<FormattedDiskPagePAPX*>			* AllPapxFkps;	// A list of all FKPs that contain PAPX
+		std::vector<FormattedDiskPageCHPX*>			* AllChpxFkps;	// A list of all FKPs that contain CHPX
 		
 		std::map<int, ParagraphPropertyExceptions*>	* AllPapx;		// The value is the PAPX that formats the paragraph.
 		std::map<int, SectionPropertyExceptions*>	* AllSepx;		// The value is the SEPX that formats the section.
 		std::vector<int>							* AllPapxVector;// A vector to quick find in AllPapx
 
 		std::map<int, int> PictureBulletsCPsMap;
+
+		std::map<int, char>	m_mapBadCP;
 
 		struct _bmkStartEnd
 		{

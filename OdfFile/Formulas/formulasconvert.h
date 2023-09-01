@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -54,6 +54,8 @@ public:
     // $Лист1.$A$1 -> Лист1!$A$1
 	std::wstring convert_named_ref(std::wstring const & expr, bool withTableName = true, std::wstring separator = L" ", bool bAbsoluteAlways = false);
 	std::wstring get_table_name();
+
+	std::wstring convert_list_values(std::wstring const & expr);
 
 	//a-la convert without check formula
     std::wstring convert_named_expr(std::wstring const & expr, bool withTableName = true, bool bAbsoluteAlways = false);
@@ -97,9 +99,10 @@ public:
 	bool is_simple_ref(std::wstring const & expr);
 
 	std::wstring get_table_name();
+    void set_table_name(std::wstring const& val);
 
 	//Sheet2!C3:C19 -> Sheet2.C3:Sheet2.C19 
-    std::wstring convert_chart_distance(std::wstring const & expr);
+    std::wstring convert_ref_distances(std::wstring const & expr, std::wstring const& separator_in, std::wstring const& separator_out);
     
     std::wstring convert_ref(std::wstring const & expr);
 

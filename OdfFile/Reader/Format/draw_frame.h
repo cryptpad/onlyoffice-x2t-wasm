@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -77,13 +77,14 @@ private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );
     virtual void add_child_element( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name);
 
-    draw_image_attlist				draw_image_attlist_;
-	odf_types::common_xlink_attlist xlink_attlist_;
+    draw_image_attlist draw_image_attlist_;
+    _CP_OPT(std::wstring) draw_mime_type_;
+    odf_types::common_xlink_attlist xlink_attlist_;
     
-    office_element_ptr_array		content_;
-	office_element_ptr				office_binary_data_;
+    office_element_ptr_array content_;
+	office_element_ptr office_binary_data_;
 	
-	office_element_ptr			draw_frame_ptr; //openoffice xml 1.0
+	office_element_ptr draw_frame_ptr; //openoffice xml 1.0
 };
 
 CP_REGISTER_OFFICE_ELEMENT2(draw_image);
@@ -383,9 +384,9 @@ public:
     virtual void pptx_convert(oox::pptx_conversion_context & Context);
 
     odf_types::common_xlink_attlist	xlink_attlist_;
-	_CP_OPT(std::wstring)			draw_mime_type_;
+	_CP_OPT(std::wstring) draw_mime_type_;
     
-	office_element_ptr_array		content_;
+	office_element_ptr_array content_;
 
 private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );

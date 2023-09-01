@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,7 +32,6 @@
 #pragma once
 #include "../../Base/Nullable.h"
 
-#include "../File.h"
 #include "../../Common/ComplexTypes.h"
 #include "../Logic/VmlOfficeDrawing.h"
 #include "../FtnEdn.h"
@@ -51,7 +50,7 @@ namespace OOX
 		class CWritingStyle : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CWritingStyle)
+			WritingElement_AdditionMethods(CWritingStyle)
 			CWritingStyle();
 			virtual ~CWritingStyle();
 
@@ -79,7 +78,7 @@ namespace OOX
 		class CAutoCaption : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CAutoCaption)
+			WritingElement_AdditionMethods(CAutoCaption)
 			CAutoCaption();
 			virtual ~CAutoCaption();
 
@@ -103,7 +102,7 @@ namespace OOX
 		class CAutoCaptions : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CAutoCaptions)
+			WritingElement_AdditionMethods(CAutoCaptions)
 			CAutoCaptions();
 			virtual ~CAutoCaptions();
 
@@ -122,7 +121,7 @@ namespace OOX
 		class CCaption : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CCaption)
+			WritingElement_AdditionMethods(CCaption)
 			CCaption();
 			virtual ~CCaption();
 
@@ -151,7 +150,7 @@ namespace OOX
 		class CCaptions : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CCaptions)
+			WritingElement_AdditionMethods(CCaptions)
 			CCaptions();
 			virtual ~CCaptions();
 
@@ -171,7 +170,7 @@ namespace OOX
 		class CCharacterSpacing : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CCharacterSpacing)
+			WritingElement_AdditionMethods(CCharacterSpacing)
 			CCharacterSpacing();
 			virtual ~CCharacterSpacing();
 
@@ -194,7 +193,7 @@ namespace OOX
 		class CCompatSetting : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CCompatSetting)
+			WritingElement_AdditionMethods(CCompatSetting)
 			CCompatSetting();
 			virtual ~CCompatSetting();
 
@@ -219,7 +218,7 @@ namespace OOX
 		class CCompat : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CCompat)
+			WritingElement_AdditionMethods(CCompat)
 			CCompat();
 			virtual ~CCompat();
 
@@ -306,7 +305,7 @@ namespace OOX
 		class CDocProtect : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDocProtect)
+			WritingElement_AdditionMethods(CDocProtect)
 			CDocProtect();
 			virtual ~CDocProtect();
 
@@ -345,7 +344,7 @@ namespace OOX
 		class CDocType : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDocType)
+			WritingElement_AdditionMethods(CDocType)
 			CDocType();
 			virtual ~CDocType();
 
@@ -369,7 +368,7 @@ namespace OOX
 		class CDocVar : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDocVar)
+			WritingElement_AdditionMethods(CDocVar)
 			CDocVar();
 			virtual ~CDocVar();
 
@@ -393,7 +392,7 @@ namespace OOX
 		class CDocVars : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDocVars)
+			WritingElement_AdditionMethods(CDocVars)
 			CDocVars();
 			virtual ~CDocVars();
 
@@ -412,7 +411,7 @@ namespace OOX
 		class CKinsoku : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CKinsoku)
+			WritingElement_AdditionMethods(CKinsoku)
 			CKinsoku();
 			virtual ~CKinsoku();
 
@@ -438,7 +437,7 @@ namespace OOX
 		class CProof : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CProof)
+			WritingElement_AdditionMethods(CProof)
 			CProof();
 			virtual ~CProof();
 
@@ -462,7 +461,7 @@ namespace OOX
 		class CReadingModeInkLockDown : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CReadingModeInkLockDown)
+			WritingElement_AdditionMethods(CReadingModeInkLockDown)
 			CReadingModeInkLockDown();
 			virtual ~CReadingModeInkLockDown();
 
@@ -489,7 +488,7 @@ namespace OOX
 		class CTrackChangesView : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CTrackChangesView)
+			WritingElement_AdditionMethods(CTrackChangesView)
 			CTrackChangesView();
 			virtual ~CTrackChangesView();
 
@@ -516,7 +515,7 @@ namespace OOX
 		class CDocRsids : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDocRsids)
+			WritingElement_AdditionMethods(CDocRsids)
 			CDocRsids();
 			virtual ~CDocRsids();
 
@@ -536,7 +535,7 @@ namespace OOX
 		class CSaveThroughXslt : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSaveThroughXslt)
+			WritingElement_AdditionMethods(CSaveThroughXslt)
 			CSaveThroughXslt();
 			virtual ~CSaveThroughXslt();
 
@@ -560,7 +559,7 @@ namespace OOX
 		class CSmartTagType : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSmartTagType)
+			WritingElement_AdditionMethods(CSmartTagType)
 			CSmartTagType();
 			virtual ~CSmartTagType();
 
@@ -585,7 +584,7 @@ namespace OOX
 		class CStylePaneFilter : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CStylePaneFilter)
+			WritingElement_AdditionMethods(CStylePaneFilter)
 			CStylePaneFilter();
 			virtual ~CStylePaneFilter();
 
@@ -624,7 +623,7 @@ namespace OOX
 		class CStyleSort : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CStyleSort)
+			WritingElement_AdditionMethods(CStyleSort)
 			CStyleSort()
 			{
 			}
@@ -683,7 +682,7 @@ namespace OOX
 		class CView : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CView)
+			WritingElement_AdditionMethods(CView)
 			CView()
 			{
 			}
@@ -742,7 +741,7 @@ namespace OOX
 		class CWriteProtection : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CWriteProtection)
+			WritingElement_AdditionMethods(CWriteProtection)
 			CWriteProtection();
 			virtual ~CWriteProtection();
 
@@ -779,7 +778,7 @@ namespace OOX
 		class CZoom : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CZoom)
+			WritingElement_AdditionMethods(CZoom)
 			CZoom();
 			virtual ~CZoom();
 
@@ -803,7 +802,7 @@ namespace OOX
 		class CEdnDocProps : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CEdnDocProps)
+			WritingElement_AdditionMethods(CEdnDocProps)
 			CEdnDocProps(OOX::Document *pMain = NULL);
 			virtual ~CEdnDocProps();
 
@@ -827,7 +826,7 @@ namespace OOX
 		class CFtnDocProps : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CFtnDocProps)
+			WritingElement_AdditionMethods(CFtnDocProps)
 			CFtnDocProps(OOX::Document *pMain = NULL);
 			virtual ~CFtnDocProps();
 
@@ -850,7 +849,7 @@ namespace OOX
 		class CSchema : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSchema)
+			WritingElement_AdditionMethods(CSchema)
 			CSchema();
 			virtual ~CSchema();
 
@@ -877,7 +876,7 @@ namespace OOX
 		class CSchemaLibrary : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSchemaLibrary)
+			WritingElement_AdditionMethods(CSchemaLibrary)
 			CSchemaLibrary();
 			virtual ~CSchemaLibrary();
 
@@ -896,7 +895,8 @@ namespace OOX
 		class CShapeDefaults : public WritingElementWithChilds<>
 		{
 		public:
-			WritingElement_AdditionConstructors(CShapeDefaults)
+			WritingElement_AdditionMethods(CShapeDefaults)
+			CShapeDefaults();
 			CShapeDefaults(EElementType type);
 			virtual ~CShapeDefaults();
 
@@ -935,34 +935,34 @@ namespace OOX
 		void SetDefaults();
 
 		//------------------------------------------------------------------------------------------------------------------
-		nullable<OOX::Settings::CWritingStyle>                        m_oActiveWritingStyle;
+		nullable<OOX::Settings::CWritingStyle> m_oActiveWritingStyle;
         nullable<ComplexTypes::Word::COnOff2> m_oAlignBordersAndEdges;
         nullable<ComplexTypes::Word::COnOff2> m_oAlwaysMergeEmptyNamespace;
         nullable<ComplexTypes::Word::COnOff2> m_oAlwaysShowPlaceholderText;
-		nullable<ComplexTypes::Word::String>                        m_oAttachedSchema;
-		nullable<ComplexTypes::Word::CRel>                            m_oAttachedTemplate;
+		nullable<ComplexTypes::Word::String> m_oAttachedSchema;
+		nullable<ComplexTypes::Word::CRel> m_oAttachedTemplate;
         nullable<ComplexTypes::Word::COnOff2> m_oAutoFormatOverride;
         nullable<ComplexTypes::Word::COnOff2> m_oAutoHyphenation;
         nullable<ComplexTypes::Word::COnOff2> m_oBookFoldPrinting;
-		nullable<ComplexTypes::Word::CDecimalNumber>                  m_oBookFoldPrintingSheets;
+		nullable<ComplexTypes::Word::CDecimalNumber> m_oBookFoldPrintingSheets;
         nullable<ComplexTypes::Word::COnOff2> m_oBookFoldRevPrinting;
         nullable<ComplexTypes::Word::COnOff2> m_oBordersDoNotSurroundFooter;
         nullable<ComplexTypes::Word::COnOff2> m_oBordersDoNotSurroundHeader;
-		nullable<OOX::Settings::CCaptions>								m_oCaptions;
-		nullable<OOX::Settings::CCharacterSpacing>						m_oCharacterSpacingControl;
-		nullable<ComplexTypes::Word::String>							m_oClickAndTypeStyle;
-		nullable<PPTX::Logic::ClrMap>									m_oClrSchemeMapping;
-		nullable<OOX::Settings::CCompat>								m_oCompat;
-		nullable<ComplexTypes::Word::CDecimalNumber>					m_oConsecutiveHyphenLimit;
-		nullable<ComplexTypes::Word::String>							m_oDecimalSymbol;
-		nullable<ComplexTypes::Word::String>							m_oDefaultTableStyle;
-		nullable<ComplexTypes::Word::CTwipsMeasure>                   m_oDefaultTabStop;
+		nullable<OOX::Settings::CCaptions> m_oCaptions;
+		nullable<OOX::Settings::CCharacterSpacing> m_oCharacterSpacingControl;
+		nullable<ComplexTypes::Word::String> m_oClickAndTypeStyle;
+		nullable<PPTX::Logic::ClrMap> m_oClrSchemeMapping;
+		nullable<OOX::Settings::CCompat> m_oCompat;
+		nullable<ComplexTypes::Word::CDecimalNumber> m_oConsecutiveHyphenLimit;
+		nullable<ComplexTypes::Word::String> m_oDecimalSymbol;
+		nullable<ComplexTypes::Word::String> m_oDefaultTableStyle;
+		nullable<ComplexTypes::Word::CTwipsMeasure> m_oDefaultTabStop;
         nullable<ComplexTypes::Word::COnOff2> m_oDisplayBackgroundShape;
-		nullable<ComplexTypes::Word::CDecimalNumber>                  m_oDisplayHorizontalDrawingGridEvery;
-		nullable<ComplexTypes::Word::CDecimalNumber>                  m_oDisplayVerticalDrawingGridEvery;
-		nullable<OOX::Settings::CDocProtect>                          m_oDocumentProtection;
-		nullable<OOX::Settings::CDocType>                             m_oDocumentType;
-		nullable<OOX::Settings::CDocVars>                             m_oDocVars;
+		nullable<ComplexTypes::Word::CDecimalNumber> m_oDisplayHorizontalDrawingGridEvery;
+		nullable<ComplexTypes::Word::CDecimalNumber> m_oDisplayVerticalDrawingGridEvery;
+		nullable<OOX::Settings::CDocProtect> m_oDocumentProtection;
+		nullable<OOX::Settings::CDocType> m_oDocumentType;
+		nullable<OOX::Settings::CDocVars> m_oDocVars;
         nullable<ComplexTypes::Word::COnOff2> m_oDoNotAutoCompressPictures;
         nullable<ComplexTypes::Word::COnOff2> m_oDoNotDemarcateInvalidXml;
         nullable<ComplexTypes::Word::COnOff2> m_oDoNotDisplayPageBoundaries;
@@ -974,65 +974,65 @@ namespace OOX
         nullable<ComplexTypes::Word::COnOff2> m_oDoNotTrackMoves;
         nullable<ComplexTypes::Word::COnOff2> m_oDoNotUseMarginsForDrawingGridOrigin;
         nullable<ComplexTypes::Word::COnOff2> m_oDoNotValidateAgainstSchema;
-		nullable<ComplexTypes::Word::CTwipsMeasure>                   m_oDrawingGridHorizontalOrigin;
-		nullable<ComplexTypes::Word::CTwipsMeasure>                   m_oDrawingGridHorizontalSpacing;
-		nullable<ComplexTypes::Word::CTwipsMeasure>                   m_oDrawingGridVerticalOrigin;
-		nullable<ComplexTypes::Word::CTwipsMeasure>                   m_oDrawingGridVerticalSpacing;
+		nullable<ComplexTypes::Word::CTwipsMeasure> m_oDrawingGridHorizontalOrigin;
+		nullable<ComplexTypes::Word::CTwipsMeasure> m_oDrawingGridHorizontalSpacing;
+		nullable<ComplexTypes::Word::CTwipsMeasure> m_oDrawingGridVerticalOrigin;
+		nullable<ComplexTypes::Word::CTwipsMeasure> m_oDrawingGridVerticalSpacing;
         nullable<ComplexTypes::Word::COnOff2> m_oEmbedSystemFonts;
         nullable<ComplexTypes::Word::COnOff2> m_oEmbedTrueTypeFonts;
-		nullable<OOX::Settings::CEdnDocProps>                         m_oEndnotePr;
+		nullable<OOX::Settings::CEdnDocProps> m_oEndnotePr;
         nullable<ComplexTypes::Word::COnOff2> m_oEvenAndOddHeaders;
-		nullable<OOX::Settings::CFtnDocProps>                         m_oFootnotePr;
-		nullable<ComplexTypes::Word::CEmpty>                          m_oForceUpgrade;
+		nullable<OOX::Settings::CFtnDocProps> m_oFootnotePr;
+		nullable<ComplexTypes::Word::CEmpty> m_oForceUpgrade;
         nullable<ComplexTypes::Word::COnOff2> m_oFormsDesign;
         nullable<ComplexTypes::Word::COnOff2> m_oGutterAtTop;
-		nullable<OOX::Settings::CShapeDefaults>                       m_oHdrShapeDefaults;
+		nullable<OOX::Settings::CShapeDefaults> m_oHdrShapeDefaults;
         nullable<ComplexTypes::Word::COnOff2> m_oHideGrammaticalErrors;
         nullable<ComplexTypes::Word::COnOff2> m_oHideSpellingErrors;
-		nullable<ComplexTypes::Word::CTwipsMeasure>                   m_oHyphenationZone;
+		nullable<ComplexTypes::Word::CTwipsMeasure> m_oHyphenationZone;
         nullable<ComplexTypes::Word::COnOff2> m_oIgnoreMixedContent;
         nullable<ComplexTypes::Word::COnOff2> m_oLinkStyles;
-		nullable<ComplexTypes::Word::String>							m_oListSeparator;
+		nullable<ComplexTypes::Word::String> m_oListSeparator;
 	// TO DO: Settings::mailMerge
-		nullable<OOX::Logic::CMathPr>								  m_oMathPr;
+		nullable<OOX::Logic::CMathPr> m_oMathPr;
         nullable<ComplexTypes::Word::COnOff2> m_oMirrorMargins;
-		nullable<OOX::Settings::CKinsoku>                             m_oNoLineBreaksAfter;
-		nullable<OOX::Settings::CKinsoku>                             m_oNoLineBreaksBefore;
+		nullable<OOX::Settings::CKinsoku> m_oNoLineBreaksAfter;
+		nullable<OOX::Settings::CKinsoku> m_oNoLineBreaksBefore;
         nullable<ComplexTypes::Word::COnOff2> m_oNoPunctuationKerning;
         nullable<ComplexTypes::Word::COnOff2> m_oPrintFormsData;
         nullable<ComplexTypes::Word::COnOff2> m_oPrintFractionalCharacterWidth;
         nullable<ComplexTypes::Word::COnOff2> m_oPrintPostScriptOverText;
         nullable<ComplexTypes::Word::COnOff2> m_oPrintTwoOnOne;
-		nullable<OOX::Settings::CProof>                               m_oProofState;
-		nullable<OOX::Settings::CReadingModeInkLockDown>              m_oReadModeInkLockDown;
+		nullable<OOX::Settings::CProof> m_oProofState;
+		nullable<OOX::Settings::CReadingModeInkLockDown> m_oReadModeInkLockDown;
         nullable<ComplexTypes::Word::COnOff2> m_oRemoveDateAndTime;
         nullable<ComplexTypes::Word::COnOff2> m_oRemovePersonalInformation;
-		nullable<OOX::Settings::CTrackChangesView>                    m_oRevisionView;
-		nullable<OOX::Settings::CDocRsids>                            m_oRsids;
+		nullable<OOX::Settings::CTrackChangesView> m_oRevisionView;
+		nullable<OOX::Settings::CDocRsids> m_oRsids;
         nullable<ComplexTypes::Word::COnOff2> m_oSaveFormsData;
         nullable<ComplexTypes::Word::COnOff2> m_oSaveInvalidXml;
         nullable<ComplexTypes::Word::COnOff2> m_oSavePreviewPicture;
         nullable<ComplexTypes::Word::COnOff2> m_oSaveSubsetFonts;
-		nullable<OOX::Settings::CSaveThroughXslt>                     m_oSaveThroughtXslt;
+		nullable<OOX::Settings::CSaveThroughXslt> m_oSaveThroughtXslt;
         nullable<ComplexTypes::Word::COnOff2> m_oSaveXmlDataOnly;
-		nullable<OOX::Settings::CSchemaLibrary>                       m_oSchemaLibrary;
-		nullable<OOX::Settings::CShapeDefaults>                       m_oShapeDefaults;
+		nullable<OOX::Settings::CSchemaLibrary> m_oSchemaLibrary;
+		nullable<OOX::Settings::CShapeDefaults> m_oShapeDefaults;
         nullable<ComplexTypes::Word::COnOff2> m_oShowEnvelope;
         nullable<ComplexTypes::Word::COnOff2> m_oShowXMLTags;
-		std::vector<OOX::Settings::CSmartTagType*>                    m_arrSmartTagType;
+		std::vector<OOX::Settings::CSmartTagType*> m_arrSmartTagType;
         nullable<ComplexTypes::Word::COnOff2> m_oStrictFirstAndLastChars;
         nullable<ComplexTypes::Word::COnOff2> m_oStyleLockQFSet;
         nullable<ComplexTypes::Word::COnOff2> m_oStyleLockTheme;
-		nullable<OOX::Settings::CStylePaneFilter>                     m_oStylePaneFormatFilter;
-		nullable<OOX::Settings::CStyleSort>                           m_oStylePaneSortMethod;
-		nullable<ComplexTypes::Word::CDecimalNumberOrPrecent>         m_oSummaryLength;
-		nullable<ComplexTypes::Word::CLanguage>                       m_oThemeFontLang;
+		nullable<OOX::Settings::CStylePaneFilter> m_oStylePaneFormatFilter;
+		nullable<OOX::Settings::CStyleSort> m_oStylePaneSortMethod;
+		nullable<ComplexTypes::Word::CDecimalNumberOrPrecent> m_oSummaryLength;
+		nullable<ComplexTypes::Word::CLanguage> m_oThemeFontLang;
         nullable<ComplexTypes::Word::COnOff2> m_oTrackRevisions;
         nullable<ComplexTypes::Word::COnOff2> m_oUpdateFields;
         nullable<ComplexTypes::Word::COnOff2> m_oUseXSLTWhenSaving;
-		nullable<OOX::Settings::CView>                                m_oView;
-		nullable<OOX::Settings::CWriteProtection>                     m_oWriteProtection;
-		nullable<OOX::Settings::CZoom>                                m_oZoom;
+		nullable<OOX::Settings::CView> m_oView;
+		nullable<OOX::Settings::CWriteProtection> m_oWriteProtection;
+		nullable<OOX::Settings::CZoom> m_oZoom;
 	};
 
 	//--------------------------------------------------------------------------------

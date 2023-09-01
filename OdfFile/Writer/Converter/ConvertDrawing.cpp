@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -35,10 +35,15 @@
 
 #include "../../Common/utils.h"
 
+#include "../../../OOXML/DocxFormat/VmlDrawing.h"
 #include "../../../OOXML/DocxFormat/Diagram/DiagramDrawing.h"
+#include "../../../OOXML/DocxFormat/Diagram/DiagramData.h"
+#include "../../../OOXML/DocxFormat/Drawing/DrawingExt.h"
+#include "../../../OOXML/DocxFormat/Logic/Vml.h"
 #include "../../../OOXML/XlsxFormat/Chart/ChartDrawing.h"
 #include "../../../OOXML/XlsxFormat/Chart/Chart.h"
 #include "../../../OOXML/PPTXFormat/Slide.h"
+#include "../../../OOXML/PPTXFormat/SlideMaster.h"
 #include "../../../OOXML/PPTXFormat/Logic/SpTreeElem.h"
 #include "../../../OOXML/PPTXFormat/Logic/GraphicFrame.h"
 #include "../../../OOXML/PPTXFormat/Logic/Shape.h"
@@ -276,7 +281,7 @@ std::wstring OoxConverter::GetImageIdFromVmlShape(OOX::Vml::CVmlCommonElements* 
 }
 void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 {
-	if (!oox_picture)return;
+	if (!oox_picture) return;
 
 	if (oox_picture->spPr.Geometry.is_init())
 	{
@@ -310,20 +315,27 @@ void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 		}
 	}
 //--------------------------------------------------------------------------------------
-	bool bEmbedded = true;
+	bool bExternal = false;
 	std::wstring pathImage;
+
 	if (oox_picture->blipFill.blip.IsInit())
 	{
 		if (oox_picture->blipFill.blip->embed.IsInit())
 		{
 			std::wstring sID = oox_picture->blipFill.blip->embed->get();
-			pathImage = find_link_by_id(sID, 1);
+			pathImage = find_link_by_id(sID, 1, bExternal);
 			
+			if (false == NSFile::CFileBinary::Exists(pathImage))
+			{
+				pathImage.clear();
+			}
 		}
 		else if (oox_picture->blipFill.blip->link.IsInit())
 		{
-			pathImage = oox_picture->blipFill.blip->link->get();	
-			bEmbedded = false;
+			std::wstring sID = oox_picture->blipFill.blip->link->get();
+			pathImage = find_link_by_id(sID, 1, bExternal);
+
+			if (pathImage.empty()) pathImage = sID;
 		}
 	}
 //--------------------------------------------------------------------------------------
@@ -335,24 +347,24 @@ void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 		{
 			PPTX::Logic::MediaFile & media = oox_picture->nvPicPr.nvPr.media.as<PPTX::Logic::MediaFile>();
 
-			std::wstring sID		= media.link.get();
-			std::wstring pathMedia	= find_link_by_id(sID, 3);
+			std::wstring sID = media.link.get();
+			std::wstring pathMedia = find_link_by_id(sID, 3, bExternal);
 
 			double start = -1, end = -1;
 
 			for (size_t i = 0; i < oox_picture->nvPicPr.nvPr.extLst.size(); i++)
 			{
 				PPTX::Logic::Ext & ext = oox_picture->nvPicPr.nvPr.extLst[i];
-				if (pathMedia.empty() && ext.link.IsInit())
+				if (pathMedia.empty() && ext.link_media.IsInit())
 				{
-					pathMedia = find_link_by_id(ext.link->get(), 3);
+					pathMedia = find_link_by_id(ext.link_media->get(), 3, bExternal);
 					//например файлики mp3
 				}
 				if (ext.st.IsInit())	start	= *ext.st;
 				if (ext.end.IsInit())	end		= *ext.end;
 			}
 			
-			std::wstring odf_ref_media = odf_context()->add_media(pathMedia);
+			std::wstring odf_ref_media = odf_context()->add_media(pathMedia, bExternal);
 
 			if (!odf_ref_media.empty())
 			{
@@ -362,7 +374,7 @@ void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 				OoxConverter::convert(&oox_picture->nvPicPr.cNvPr);		
 				OoxConverter::convert(&oox_picture->spPr, oox_picture->style.GetPointer());
 
-				odf_ref_image = bEmbedded ? odf_context()->add_image(pathImage) : pathImage;
+				odf_ref_image = bExternal ? pathImage : odf_context()->add_image(pathImage);
 				odf_context()->drawing_context()->set_image_replacement(odf_ref_image);
 				
 				odf_context()->drawing_context()->end_media();
@@ -381,7 +393,7 @@ void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 	
 		if (oox_picture->oleObject->m_oId.IsInit())
 		{
-			pathOle = find_link_by_id(oox_picture->oleObject->m_oId->get(), 4);
+			pathOle = find_link_by_id(oox_picture->oleObject->m_oId->get(), 4, bExternal);
 		}
 		std::wstring odf_ref_ole = odf_context()->add_oleobject(pathOle);
 
@@ -429,7 +441,7 @@ void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 
 			}
 
-			odf_ref_image = bEmbedded ? odf_context()->add_imageobject(pathImage) : pathImage; 			
+			odf_ref_image = bExternal ? pathImage : odf_context()->add_imageobject(pathImage);
 			odf_context()->drawing_context()->set_image_replacement(odf_ref_image);
 
 			odf_context()->drawing_context()->end_object_ole();
@@ -437,7 +449,7 @@ void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 		}
 	}
 //--------------------------------------------------------------------------------------
-	odf_ref_image = bEmbedded ? odf_context()->add_image(pathImage) : pathImage;
+	odf_ref_image = bExternal ? pathImage : odf_context()->add_image(pathImage);
 	
 	odf_context()->drawing_context()->start_image(odf_ref_image);
 	{
@@ -479,6 +491,23 @@ void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 		OoxConverter::convert(&oox_picture->spPr, oox_picture->style.GetPointer());
 
 	}
+	if (oox_picture->blipFill.blip.IsInit())
+	{
+		for (size_t i = 0; i < oox_picture->blipFill.blip->ExtLst.size(); ++i)
+		{
+			if (oox_picture->blipFill.blip->ExtLst[i].link_svg.IsInit())
+			{
+				std::wstring sID = oox_picture->blipFill.blip->ExtLst[i].link_svg->get();
+				pathImage = find_link_by_id(sID, 1, bExternal);
+				if (NSFile::CFileBinary::Exists(pathImage))
+				{
+					odf_ref_image = odf_context()->add_image(pathImage);
+					odf_context()->drawing_context()->start_image2(odf_ref_image);
+				}
+				break;
+			}
+		}
+	}
 	odf_context()->drawing_context()->end_image();
 }
 
@@ -496,12 +525,35 @@ void OoxConverter::convert(PPTX::Logic::SmartArt *oox_smart_art)
 		odf_context()->drawing_context()->get_size (width, height);
 		odf_context()->drawing_context()->get_position (x, y);
 
-		oox_current_child_document = oox_smart_art->m_pDrawingContainer.GetPointer();
-
 		odf_context()->drawing_context()->start_group();
 
 		odf_context()->drawing_context()->set_group_size (width, height, width, height);
 		odf_context()->drawing_context()->set_group_position (x, y, cx, cy);
+
+		odf_context()->drawing_context()->start_drawing();
+		odf_context()->drawing_context()->start_shape(SimpleTypes::shapetypeRect);
+		
+		odf_context()->drawing_context()->set_size( width, height);
+		odf_context()->drawing_context()->set_position(x, y);
+
+		if (oox_smart_art->m_oDataBg.IsInit())
+		{
+			oox_current_child_document = oox_smart_art->m_pDataContainer.GetPointer();
+			
+			if ((oox_smart_art->m_oDataBg->m_oFill.Fill.IsInit()) &&
+				(oox_smart_art->m_oDataBg->m_oFill.m_type != PPTX::Logic::UniFill::noFill))
+			{
+				odf_context()->drawing_context()->start_area_properties();
+				{
+					convert(&oox_smart_art->m_oDataBg->m_oFill);
+				}
+				odf_context()->drawing_context()->end_area_properties();
+			}
+		}
+		odf_context()->drawing_context()->end_shape();
+		odf_context()->drawing_context()->end_drawing();
+
+		oox_current_child_document = oox_smart_art->m_pDrawingContainer.GetPointer();
 
 		for (size_t i = 0; i < oox_smart_art->m_oDrawing->SpTreeElems.size(); i++)
 		{
@@ -535,7 +587,7 @@ void OoxConverter::convert(PPTX::Logic::ChartRec *oox_chart)
 			oox_current_child_document = pChart ? dynamic_cast<OOX::IFileContainer*>(pChart) : dynamic_cast<OOX::IFileContainer*>(pChartEx);	
 			
 			OOX::CChartDrawing* pChartDrawing = NULL;
-			if ( (pChart) && ((pChart->m_oChartSpace.m_userShapes) && (pChart->m_oChartSpace.m_userShapes->m_id)) )
+			if ( (pChart) && ((pChart->m_oChartSpace.m_userShapes) && (pChart->m_oChartSpace.m_userShapes->m_id.IsInit())) )
 			{
 				oFile = find_file_by_id (*pChart->m_oChartSpace.m_userShapes->m_id);
 				pChartDrawing = dynamic_cast<OOX::CChartDrawing*>(oFile.GetPointer());
@@ -560,12 +612,12 @@ void OoxConverter::convert(PPTX::Logic::ChartRec *oox_chart)
 		
 					if (pChart)
 					{
-						OoxConverter::convert(pChart->m_oChartSpace.m_oSpPr.GetPointer());					
+						OoxConverter::convert(pChart->m_oChartSpace.m_spPr.GetPointer());					
 						OoxConverter::convert(&pChart->m_oChartSpace);
 					}
 					else if (pChartEx)
 					{
-						OoxConverter::convert(pChartEx->m_oChartSpace.m_oSpPr.GetPointer());					
+						OoxConverter::convert(pChartEx->m_oChartSpace.m_spPr.GetPointer());					
 						OoxConverter::convert(&pChartEx->m_oChartSpace);
 					}
 				odf_context()->end_chart();
@@ -928,7 +980,7 @@ void OoxConverter::convert(OOX::Drawing::COfficeArtExtension *art_ext)
 {
 	if (art_ext == NULL)return;
 
-	if (art_ext->m_oSparklineGroups.IsInit() || art_ext->m_oAltTextTable.IsInit() || !art_ext->m_arrConditionalFormatting.empty())
+	if (art_ext->m_oSparklineGroups.IsInit() || art_ext->m_oAltTextTable.IsInit())
 	{
 		XlsxConverter *xlsx_converter = dynamic_cast<XlsxConverter*>(this);
 		if (xlsx_converter)
@@ -937,7 +989,8 @@ void OoxConverter::convert(OOX::Drawing::COfficeArtExtension *art_ext)
 			xlsx_converter->convert(art_ext->m_oAltTextTable.GetPointer());
 		}
 	}
-
+	convert(art_ext->m_oChartFiltering.GetPointer());
+	convert(art_ext->m_oChartDataLabel.GetPointer());
 
 	//convert(art_ext->m_oCompatExt.GetPointer());
 	//convert(art_ext->m_oDataModelExt.GetPointer());
@@ -1239,14 +1292,15 @@ void OoxConverter::convert(PPTX::Logic::BlipFill *oox_bitmap_fill)
 		{
             std::wstring sID, pathImage;
             
+			bool bExternal = false;
 			if (oox_bitmap_fill->blip->embed.IsInit())
             {
                 sID         = oox_bitmap_fill->blip->embed->get();
-                pathImage   = find_link_by_id(sID, 1);
+                pathImage   = find_link_by_id(sID, 1, bExternal);
 
                 if (!pathImage.empty())
                 {
-                    odf_context()->drawing_context()->set_bitmap_link(pathImage);
+                    odf_context()->drawing_context()->set_bitmap_link(pathImage, bExternal);
                     _graphics_utils_::GetResolution(pathImage.c_str(), Width, Height);
 
 					Width /= 96; //to inch (current dpi file)
@@ -1255,10 +1309,14 @@ void OoxConverter::convert(PPTX::Logic::BlipFill *oox_bitmap_fill)
             }
             else if (oox_bitmap_fill->blip->link.IsInit())
 			{
-                sID  = pathImage = oox_bitmap_fill->blip->link->get();
+                sID  = oox_bitmap_fill->blip->link->get();
 
-                odf_context()->drawing_context()->set_bitmap_link(pathImage);
-				//...
+				pathImage = find_link_by_id(sID, 1, bExternal); //reconstruction.pptx 
+
+				if (pathImage.empty())
+					pathImage = sID;
+
+                odf_context()->drawing_context()->set_bitmap_link(pathImage, bExternal);
 			}
 			for (size_t i = 0 ; i < oox_bitmap_fill->blip->Effects.size(); i++)
 			{
@@ -1335,59 +1393,75 @@ void OoxConverter::convert(PPTX::Logic::GradFill *oox_grad_fill, DWORD nARGB)
 																	 XmlUtils::GetInteger(oox_grad_fill->path->rect->t.get_value_or(L"")) / 1000.,
 																	 XmlUtils::GetInteger(oox_grad_fill->path->rect->r.get_value_or(L"")) / 1000.,
 																	 XmlUtils::GetInteger(oox_grad_fill->path->rect->b.get_value_or(L"")) / 1000.);			
+			}	
+			else if (grad_style == odf_types::gradient_style::radial)
+			{
+				odf_context()->drawing_context()->set_gradient_center(0.5, 0.5);
 			}
 		}	
 		odf_context()->drawing_context()->set_gradient_type(grad_style);
 
-		if (oox_grad_fill->GsLst.size() > 1)
+		bool bOpacity = false;
+		std::vector<std::wstring> hexColors;
+		std::vector<_CP_OPT(double)> opacities;
+
+		for (size_t i = 0; i < oox_grad_fill->GsLst.size(); ++i)
 		{
-			std::wstring hexColorStart, hexColorEnd;
-			_CP_OPT(double) opacityStart, opacityEnd;
+			hexColors.emplace_back();
+			opacities.emplace_back();
 			
-            convert(&oox_grad_fill->GsLst[0].color, hexColorEnd, opacityEnd, nARGB);
-            convert(&oox_grad_fill->GsLst[oox_grad_fill->GsLst.size() - 1].color, hexColorStart, opacityStart, nARGB);
+			convert(&oox_grad_fill->GsLst[i].color, hexColors.back(), opacities.back(), nARGB);
+			if (opacities.back())
+				bOpacity = true;
 
-			if (hexColorEnd == hexColorStart && opacityEnd == opacityStart && oox_grad_fill->GsLst.size() > 2)
+			odf_context()->drawing_context()->set_gradient_stop(hexColors.back(), oox_grad_fill->GsLst[i].pos);
+		}	
+		std::reverse(hexColors.begin(), hexColors.end());
+		std::reverse(opacities.begin(), opacities.end());
+
+		if (hexColors.size() > 0)
+			odf_context()->drawing_context()->set_gradient_start(hexColors[0], opacities[0]);
+		if (hexColors.size() > 1)
+			odf_context()->drawing_context()->set_gradient_end	(hexColors[hexColors.size() - 1], opacities[opacities.size() - 1]);
+
+		odf_context()->drawing_context()->end_gradient_style();
+
+		if (bOpacity && opacities.size() > 1)
+		{
+			if (!opacities[0])	opacities[0] = 100;
+			if (!opacities[opacities.size() - 1]) opacities[opacities.size() - 1] = 100;
+
+			if (*opacities[0] == *opacities[opacities.size() - 1] && opacities.size() < 3)
 			{
-				convert(&oox_grad_fill->GsLst[oox_grad_fill->GsLst.size() / 2].color, hexColorStart, opacityStart, nARGB);
+				odf_context()->drawing_context()->set_opacity(*opacities[0]);
 			}
-			
-			odf_context()->drawing_context()->set_gradient_start(hexColorStart, opacityStart);
-			odf_context()->drawing_context()->set_gradient_end	(hexColorEnd,	opacityEnd);
-
-			if (opacityStart || opacityEnd)
+			else
 			{
-				if (!opacityStart)	opacityStart = 100;
-				if (!opacityEnd)	opacityEnd = 100;
-				
-				if (*opacityStart == *opacityEnd)
-				{
-					odf_context()->drawing_context()->set_opacity(*opacityStart);
-				}
-				else
-				{
-					odf_context()->drawing_context()->start_opacity_style();
-						odf_context()->drawing_context()->set_opacity_type	(grad_style);
-						odf_context()->drawing_context()->set_opacity_start	(*opacityStart);
-						odf_context()->drawing_context()->set_opacity_end	(*opacityEnd);
-						
-						if (oox_grad_fill->lin.is_init())
-						{
-							odf_context()->drawing_context()->set_opacity_angle(oox_grad_fill->lin->ang.get()/60000.);
-						}
-						else if (oox_grad_fill->path.is_init() && oox_grad_fill->path->rect.is_init())
-						{
-							odf_context()->drawing_context()->set_opacity_rect ( XmlUtils::GetInteger(oox_grad_fill->path->rect->l.get_value_or(L"")),
-																				 XmlUtils::GetInteger(oox_grad_fill->path->rect->t.get_value_or(L"")),
-																				 XmlUtils::GetInteger(oox_grad_fill->path->rect->r.get_value_or(L"")),
-																				 XmlUtils::GetInteger(oox_grad_fill->path->rect->b.get_value_or(L"")));
-						}
-					odf_context()->drawing_context()->end_opacity_style();
-				}
+				odf_context()->drawing_context()->start_opacity_style();
+					odf_context()->drawing_context()->set_opacity_type(grad_style);
+					odf_context()->drawing_context()->set_opacity_start(*opacities[0]);
+					odf_context()->drawing_context()->set_opacity_end(*opacities[opacities.size() - 1]);
+
+					for (size_t i = 0; i < oox_grad_fill->GsLst.size(); ++i)
+					{
+						odf_context()->drawing_context()->set_opacity_stop(opacities[i], oox_grad_fill->GsLst[i].pos);
+					}
+
+					if (oox_grad_fill->lin.is_init())
+					{
+						odf_context()->drawing_context()->set_opacity_angle(oox_grad_fill->lin->ang.get() / 60000.);
+					}
+					else if (oox_grad_fill->path.is_init() && oox_grad_fill->path->rect.is_init())
+					{
+						odf_context()->drawing_context()->set_opacity_rect(XmlUtils::GetInteger(oox_grad_fill->path->rect->l.get_value_or(L"")),
+							XmlUtils::GetInteger(oox_grad_fill->path->rect->t.get_value_or(L"")),
+							XmlUtils::GetInteger(oox_grad_fill->path->rect->r.get_value_or(L"")),
+							XmlUtils::GetInteger(oox_grad_fill->path->rect->b.get_value_or(L"")));
+					}
+				odf_context()->drawing_context()->end_opacity_style();
 			}
 		}
 	}
-	odf_context()->drawing_context()->end_gradient_style();
 
 }
 
@@ -1625,11 +1699,12 @@ void OoxConverter::convert(PPTX::Logic::CNvPr *oox_cnvPr)
 	}
 	if (oox_cnvPr->hlinkClick.IsInit())
 	{
+		bool bExternal = false;
 		if (odf_context()->drawing_context()->is_current_empty())
 		{
 			if (oox_cnvPr->hlinkClick->id.IsInit())
 			{
-				std::wstring hlink = find_link_by_id(oox_cnvPr->hlinkClick->id.get(), 2);
+				std::wstring hlink = find_link_by_id(oox_cnvPr->hlinkClick->id.get(), 2, bExternal);
 				
 				odf_context()->drawing_context()->start_link_object(hlink);	
 			}
@@ -1640,14 +1715,14 @@ void OoxConverter::convert(PPTX::Logic::CNvPr *oox_cnvPr)
 
 				if (oox_cnvPr->hlinkClick->snd.IsInit())
 				{
-					std::wstring sound = find_link_by_id(oox_cnvPr->hlinkClick->snd->embed.get(), 3);
+					std::wstring sound = find_link_by_id(oox_cnvPr->hlinkClick->snd->embed.get(), 3, bExternal);
 
-					std::wstring href = odf_context()->add_media(sound);				
+					std::wstring href = odf_context()->add_media(sound, bExternal);
 					odf_context()->drawing_context()->add_sound(href);	
 				}
 				if (oox_cnvPr->hlinkClick->id.IsInit())
 				{
-					std::wstring hlink = find_link_by_id(oox_cnvPr->hlinkClick->id.get(), 2);
+					std::wstring hlink = find_link_by_id(oox_cnvPr->hlinkClick->id.get(), 2, bExternal);
 					
 					odf_context()->drawing_context()->add_link(hlink);	
 				}
@@ -1733,23 +1808,23 @@ void OoxConverter::convert_list_level(PPTX::Logic::TextParagraphPr	*oox_para_pro
 		const PPTX::Logic::BuBlip & buBlip = bullet.as<PPTX::Logic::BuBlip>();
 		
 		std::wstring odf_ref;
-		bool bEmbedded = true;
+		bool bExternal = false;
 			
 		if (buBlip.blip.embed.IsInit())
 		{
 			std::wstring sID = buBlip.blip.embed->get();
 			
-			std::wstring pathImage = find_link_by_id(sID, 1);
+			std::wstring pathImage = find_link_by_id(sID, 1, bExternal);
 
 			if (pathImage.empty())
 				pathImage = buBlip.blip.GetFullPicName(); // only for presentation merge shapes !!
 			
-			odf_ref = odf_context()->add_image(pathImage);
+			odf_ref = odf_context()->add_image(pathImage, bExternal);
 		}
 		else if (buBlip.blip.link.IsInit())
 		{
 			odf_ref = buBlip.blip.link->get();	
-			bEmbedded = false;
+			bExternal = true;
 		}
 		
 		if (!odf_ref.empty())
@@ -1767,8 +1842,8 @@ void OoxConverter::convert_list_level(PPTX::Logic::TextParagraphPr	*oox_para_pro
 	}
 
 	//odf_writer::style_list_level_label_alignment	* aligment_props	= odf_context()->styles_context()->lists_styles().get_list_level_alignment_properties();
-	odf_writer::style_list_level_properties			* level_props		= odf_context()->styles_context()->lists_styles().get_list_level_properties();
-	odf_writer::style_text_properties				* text_properties	= odf_context()->styles_context()->lists_styles().get_text_properties();
+	odf_writer::style_list_level_properties* level_props = odf_context()->styles_context()->lists_styles().get_list_level_properties();
+	odf_writer::text_format_properties* text_properties	= odf_context()->styles_context()->lists_styles().get_text_properties();
 	
 	convert(oox_para_props->defRPr.GetPointer(), text_properties);
 
@@ -1799,7 +1874,7 @@ void OoxConverter::convert_list_level(PPTX::Logic::TextParagraphPr	*oox_para_pro
 		{		
 			if (std::wstring::npos == hexColor.find(L"#"))
 				hexColor = std::wstring(L"#") + hexColor;
-			if (text_properties) text_properties->content_.fo_color_ = odf_types::color(hexColor);
+			if (text_properties) text_properties->fo_color_ = odf_types::color(hexColor);
 		}
 	}
 //-----------------------------------
@@ -1809,7 +1884,7 @@ void OoxConverter::convert_list_level(PPTX::Logic::TextParagraphPr	*oox_para_pro
 		if (buSzPts.val.IsInit())
 		{
 			if (text_properties)
-				text_properties->content_.fo_font_size_ = odf_types::length(*buSzPts.val, odf_types::length::pt);
+				text_properties->fo_font_size_ = odf_types::length(*buSzPts.val, odf_types::length::pt);
 			else if (odf_list_type == 1000)
 				odf_context()->styles_context()->lists_styles().set_bullet_image_size(*buSzPts.val);
 		}
@@ -1821,11 +1896,11 @@ void OoxConverter::convert_list_level(PPTX::Logic::TextParagraphPr	*oox_para_pro
 		if (size_pt < 0.001 && odf_list_type == 1000)
 		{
 			odf_writer::odf_style_state_ptr state = odf_context()->styles_context()->last_state(odf_types::style_family::Paragraph);
-			odf_writer::style_text_properties *text_props = state ? state->get_text_properties() : NULL;
+			odf_writer::text_format_properties *text_props = state ? state->get_text_properties() : NULL;
 
-			if (text_props && text_props->content_.fo_font_size_)
+			if (text_props && text_props->fo_font_size_)
 			{
-				size_pt = text_props->content_.fo_font_size_->get_length().get_value_unit(odf_types::length::pt);
+				size_pt = text_props->fo_font_size_->get_length().get_value_unit(odf_types::length::pt);
 			}		
 			if (size_pt < 0.001)
 			{
@@ -1834,9 +1909,9 @@ void OoxConverter::convert_list_level(PPTX::Logic::TextParagraphPr	*oox_para_pro
 				if (style_state)
 					text_props = style_state->get_text_properties();
 
-				if (text_props && text_props->content_.fo_font_size_)
+				if (text_props && text_props->fo_font_size_)
 				{
-					size_pt = text_props->content_.fo_font_size_->get_length().get_value_unit(odf_types::length::pt);
+					size_pt = text_props->fo_font_size_->get_length().get_value_unit(odf_types::length::pt);
 				}	
 			}
 		}		
@@ -1852,13 +1927,13 @@ void OoxConverter::convert_list_level(PPTX::Logic::TextParagraphPr	*oox_para_pro
 			if (buSzPct.val.IsInit())
 			{
 				if (text_properties)
-					text_properties->content_.fo_font_size_ = odf_types::percent(*buSzPct.val / 1000.);
+					text_properties->fo_font_size_ = odf_types::percent(*buSzPct.val / 1000.);
 
 				size_pt *= *buSzPct.val / 100000.;
 			}
 		}
-		if (text_properties && !text_properties->content_.fo_font_size_)
-			text_properties->content_.fo_font_size_ = odf_types::percent(100.);	
+		if (text_properties && !text_properties->fo_font_size_)
+			text_properties->fo_font_size_ = odf_types::percent(100.);	
 		else if (odf_list_type == 1000)
 		{
 			odf_context()->styles_context()->lists_styles().set_bullet_image_size(size_pt);
@@ -1876,7 +1951,7 @@ void OoxConverter::convert_list_level(PPTX::Logic::TextParagraphPr	*oox_para_pro
 		std::wstring font = textFont.typeface;
 		convert_font(theme, font);
 		if (!font.empty() && text_properties)
-			text_properties->content_.fo_font_family_ = font;	
+			text_properties->fo_font_family_ = font;	
 	}
 
 	odf_context()->styles_context()->lists_styles().end_style_level();
@@ -1926,15 +2001,15 @@ void OoxConverter::convert(PPTX::Logic::Paragraph *oox_paragraph, PPTX::Logic::T
 				list_present = false;
 		}
 														//свойства могут быть приписаны не только к параграфу, но и к самому объекту		
-		odf_writer::style_paragraph_properties* paragraph_properties = odf_context()->text_context()->get_paragraph_properties();
-		odf_writer::style_text_properties*		text_properties = odf_context()->text_context()->get_text_properties();
+		odf_writer::paragraph_format_properties* paragraph_properties = odf_context()->text_context()->get_paragraph_properties();
+		odf_writer::text_format_properties*	text_properties = odf_context()->text_context()->get_text_properties();
 		
 		if (!paragraph_properties)
 		{
 			odf_context()->text_context()->get_styles_context()->create_style(L"", odf_types::style_family::Paragraph, true, false, -1);	
 			
-			paragraph_properties	= odf_context()->text_context()->get_styles_context()->last_state()->get_paragraph_properties();
-			text_properties			= odf_context()->text_context()->get_styles_context()->last_state()->get_text_properties();
+			paragraph_properties = odf_context()->text_context()->get_styles_context()->last_state()->get_paragraph_properties();
+			text_properties = odf_context()->text_context()->get_styles_context()->last_state()->get_text_properties();
 
 			styled = true;
 		}
@@ -2006,8 +2081,8 @@ void OoxConverter::convert(PPTX::Logic::Paragraph *oox_paragraph, PPTX::Logic::T
 	//	odf_context()->text_context()->end_list_item();
 	//}
 }
-void OoxConverter::convert(PPTX::Logic::TextListStyle *oox_list_style, int level, odf_writer::style_paragraph_properties * paragraph_properties
-																				, odf_writer::style_text_properties * text_properties)
+void OoxConverter::convert(PPTX::Logic::TextListStyle *oox_list_style, int level, odf_writer::paragraph_format_properties * paragraph_properties
+																				, odf_writer::text_format_properties * text_properties)
 {
 	if (!oox_list_style)		return;
 	if (!paragraph_properties)	return;
@@ -2017,8 +2092,8 @@ void OoxConverter::convert(PPTX::Logic::TextListStyle *oox_list_style, int level
 
 	convert(oox_list_style->levels[level].GetPointer(), paragraph_properties, text_properties);
 }
-void OoxConverter::convert(PPTX::Logic::TextParagraphPr *oox_paragraph_pr	, odf_writer::style_paragraph_properties * paragraph_properties
-																			, odf_writer::style_text_properties * text_properties)
+void OoxConverter::convert(PPTX::Logic::TextParagraphPr *oox_paragraph_pr	, odf_writer::paragraph_format_properties * paragraph_properties
+																			, odf_writer::text_format_properties * text_properties)
 {
 	if (!oox_paragraph_pr) return;
 	
@@ -2028,49 +2103,49 @@ void OoxConverter::convert(PPTX::Logic::TextParagraphPr *oox_paragraph_pr	, odf_
 		{
 			odf_types::length_or_percent length;
 			convert(oox_paragraph_pr->lnSpc.GetPointer(), length);
-			paragraph_properties->content_.fo_line_height_ = odf_types::line_width(length);
+			paragraph_properties->fo_line_height_ = odf_types::line_width(length);
 		}
 		if (oox_paragraph_pr->spcAft.IsInit())
 		{
  			odf_types::length_or_percent length;
 			convert(oox_paragraph_pr->spcAft.GetPointer(), length);
-			paragraph_properties->content_.fo_margin_bottom_ = length;
+			paragraph_properties->fo_margin_bottom_ = length;
 		}
 		if (oox_paragraph_pr->spcBef.IsInit())
 		{
  			odf_types::length_or_percent length;
 			convert(oox_paragraph_pr->spcBef.GetPointer(), length);
-			paragraph_properties->content_.fo_margin_top_ = length;
+			paragraph_properties->fo_margin_top_ = length;
 		}
 		if (oox_paragraph_pr->algn.IsInit())
 		{
 			switch(oox_paragraph_pr->algn->GetBYTECode())
 			{
-				case 0 : paragraph_properties->content_.fo_text_align_ = odf_types::text_align(odf_types::text_align::Center);	break;
+				case 0 : paragraph_properties->fo_text_align_ = odf_types::text_align(odf_types::text_align::Center);	break;
 				case 1 : 
 				case 2 : 
-				case 3 : paragraph_properties->content_.fo_text_align_ = odf_types::text_align(odf_types::text_align::Justify);	break;
-				case 5 : paragraph_properties->content_.fo_text_align_ = odf_types::text_align(odf_types::text_align::Right);	break;
+				case 3 : paragraph_properties->fo_text_align_ = odf_types::text_align(odf_types::text_align::Justify);	break;
+				case 5 : paragraph_properties->fo_text_align_ = odf_types::text_align(odf_types::text_align::Right);	break;
 				case 4 : 
 				default:
-					paragraph_properties->content_.fo_text_align_ = odf_types::text_align(odf_types::text_align::Left);			break;
+					paragraph_properties->fo_text_align_ = odf_types::text_align(odf_types::text_align::Left);			break;
 			}
 		}
 		if (oox_paragraph_pr->marL.IsInit())
 		{
-			paragraph_properties->content_.fo_margin_left_ = odf_types::length_or_percent(odf_types::length(oox_paragraph_pr->marL.get() / 12700., odf_types::length::pt));
+			paragraph_properties->fo_margin_left_ = odf_types::length_or_percent(odf_types::length(oox_paragraph_pr->marL.get() / 12700., odf_types::length::pt));
 		}
 		if (oox_paragraph_pr->marR.IsInit())
 		{
-			paragraph_properties->content_.fo_margin_right_ = odf_types::length_or_percent(odf_types::length(oox_paragraph_pr->marR.get() / 12700., odf_types::length::pt));
+			paragraph_properties->fo_margin_right_ = odf_types::length_or_percent(odf_types::length(oox_paragraph_pr->marR.get() / 12700., odf_types::length::pt));
 		}
 		if (oox_paragraph_pr->indent.IsInit())
 		{
-			paragraph_properties->content_.fo_text_indent_ = odf_types::length_or_percent(odf_types::length(oox_paragraph_pr->indent.get() / 12700., odf_types::length::pt));
+			paragraph_properties->fo_text_indent_ = odf_types::length_or_percent(odf_types::length(oox_paragraph_pr->indent.get() / 12700., odf_types::length::pt));
 		}
 		if (oox_paragraph_pr->rtl.IsInit() && *oox_paragraph_pr->rtl)
 		{
-			paragraph_properties->content_.style_writing_mode_= odf_types::writing_mode(odf_types::writing_mode::RlTb);
+			paragraph_properties->style_writing_mode_= odf_types::writing_mode(odf_types::writing_mode::RlTb);
 		}	
 	}
 	//defTabSz;
@@ -2102,7 +2177,7 @@ void OoxConverter::convert(PPTX::Logic::TextSpacing *oox_spacing, cpdoccore::odf
 	}
 }
 
-void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::style_text_properties * text_properties)
+void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::text_format_properties * text_properties)
 {
 	if (!oox_run_pr)		return;
 	if (!text_properties)	return;
@@ -2178,29 +2253,29 @@ void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::s
 	{		
 		if (std::wstring::npos == hexColorText.find(L"#"))
 			hexColorText = std::wstring(L"#") + hexColorText;
-		text_properties->content_.fo_color_ = odf_types::color(hexColorText);
+		text_properties->fo_color_ = odf_types::color(hexColorText);
 	}
 //---------------------------------------
 	if (oox_run_pr->b.IsInit())
 	{
 		if (oox_run_pr->b.get() == true) 
-			text_properties->content_.fo_font_weight_ = odf_types::font_weight(odf_types::font_weight::WBold);
+			text_properties->fo_font_weight_ = odf_types::font_weight(odf_types::font_weight::WBold);
 		else
-			text_properties->content_.fo_font_weight_ = odf_types::font_weight(odf_types::font_weight::WNormal);
+			text_properties->fo_font_weight_ = odf_types::font_weight(odf_types::font_weight::WNormal);
 	}
 
 	if (oox_run_pr->i.IsInit())
 	{
 		if (oox_run_pr->i.get() ==true)
-			text_properties->content_.fo_font_style_ = odf_types::font_style(odf_types::font_style::Italic);
+			text_properties->fo_font_style_ = odf_types::font_style(odf_types::font_style::Italic);
 		else
-			text_properties->content_.fo_font_style_ = odf_types::font_style(odf_types::font_style::Normal);
+			text_properties->fo_font_style_ = odf_types::font_style(odf_types::font_style::Normal);
 	}
 	if (oox_run_pr->sz.IsInit())
 	{
-		convert(oox_run_pr->sz.get()/100., text_properties->content_.fo_font_size_);
-		convert(oox_run_pr->sz.get()/100., text_properties->content_.style_font_size_asian_);
-		convert(oox_run_pr->sz.get()/100., text_properties->content_.style_font_size_complex_);
+		convert(oox_run_pr->sz.get()/100., text_properties->fo_font_size_);
+		convert(oox_run_pr->sz.get()/100., text_properties->style_font_size_asian_);
+		convert(oox_run_pr->sz.get()/100., text_properties->style_font_size_complex_);
 	}
 	if (oox_run_pr->latin.IsInit())
 	{
@@ -2210,11 +2285,11 @@ void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::s
 			convert_font(theme, font);
 							
 			if (!font.empty())
-				text_properties->content_.fo_font_family_ = font;
+				text_properties->fo_font_family_ = font;
 		}
 		else
 		{
-			text_properties->content_.fo_font_family_ = L"Calibri";//default_font; ???? 
+			text_properties->fo_font_family_ = L"Calibri";//default_font; ???? 
 		}
 	}
 	if (oox_run_pr->ea.IsInit())
@@ -2225,7 +2300,7 @@ void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::s
 			convert_font(theme, font);
 			
 			if (!font.empty())
-				text_properties->content_.style_font_family_asian_ = font;
+				text_properties->style_font_family_asian_ = font;
 		}
 		else
 		{
@@ -2239,7 +2314,7 @@ void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::s
 			convert_font(theme, font);
 			
 			if (!font.empty())
-				text_properties->content_.style_font_family_complex_ = font;
+				text_properties->style_font_family_complex_ = font;
 		}
 		else
 		{
@@ -2255,48 +2330,48 @@ void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::s
             oox_language = oox_language.substr(0, res);
 		}
 		
-		text_properties->content_.fo_language_ = oox_language;
+		text_properties->fo_language_ = oox_language;
         if (!oox_country.empty())
-			text_properties->content_.fo_country_ = oox_country;
+			text_properties->fo_country_ = oox_country;
 
 	}
 	if (oox_run_pr->spc.IsInit())
 	{
-		text_properties->content_.fo_letter_spacing_ = odf_types::letter_spacing(odf_types::length(oox_run_pr->spc.get()/100., odf_types::length::pt));
+		text_properties->fo_letter_spacing_ = odf_types::letter_spacing(odf_types::length(oox_run_pr->spc.get()/100., odf_types::length::pt));
 	}
 	if (oox_run_pr->u.IsInit())
 	{
-		text_properties->content_.style_text_underline_style_	= odf_types::line_style	(odf_types::line_style::Solid);
-		text_properties->content_.style_text_underline_type_	= odf_types::line_type	(odf_types::line_type::Single);
+		text_properties->style_text_underline_style_	= odf_types::line_style	(odf_types::line_style::Solid);
+		text_properties->style_text_underline_type_	= odf_types::line_type	(odf_types::line_type::Single);
 
 		switch(oox_run_pr->u->GetBYTECode())
 		{
 			case 12:
-				text_properties->content_.style_text_underline_style_	= boost::none;
-				text_properties->content_.style_text_underline_type_	= odf_types::line_type(odf_types::line_type::None);break;
+				text_properties->style_text_underline_style_	= boost::none;
+				text_properties->style_text_underline_type_	= odf_types::line_type(odf_types::line_type::None);break;
 			case 0:
 			case 1:
-				text_properties->content_.style_text_underline_style_	= odf_types::line_style(odf_types::line_style::Dash);break;
+				text_properties->style_text_underline_style_	= odf_types::line_style(odf_types::line_style::Dash);break;
 			case 5:
 			case 6:
-				text_properties->content_.style_text_underline_style_	= odf_types::line_style(odf_types::line_style::DotDash);break;
+				text_properties->style_text_underline_style_	= odf_types::line_style(odf_types::line_style::DotDash);break;
 			case 2:
 			case 3:
-				text_properties->content_.style_text_underline_style_	= odf_types::line_style(odf_types::line_style::LongDash);break;
+				text_properties->style_text_underline_style_	= odf_types::line_style(odf_types::line_style::LongDash);break;
 			case 7:
 			case 8:
-				text_properties->content_.style_text_underline_style_	= odf_types::line_style(odf_types::line_style::DotDotDash);break;
+				text_properties->style_text_underline_style_	= odf_types::line_style(odf_types::line_style::DotDotDash);break;
 			case 9:
 			case 10:
-				text_properties->content_.style_text_underline_style_	= odf_types::line_style(odf_types::line_style::Dotted);break;
+				text_properties->style_text_underline_style_	= odf_types::line_style(odf_types::line_style::Dotted);break;
 			case 14:
 			case 16:
-				text_properties->content_.style_text_underline_style_	= odf_types::line_style(odf_types::line_style::Wave);break;
+				text_properties->style_text_underline_style_	= odf_types::line_style(odf_types::line_style::Wave);break;
 			case 4:
-				text_properties->content_.style_text_underline_type_	= odf_types::line_type(odf_types::line_type::Double);break;
+				text_properties->style_text_underline_type_	= odf_types::line_type(odf_types::line_type::Double);break;
 			case 15:
-				text_properties->content_.style_text_underline_type_	= odf_types::line_type(odf_types::line_type::Double);
-				text_properties->content_.style_text_underline_style_	= odf_types::line_style(odf_types::line_style::Wave);break;
+				text_properties->style_text_underline_type_	= odf_types::line_type(odf_types::line_type::Double);
+				text_properties->style_text_underline_style_	= odf_types::line_style(odf_types::line_style::Wave);break;
 		}
 		PPTX::Logic::UniFill *fill = NULL;
 		if (oox_run_pr->uFillTx.IsInit())		fill = &oox_run_pr->uFillTx->Fill;
@@ -2310,7 +2385,7 @@ void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::s
 			convert(&solid.Color, hexColorText, opacityText);
 			if (!hexColorText.empty())
 			{
-				text_properties->content_.style_text_underline_color_ = odf_types::color(hexColorText);
+				text_properties->style_text_underline_color_ = odf_types::color(hexColorText);
 			}
 		}
 	}
@@ -2320,7 +2395,7 @@ void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::s
 		std::wstring	hexColorText;
 		convert(&oox_run_pr->highlight->Color, hexColorText, opacityText);
 		
-		text_properties->content_.fo_background_color_ = odf_types::color(hexColorText);
+		text_properties->fo_background_color_ = odf_types::color(hexColorText);
 	}
 
 	if (oox_run_pr->strike.IsInit())
@@ -2328,37 +2403,37 @@ void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::s
 		switch(oox_run_pr->strike->GetBYTECode())
 		{
 		case 0:
-			text_properties->content_.style_text_line_through_style_	= odf_types::line_style	(odf_types::line_style::Solid);
-			text_properties->content_.style_text_line_through_type_		= odf_types::line_type(odf_types::line_type::Double);	break;
+			text_properties->style_text_line_through_style_	= odf_types::line_style	(odf_types::line_style::Solid);
+			text_properties->style_text_line_through_type_		= odf_types::line_type(odf_types::line_type::Double);	break;
 		case 1:
-			text_properties->content_.style_text_line_through_style_	= boost::none;
-			text_properties->content_.style_text_line_through_type_		= odf_types::line_type(odf_types::line_type::None);		break;
+			text_properties->style_text_line_through_style_	= boost::none;
+			text_properties->style_text_line_through_type_		= odf_types::line_type(odf_types::line_type::None);		break;
 		case 2:
-			text_properties->content_.style_text_line_through_style_	= odf_types::line_style	(odf_types::line_style::Solid);
-			text_properties->content_.style_text_line_through_type_		= odf_types::line_type(odf_types::line_type::Single);	break;
+			text_properties->style_text_line_through_style_	= odf_types::line_style	(odf_types::line_style::Solid);
+			text_properties->style_text_line_through_type_		= odf_types::line_type(odf_types::line_type::Single);	break;
 		}
 	}
 
 	if (oox_run_pr->baseline.IsInit())
 	{
-		text_properties->content_.style_text_position_ = odf_types::text_position(*oox_run_pr->baseline / 1000.); 
+		text_properties->style_text_position_ = odf_types::text_position(*oox_run_pr->baseline / 1000.); 
 	}
 	if (oox_run_pr->cap.IsInit())
 	{
 		switch(oox_run_pr->cap->GetBYTECode())
 		{
 		case 0:
-			text_properties->content_.fo_text_transform_ = odf_types::text_transform(odf_types::text_transform::Uppercase);	break;
+			text_properties->fo_text_transform_ = odf_types::text_transform(odf_types::text_transform::Uppercase);	break;
 		case 1:
-			text_properties->content_.fo_font_variant_ = odf_types::font_variant(odf_types::font_variant::SmallCaps);		break;
+			text_properties->fo_font_variant_ = odf_types::font_variant(odf_types::font_variant::SmallCaps);		break;
 		case 2:
-			text_properties->content_.fo_font_variant_ = odf_types::font_variant(odf_types::font_variant::Normal);			break;
+			text_properties->fo_font_variant_ = odf_types::font_variant(odf_types::font_variant::Normal);			break;
 		}
 		
 	}
 	if (oox_run_pr->normalizeH.IsInit() && *oox_run_pr->normalizeH)
 	{
-		text_properties->content_.fo_text_transform_ = odf_types::text_transform(odf_types::text_transform::Capitalize);
+		text_properties->fo_text_transform_ = odf_types::text_transform(odf_types::text_transform::Capitalize);
 	}
 
 }
@@ -2371,7 +2446,7 @@ void OoxConverter::convert(PPTX::Logic::Run *oox_run)
 
 	if (oox_run->rPr.IsInit())
 	{
-		odf_writer::style_text_properties * text_properties = text_context->get_text_properties();
+		odf_writer::text_format_properties * text_properties = text_context->get_text_properties();
 		
 		if (!text_properties)
 		{
@@ -2386,9 +2461,9 @@ void OoxConverter::convert(PPTX::Logic::Run *oox_run)
 
 	if ((oox_run->rPr.IsInit()) && (oox_run->rPr->hlinkClick.IsInit()) && (oox_run->rPr->hlinkClick->id.IsInit()))
 	{
-		odf_writer::style_text_properties * text_properties = text_context->get_text_properties();
+		odf_writer::text_format_properties* text_properties = text_context->get_text_properties();
 		
-		if (!text_properties->content_.fo_color_)
+		if (!text_properties->fo_color_)
 		{
 			PPTX::Logic::UniColor colorLink;
 			colorLink.Color.reset(new PPTX::Logic::SchemeClr());
@@ -2400,12 +2475,13 @@ void OoxConverter::convert(PPTX::Logic::Run *oox_run)
 			_CP_OPT(double) opacity;
 			convert(&colorLink, strHexColor, opacity);
 			if (!strHexColor.empty())
-				text_properties->content_.fo_color_ = strHexColor;
+				text_properties->fo_color_ = strHexColor;
 		}
-		text_properties->content_.style_text_underline_type_	= odf_types::line_type::Single;
-		text_properties->content_.style_text_underline_style_	= odf_types::line_style::Solid;
+		text_properties->style_text_underline_type_	= odf_types::line_type::Single;
+		text_properties->style_text_underline_style_	= odf_types::line_style::Solid;
 		
-		std::wstring hlink = find_link_by_id(oox_run->rPr->hlinkClick->id.get(), 2);
+		bool bExternal = false;
+		std::wstring hlink = find_link_by_id(oox_run->rPr->hlinkClick->id.get(), 2, bExternal);
 		std::wstring location;
 		text_context->add_hyperlink(hlink, oox_run->GetText(), location);
 	}
@@ -2423,7 +2499,7 @@ void OoxConverter::convert(PPTX::Logic::Fld *oox_fld)
 
 	if (oox_fld->rPr.IsInit())
 	{
-		odf_writer::style_text_properties * text_properties = odf_context()->text_context()->get_text_properties();
+		odf_writer::text_format_properties * text_properties = odf_context()->text_context()->get_text_properties();
 		
 		if (!text_properties)
 		{
@@ -2440,7 +2516,8 @@ void OoxConverter::convert(PPTX::Logic::Fld *oox_fld)
 
 	if ((oox_fld->rPr.IsInit()) && (oox_fld->rPr->hlinkClick.IsInit()) && (oox_fld->rPr->hlinkClick->id.IsInit()))
 	{
-		std::wstring hlink = find_link_by_id(oox_fld->rPr->hlinkClick->id.get(), 2);
+		bool bExternal = false;
+		std::wstring hlink = find_link_by_id(oox_fld->rPr->hlinkClick->id.get(), 2, bExternal);
 		std::wstring location;
 		
 		odf_context()->text_context()->add_hyperlink(hlink, oox_fld->GetText(), location);

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -131,6 +131,10 @@ void draw_frame::xlsx_convert(oox::xlsx_conversion_context & Context)
     const std::wstring textStyleName = common_draw_attlist_.common_shape_draw_attlist_.draw_text_style_name_.get_value_or(L"");
 
 //////////////////////////////////////////////////////////////////////////
+	if (Context.get_text_context().is_drawing_context())
+	{
+		Context.get_drawing_context().set_text_box();
+	}
 	
 	bool bInnerFrame = Context.get_drawing_context().start_frame();
 
@@ -183,24 +187,26 @@ void draw_frame::xlsx_convert(oox::xlsx_conversion_context & Context)
 
 			instances.push_back(styleInst);
 		}
-		graphic_format_properties properties = calc_graphic_properties_content(instances);
+		graphic_format_properties_ptr properties = calc_graphic_properties_content(instances);
 
-		////////////////////////////////////////////////////////////////////
-		properties.apply_to(Context.get_drawing_context().get_properties());
+		oox::_oox_fill fill;
+		if (properties)
+		{
+			properties->apply_to(Context.get_drawing_context().get_properties());
+			Compute_GraphicFill(properties->common_draw_fill_attlist_, properties->style_background_image_, Context.root(), fill);
+
+			if (properties->fo_clip_)
+			{
+				std::wstring strRectClip = properties->fo_clip_.get();
+				Context.get_drawing_context().set_clipping(strRectClip.substr(5, strRectClip.length() - 6));
+			}
+		}
 
 		Context.get_drawing_context().set_property(odf_reader::_property(L"border_width_left", Compute_BorderWidth(properties, sideLeft)));
 		Context.get_drawing_context().set_property(odf_reader::_property(L"border_width_top", Compute_BorderWidth(properties, sideTop)));
 		Context.get_drawing_context().set_property(odf_reader::_property(L"border_width_right", Compute_BorderWidth(properties, sideRight)));
 		Context.get_drawing_context().set_property(odf_reader::_property(L"border_width_bottom", Compute_BorderWidth(properties, sideBottom)));
 
-		oox::_oox_fill fill;
-		Compute_GraphicFill(properties.common_draw_fill_attlist_, properties.style_background_image_,
-			Context.root()->odf_context().drawStyles(), fill);
-		if (properties.fo_clip_)
-		{
-			std::wstring strRectClip = properties.fo_clip_.get();
-			Context.get_drawing_context().set_clipping(strRectClip.substr(5, strRectClip.length() - 6));
-		}
 		Context.get_drawing_context().set_fill(fill);
 
 		oox_drawing_ = oox_drawing_ptr(new oox::_xlsx_drawing());
@@ -211,8 +217,9 @@ void draw_frame::xlsx_convert(oox::xlsx_conversion_context & Context)
 		office_element_ptr const & elm = content_[i];
         elm->xlsx_convert(Context);
     }
-	Context.get_drawing_context().end_frame();
     Context.get_drawing_context().end_drawing();    
+
+	Context.get_drawing_context().end_frame();
 }
 
 void draw_image::xlsx_convert(oox::xlsx_conversion_context & Context)
@@ -251,13 +258,15 @@ void draw_image::xlsx_convert(oox::xlsx_conversion_context & Context)
 	Context.get_drawing_context().set_image(href);
 
 ////////////////////////////////////в принципе достаточно общая часть ...
-	Context.get_text_context().start_drawing_content();//...  если в объекте есть текст он привяжется к объекту - иначе к ячейке
+	Context.get_text_context().start_drawing_content(); //...  если в объекте есть текст он привяжется к объекту - иначе к ячейке
+	Context.start_drawing_context();
 
 	for (size_t i = 0 ; i < content_.size(); i++)
     {
 		content_[i]->xlsx_convert(Context);
     }
 	std::wstring text_content_ = Context.get_text_context().end_drawing_content();
+	Context.end_drawing_context();
 
 	if (!text_content_.empty())
 	{
@@ -296,6 +305,7 @@ void draw_text_box::xlsx_convert(oox::xlsx_conversion_context & Context)
 	Context.get_drawing_context().set_text_box();
 
 	Context.get_text_context().start_drawing_content();
+	Context.start_drawing_context();
 
 	for (size_t i = 0 ; i < content_.size(); i++)
     {
@@ -303,6 +313,7 @@ void draw_text_box::xlsx_convert(oox::xlsx_conversion_context & Context)
     }
 
 	std::wstring text_content_ = Context.get_text_context().end_drawing_content();
+	Context.end_drawing_context();
 
 	if (!text_content_.empty())
 	{
@@ -352,7 +363,7 @@ void draw_object::xlsx_convert(oox::xlsx_conversion_context & Context)
 		}		
 		object_odf_context objectBuild(href);
 		
-		process_build_object process_build_object_(objectBuild, odf_document_->odf_context() );
+		process_build_object process_build_object_(objectBuild, odf_document_.get());
 		contentSubDoc->accept(process_build_object_); 
 //---------------------------------------------------------------------------------------------------------------------
 		if (objectBuild.object_type_ == 1) //диаграмма
@@ -391,10 +402,8 @@ void draw_object::xlsx_convert(oox::xlsx_conversion_context & Context)
 			{
 				std::wstring text_content = L"<a:p><a14:m xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\">";
 				text_content += L"<m:oMathPara xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\">";
-				text_content += L"<m:oMathParaPr/>";
-				text_content += L"<m:oMath xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\">";
 				text_content += math_content;
-				text_content += L"</m:oMath></m:oMathPara></a14:m></a:p>";
+				text_content += L"</m:oMathPara></a14:m></a:p>";
 
 				if (bNewObject)
 				{
