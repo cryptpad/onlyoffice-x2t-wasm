@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -52,14 +52,21 @@
 
 using namespace PPT;
 
-CPPTFileReader::CPPTFileReader(POLE::Storage *pStorage, std::wstring strTemp):
-	   m_pStorage(pStorage),  
-       m_bIsPPTFile(false),
-	   m_nPresentationCodePage(1250),
-	   m_pDocumentStream(),  m_pPictureStream(), m_pDocumentSummaryStream(), m_pEncryptedSummaryStream(),
-	   m_strTmpDirectory(strTemp),
-	   m_oDocumentInfo()
-{ 
+CPPTFileReader::CPPTFileReader(POLE::Storage* pStorage, const std::wstring& strTempPath) :
+	m_pStorage(pStorage),
+	m_bIsPPTFile(false),
+	m_nPresentationCodePage(1250),
+	m_pDocumentStream(), m_pPictureStream(), m_pDocumentSummaryStream(), m_pEncryptedSummaryStream()
+{
+	m_oCommonInfo.tempPath = strTempPath;
+	if (m_oCommonInfo.tempPath.empty())
+	{
+		m_oCommonInfo.tempPath = NSDirectory::GetTempPath();
+	}
+	m_oCommonInfo.tempPath = NSDirectory::CreateDirectoryWithUniqueName(m_oCommonInfo.tempPath);
+
+	m_oDocumentInfo.m_pCommonInfo = &m_oCommonInfo;
+
 	m_bDualStorage = false;
 
 	POLE::Stream *pStm = new POLE::Stream( m_pStorage, CURRENT_USER_STREAM);
@@ -86,20 +93,12 @@ CPPTFileReader::CPPTFileReader(POLE::Storage *pStorage, std::wstring strTemp):
 	}
 	
 	RELEASEOBJECT(pStm);
-
-    if (m_strTmpDirectory.empty())
-	{
-        m_strTmpDirectory = NSDirectory::GetTempPath();
-	}
-
-    m_strTmpDirectory = NSDirectory::CreateDirectoryWithUniqueName(m_strTmpDirectory);
-
 }
 CPPTFileReader::~CPPTFileReader()
 {
 	RELEASEOBJECT(m_pStorage);
 	
-    NSDirectory::DeleteDirectory(m_strTmpDirectory);
+    NSDirectory::DeleteDirectory(m_oCommonInfo.tempPath);
 }
 
 bool CPPTFileReader::IsPowerPoint()
@@ -126,7 +125,7 @@ void CPPTFileReader::ReadDocument()
 	ReadPictures();
 	ReadDocumentSummary();
 	
-	m_oDocumentInfo.LoadDocument(m_strTmpDirectory);
+	m_oDocumentInfo.LoadDocument();
 }
 
 bool CPPTFileReader::ReadCurrentUser(POLE::Stream *pStm)
@@ -171,14 +170,21 @@ XLS::CFStreamPtr CPPTFileReader::GetStreamByName(const std::wstring & name)
 
 	if (m_bDualStorage)	stream_name = std::wstring(PP97_DUALSTORAGE) + std::wstring(L"/");
 
-	POLE::Stream *pStream = new POLE::Stream(m_pStorage, stream_name + name);
-
-	if (pStream->fail())
+	try
 	{
-		RELEASEOBJECT(pStream);
+		POLE::Stream *pStream = new POLE::Stream(m_pStorage, stream_name + name);
+
+		if (pStream->fail())
+		{
+			RELEASEOBJECT(pStream);
+			return XLS::CFStreamPtr();
+		}
+		return XLS::CFStreamPtr(new XLS::CFStream(pStream));
+	}
+	catch (...)
+	{
 		return XLS::CFStreamPtr();
 	}
-	return XLS::CFStreamPtr( new XLS::CFStream(pStream));
 }
 XLS::CFStreamPtr CPPTFileReader::GetEncryptedSummaryStream()
 { 
@@ -282,11 +288,12 @@ void CPPTFileReader::ReadPictures()
 			break;// окончание стрима забито нулями (выравнивание)
 
 		CRecordOfficeArtBlip art_blip;
-		art_blip.m_strTmpDirectory	= m_strTmpDirectory;
-		art_blip.m_oDocumentInfo	= &m_oDocumentInfo;
+		
+		art_blip.m_pCommonInfo = &m_oCommonInfo;
+		art_blip.m_pDocumentInfo = &m_oDocumentInfo;
 			
 		art_blip.ReadFromStream(oHeader, pStream->stream_);	
-		m_oDocumentInfo.m_mapStoreImageFile[ pos ] = art_blip.m_sFileName;
+		m_oDocumentInfo.m_mapStoreImageFile[ pos ] = art_blip.m_fileName;
 
 		pos += (oHeader.RecLen + 8);
 		pStream->seekFromBegin(pos);

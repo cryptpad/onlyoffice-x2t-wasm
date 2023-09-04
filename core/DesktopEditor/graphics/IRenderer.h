@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -64,6 +64,9 @@ const long c_nComplexFigureType = 0x0800;
 const long c_nPDFGradientType   = 0x1000;
 const long c_nTableCell			= 0x2000;
 
+const long c_nMaskType          = 0x3000;
+const long c_nResetMaskType     = 0x4000;
+
 const long c_nPDFTilingFill				= 0x2001;
 const long c_nPDFTilingFillIteration	= 0x2002;
 
@@ -107,6 +110,7 @@ const long c_nParamFlipY		= 0x0002;
 const long c_nFlipNextRotate	= 0x0004;
 const long c_nDarkMode          = 0x0008;
 const long c_nUseDictionaryFonts = 0x0010;
+const long c_nPenWidth0As1px	= 0x0020;
 
 // типы рендерера
 const long c_nUnknownRenderer   = 0x0000;
@@ -124,27 +128,31 @@ const long c_nHtmlRendrerer3    = 0x0011;
 const long c_nHtmlRendrererText = 0x0012;
 const long c_nQRenderer         = 0x0013;
 
+const int c_nAdditionalParamBreak = 0x00;
+
 // типы команд
 const long c_nCommandLongTypeOnlyText = 0x1000;
 
 class IFormField
 {
 public:
-	IFormField() {}
-	virtual ~IFormField() {}
+    IFormField() {}
+    virtual ~IFormField() {}
 };
+
+namespace Aggplus { class CImage; }
 
 // IRenderer
 class IRenderer : public IGrObject
 {
 public:
-	bool m_bUseTransformCoordsToIdentity;
+    bool m_bUseTransformCoordsToIdentity;
 
 public:
-	IRenderer()
-	{
-		m_bUseTransformCoordsToIdentity = false;
-	}
+    IRenderer()
+    {
+        m_bUseTransformCoordsToIdentity = false;
+    }
 
 public:
 	// тип рендерера-----------------------------------------------------------------------------
@@ -194,10 +202,14 @@ public:
 	virtual HRESULT put_BrushAlpha2(const LONG& lAlpha)					= 0;
 	virtual HRESULT get_BrushTexturePath(std::wstring* bsPath)			= 0;
 	virtual HRESULT put_BrushTexturePath(const std::wstring& bsPath)	= 0;
+	virtual HRESULT get_BrushTextureImage(Aggplus::CImage** pImage)		= 0;
+	virtual HRESULT put_BrushTextureImage(Aggplus::CImage* pImage)		= 0;
 	virtual HRESULT get_BrushTextureMode(LONG* lMode)					= 0;
 	virtual HRESULT put_BrushTextureMode(const LONG& lMode)				= 0;
 	virtual HRESULT get_BrushTextureAlpha(LONG* lTxAlpha)				= 0;
 	virtual HRESULT put_BrushTextureAlpha(const LONG& lTxAlpha)			= 0;
+	virtual HRESULT get_BrushTransform(Aggplus::CMatrix& oMatrix)		= 0;
+	virtual HRESULT put_BrushTransform(const Aggplus::CMatrix& oMatrix) = 0;
 	virtual HRESULT get_BrushLinearAngle(double* dAngle)				= 0;
 	virtual HRESULT put_BrushLinearAngle(const double& dAngle)			= 0;
 	virtual HRESULT BrushRect(const INT& val, const double& left, const double& top, const double& width, const double& height) = 0;
@@ -297,7 +309,7 @@ public:
 		SetTransform(mass[0], mass[1], mass[2], mass[3], mass[4], mass[5]);
 		return S_OK;
 	}
-	virtual HRESULT SetBaseTransform(const double& m1, const double& m2, const double& m3, const double& m4, const double& m5, const double& m6) { return S_OK; }
+	virtual HRESULT SetBaseTransform(const double& m1, const double& m2, const double& m3, const double& m4, const double& m5, const double& m6) { return S_OK; };
 	virtual HRESULT SetTransform(const double& m1, const double& m2, const double& m3, const double& m4, const double& m5, const double& m6) = 0;
 	virtual HRESULT GetTransform(double *pdA, double *pdB, double *pdC, double *pdD, double *pdE, double *pdF)	= 0;
 	virtual HRESULT ResetTransform() = 0;
@@ -325,21 +337,24 @@ public:
 	virtual HRESULT AddLink(const double& dX, const double& dY, const double& dW, const double& dH, const double& dDestX, const double& dDestY, const int& nPage) {return S_OK;}
 	virtual HRESULT AddFormField(IFormField* pField) {return S_OK;}
 	virtual HRESULT DocInfo(const std::wstring& wsTitle, const std::wstring& wsCreator, const std::wstring& wsSubject, const std::wstring& wsKeywords) {return S_OK;}
+
+	virtual HRESULT IsExistAdditionalParam(const int& type) {return S_FALSE;}
+	virtual HRESULT GetAdditionalParam(const int& type, std::string& result) {return S_FALSE;}
 };
 
-#define PROPERTY_RENDERER(NameBase, Name, Type)			\
-	STDMETHOD(get_##NameBase##Name)(Type* pVal)			\
-{													\
-	if (NULL == pVal)								\
-	return S_FALSE;								\
-	*pVal =	m_o##NameBase.##Name;					\
-	return S_OK;									\
-	}													\
-	STDMETHOD(put_##NameBase##Name)(Type Val)			\
-{													\
-	m_o##NameBase.##Name = Val;						\
-	return S_OK;									\
-	}
+#define PROPERTY_RENDERER(NameBase, Name, Type)    \
+    STDMETHOD(get_##NameBase##Name)(Type* pVal)    \
+    {                                              \
+        if (NULL == pVal)                          \
+            return S_FALSE;                        \
+        *pVal = m_o##NameBase.##Name;              \
+        return S_OK;                               \
+    }                                              \
+    STDMETHOD(put_##NameBase##Name)(Type Val)      \
+    {                                              \
+        m_o##NameBase.##Name = Val;                \
+        return S_OK;                               \
+    }
 
 // exapmle:
 // PROPERTY_RENDERER(Pen, Color, LONG)

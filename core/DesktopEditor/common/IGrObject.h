@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -43,49 +43,49 @@ class IGrObject
 protected:
 
 #ifdef __APPLE__
-    volatile int32_t m_lRef;
+	volatile int32_t m_lRef;
 #else
-    ULONG m_lRef;
+	ULONG m_lRef;
 #endif
 
 public:
-    IGrObject()
-    {
-        m_lRef = 1;
-    }
+	IGrObject()
+	{
+		m_lRef = 1;
+	}
 
-    virtual ~IGrObject()
-    {
-    }
+	virtual ~IGrObject()
+	{
+	}
 
 #ifdef __APPLE__
-    virtual ULONG AddRef()
-    {
-        OSAtomicIncrement32(&m_lRef);
-        return (ULONG)m_lRef;
-    }
-    virtual ULONG Release()
-    {
-        int32_t ret = OSAtomicDecrement32(&m_lRef);
-        if (0 == m_lRef)
-            delete this;
+	virtual ULONG AddRef()
+	{
+		OSAtomicIncrement32(&m_lRef);
+		return (ULONG)m_lRef;
+	}
+	virtual ULONG Release()
+	{
+		int32_t ret = OSAtomicDecrement32(&m_lRef);
+		if (0 == m_lRef)
+			delete this;
 
-        return (ULONG)ret;
-    }
+		return (ULONG)ret;
+	}
 #else
-    virtual ULONG AddRef()
-    {
-        ++m_lRef;
-        return m_lRef;
-    }
+	virtual ULONG AddRef()
+	{
+		++m_lRef;
+		return m_lRef;
+	}
 
-    virtual ULONG Release()
-    {
-        ULONG ret = --m_lRef;
-        if (0 == m_lRef)
-            delete this;
-        return ret;
-    }
+	virtual ULONG Release()
+	{
+		ULONG ret = --m_lRef;
+		if (0 == m_lRef)
+			delete this;
+		return ret;
+	}
 #endif
 };
 

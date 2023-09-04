@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -33,8 +33,6 @@
 #include "RtfDocument.h"
 
 #include "../OOXml/Writer/OOXWriter.h"
-
-#include "../../Common/MS-LCID.h"
 
 RtfAbsPosTab::RtfAbsPosTab()
 {
@@ -278,7 +276,7 @@ std::wstring RtfChar::renderRtfText( std::wstring& sText, void* poDocument, int 
 	
 	if (nCodePage == CP_ACP && pDocument->m_nUserLCID > 0)
 	{
-		nCodePage = msLCID2DefCodePage(pDocument->m_nUserLCID);
+		nCodePage = pDocument->m_lcidConverter.get_codepage(pDocument->m_nUserLCID);
 	}
 
     std::wstring    unicodeStr (sText);

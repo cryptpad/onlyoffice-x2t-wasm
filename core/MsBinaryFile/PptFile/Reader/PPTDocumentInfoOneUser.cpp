@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -159,6 +159,8 @@ bool CPPTUserInfo::ReadFromStream(CRecordUserEditAtom* pUser, POLE::Stream* pStr
     }
 
     CRecordPersistDirectoryAtom oPersist;
+    oPersist.m_pCommonInfo = m_pDocumentInfo->m_pCommonInfo;
+
     oPersist.ReadFromStream(oHeader, pStream);
     oPersist.ToMap(&m_mapOffsetInPIDs);
     //--------------------------------------------------------------------------------------------------
@@ -186,7 +188,7 @@ bool CPPTUserInfo::ReadFromStream(CRecordUserEditAtom* pUser, POLE::Stream* pStr
             {
                 return false;
             }
-            std::wstring sTemp = m_strTmpDirectory + FILE_SEPARATOR_STR + L"~tempFile.ppt";
+            std::wstring sTemp = m_pDocumentInfo->m_pCommonInfo->tempPath + FILE_SEPARATOR_STR + L"~tempFile.ppt";
 
             m_pStorageDecrypt = new POLE::Storage(sTemp.c_str());
             m_pStorageDecrypt->open(true, true);
@@ -236,6 +238,7 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
     {
         return false;
     }
+    m_oDocument.m_pCommonInfo = m_pDocumentInfo->m_pCommonInfo;
     m_oDocument.ReadFromStream(oHeader, pStreamTmp);
 
     std::map<_UINT32, _UINT32>::iterator nIndexPsrRef;
@@ -258,6 +261,8 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
             oHeader.ReadFromStream(pStreamTmp);
 
             CRecordSlide* pSlide = new CRecordSlide();
+            pSlide->m_pCommonInfo = m_pDocumentInfo->m_pCommonInfo;
+            
             pSlide->ReadFromStream(oHeader, pStreamTmp);
             pSlide->m_oPersist = m_oDocument.m_arMasterPersists[index];
 
@@ -289,6 +294,8 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
             oHeader.ReadFromStream(pStreamTmp);
 
             CRecordSlide* pSlide = new CRecordSlide();
+            pSlide->m_pCommonInfo = m_pDocumentInfo->m_pCommonInfo;
+            
             pSlide->ReadFromStream(oHeader, pStreamTmp);
             pSlide->m_oPersist = m_oDocument.m_arNotePersists[index];
 
@@ -321,6 +328,8 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
             oHeader.ReadFromStream(pStreamTmp);
 
             CRecordSlide* pSlide = new CRecordSlide();
+            pSlide->m_pCommonInfo = m_pDocumentInfo->m_pCommonInfo;
+           
             pSlide->ReadFromStream(oHeader, pStreamTmp);
             pSlide->m_oPersist	= m_oDocument.m_arSlidePersists[index];
 
@@ -369,6 +378,8 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
             oHeader.ReadFromStream(pStreamTmp);
 
             CRecordSlide* pSlide = new CRecordSlide();
+            pSlide->m_pCommonInfo = m_pDocumentInfo->m_pCommonInfo;
+            
             pSlide->ReadFromStream(oHeader, pStreamTmp);
             pSlide->m_oPersist.m_nPsrRef = oArrayDoc[0]->m_nNotesMasterPersistIDRef;
             pSlide->m_Index		= 0;
@@ -391,6 +402,8 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
             oHeader.ReadFromStream(pStreamTmp);
 
             CRecordSlide* pSlide = new CRecordSlide();
+            pSlide->m_pCommonInfo = m_pDocumentInfo->m_pCommonInfo;           
+            
             pSlide->ReadFromStream(oHeader, pStreamTmp);
             pSlide->m_oPersist.m_nPsrRef = oArrayDoc[0]->m_nHandoutMasterPersistIDRef;
             pSlide->m_Index		= 0;
@@ -427,7 +440,7 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
                     }
                     oHeader.ReadFromStream(pStreamTmp);
 
-                    m_VbaProjectStg = new CRecordVbaProjectStg(m_strTmpDirectory);
+                    m_VbaProjectStg = new CRecordVbaProjectStg(m_pDocumentInfo->m_pCommonInfo->tempPath);
                     m_VbaProjectStg->ReadFromStream(oHeader, pStreamTmp);
 
                     if (m_VbaProjectStg->m_sFileName.empty())
@@ -446,10 +459,10 @@ bool CPPTUserInfo::ReadDocumentPersists(POLE::Stream* pStream)
     return true;
 }
 //--------------------------------------------------------------------------------------------
-void CPPTUserInfo::ReadExtenalObjects(std::wstring strFolderMem)
+void CPPTUserInfo::ReadExtenalObjects()
 {
     // так... теперь берем всю инфу о ExObject -----------------------------
-    m_oExMedia.m_strPresentationDirectory	= strFolderMem;
+    m_oExMedia.m_strPresentationDirectory = m_pDocumentInfo->m_pCommonInfo->tempPath;
 
     PPT::CExFilesInfo oInfo;
 
@@ -2305,7 +2318,7 @@ void CPPTUserInfo::LoadExternal(CRecordExObjListContainer* pExObjects)
 
         for (int i = 0; i < nSize; ++i)
         {
-            std::vector<CRecordCString*>		oArrayStrings;
+            std::vector<CRecordCString*> oArrayStrings;
             std::vector<CRecordSoundDataBlob*> oArrayData;
 
             oArraySounds[i]->GetRecordsByType(&oArrayStrings, false);

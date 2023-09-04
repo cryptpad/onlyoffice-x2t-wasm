@@ -354,7 +354,7 @@ namespace MetaFile
 		int nX = _shX;
 		int nY = _shY;
 
-		if (m_pDC->GetTextAlign() & TA_UPDATECP)
+		if (m_pDC->GetTextAlign() & TA_UPDATECP && (0 == _shX && 0 == _shY))
 		{
 			nX = m_pDC->GetCurPos().x;
 			nY = m_pDC->GetCurPos().y;
@@ -957,14 +957,29 @@ namespace MetaFile
 		if (NULL != m_pInterpretator)
 			m_pInterpretator->HANDLE_META_ARC(shYEndArc, shXEndArc, shYStartArc, shXStartArc, shBottom, shRight, shTop, shLeft);
 
-		double dStartAngle = GetEllipseAngle((int)shLeft, (int)shTop, (int)shRight, (int)shBottom, (int)shXStartArc, (int)shYStartArc);
-		double dEndAngle   = GetEllipseAngle((int)shLeft, (int)shTop, (int)shRight, (int)shBottom, (int)shXEndArc, (int)shYEndArc);
+		double dXC = (shRight + shLeft) / 2.;
+		double dYC = (shTop + shBottom) / 2.;
+
+		double dXRadius = std::fabs(shRight - shLeft) / 2;
+		double dYRadius = std::fabs(shBottom - shTop) / 2;
+
+		double dStartAngle = agg::rad2deg(std::atan2(shYStartArc - dYC, shXStartArc - dXC));
+		double dEndAngle   = agg::rad2deg(std::atan2(shYEndArc - dYC, shXEndArc - dXC));
+
+		if ((shXStartArc - dXC) < 0 && (shYStartArc - dYC) < 0)
+			dStartAngle += 360;
+
+		if ((shXEndArc - dXC) < 0 && (shYEndArc - dYC) < 0)
+			dEndAngle += 360;
+
+		double dX1 = dXC + std::cos(agg::deg2rad(dStartAngle)) * dXRadius;
+		double dY1 = dYC + std::sin(agg::deg2rad(dStartAngle)) * dYRadius;
+
 		double dSweepAngle = GetSweepAngle(dStartAngle, dEndAngle);
 
-		m_pDC->SetCurPos(shXStartArc, shYStartArc);
+		MoveTo(dX1, dY1);
 		ArcTo(shLeft, shTop, shRight, shBottom, dStartAngle, dSweepAngle);
 		DrawPath(true, false);
-		m_pDC->SetCurPos(shXEndArc, shYEndArc);
 	}
 
 	void CWmfParserBase::HANDLE_META_CHORD(short shYEndArc, short shXEndArc, short shYStartArc, short shXStartArc, short shBottom, short shRight, short shTop, short shLeft)
@@ -1255,7 +1270,7 @@ namespace MetaFile
 	void CWmfParserBase::HANDLE_META_TEXTOUT(short shStringLength, unsigned char *pString, short shY, short shX)
 	{
 		if (NULL != m_pInterpretator)
-			m_pInterpretator->HANDLE_META_TEXTOUT(shStringLength, pString, shY, shX);
+			m_pInterpretator->HANDLE_META_TEXTOUT(shStringLength, pString, shX, shY);
 
 		DrawText(pString, shStringLength, shX, shY, NULL);
 	}
@@ -1656,78 +1671,106 @@ namespace MetaFile
 	void CWmfParserBase::HANDLE_META_ESCAPE(unsigned short ushEscapeFunction, unsigned short ushByteCount)
 	{
 		if (NULL != m_pInterpretator)
-		{
 			m_pInterpretator->HANDLE_META_ESCAPE(ushEscapeFunction, ushByteCount);
 
-			if (WMF_META_ESCAPE_ENHANCED_METAFILE == ushEscapeFunction)
+		if (WMF_META_ESCAPE_ENHANCED_METAFILE == ushEscapeFunction)
+		{
+			if (ushByteCount < 34)
+				return;
+
+			unsigned int unCommentIdentifier, unCommentType, unVersion;
+
+			m_oStream >> unCommentIdentifier;
+			m_oStream >> unCommentType;
+			m_oStream >> unVersion;
+
+			if (0x43464D57 != unCommentIdentifier || 0x00000001 != unCommentType || 0x00010000 != unVersion)
+				return;
+
+			unsigned short ushChecksum;
+			unsigned int unFlags;
+
+			m_oStream >> ushChecksum;
+			m_oStream >> unFlags;
+
+			if (0x00000000 != unFlags)
+				return;
+
+			unsigned int unCommentRecordCount, unCurrentRecordSize, unRemainingBytes, unEnhancedMetafileDataSize;
+
+			m_oStream >> unCommentRecordCount;
+			m_oStream >> unCurrentRecordSize;
+			m_oStream >> unRemainingBytes;
+			m_oStream >> unEnhancedMetafileDataSize;
+
+			if (m_oEscapeBuffer.Empty())
+				m_oEscapeBuffer.SetSize(unEnhancedMetafileDataSize);
+
+			unsigned int nEscapeRecordSize = m_oEscapeBuffer.GetTileSize();
+			if (nEscapeRecordSize > unCurrentRecordSize)
+				nEscapeRecordSize = unCurrentRecordSize;
+
+			m_oStream.ReadBytes(m_oEscapeBuffer.GetCurPtr(), nEscapeRecordSize);
+			m_oEscapeBuffer.IncreasePosition(nEscapeRecordSize);
+
+			if (0 == unRemainingBytes)
 			{
-				if (ushByteCount < 34)
-					return;
+				CEmfParser oEmfParser;
 
-				unsigned int unCommentIdentifier, unCommentType, unVersion;
+				oEmfParser.SetFontManager(GetFontManager());
+				oEmfParser.SetStream(m_oEscapeBuffer.GetBuffer(), m_oEscapeBuffer.GetSize());
+				oEmfParser.Scan();
 
-				m_oStream >> unCommentIdentifier;
-				m_oStream >> unCommentType;
-				m_oStream >> unVersion;
-
-				if (0x43464D57 != unCommentIdentifier || 0x00000001 != unCommentType || 0x00010000 != unVersion)
-					return;
-
-				unsigned short ushChecksum;
-				unsigned int unFlags;
-
-				m_oStream >> ushChecksum;
-				m_oStream >> unFlags;
-
-				if (0x00000000 != unFlags)
-					return;
-
-				unsigned int unCommentRecordCount, unCurrentRecordSize, unRemainingBytes, unEnhancedMetafileDataSize;
-
-				m_oStream >> unCommentRecordCount;
-				m_oStream >> unCurrentRecordSize;
-				m_oStream >> unRemainingBytes;
-				m_oStream >> unEnhancedMetafileDataSize;
-
-				if (m_oEscapeBuffer.Empty())
-					m_oEscapeBuffer.SetSize(unEnhancedMetafileDataSize);
-
-				m_oStream.ReadBytes(m_oEscapeBuffer.GetCurPtr(), unCurrentRecordSize);
-
-				m_oEscapeBuffer.IncreasePosition(unCurrentRecordSize);
-
-				if (0 == unRemainingBytes)
+				if (oEmfParser.CheckError())
 				{
-					CEmfParser oEmfParser;
-
-					oEmfParser.SetFontManager(GetFontManager());
-					oEmfParser.SetStream(m_oEscapeBuffer.GetBuffer(), m_oEscapeBuffer.GetSize());
-					oEmfParser.Scan();
-
-					if (!oEmfParser.CheckError() && InterpretatorType::Render == m_pInterpretator->GetType())
-					{
-						CMetaFileRenderer oEmfOut(&oEmfParser, ((CWmfInterpretatorRender*)m_pInterpretator)->GetRenderer());
-						oEmfParser.SetInterpretator(&oEmfOut);
-
-						oEmfParser.PlayFile();
-
-						m_bEof = true;
-					}
-					else if (!oEmfParser.CheckError() && InterpretatorType::Svg == m_pInterpretator->GetType())
-					{
-						double dWidth, dHeight;
-
-						((CWmfInterpretatorSvg*)m_pInterpretator)->GetSize(dWidth, dHeight);
-
-						((CEmfParserBase*)&oEmfParser)->SetInterpretator(InterpretatorType::Svg, dWidth, dHeight);
-
-						oEmfParser.PlayFile();
-
-						((CWmfInterpretatorSvg*)m_pInterpretator)->SetXmlWriter(((CEmfInterpretatorSvg*)oEmfParser.GetInterpretator())->GetXmlWriter());
-
-						m_bEof = true;
-					}
+					m_oEscapeBuffer.Clear();
+					return;
 				}
+
+				if (NULL == m_pInterpretator)
+				{
+					m_oEscapeBuffer.Clear();
+					return HANDLE_META_EOF();
+				}
+				else if (InterpretatorType::Render == m_pInterpretator->GetType())
+				{
+					CMetaFileRenderer oEmfOut(&oEmfParser, ((CWmfInterpretatorRender*)m_pInterpretator)->GetRenderer());
+					oEmfParser.SetInterpretator(&oEmfOut);
+
+					oEmfParser.PlayFile();
+
+					HANDLE_META_EOF();
+				}
+				else if (InterpretatorType::Svg == m_pInterpretator->GetType())
+				{
+					double dWidth, dHeight;
+
+					((CWmfInterpretatorSvg*)m_pInterpretator)->GetSize(dWidth, dHeight);
+
+					((CEmfParserBase*)&oEmfParser)->SetInterpretator(InterpretatorType::Svg, dWidth, dHeight);
+
+					XmlUtils::CXmlWriter *pXmlWriter = ((CWmfInterpretatorSvg*)GetInterpretator())->GetXmlWriter();
+
+					TRectD oCurrentRect = GetBounds();
+					TEmfRectL* pEmfRect =  oEmfParser.GetBounds();
+
+					double dScaleX = std::abs((oCurrentRect.dRight - oCurrentRect.dLeft) / (pEmfRect->lRight - pEmfRect->lLeft));
+					double dScaleY = std::abs((oCurrentRect.dBottom - oCurrentRect.dTop) / (pEmfRect->lBottom - pEmfRect->lTop));
+
+					pXmlWriter->WriteNodeBegin(L"g", true);
+					pXmlWriter->WriteAttribute(L"transform", L"scale(" + std::to_wstring(dScaleX) + L',' + std::to_wstring(dScaleY) + L')');
+					pXmlWriter->WriteNodeEnd(L"g", true, false);
+
+					((CEmfInterpretatorSvg*)oEmfParser.GetInterpretator())->SetXmlWriter(pXmlWriter);
+
+					oEmfParser.PlayFile();
+
+					pXmlWriter->WriteNodeEnd(L"g", false, false);
+
+					HANDLE_META_EOF();
+				}
+
+				m_oEscapeBuffer.Clear();
 			}
 		}
 		// TODO: Реализовать

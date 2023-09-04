@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -152,15 +152,13 @@ namespace NSDoctRenderer
 			{
 				m_nCountChangesItems = oNodeChanges.ReadAttributeInt(L"TopItem", -1);
 
-				XmlUtils::CXmlNodes oNodes;
+                std::vector<XmlUtils::CXmlNode> oNodes;
 				oNodeChanges.GetNodes(L"Change", oNodes);
 
-				int nCount = oNodes.GetCount();
-				for (int i = 0; i < nCount; ++i)
+                size_t nCount = oNodes.size();
+                for (size_t i = 0; i < nCount; ++i)
 				{
-					XmlUtils::CXmlNode _node;
-					oNodes.GetAt(i, _node);
-
+                    XmlUtils::CXmlNode & _node = oNodes[i];
 					m_arChanges.push_back(_node.GetText());
 				}
 			}
@@ -391,6 +389,7 @@ namespace NSDoctRenderer
 			}
 			case DoctRendererFormat::PDF:
 			case DoctRendererFormat::PPTX_THEME_THUMBNAIL:
+			case DoctRendererFormat::IMAGE:
 			{
 				// CALCULATE
 				if (pParams->m_sJsonParams.empty())
@@ -423,14 +422,28 @@ namespace NSDoctRenderer
 				}
 
 				// RENDER
-				if (!bIsBreak && DoctRendererFormat::PDF == pParams->m_eDstFormat)
+				if (!bIsBreak &&
+					(DoctRendererFormat::PDF == pParams->m_eDstFormat || DoctRendererFormat::IMAGE == pParams->m_eDstFormat))
 				{
 					if (pParams->m_sJsonParams.empty())
-						args[0] = CJSContext::createNull();
+					{
+						if (DoctRendererFormat::IMAGE == pParams->m_eDstFormat)
+						{
+							args[0] = context->JSON_Parse("{ \"saveFormat\" : \"image\" }");
+						}
+						else
+							args[0] = CJSContext::createNull();
+					}
 					else
 					{
 						std::string sTmp = U_TO_UTF8((pParams->m_sJsonParams));
 						args[0] = context->JSON_Parse(sTmp.c_str());
+
+						if (DoctRendererFormat::IMAGE == pParams->m_eDstFormat)
+						{
+							JSSmart<CJSObject> argObj = args[0]->toObject();
+							argObj->set("saveFormat", CJSContext::createString("image"));
+						}
 					}
 
 					JSSmart<CJSValue> js_result2 = js_objectApi->call_func("asc_nativeGetPDF", 1, args);
@@ -535,61 +548,47 @@ namespace NSDoctRenderer
 
 		bool ExecuteScript(const std::string& strScript, const std::wstring& sCachePath, std::wstring& strError, std::wstring& strReturnParams)
 		{
-			LOGGER_SPEED_START
+			if (strScript.empty() && sCachePath.empty()) return true;
 
-					bool bIsBreak = false;
+			LOGGER_SPEED_START();
+
+			bool bIsBreak = false;
 			JSSmart<CJSContext> context = new CJSContext();
-			context->Initialize();
 
 			if (true)
 			{
-				JSSmart<CJSIsolateScope> isolate_scope = context->CreateIsolateScope();
-				JSSmart<CJSLocalScope>   handle_scope  = context->CreateLocalScope();
+				CJSContextScope scope(context);
+				CJSContext::Embed<CNativeControlEmbed>(false);
+				CJSContext::Embed<CGraphicsEmbed>();
+				NSJSBase::CreateDefaults();
 
-				context->CreateGlobalForContext();
-				CNativeControlEmbed::CreateObjectBuilderInContext("CreateNativeEngine", context);
-				CGraphicsEmbed::CreateObjectInContext("CreateNativeGraphics", context);
-				NSJSBase::CreateDefaults(context);
-				context->CreateContext();
-
-				JSSmart<CJSContextScope> context_scope = context->CreateContextScope();
 				JSSmart<CJSTryCatch>         try_catch = context->GetExceptions();
 
-				LOGGER_SPEED_LAP("compile")
+				JSSmart<CJSObject> global_js = context->GetGlobal();
+				global_js->set("window", global_js);
 
-						JSSmart<CJSValue> res = context->runScript(strScript, try_catch, sCachePath);
+				JSSmart<CJSObject> oNativeCtrl = CJSContext::createEmbedObject("CNativeControlEmbed");
+				global_js->set("native", oNativeCtrl);
+
+				NSNativeControl::CNativeControl* pNative = static_cast<NSNativeControl::CNativeControl*>(oNativeCtrl->getNative()->getObject());
+				pNative->m_sConsoleLogFile = m_sConsoleLogFile;
+
+				LOGGER_SPEED_LAP("compile");
+
+				JSSmart<CJSValue> res = context->runScript(strScript, try_catch, sCachePath);
 				if(try_catch->Check())
 				{
 					strError = L"code=\"run\"";
 					bIsBreak = true;
 				}
 
-				LOGGER_SPEED_LAP("run")
+				LOGGER_SPEED_LAP("run");
 
-						//---------------------------------------------------------------
-						JSSmart<CJSObject> global_js = context->GetGlobal();
+				//---------------------------------------------------------------
 				JSSmart<CJSValue> args[1];
 				args[0] = CJSContext::createInt(0);
 
-				NSNativeControl::CNativeControl* pNative = NULL;
-
 				// GET_NATIVE_ENGINE
-				if (!bIsBreak)
-				{
-					JSSmart<CJSValue> js_result2 = global_js->call_func("GetNativeEngine", 1, args);
-					if (try_catch->Check())
-					{
-						strError = L"code=\"run\"";
-						bIsBreak = true;
-					}
-					else
-					{
-						JSSmart<CJSObject> objNative = js_result2->toObject();
-						pNative = (NSNativeControl::CNativeControl*)objNative->getNative()->getObject();
-						pNative->m_sConsoleLogFile = m_sConsoleLogFile;
-					}
-				}
-
 				if (pNative != NULL)
 				{
 					pNative->m_pChanges = &m_oParams.m_arChanges;
@@ -653,10 +652,10 @@ namespace NSDoctRenderer
 					}
 				}
 
-				LOGGER_SPEED_LAP("open")
+				LOGGER_SPEED_LAP("open");
 
-						// CHANGES
-						if (!bIsBreak)
+				// CHANGES
+				if (!bIsBreak)
 				{
 					if (m_oParams.m_arChanges.size() != 0)
 					{
@@ -704,9 +703,9 @@ namespace NSDoctRenderer
 					}
 				}
 
-				LOGGER_SPEED_LAP("changes")
+				LOGGER_SPEED_LAP("changes");
 
-						bool bIsMailMerge = false;
+				bool bIsMailMerge = false;
 				if (!m_oParams.m_strMailMergeDatabasePath.empty() &&
 						m_oParams.m_nMailMergeIndexEnd >= m_oParams.m_nMailMergeIndexStart &&
 						m_oParams.m_nMailMergeIndexEnd >= 0)
@@ -825,7 +824,7 @@ namespace NSDoctRenderer
 					bIsBreak = Doct_renderer_SaveFile(&m_oParams, pNative, context, args, strError, js_objectApi);
 				}
 
-				LOGGER_SPEED_LAP("save")
+				LOGGER_SPEED_LAP("save");
 			}
 
 			context->Dispose();
@@ -891,6 +890,7 @@ namespace NSDoctRenderer
 			{
 			case DoctRendererFormat::DOCT:
 			case DoctRendererFormat::PDF:
+			case DoctRendererFormat::IMAGE:
 			case DoctRendererFormat::HTML:
 			{
 				arSdkFiles = &m_pInternal->m_arDoctSDK;
@@ -908,6 +908,7 @@ namespace NSDoctRenderer
 			{
 			case DoctRendererFormat::PPTT:
 			case DoctRendererFormat::PDF:
+			case DoctRendererFormat::IMAGE:
 			case DoctRendererFormat::PPTX_THEME_THUMBNAIL:
 			{
 				arSdkFiles = &m_pInternal->m_arPpttSDK;
@@ -925,6 +926,7 @@ namespace NSDoctRenderer
 			{
 			case DoctRendererFormat::XLST:
 			case DoctRendererFormat::PDF:
+			case DoctRendererFormat::IMAGE:
 			{
 				arSdkFiles = &m_pInternal->m_arXlstSDK;
 				m_pInternal->m_strEditorType = L"spreadsheet";
@@ -1077,20 +1079,18 @@ namespace NSDoctRenderer
 				strScript += "\n$.ready();";
 
 			JSSmart<CJSContext> context = new CJSContext();
-			context->Initialize();
 
 			if (true)
 			{
-				JSSmart<CJSIsolateScope> isolate_scope = context->CreateIsolateScope();
-				JSSmart<CJSLocalScope>   handle_scope  = context->CreateLocalScope();
+				CJSContextScope scope(context);
+				CJSContext::Embed<CNativeControlEmbed>();
+				CJSContext::Embed<CGraphicsEmbed>();
+				NSJSBase::CreateDefaults();
 
-				context->CreateGlobalForContext();
-				CNativeControlEmbed::CreateObjectBuilderInContext("CreateNativeEngine", context);
-				CGraphicsEmbed::CreateObjectInContext("CreateNativeGraphics", context);
-				NSJSBase::CreateDefaults(context);
-				context->CreateContext();
+				JSSmart<CJSObject> global = context->GetGlobal();
+				global->set("window", global);
+				global->set("native", CJSContext::createEmbedObject("CNativeControlEmbed"));
 
-				JSSmart<CJSContextScope> context_scope = context->CreateContextScope();
 				JSSmart<CJSTryCatch> try_catch = context->GetExceptions();
 
 				context->runScript(strScript, try_catch, sCachePath);

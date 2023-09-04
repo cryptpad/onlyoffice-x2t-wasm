@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -107,12 +107,12 @@ const wchar_t * style_drawing_page_properties::name = L"drawing-page-properties"
 
 void style_drawing_page_properties::add_attributes( const xml::attributes_wc_ptr & Attributes )
 {
-	drawing_page_properties_.add_attributes(Attributes);
+	content_.add_attributes(Attributes);
 }
 void style_drawing_page_properties::add_child_element( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name)
 {
 	if CP_CHECK_NAME(L"presentation", L"sound")
-        CP_CREATE_ELEMENT(drawing_page_properties_.presentation_sound_);
+        CP_CREATE_ELEMENT(content_.presentation_sound_);
     else
         CP_NOT_APPLICABLE_ELM();
 }

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -39,7 +39,7 @@
 
 #include "../../../DesktopEditor/common/File.h"
 
-inline static std::wstring ReplaceString(std::wstring subject, const std::wstring& search, const std::wstring& replace) 
+inline static std::wstring ReplaceString(std::wstring subject, const std::wstring& search, const std::wstring& replace)
 {
 	size_t pos = 0;
 
@@ -58,20 +58,20 @@ namespace XMLTools
 	class XMLAttribute
 	========================================================================================================*/
 
-    class XMLAttribute
+	class XMLAttribute
 	{
 	private:
-        std::wstring m_Name;
-        std::wstring m_Value;
+		std::wstring m_Name;
+		std::wstring m_Value;
 
 	public:
 
 		XMLAttribute();
-		XMLAttribute( const std::wstring & name );
-		XMLAttribute( const std::wstring & name, const std::wstring & value );
+		XMLAttribute(const std::wstring& name);
+		XMLAttribute(const std::wstring& name, const std::wstring& value);
 		~XMLAttribute();
 
-		void SetValue( const std::wstring & value );
+		void SetValue(const std::wstring& value);
 		std::wstring GetName() const;
 
 		/*========================================================================================================*/
@@ -85,51 +85,51 @@ namespace XMLTools
 
 	/*========================================================================================================
 	class XMLElement
-    ========================================================================================================*/
+	========================================================================================================*/
 
 	class XMLElement;
 	typedef class boost::shared_ptr<XMLElement> XMLElementPtr;
 
 	class XMLElement
 	{
-        typedef std::pair< std::wstring, std::wstring> AttributeValuePair;
+		typedef std::pair< std::wstring, std::wstring> AttributeValuePair;
 
 	private:
-        std::wstring									m_Name;
-        std::wstring									m_ElementText;
-        std::unordered_map<std::wstring, std::wstring>	m_AttributeMap;
-        std::unordered_map<std::wstring, int>			m_ChildMap; //for uniq
-        std::list<XMLElement>                           m_Elements;
+		std::wstring									m_Name;
+		std::wstring									m_ElementText;
+		std::unordered_map<std::wstring, std::wstring>	m_AttributeMap;
+		std::unordered_map<std::wstring, int>			m_ChildMap; //for uniq
+		std::list<XMLElement>                           m_Elements;
 
-        typedef std::list<XMLElement>::iterator          ElementsIterator;
-        typedef std::list<XMLElement>::const_iterator    ElementsIteratorConst;
+		typedef std::list<XMLElement>::iterator          ElementsIterator;
+		typedef std::list<XMLElement>::const_iterator    ElementsIteratorConst;
 
-        typedef std::unordered_map<std::wstring, std::wstring>::iterator            AttMapIterator;
-        typedef std::unordered_map<std::wstring, std::wstring>::const_iterator      AttMapIteratorConst;
+		typedef std::unordered_map<std::wstring, std::wstring>::iterator            AttMapIterator;
+		typedef std::unordered_map<std::wstring, std::wstring>::const_iterator      AttMapIteratorConst;
 
-    public:
+	public:
 		XMLElement();
-		XMLElement( const std::wstring & name );
-		XMLElement( const std::wstring & prefix, const std::wstring & localName );
+		XMLElement(const std::wstring& name);
+		XMLElement(const std::wstring& prefix, const std::wstring& localName);
 		~XMLElement();
 
-		void AppendText( const std::wstring & text );
-		void AppendTextSymbol( const wchar_t symbol );
+		void AppendText(const std::wstring& text);
+		void AppendTextSymbol(const wchar_t symbol);
 
-		void AppendAttribute( const XMLAttribute& attribute );
-		void AppendAttribute( const std::wstring & name, const std::wstring & value );
+		void AppendAttribute(const XMLAttribute& attribute);
+		void AppendAttribute(const std::wstring& name, const std::wstring& value);
 
-		void AppendChild( const XMLElement& element, bool uniq = false);
-		void AppendChild( XMLElementPtr element, bool uniq = false);
+		void AppendChild(const XMLElement& element, bool uniq = false);
+		void AppendChild(XMLElementPtr element, bool uniq = false);
 
-		void RemoveChild( const XMLElement& element );
+		void RemoveChild(const XMLElement& element);
 
-		bool FindChild( const XMLElement& element );
-		bool FindChildByName( const std::wstring & elementName ) const;
+		bool FindChild(const XMLElement& element);
+		bool FindChildByName(const std::wstring& elementName) const;
 
-		bool RemoveChildByName( const std::wstring& elementName );
+		bool RemoveChildByName(const std::wstring& elementName);
 
-		bool operator == ( const XMLElement& element ) const;
+		bool operator == (const XMLElement& element) const;
 
 		/*========================================================================================================*/
 
@@ -151,7 +151,7 @@ namespace XMLTools
 	class CStringXmlWriter
 	{
 		std::wstring m_str;
-	
+
 	public:
 		CStringXmlWriter();
 		std::wstring GetXmlString();
@@ -160,7 +160,7 @@ namespace XMLTools
 		void Clear();
 		bool SaveToFile(const std::wstring& strFilePath, bool bEncodingToUTF8 = false);
 
-		void WriteString(const std::wstring & strValue);
+		void WriteString(const std::wstring& strValue);
 		void WriteInteger(int Value, int Base = 10);
 		void WriteDouble(double Value);
 		void WriteBoolean(bool Value);

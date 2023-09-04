@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -74,9 +74,10 @@ bool CPPTDocumentInfo::ReadFromStream(CRecordCurrentUserAtom *pCurrentUser, POLE
         oHeader.ReadFromStream(pStream);
         oUserAtom.ReadFromStream(oHeader, pStream);
 
-        CPPTUserInfo* pInfo			= new CPPTUserInfo();
+        CPPTUserInfo* pInfo = new CPPTUserInfo();
 
-        pInfo->m_strTmpDirectory	= m_strTmpDirectory;
+        pInfo->m_pDocumentInfo      = this;
+
         pInfo->m_bEncrypt			= m_oCurrentUser.m_bIsEncrypt;
         pInfo->m_strPassword		= m_strPassword;
         pInfo->m_bMacros			= m_bMacros;
@@ -100,7 +101,6 @@ bool CPPTDocumentInfo::ReadFromStream(CRecordCurrentUserAtom *pCurrentUser, POLE
 
         m_arUsers.push_back(pInfo);
         // теперь нужно выставить у него параметры для других юзеров
-        pInfo->m_pDocumentInfo = this;
         pInfo->m_lIndexThisUser = m_arUsers.size() - 1;
 
         pInfo = NULL;
@@ -109,13 +109,13 @@ bool CPPTDocumentInfo::ReadFromStream(CRecordCurrentUserAtom *pCurrentUser, POLE
     return true;
 }
 
-bool CPPTDocumentInfo::LoadDocument(std::wstring strFolderMem)
+bool CPPTDocumentInfo::LoadDocument()
 {
     if (m_arUsers.empty()) return false;
 
     try
     {
-        m_arUsers[0]->ReadExtenalObjects(strFolderMem);
+        m_arUsers[0]->ReadExtenalObjects();
         m_arUsers[0]->FromDocument();
     }
     catch(int) //error code

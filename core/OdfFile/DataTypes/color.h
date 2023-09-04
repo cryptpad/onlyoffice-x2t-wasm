@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -35,33 +35,58 @@
 #include <string>
 #include "odfattributes.h"
 
+namespace cpdoccore {
+    namespace odf_types {
 
-namespace cpdoccore { namespace odf_types { 
+        class color
+        {
+        public:
+            color() {};
 
-class color
-{
-public:
-    color() {};
-    
-    color(const std::wstring & _Color) : color_(_Color) {};
-    
-    const std::wstring & get_color() const 
-    { 
-        return color_; 
-    };
+            color(const std::wstring& _Color) : color_(_Color) {};
 
-    const std::wstring get_hex_value(bool alfa = false) const;
+            const std::wstring& get_color() const
+            {
+                return color_;
+            };
 
-    static color parse(const std::wstring & Str);
+            const std::wstring get_hex_value(bool alfa = false) const;
 
-private:
-    std::wstring color_;
-};
+            static color parse(const std::wstring& Str);
 
-std::wostream & operator << (std::wostream & _Wostream, const color & _Color);
-bool            operator== (const color & c1, const color & c2);
-} 
+        private:
+            std::wstring color_;
+        };
+        std::wostream& operator << (std::wostream& _Wostream, const color& _Color);
+        bool            operator== (const color& c1, const color& c2);
+        //----------------------------------------------------------------------------------------------------------
+        class color_type
+        {
+        public:
+            enum type
+            {
+                rgb,
+                theme
+            };
 
+            color_type() {}
+
+            color_type(type _Type) : type_(_Type)
+            {}
+
+            type get_type() const
+            {
+                return type_;
+            };
+
+            static color_type parse(const std::wstring& Str);
+        private:
+            type type_;
+        };
+        std::wostream& operator << (std::wostream& _Wostream, const color_type& _Val);
+    }
+
+APPLY_PARSE_XML_ATTRIBUTES(odf_types::color_type);
 APPLY_PARSE_XML_ATTRIBUTES(odf_types::color);
 
 }

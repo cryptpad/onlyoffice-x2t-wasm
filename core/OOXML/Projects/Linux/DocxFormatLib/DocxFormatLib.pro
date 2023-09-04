@@ -22,7 +22,6 @@ DEFINES +=  UNICODE _UNICODE \
 #BOOST
 include($$PWD/../../../../Common/3dParty/boost/boost.pri)
 
-!disable_precompiled_header:CONFIG += precompile_header
 precompile_header {
     PRECOMPILED_HEADER = precompiled.h
     HEADERS += precompiled.h
@@ -60,10 +59,10 @@ SOURCES += \
 	../../../DocxFormat/Logic/Shape.cpp \
 	../../../DocxFormat/External/ExternalHyperLink.cpp \
 	../../../DocxFormat/External/External.cpp \
+	../../../DocxFormat/Media/ActiveX.cpp \
 	../../../DocxFormat/Media/Media.cpp \
 	../../../DocxFormat/Media/VbaProject.cpp \
 	../../../DocxFormat/Media/JsaProject.cpp \
-	../../../DocxFormat/Media/ActiveX.cpp \
 	../../../DocxFormat/Media/Audio.cpp \
 	../../../DocxFormat/Media/Video.cpp \
 	../../../DocxFormat/Media/Image.cpp \
@@ -77,7 +76,6 @@ SOURCES += \
 	../../../DocxFormat/Comments.cpp \
 	../../../DocxFormat/Document.cpp \
 	../../../DocxFormat/VmlDrawing.cpp \
-	../../../DocxFormat/Namespaces.cpp \
 	../../../XlsxFormat/CalcChain/CalcChain.cpp \
 	../../../XlsxFormat/Chart/Chart.cpp \
 	../../../XlsxFormat/Chart/ChartColors.cpp \
@@ -123,7 +121,6 @@ SOURCES += \
 	../../../DocxFormat/Styles.cpp \
 	../../../DocxFormat/UnknowTypeFile.cpp \
 	../../../DocxFormat/IFileContainer.cpp \
-	../../../DocxFormat/Document.cpp \
 	../../../XlsxFormat/FileFactory_Spreadsheet.cpp \
 	../../../XlsxFormat/ComplexTypes_Spreadsheet.cpp \
 	../../../DocxFormat/Drawing/Drawing.cpp \
@@ -168,7 +165,6 @@ SOURCES += \
 	../../../XlsxFormat/Slicer/SlicerCache.cpp \
 	../../../XlsxFormat/Slicer/SlicerCacheExt.cpp \
 	../../../XlsxFormat/Slicer/Slicer.cpp \
-	../../../XlsxFormat/ExternalLinks/ExternalLinks.cpp \
 	../../../XlsxFormat/NamedSheetViews/NamedSheetViews.cpp \
 	../../../XlsxFormat/Pivot/PivotCacheDefinitionExt.cpp \
 	../../../XlsxFormat/Workbook/Workbook.cpp \
@@ -221,7 +217,6 @@ HEADERS += \
 	../../../DocxFormat/External/HyperLink.h \
 	../../../DocxFormat/Logic/AlternateContent.h \
 	../../../DocxFormat/Logic/Annotations.h \
-	../../../DocxFormat/Logic/BaseLogicSettings.h \
 	../../../DocxFormat/Logic/Bdo.h \
 	../../../DocxFormat/Logic/Dir.h \
 	../../../DocxFormat/Logic/FldChar.h \
@@ -247,12 +242,14 @@ HEADERS += \
 	../../../DocxFormat/Math/oMathBottomNodes.h \
 	../../../DocxFormat/Math/oMathContent.h \
 	../../../DocxFormat/Math/oMathPara.h \
+	../../../DocxFormat/Media/ActiveX.h \
 	../../../DocxFormat/Media/Audio.h \
 	../../../DocxFormat/Media/Image.h \
 	../../../DocxFormat/Media/Media.h \
 	../../../DocxFormat/Media/OleObject.h \
 	../../../DocxFormat/Media/Video.h \
 	../../../DocxFormat/Media/JsaProject.h \
+	../../../DocxFormat/Media/VbaProject.h \
 	../../../DocxFormat/Settings/Settings.h \
 	../../../DocxFormat/Settings/WebSettings.h \
 	../../../DocxFormat/App.h \
@@ -276,14 +273,13 @@ HEADERS += \
 	../../../DocxFormat/HeaderFooter.h \
 	../../../DocxFormat/IFileBuilder.h \
 	../../../DocxFormat/IFileContainer.h \
-	../../../DocxFormat/NamespaceOwn.h \
-	../../../DocxFormat/Namespaces.h \
 	../../../DocxFormat/Numbering.h \
 	../../../DocxFormat/Rels.h \
 	../../../DocxFormat/RId.h \
 	../../../DocxFormat/Styles.h \
 	../../../DocxFormat/Unit.h \
 	../../../DocxFormat/UnknowTypeFile.h \
+	../../../DocxFormat/VmlDrawing.h \
 	../../../DocxFormat/WritingElement.h \
 	../../../SystemUtility/SystemUtility.h \
 	../../../Base/codecvt.h \
@@ -364,7 +360,7 @@ HEADERS += \
 	../../../XlsxFormat/ExternalLinks/ExternalLinks.h \
 	../../../XlsxFormat/Worksheets/Sparkline.h \
 	../../../XlsxFormat/Ole/OleObjects.h \
-	../../../DocxFormat/ Diagram/DiagramColors.h \
+	../../../DocxFormat/Diagram/DiagramColors.h \
 	../../../DocxFormat/Diagram/DiagramData.h \
 	../../../DocxFormat/Diagram/DiagramDrawing.h \
 	../../../DocxFormat/Diagram/DiagramLayout.h \

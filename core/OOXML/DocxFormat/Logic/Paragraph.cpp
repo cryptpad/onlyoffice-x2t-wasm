@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,11 +32,13 @@
 #include "../DocxFlat.h"
 #include "../Comments.h"
 
+#include "Table.h"
 #include "Paragraph.h"
 #include "Annotations.h"
 #include "Run.h"
 #include "RunProperty.h"
 #include "ParagraphProperty.h"
+#include "SectionProperty.h"
 #include "FldSimple.h"
 #include "Bdo.h"
 #include "Sdt.h"
@@ -46,6 +48,8 @@
 
 #include "../Math/OMath.h"
 #include "../Math/oMathPara.h"
+
+#include "../../Common/SimpleTypes_Word.h"
 
 // TO DO: Нехватающие классы:
 //        <w:customXml>
@@ -62,21 +66,15 @@ namespace OOX
 		// CParagraph 17.3.1.22 (Part 1)
 		//--------------------------------------------------------------------------------	
 
-		CParagraph::CParagraph(OOX::Document *pMain) : WritingElementWithChilds<>(pMain)
+		CParagraph::CParagraph(OOX::Document *pMain, WritingElement *parent) : WritingElementWithChilds<>(pMain)
 		{
 			m_oParagraphProperty = NULL;
-		}
-		CParagraph::CParagraph(XmlUtils::CXmlNode &oNode) : WritingElementWithChilds<>(NULL)
-		{
-			fromXML( oNode );
-		}
-		CParagraph::CParagraph(XmlUtils::CXmlLiteReader& oReader) : WritingElementWithChilds<>(NULL)
-		{
-			fromXML( oReader );
+			m_oParent = parent;
 		}
 		CParagraph::~CParagraph()
 		{
 			m_oParagraphProperty = NULL;
+			m_oParent = NULL;
 		}
 		const CParagraph& CParagraph::operator =(const XmlUtils::CXmlNode& oNode)
 		{
@@ -114,75 +112,75 @@ namespace OOX
             XmlMacroReadAttributeBase( oNode,L"w:rsidRDefault", m_oRsidRDefault );
             XmlMacroReadAttributeBase( oNode,L"w:rsidRPr",      m_oRsidRPr );
 
-			XmlUtils::CXmlNodes oChilds;
+			std::vector<XmlUtils::CXmlNode> oChilds;
 			if ( oNode.GetNodes(L"*", oChilds ) )
 			{
-				XmlUtils::CXmlNode oItem;
-				for ( int nIndex = 0; nIndex < oChilds.GetCount(); nIndex++ )
+				for ( size_t nIndex = 0; nIndex < oChilds.size(); nIndex++ )
 				{
-					if ( oChilds.GetAt( nIndex, oItem ) )
+					XmlUtils::CXmlNode& oItem = oChilds[nIndex];
+					if (oItem.IsValid())
 					{
 						std::wstring sName = oItem.GetName();
 						WritingElement *pItem = NULL;
 
 						if (L"w:bdo" == sName )
-							pItem = new CBdo( oItem );
+							AssignPtrXmlContent(pItem, CBdo, oItem)
 						else if (L"w:bookmarkEnd" == sName )
-							pItem = new CBookmarkEnd( oItem );
+							AssignPtrXmlContent(pItem, CBookmarkEnd, oItem)
 						else if (L"w:bookmarkStart" == sName )
-							pItem = new CBookmarkStart( oItem );
+							AssignPtrXmlContent(pItem, CBookmarkStart, oItem)
 						else if (L"w:commentRangeEnd" == sName )
-							pItem = new CCommentRangeEnd( oItem );
+							AssignPtrXmlContent(pItem, CCommentRangeEnd, oItem)
 						else if (L"w:commentRangeStart" == sName )
-							pItem = new CCommentRangeStart( oItem );
+							AssignPtrXmlContent(pItem, CCommentRangeStart, oItem)
 						//else if (L"w:customXml" == sName )
 						//	pItem = new CCustomXml( oItem );
 						else if (L"w:customXmlDelRangeEnd" == sName )
-							pItem = new CCustomXmlDelRangeEnd( oItem );
+							AssignPtrXmlContent(pItem, CCustomXmlDelRangeEnd, oItem)
 						else if (L"w:customXmlDelRangeStart" == sName )
-							pItem = new CCustomXmlDelRangeStart( oItem );
+							AssignPtrXmlContent(pItem, CCustomXmlDelRangeStart, oItem)
 						else if (L"w:customXmlInsRangeEnd" == sName )
-							pItem = new CCustomXmlInsRangeEnd( oItem );
+							AssignPtrXmlContent(pItem, CCustomXmlInsRangeEnd, oItem)
 						else if (L"w:customXmlInsRangeStart" == sName )
-							pItem = new CCustomXmlInsRangeStart( oItem );
+							AssignPtrXmlContent(pItem, CCustomXmlInsRangeStart, oItem)
 						else if (L"w:customXmlMoveFromRangeEnd" == sName ) 
-							pItem = new CCustomXmlMoveFromRangeEnd( oItem );
+							AssignPtrXmlContent(pItem, CCustomXmlMoveFromRangeEnd, oItem)
 						else if (L"w:customXmlMoveFromRangeStart" == sName )
-							pItem = new CCustomXmlMoveFromRangeStart( oItem );
+							AssignPtrXmlContent(pItem, CCustomXmlMoveFromRangeStart, oItem)
 						else if (L"w:customXmlMoveToRangeEnd" == sName ) 
-							pItem = new CCustomXmlMoveToRangeEnd( oItem );
+							AssignPtrXmlContent(pItem, CCustomXmlMoveToRangeEnd, oItem)
 						else if (L"w:customXmlMoveToRangeStart" == sName )
-							pItem = new CCustomXmlMoveToRangeStart( oItem );
+							AssignPtrXmlContent(pItem, CCustomXmlMoveToRangeStart, oItem)
 						//else if (L"w:del" == sName )
 						//	pItem = new CDel( oItem );
 						else if (L"w:dir" == sName )
-							pItem = new CDir( oItem );
+							AssignPtrXmlContent(pItem, CDir, oItem)
 						else if (L"w:fldSimple" == sName )
-							pItem = new CFldSimple( oItem );
+							AssignPtrXmlContent(pItem, CFldSimple, oItem)
 						else if (L"w:hyperlink" == sName )
-							pItem = new CHyperlink( oItem );
+							AssignPtrXmlContent(pItem, CHyperlink, oItem)
 						//else if (L"w:ins" == sName )
 						//	pItem = new CIns( oItem );
 						//else if (L"w:moveFrom" == sName )
 						//	pItem = new CMoveFrom( oItem );
 						else if (L"w:moveFromRangeEnd" == sName )
-							pItem = new CMoveFromRangeEnd( oItem );
+							AssignPtrXmlContent(pItem, CMoveFromRangeEnd, oItem)
 						else if (L"w:moveFromRangeStart" == sName )
-							pItem = new CMoveFromRangeStart( oItem );
+							AssignPtrXmlContent(pItem, CMoveFromRangeStart, oItem)
 						//else if (L"w:moveTo" == sName )
 						//	pItem = new CMoveTo( oItem );
 						else if (L"w:moveToRangeEnd" == sName )
-							pItem = new CMoveToRangeEnd( oItem );
+							AssignPtrXmlContent(pItem, CMoveToRangeEnd, oItem)
 						else if (L"w:moveToRangeStart" == sName )
-							pItem = new CMoveToRangeStart( oItem );
+							AssignPtrXmlContent(pItem, CMoveToRangeStart, oItem)
 						else if (L"m:oMath" == sName )
-							pItem = new COMath( oItem );
+							AssignPtrXmlContent(pItem, COMath, oItem)
 						else if (L"m:oMathPara" == sName )
-							pItem = new COMathPara( oItem );
+							AssignPtrXmlContent(pItem, COMathPara, oItem)
 						else if (L"w:permEnd" == sName )
-							pItem = new CPermEnd( oItem );
+							AssignPtrXmlContent(pItem, CPermEnd, oItem)
 						else if (L"w:permStart" == sName )
-							pItem = new CPermStart( oItem );
+							AssignPtrXmlContent(pItem, CPermStart, oItem)
 						else if (L"w:pPr" == sName )
 						{
 							if (m_oParagraphProperty)
@@ -198,13 +196,13 @@ namespace OOX
 							}
 						}
 						else if (L"w:proofErr" == sName )
-							pItem = new CProofErr( oItem );
+							AssignPtrXmlContent(pItem, CProofErr, oItem)
 						else if (L"w:r" == sName )
-							pItem = new CRun( oItem );
+							AssignPtrXmlContent(pItem, CRun, oItem)
 						else if (L"w:sdt" == sName )
-							pItem = new CSdt( oItem );
+							AssignPtrXmlContent(pItem, CSdt, oItem)
 						else if (L"w:smartTag" == sName )
-							pItem = new CSmartTag( oItem );
+							AssignPtrXmlContent(pItem, CSmartTag, oItem)
 						//else if (L"w:subDoc" == sName )
 						//	pItem = new CSubDoc( oItem );
 
@@ -264,7 +262,8 @@ namespace OOX
 						pItem = new CCommentRangeEnd( document );
 					else if (sType.IsInit()  && std::wstring::npos != sType->find(L"Comment"))
 					{
-						pItem = new CComment( oReader );
+						//pItem = new CComment( oReader );
+						AssignPtrXmlContent(pItem, CComment, oReader)
 						
 						CDocxFlat* docx_flat = dynamic_cast<CDocxFlat*>(document);
 						if (docx_flat)
@@ -349,7 +348,7 @@ namespace OOX
 				else if (L"proofErr" == sName )
 					pItem = new CProofErr( document );
 				else if (L"r" == sName )
-					pItem = new CRun( document );
+					pItem = new CRun( document, this );
 				else if (L"sdt" == sName )
 					pItem = new CSdt( document );
 				else if (L"smartTag" == sName )
@@ -371,10 +370,29 @@ namespace OOX
 					int nWxSubSectDepth = oReader.GetDepth();
 					fromXML(nWxSubSectDepth, oReader);
 				}
+				else if (L"tbl" == sName)
+				{
+					WritingElementWithChilds *parent = dynamic_cast<WritingElementWithChilds*>(m_oParent);
+					if (parent)
+					{
+						WritingElement *pItemUpper = new CTbl(document);
+						if (pItemUpper)
+						{
+							pItemUpper->fromXML(oReader);
+							parent->m_arrItems.push_back(pItemUpper);
+						}
+					}
+				}
+				else if (L"p" == sName)
+				{
+					int nDepthChild = oReader.GetDepth();
+
+					fromXML(nDepthChild, oReader);
+				}
 				if ( pItem )
 				{
-					m_arrItems.push_back( pItem );
 					pItem->fromXML(oReader);
+					m_arrItems.push_back( pItem );
 				}
 			}
 		}
