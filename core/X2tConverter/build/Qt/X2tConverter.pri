@@ -102,7 +102,7 @@ LIBS += -L$$CORE_BUILDS_LIBRARIES_PATH -lCryptoPPLib
 #All dynamic libs
 
 # CryptPad: Remove build dependencies to reduce WASM size
-ADD_DEPENDENCY(graphics, kernel, UnicodeConverter, PdfFile, doctrenderer, DocxRenderer)
+ADD_DEPENDENCY(graphics, kernel, UnicodeConverter, PdfFile, doctrenderer)
 
 
 #####################################################

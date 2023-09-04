@@ -146,7 +146,7 @@ RUN embuild.sh --no-sanitize PdfFile
 # RUN embuild.sh XpsFile
 # RUN embuild.sh DjVuFile
 # RUN embuild.sh HtmlRenderer
-RUN embuild.sh -q "CONFIG+=doct_renderer_empty" -s DesktopEditor/doctrenderer
+# RUN embuild.sh -q "CONFIG+=doct_renderer_empty" -s DesktopEditor/doctrenderer
 RUN embuild.sh DocxRenderer
 
 COPY pre-js.js /pre-js.js
