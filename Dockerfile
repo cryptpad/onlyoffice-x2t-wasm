@@ -56,9 +56,42 @@ RUN . /emsdk/emsdk_env.sh \
 WORKDIR /
 RUN git clone --recurse-submodules https://github.com/boostorg/boost.git
 WORKDIR /boost
-RUN git checkout boost-1.82.0
+RUN git fetch -a \
+ && git checkout boost-1.83.0
 RUN . /emsdk/emsdk_env.sh \
  && CXXFLAGS=-fms-extensions emcmake cmake '-DBOOST_EXCLUDE_LIBRARIES=wave;type_erasure;thread;serialization;program_options;log;locale;json;graph;contract;context;coroutine;fiber'
+
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make install
+RUN find / -iname "*date_time*"
+RUN find / -iname "*regex*"
+RUN exit 1
+
+# Ideas taken from https://github.com/jedisct1/openssl-wasm
+WORKDIR /
+ADD https://www.openssl.org/source/openssl-3.1.2.tar.gz /
+RUN tar xvfz openssl-*.tar.gz
+WORKDIR /openssl-3.1.2
+RUN . /emsdk/emsdk_env.sh \
+ && env \
+    CROSS_COMPILE="" \
+    CFLAGS="-Os" \
+    ./Configure \
+    no-asm \
+    no-async \
+    no-egd \
+    no-ktls \
+    no-module \
+    no-posix-io \
+    no-secure-memory \
+    no-shared \
+    no-sock \
+    no-stdio \
+    no-threads \
+    no-ui-console \
+    no-weak-ssl-ciphers
 RUN . /emsdk/emsdk_env.sh \
  && emmake make
 RUN . /emsdk/emsdk_env.sh \
