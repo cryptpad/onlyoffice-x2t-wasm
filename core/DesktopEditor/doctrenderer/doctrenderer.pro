@@ -25,9 +25,10 @@ HEADERS += \
     doctrenderer.h \
     docbuilder.h
 
+# CryptPad: Use empty doctrenderer
 SOURCES += \
     nativecontrol.cpp \
-    doctrenderer.cpp \
+    doctrenderer_empty.cpp \
     docbuilder.cpp \
     docbuilder_p.cpp \
     graphics.cpp \

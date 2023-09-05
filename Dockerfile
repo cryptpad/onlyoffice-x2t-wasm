@@ -52,23 +52,6 @@ RUN . /emsdk/emsdk_env.sh \
 RUN . /emsdk/emsdk_env.sh \
  && emmake make install
 
-# emscriptens boost does not work because of missing symbols
-WORKDIR /
-RUN git clone --recurse-submodules https://github.com/boostorg/boost.git
-WORKDIR /boost
-RUN git fetch -a \
- && git checkout boost-1.83.0
-RUN . /emsdk/emsdk_env.sh \
- && CXXFLAGS=-fms-extensions emcmake cmake '-DBOOST_EXCLUDE_LIBRARIES=wave;type_erasure;thread;serialization;program_options;log;locale;json;graph;contract;context;coroutine;fiber'
-
-RUN . /emsdk/emsdk_env.sh \
- && emmake make
-RUN . /emsdk/emsdk_env.sh \
- && emmake make install
-RUN find / -iname "*date_time*"
-RUN find / -iname "*regex*"
-RUN exit 1
-
 # Ideas taken from https://github.com/jedisct1/openssl-wasm
 WORKDIR /
 ADD https://www.openssl.org/source/openssl-3.1.2.tar.gz /
@@ -92,6 +75,21 @@ RUN . /emsdk/emsdk_env.sh \
     no-threads \
     no-ui-console \
     no-weak-ssl-ciphers
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make install
+
+# emscriptens boost does not work because of missing symbols
+WORKDIR /
+RUN git clone --recurse-submodules https://github.com/boostorg/boost.git
+WORKDIR /boost
+RUN git fetch -a \
+ && git checkout boost-1.83.0
+RUN . /emsdk/emsdk_env.sh \
+ && CXXFLAGS=-fms-extensions emcmake cmake '-DBOOST_EXCLUDE_LIBRARIES=wave;type_erasure;thread;serialization;program_options;log;locale;json;graph;contract;context;coroutine;fiber'
+# RUN . /emsdk/emsdk_env.sh \
+#  && CXXFLAGS=-fms-extensions emcmake cmake '-DBOOST_EXCLUDE_LIBRARIES=wave;type_erasure;thread;serialization;program_options;log;locale;json;graph;contract;context;coroutine;fiber' '-DBOOST_INCLUDE_LIBRARIES=regex;date_time;format;uuid;any;foreach;multi_index_container'
 RUN . /emsdk/emsdk_env.sh \
  && emmake make
 RUN . /emsdk/emsdk_env.sh \
@@ -146,7 +144,9 @@ RUN embuild.sh --no-sanitize PdfFile
 # RUN embuild.sh XpsFile
 # RUN embuild.sh DjVuFile
 # RUN embuild.sh HtmlRenderer
-# RUN embuild.sh -q "CONFIG+=doct_renderer_empty" -s DesktopEditor/doctrenderer
+# RUN find /  -name 'sha.h'
+# RUN exit 1
+RUN embuild.sh -s -q "QMAKE_CXXFLAGS+=-I/usr/local/include/" DesktopEditor/doctrenderer
 RUN embuild.sh DocxRenderer
 
 COPY pre-js.js /pre-js.js
