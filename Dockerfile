@@ -1,7 +1,6 @@
 FROM ubuntu:22.04
 SHELL ["/bin/bash", "-c"]
 
-# TODO remove libc++-dev
 RUN apt update \
     && apt install -y \
        git \
@@ -15,7 +14,7 @@ RUN apt update \
        qt6-base-dev \
        build-essential \
        cmake \
-       libc++-dev
+       wget
 
 WORKDIR /
 RUN git clone https://github.com/emscripten-core/emsdk.git
@@ -47,34 +46,6 @@ RUN git checkout be6df4
 RUN ./autogen.sh
 RUN . /emsdk/emsdk_env.sh \
  && emconfigure ./configure
-RUN . /emsdk/emsdk_env.sh \
- && emmake make
-RUN . /emsdk/emsdk_env.sh \
- && emmake make install
-
-# Ideas taken from https://github.com/jedisct1/openssl-wasm
-WORKDIR /
-ADD https://www.openssl.org/source/openssl-3.1.2.tar.gz /
-RUN tar xvfz openssl-*.tar.gz
-WORKDIR /openssl-3.1.2
-RUN . /emsdk/emsdk_env.sh \
- && env \
-    CROSS_COMPILE="" \
-    CFLAGS="-Os" \
-    ./Configure \
-    no-asm \
-    no-async \
-    no-egd \
-    no-ktls \
-    no-module \
-    no-posix-io \
-    no-secure-memory \
-    no-shared \
-    no-sock \
-    no-stdio \
-    no-threads \
-    no-ui-console \
-    no-weak-ssl-ciphers
 RUN . /emsdk/emsdk_env.sh \
  && emmake make
 RUN . /emsdk/emsdk_env.sh \
@@ -144,15 +115,11 @@ RUN embuild.sh --no-sanitize PdfFile
 # RUN embuild.sh XpsFile
 # RUN embuild.sh DjVuFile
 # RUN embuild.sh HtmlRenderer
-# RUN find /  -name 'sha.h'
-# RUN exit 1
 RUN embuild.sh -s -q "QMAKE_CXXFLAGS+=-I/usr/local/include/" DesktopEditor/doctrenderer
 RUN embuild.sh DocxRenderer
 
 COPY pre-js.js /pre-js.js
-COPY wrap-main.cpp /wrap-main.cpp
 
-RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 RUN embuild.sh \
     -c -g \
     -l "-lgumbo" \

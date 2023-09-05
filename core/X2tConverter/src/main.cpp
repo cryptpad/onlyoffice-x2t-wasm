@@ -175,3 +175,15 @@ static std::wstring utf8_to_unicode(const char *src)
 	//_CrtDumpMemoryLeaks(); 
 	return getReturnErrorCode(result);
 }
+
+// CryptPad: main1() is called from CryptPad
+extern "C" {
+    int main1(char* xmlPath) {
+        char *argv[2] = {
+            "",
+            xmlPath
+        };
+
+        return main(2, argv);
+    }
+}
