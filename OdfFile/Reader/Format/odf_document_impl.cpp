@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -50,6 +50,7 @@
 #include "office_text.h"
 #include "office_spreadsheet.h"
 #include "office_presentation.h"
+#include "office_drawing.h"
 #include "office_chart.h"
 #include "office_annotation.h"
 #include "office_settings.h"
@@ -61,6 +62,7 @@
 #include "styles.h"
 #include "style_regions.h"
 #include "style_presentation.h"
+#include "style_paragraph_properties.h"
 
 #include "templates.h"
 
@@ -540,6 +542,10 @@ int odf_document::Impl::GetMimetype(std::wstring value)
 	{
 		return 6;
 	}
+	else if (std::wstring::npos != value.find(L"application/vnd.oasis.opendocument.graphics"))
+	{
+		return 7;
+	}
 	return 0;
 }
 void odf_document::Impl::parse_manifests(office_element *element)
@@ -600,13 +606,45 @@ void odf_document::Impl::parse_settings(office_element *element)
 
 		if (item_set->config_name_ == L"ooo:configuration-settings")
 		{
-			for (size_t j = 0; j < item_set->content_.size(); j++)
-			{	
-				office_element_ptr & elm_sett = item_set->content_[j];
-				settings_config_item * sett = dynamic_cast<settings_config_item *>(elm_sett.get());
-				if (!sett)continue;
+			for (auto conf = item_set->content_.begin(); conf != item_set->content_.end(); ++conf)
+			{
+				settings_config_item *item = dynamic_cast<settings_config_item *>(conf->get());
+				if (item)
+				{
+					context_->Settings().add(item->config_name_, item->content_);
+					continue;
+				}
+				settings_config_item_set *conf_item_set = dynamic_cast<settings_config_item_set *>(conf->get());
+				if (conf_item_set)
+				{
+					if (conf_item_set->config_name_ == L"ModifyPasswordInfo")
+					{
+						context_->Settings().add(L"modifyPasswordInfo", L"");
 
-				context_->Settings().add(sett->config_name_, sett->content_);
+						for (auto info_elm = conf_item_set->content_.begin(); info_elm != conf_item_set->content_.end(); ++info_elm)
+						{
+							settings_config_item *info = dynamic_cast<settings_config_item *>(info_elm->get());
+							if (info)
+							{
+								context_->Settings().add(L"modify:" + info->config_name_, info->content_);
+							}
+						}
+					}
+					else if (conf_item_set->config_name_ == L"OOXMLModifyPasswordInfo")
+					{
+						context_->Settings().add(L"modifyPasswordInfo", L"");
+
+						for (auto info_elm = conf_item_set->content_.begin(); info_elm != conf_item_set->content_.end(); ++info_elm)
+						{
+							settings_config_item* info = dynamic_cast<settings_config_item*>(info_elm->get());
+							if (info)
+							{
+								context_->Settings().add(L"modify:" + info->config_name_, info->content_);
+							}
+						}
+					}
+				}
+
 			}
 		}
 		else if (item_set->config_name_ == L"ooo:view-settings")
@@ -867,6 +905,16 @@ void odf_document::Impl::parse_styles(office_element *element)
                     _CP_LOG << L"[warning] error reading default style\n";
                     continue;
                 }
+
+				if (styleInst->content_.style_family_.get_type() == odf_types::style_family::Paragraph)
+				{
+					style_paragraph_properties* para_props = styleInst->content_.get_style_paragraph_properties();
+
+					if (para_props && para_props->content_.style_tab_stop_distance_)
+					{
+						context_->Settings().set_tab_distance(para_props->content_.style_tab_stop_distance_->get_value_unit(odf_types::length::pt));
+					}
+				}
 
                 context_->styleContainer().add_style(L"",
 					L"",

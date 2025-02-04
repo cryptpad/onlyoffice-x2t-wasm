@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -92,8 +92,18 @@ std::wostream & operator << (std::wostream & _Wostream, const iconset_type & _Va
 	case iconset_type::Rating5:
         _Wostream << L"5Rating";
         break;
-	 default:
+    case iconset_type::Boxes5:
+        _Wostream << L"5Boxes";
         break;
+    case iconset_type::Triangles3:
+        _Wostream << L"3Triangles";
+        break;
+    case iconset_type::Stars3:
+        _Wostream << L"3Stars";
+        break;
+    default:
+         _Wostream << L"3Arrows";
+         break;
     }
     return _Wostream;    
 }
@@ -137,7 +147,15 @@ iconset_type iconset_type::parse(const std::wstring & Str)
         return iconset_type( Quarters5 );
 	else	if (tmp == L"5rating")
         return iconset_type( Rating5 );
-	else
+    else	if (tmp == L"5boxes")
+        return iconset_type( Boxes5 );
+    else	if (tmp == L"3stars")
+        return iconset_type(Stars3);
+    else	if (tmp == L"3triangles")
+        return iconset_type(Triangles3);
+    else	if (tmp == L"4rating")
+        return iconset_type(Rating4);	
+    else
     {
         return iconset_type( Arrows3 );
     }

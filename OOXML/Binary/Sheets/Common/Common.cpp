@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -110,16 +110,18 @@ namespace SerializeCommon
             return sSourcePath.substr(0, nIndex + 1) + sTargetExt;
 		return sSourcePath;
 	}
-	void ReadFileType(const std::wstring& sXMLOptions, BYTE& result, UINT& nCodePage, std::wstring& sDelimiter, BYTE& cSaveFileType)
+    void ReadFileType(const std::wstring& sXMLOptions, BYTE& result, UINT& nCodePage, std::wstring& sDelimiter, BYTE& cSaveFileType, _INT32& Lcid)
 	{
 		result = BinXlsxRW::c_oFileTypes::XLSX;
 		nCodePage = 46;		//default 46 временно CP_UTF8
 		sDelimiter = L";"; // default
 		cSaveFileType = BinXlsxRW::c_oFileTypes::XLSX;// default
+        Lcid = -1;// default
 
 		nullable<SimpleTypes::CUnsignedDecimalNumber> fileType;
 		nullable<SimpleTypes::CUnsignedDecimalNumber> codePage;
 		nullable<SimpleTypes::CUnsignedDecimalNumber> saveFileType;
+        nullable<SimpleTypes::CDecimalNumber> LcidParam;
         nullable<std::wstring> delimiter;
 
 		// Read options
@@ -141,6 +143,7 @@ namespace SerializeCommon
 				WritingElement_ReadAttributes_Read_if (oReader, L"fileType", fileType)
 				WritingElement_ReadAttributes_Read_else_if (oReader, L"codePage", codePage)
 				WritingElement_ReadAttributes_Read_else_if (oReader, L"delimiter", delimiter)
+                WritingElement_ReadAttributes_Read_else_if (oReader, L"Lcid", LcidParam)
 				WritingElement_ReadAttributes_Read_else_if (oReader, L"saveFileType", saveFileType)
 				WritingElement_ReadAttributes_End(oReader)
 				
@@ -150,6 +153,8 @@ namespace SerializeCommon
 					nCodePage = (UINT)codePage->GetValue();
 				if (saveFileType.IsInit())
 					cSaveFileType = (BYTE)saveFileType->GetValue();
+                if(LcidParam.IsInit())
+                    Lcid = LcidParam->GetValue();
 				if (delimiter.IsInit())
 				{
 					sDelimiter = delimiter.get();

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -36,6 +36,21 @@
 #include "../../XlsbFormat/Xlsb.h"
 #include "../XlsxFlat.h"
 
+#include "Borders.h"
+#include "Fills.h"
+#include "Fonts.h"
+#include "NumFmts.h"
+#include "Xfs.h"
+#include "CellStyles.h"
+#include "rPr.h"
+#include "Colors.h"
+#include "dxf.h"
+#include "TableStyles.h"
+
+#include "../../DocxFormat/Drawing/DrawingExt.h"
+#include "../../Common/SimpleTypes_Shared.h"
+#include "../ComplexTypes_Spreadsheet.h"
+
 #include "../../XlsbFormat/StylesStream.h"
 #include "../../XlsbFormat/Biff12_unions/FMTS.h"
 #include "../../XlsbFormat/Biff12_unions/FONTS.h"
@@ -45,6 +60,8 @@
 #include "../../XlsbFormat/Biff12_unions/CELLXFS.h"
 #include "../../XlsbFormat/Biff12_unions/STYLES.h"
 #include "../../XlsbFormat/Biff12_unions/DXFS.h"
+
+#include "../../Binary/XlsbFormat/FileTypes_SpreadsheetBin.h"
 
 namespace OOX
 {
@@ -108,7 +125,7 @@ namespace OOX
 				WritingElement_ReadAttributes_Read_if(oReader, L"ss:ID", m_sId)
 				WritingElement_ReadAttributes_Read_if(oReader, L"ss:Name", m_sName)
 				WritingElement_ReadAttributes_Read_if(oReader, L"ss:Parent", m_sParentId)
-				WritingElement_ReadAttributes_End(oReader)
+			WritingElement_ReadAttributes_End(oReader)
 		}
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -156,7 +173,7 @@ namespace OOX
 				if (stylesStream != nullptr)
 				{
 					if (stylesStream->m_FMTS != nullptr)
-						m_oNumFmts = static_cast<XLSB::FMTS*>(stylesStream->m_FMTS.get())->m_arFmt;
+						m_oNumFmts = static_cast<XLSB::FMTS*>(stylesStream->m_FMTS.get())->m_arBrtFmt;
 
 					if (stylesStream->m_FONTS != nullptr)
 						m_oFonts = static_cast<XLSB::FONTS*>(stylesStream->m_FONTS.get())->m_arBrtFont;
@@ -194,6 +211,44 @@ namespace OOX
 				//stylesStream.reset();
 
 			}
+		}
+		XLS::BaseObjectPtr CStyles::WriteBin() const
+		{
+			XLSB::StylesStreamPtr stylesStream(new XLSB::StylesStream);
+			XLS::BaseObjectPtr objectPtr(stylesStream);
+			if (m_oNumFmts.IsInit())
+    			stylesStream->m_FMTS = m_oNumFmts->toBin();
+
+			if (m_oFonts.IsInit())
+				stylesStream->m_FONTS = m_oFonts->toBin();
+
+			if (m_oFills.IsInit())
+				stylesStream->m_FILLS = m_oFills->toBin();
+
+            if (m_oBorders.IsInit())
+                stylesStream->m_BORDERS = m_oBorders->toBin();
+
+            if (m_oCellStyleXfs.IsInit())
+                stylesStream->m_CELLSTYLEXFS = m_oCellStyleXfs->toBin();
+
+			if (m_oCellXfs.IsInit())
+				stylesStream->m_CELLXFS = m_oCellXfs->toBin();
+
+			if (m_oCellStyles.IsInit())
+				stylesStream->m_STYLES = m_oCellStyles->toBin();
+
+			if (m_oDxfs.IsInit())
+				stylesStream->m_DXFS = m_oDxfs->toBin();
+
+			if (m_oTableStyles.IsInit())
+				stylesStream->m_TABLESTYLES = m_oTableStyles->toBin();
+
+			if (m_oColors.IsInit())
+				stylesStream->m_COLORPALETTE = m_oColors->toBin();
+
+            if (m_oExtLst.IsInit())
+                stylesStream->m_FRTSTYLESHEET = m_oExtLst->toBinStyles();
+			return objectPtr;
 		}
 		void CStyles::read(const CPath& oPath)
 		{
@@ -309,6 +364,14 @@ namespace OOX
 		}
 		void CStyles::write(const CPath& oPath, const CPath& oDirectory, CContentTypes& oContent) const
 		{
+			CXlsb* xlsb = dynamic_cast<CXlsb*>(File::m_pMainDocument);
+			if ((xlsb) && (xlsb->m_bWriteToXlsb))
+			{
+				XLS::BaseObjectPtr object = WriteBin();
+				xlsb->WriteBin(oPath, object.get());
+			}
+			else
+			{
 			NSStringUtils::CStringBuilder sXml;
 
 			sXml.WriteString(L"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
@@ -326,7 +389,7 @@ xmlns:x16r2=\"http://schemas.microsoft.com/office/spreadsheetml/2015/02/main\">"
 
 			std::wstring sPath = oPath.GetPath();
 			NSFile::CFileBinary::SaveToFile(sPath.c_str(), sXml.GetData());
-
+			}
 			oContent.Registration(type().OverrideType(), oDirectory, oPath.GetFilename());
 		}
 		void CStyles::AfterRead()
@@ -380,7 +443,7 @@ xmlns:x16r2=\"http://schemas.microsoft.com/office/spreadsheetml/2015/02/main\">"
 				cell_style->m_oName = L"Normal";
 
 				m_oCellStyles->m_arrItems.push_back(cell_style);
-				
+
 				CXfs *cell_xfs = new CXfs();
 				cell_xfs->m_oXfId = iXfs;
 
@@ -743,6 +806,11 @@ xmlns:x16r2=\"http://schemas.microsoft.com/office/spreadsheetml/2015/02/main\">"
 		}
 		const OOX::FileType CStyles::type() const
 		{
+			CXlsb* xlsb = dynamic_cast<CXlsb*>(File::m_pMainDocument);
+			if ((xlsb) && (xlsb->m_bWriteToXlsb))
+			{
+				return OOX::SpreadsheetBin::FileTypes::StylesBin;
+			}
 			return OOX::Spreadsheet::FileTypes::Styles;
 		}
 		const CPath CStyles::DefaultDirectory() const
@@ -751,7 +819,18 @@ xmlns:x16r2=\"http://schemas.microsoft.com/office/spreadsheetml/2015/02/main\">"
 		}
 		const CPath CStyles::DefaultFileName() const
 		{
-			return type().DefaultFileName();
+			CXlsb* xlsb = dynamic_cast<CXlsb*>(File::m_pMainDocument);
+			if ((xlsb) && (xlsb->m_bWriteToXlsb))
+			{
+				CPath name = type().DefaultFileName();
+
+				name.SetExtention(L"bin");
+				return name;
+			}
+			else
+			{
+				return type().DefaultFileName();
+			}
 		}
 		const CPath& CStyles::GetReadPath()
 		{

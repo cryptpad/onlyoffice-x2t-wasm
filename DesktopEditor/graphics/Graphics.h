@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -64,12 +64,15 @@
 
 #include "Color.h"
 #include "Matrix.h"
+#include "GraphicsLayerBlend.h"
 #include "GraphicsPath.h"
+#include "AlphaMask_p.h"
 #include "Clip.h"
 #include "Brush.h"
 #include "Image.h"
 #include "../fontengine/FontManager.h"
 
+#include <stack>
 #include <vector>
 
 #if defined(_WIN32) || defined (_WIN64)
@@ -127,10 +130,10 @@ namespace Aggplus
 typedef agg::rendering_buffer rendering_buffer_type;
 typedef agg::pixfmt_bgra32 pixformat_type;
 
-typedef agg::blender_rgba< agg::svg::color_type, agg::svg::component_order >						blender_type;
-typedef agg::comp_op_adaptor_rgba< agg::svg::color_type, agg::svg::component_order >				blender_type_comp;
-typedef agg::pixfmt_alpha_blend_rgba< blender_type, agg::rendering_buffer, agg::svg::pixel_type >	pixfmt_type;
-typedef agg::pixfmt_custom_blend_rgba< blender_type_comp, agg::rendering_buffer>					pixfmt_type_comp;
+typedef agg::blender_rgba_unpre< agg::svg::color_type, agg::svg::component_order >                 blender_type;
+typedef agg::comp_op_adaptor_rgba< agg::svg::color_type, agg::svg::component_order >               blender_type_comp;
+typedef agg::pixfmt_alpha_blend_rgba< blender_type, agg::rendering_buffer, agg::svg::pixel_type >  pixfmt_type;
+typedef agg::pixfmt_custom_blend_rgba< blender_type_comp, agg::rendering_buffer>                   pixfmt_type_comp;
 
 typedef agg::renderer_base<pixfmt_type> base_renderer_type;
 typedef agg::renderer_base<pixfmt_type_comp> comp_renderer_type;
@@ -278,8 +281,14 @@ protected:
 
 	CClipMulti  m_oClip;
 
-	agg::svg::frame_buffer_rgba       m_frame_buffer;
-	agg::svg::rasterizer              m_rasterizer;
+	CAlphaMask* m_pAlphaMask;
+	CSoftMask* m_pSoftMask;
+
+	std::stack<CGraphicsLayer*> m_arLayers;
+
+	agg::svg::frame_buffer_rgba<blender_type>       m_frame_buffer;
+	agg::svg::rasterizer                            m_rasterizer;
+
 	
 #ifdef _WINDOW_GRAPHIS_USE_
 	// для отрисовки картинок - используем Gdiplus
@@ -292,8 +301,6 @@ protected:
     CDIB*					m_pDib;
 
 public:
-	agg::svg::frame_buffer_rgba&   get_frame_buffer();
-	agg::svg::rasterizer&          get_rasterizer();
 
 	bool	m_bIntegerGrid;
 	double	m_dGlobalAlpha;
@@ -353,8 +360,8 @@ public:
 	Status SetClip(CGraphicsPath* pPath);
 	Status ResetClip();
 	Status ExclugeClip(CGraphicsPath* pPath);
-	Status CombineClip(CGraphicsPath* pPath, agg::sbool_op_e op);
-    Status InternalClip(CGraphicsPath* pPath, CMatrix* pTransform, agg::sbool_op_e op);
+	Status CombineClip(CGraphicsPath* pPath, agg::sbool_op_e op, NSStructures::CPen* pPen = NULL);
+    Status InternalClip(CGraphicsPath* pPath, CMatrix* pTransform, agg::sbool_op_e op, NSStructures::CPen* pPen = NULL);
 
 	// измерение текста
 	INT MeasureString(const std::wstring& strText, CFontManager* pManager, double* lWidth, double* lHeight);
@@ -394,6 +401,24 @@ public:
 	INT DrawStringPath(const std::wstring& strText, CFontManager* pFont, CBrush* pBrush, double x, double y);
 	INT DrawStringPathC(const LONG& lText, CFontManager* pFont, CBrush* pBrush, double x, double y);
 
+	//Работа с альфа-маской
+	Status SetAlphaMask(CAlphaMask* pAlphaMask);
+	Status StartCreatingAlphaMask();
+	Status EndCreatingAlphaMask();
+	Status ResetAlphaMask();
+
+	CSoftMask* CreateSoftMask(bool bAlpha);
+	Status SetSoftMask(CSoftMask* pSoftMask);
+
+	//Работа со слоями
+	Status AddLayer(CGraphicsLayer* pGraphicsLayer);
+	Status CreateLayer();
+	Status BlendLayer();
+	Status RemoveLayer();
+	
+	Status SetLayerSettings(const TGraphicsLayerSettings& oSettings);
+	Status SetLayerOpacity(double dOpacity);
+
 	void CalculateFullTransform();
 	bool IsClip();
 
@@ -408,9 +433,11 @@ protected:
 	template<class Renderer>
 	void render_scanlines(Renderer& ren);
 	template<class Rasterizer, class Renderer>
-	void render_scanlines(Rasterizer& ras, Renderer& ren);
+	void render_scanlines_2(Rasterizer& ras, Renderer& ren);
     template<class Renderer>
     void render_scanlines_alpha(Renderer& ren, BYTE Alpha);
+	template<class Rasterizer, class Renderer, class Scanline>
+	void render_scanlines_3(Rasterizer& ras, Renderer& ren, Scanline& sl);
 
 	void DoFillPathSolid(CColor dwColor);
 	void DoFillPathGradient(CBrushLinearGradient *pBrush);
@@ -426,6 +453,8 @@ protected:
     void DoFillPathTextureClampSz3(const CMatrix &mImgMtx, const void *pImgBuff, DWORD dwImgWidth, DWORD dwImgHeight, int nImgStride, Aggplus::WrapMode wrapmode, BYTE Alpha = 255);
     
 	void DoFillPath(const CBrush* Brush);
+	template<class Rasterizer>
+	agg::trans_affine* DoStrokePath(NSStructures::CPen* pPen, CGraphicsPath* pPath, Rasterizer* ras);
 
 	// text methods
 	int FillGlyph2(int nX, int nY, TGlyph* pGlyph, Aggplus::CBrush* pBrush);

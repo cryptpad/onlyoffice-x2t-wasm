@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -46,11 +46,12 @@ typedef _CP_PTR(xlsx_xml_worksheet) xlsx_xml_worksheet_ptr;
 class xlsx_xml_worksheet: noncopyable
 {
 public:
-    xlsx_xml_worksheet(std::wstring const & name, bool hidden);
+	xlsx_xml_worksheet(std::wstring const& name, bool hidden, const std::wstring& external);
     ~xlsx_xml_worksheet();
 
 	std::wstring name() const;
 	bool hidden() const;
+	std::wstring external_ref() const;
    
 	std::wostream & cols();
     std::wostream & sheetFormat();
@@ -61,6 +62,7 @@ public:
 	std::wostream & autofilter();
 	std::wostream & tableParts();
 	std::wostream & conditionalFormatting();
+	std::wostream & conditionalFormattingEx();
 	std::wostream & picture_background();
 	std::wostream & dataValidations();
 	std::wostream & dataValidationsX14();
@@ -71,10 +73,12 @@ public:
 	std::wostream & controls();
 	std::wostream & protection();
 	std::wostream & breaks();
+	std::wostream & sparklines();
 	
 	rels & sheet_rels();			//hyperlink, background image, external, media ...
 	
     void write_to(std::wostream & strm);
+	void write_external_to(std::wostream& strm);
 
     void set_drawing_link		(std::wstring const & fileName, std::wstring const & id);
     void set_vml_drawing_link	(std::wstring const & fileName, std::wstring const & id);
@@ -84,7 +88,7 @@ public:
 	std::pair<std::wstring, std::wstring> get_vml_drawing_link() const;
 	std::pair<std::wstring, std::wstring> get_comments_link() const;
 
-    static xlsx_xml_worksheet_ptr create(std::wstring const & name, bool hidden);
+    static xlsx_xml_worksheet_ptr create(std::wstring const & name, bool hidden, const std::wstring& external);
 
 private:
     class Impl;

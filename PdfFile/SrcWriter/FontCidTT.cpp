@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -71,10 +71,9 @@ namespace PdfWriter
 	//----------------------------------------------------------------------------------------
 	// CFontFileBase
 	//----------------------------------------------------------------------------------------
-	CFontCidTrueType::CFontCidTrueType(CXref* pXref, CDocument* pDocument, const std::wstring& wsFontPath, unsigned int unIndex) : CFontDict(pXref, pDocument)
+	CFontCidTrueType::CFontCidTrueType(CXref* pXref, CDocument* pDocument, const std::wstring& wsFontPath, unsigned int unIndex, CFontFileTrueType* pFontTT) : CFontDict(pXref, pDocument)
 	{
 		m_bNeedAddFontName = true;
-		CFontFileTrueType* pFontTT = CFontFileTrueType::LoadFromFile(wsFontPath, unIndex);
 		m_pFontFile = pFontTT;
 
 		m_wsFontPath  = wsFontPath;
@@ -99,7 +98,7 @@ namespace PdfWriter
 		CreateCIDFont2(pFont);
 
 		m_pFace         = NULL;
-		m_pFaceMemory   = NULL;	
+		m_pFaceMemory   = NULL;
 		m_nGlyphsCount  = 0;
 		m_nSymbolicCmap = -1;
 		m_ushCodesCount = 0;
@@ -172,7 +171,7 @@ namespace PdfWriter
 
 		if (m_pXref->IsPDFA())
 		{
-			pFontDescriptor->Add("CIDSet", new CDictObject(m_pXref));
+			//pFontDescriptor->Add("CIDSet", new CDictObject(m_pXref));
 		}
 	}
 	bool CFontCidTrueType::HaveChar(const unsigned int &unUnicode)
@@ -181,6 +180,13 @@ namespace PdfWriter
 			return false;
 
 		return (!!GetGID(m_pFace, unUnicode));
+	}
+	unsigned int CFontCidTrueType::GetChar(const unsigned int &unUnicode)
+	{
+		if (!OpenFontFace())
+			return 0;
+
+		return GetGID(m_pFace, unUnicode);
 	}
 	unsigned int   CFontCidTrueType::GetWidth(unsigned short ushCode)
 	{
@@ -351,10 +357,14 @@ namespace PdfWriter
 		pS->WriteStr(c_sToUnicodeHeader);
 		pS->WriteStr(c_sToUnicodeInfo);
 
+		int pCodesCount = pS->Tell();
+		int nCodesCount = 0;
 		pS->WriteInt(m_ushCodesCount);
 		pS->WriteStr(" beginbfchar\n");
 		for (unsigned short ushCode = 0; ushCode < m_ushCodesCount; ushCode++)
 		{
+			if (!m_mGlyphs[m_vCodeToGid[ushCode]])
+				continue;
 			pS->WriteChar('<');
 			pS->WriteHex(ushCode, 4);
 			pS->WriteStr("> <");
@@ -378,9 +388,12 @@ namespace PdfWriter
 			}
 
 			pS->WriteStr(">\n");
+			nCodesCount++;
 		}
 		pS->WriteStr("endbfchar\n");
-		m_pToUnicodeStream->WriteStr(c_sToUnicodeFooter);
+		pS->WriteStr(c_sToUnicodeFooter);
+		pS->Seek(pCodesCount, SeekSet);
+		pS->WriteInt(nCodesCount);
 	}
 	void CFontCidTrueType::CloseFontFace()
 	{
@@ -464,7 +477,16 @@ namespace PdfWriter
 		for (unsigned short ushCurCode = 0, ushCodesCount = m_vCodeToGid.size(); ushCurCode < ushCodesCount; ushCurCode++)
 		{
 			if (unGID == m_vCodeToGid.at(ushCurCode))
+			{
+				if (m_vUnicodes.at(ushCurCode).empty() && unCount)
+				{
+					std::vector<unsigned int> vUnicodes;
+					for (unsigned int i = 0; i < unCount; i++)
+						vUnicodes.push_back(pUnicodes[i]);
+					m_vUnicodes[ushCurCode] = vUnicodes;
+				}
 				return ushCurCode;
+			}
 		}
 
 		if (!OpenFontFace())
@@ -486,18 +508,6 @@ namespace PdfWriter
 		// Если данный символ составной (CompositeGlyf), тогда мы должны учесть все его дочерные символы (subglyfs)
 		if (0 == FT_Load_Glyph(m_pFace, unGID, FT_LOAD_NO_SCALE | FT_LOAD_NO_RECURSE))
 		{
-			for (int nSubIndex = 0; nSubIndex < m_pFace->glyph->num_subglyphs; nSubIndex++)
-			{
-				FT_Int       nSubGID;
-				FT_UInt      unFlags;
-				FT_Int       nArg1;
-				FT_Int       nArg2;
-				FT_Matrix    oMatrix;
-				FT_Get_SubGlyph_Info(m_pFace->glyph, nSubIndex, &nSubGID, &unFlags, &nArg1, &nArg2, &oMatrix);
-
-				m_mGlyphs.insert(std::pair<unsigned short, bool>(nSubGID, true));
-			}
-
 			if (0 != m_pFace->units_per_EM)
 			{
 				m_vWidths.push_back((unsigned int)m_pFace->glyph->metrics.horiAdvance * 1000 / m_pFace->units_per_EM);
@@ -507,6 +517,21 @@ namespace PdfWriter
 			{
 				m_vWidths.push_back((unsigned int)m_pFace->glyph->metrics.horiAdvance);
 				m_vGlypWidths.push_back((unsigned int)(m_pFace->glyph->metrics.width) * 1000 / m_pFace->units_per_EM);
+			}
+
+			for (int nSubIndex = 0; nSubIndex < m_pFace->glyph->num_subglyphs; nSubIndex++)
+			{
+				FT_Int       nSubGID;
+				FT_UInt      unFlags;
+				FT_Int       nArg1;
+				FT_Int       nArg2;
+				FT_Matrix    oMatrix;
+				FT_Get_SubGlyph_Info(m_pFace->glyph, nSubIndex, &nSubGID, &unFlags, &nArg1, &nArg2, &oMatrix);
+
+				m_mGlyphs.insert(std::pair<unsigned short, bool>(nSubGID, false));
+
+				EncodeGID(nSubGID, NULL, 0); // TODO необходимо верно указать Unicode для случая записи подсимволов
+				FT_Load_Glyph(m_pFace, unGID, FT_LOAD_NO_SCALE | FT_LOAD_NO_RECURSE);
 			}
 		}
 		else

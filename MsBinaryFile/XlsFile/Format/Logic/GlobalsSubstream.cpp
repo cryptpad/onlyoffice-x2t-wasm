@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,8 +29,6 @@
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
  */
-#include "../../../../Common/MS-LCID.h"
-
 #include "GlobalsSubstream.h"
 #include "AnyObject.h"
 
@@ -107,7 +105,7 @@
 //#include "Biff_records/XCT.h"
 //#include "Biff_records/CRN.h"
 
-#include "Biff_structures/ODRAW/OfficeArtDgContainer.h"
+#include "Biff_structures/ODRAW/SimpleOfficeArtContainers.h"
 
 namespace XLS
 {;
@@ -172,7 +170,13 @@ const bool GlobalsSubstream::loadContent(BinProcessor& proc)
 	{
 		CFRecordType::TypeId type = proc.getNextRecordType();
 		
-		if (type == rt_NONE) break;
+		if (type == rt_NONE)
+		{
+			proc.SkipRecord();
+			type = proc.getNextRecordType();
+			if (type == rt_NONE)
+				break;
+		}
 		if (type == rt_EOF) 
 		{
 			proc.mandatory<EOF_T>();
@@ -282,7 +286,14 @@ const bool GlobalsSubstream::loadContent(BinProcessor& proc)
 					elements_.pop_back();
 				}
 			}break;
-			case rt_FileSharing:		proc.optional<FileSharing>();	break;
+			case rt_FileSharing:
+			{
+				if (proc.optional<FileSharing>())
+				{
+					m_FileSharing = elements_.back();
+					elements_.pop_back();
+				}
+			}break;
 			case rt_CodePage:
 			{
 				if (proc.optional<CodePage>())
@@ -614,7 +625,7 @@ const bool GlobalsSubstream::loadContent(BinProcessor& proc)
 	}
 	if (global_info_->CodePage == 0 && global_info_->lcid_user > 0)
 	{
-		global_info_->CodePage = msLCID2DefCodePage(global_info_->lcid_user);
+		global_info_->CodePage = global_info_->lcid_converter.get_codepage(global_info_->lcid_user);
 	}
 	
 	UpdateXFC();
@@ -652,7 +663,7 @@ void GlobalsSubstream::LoadHFPicture()
 					hf = dynamic_cast<HFPicture*>(m_arHFPicture[j].get());
 					record.appendRawData(hf->recordDrawingGroup);
 				}
-				ODRAW::OfficeArtDgContainerPtr rgDrawing = ODRAW::OfficeArtDgContainerPtr(new ODRAW::OfficeArtDgContainer(ODRAW::OfficeArtRecord::CA_HF));
+				ODRAW::OfficeArtDggContainerPtr rgDrawing = ODRAW::OfficeArtDggContainerPtr(new ODRAW::OfficeArtDggContainer(ODRAW::OfficeArtRecord::CA_HF));
 				rgDrawing->loadFields(record);
 				m_arHFPictureDrawing.push_back(rgDrawing);
 				current_size_hf = 0;
@@ -669,7 +680,15 @@ void GlobalsSubstream::LoadHFPicture()
 			HFPicture* hf = dynamic_cast<HFPicture*>(m_arHFPicture[j].get());
 			record.appendRawData(hf->recordDrawingGroup);
 		}
-		ODRAW::OfficeArtDgContainerPtr rgDrawing = ODRAW::OfficeArtDgContainerPtr(new ODRAW::OfficeArtDgContainer(ODRAW::OfficeArtRecord::CA_HF));
+		ODRAW::OfficeArtRecordHeader rh_test;
+		record >> rh_test;
+		record.RollRdPtrBack(8);//sizeof(OfficeArtRecordHeader)
+
+		if ((rh_test.recType & 0xF000) != 0xF000)
+		{
+			return;
+		}
+		ODRAW::OfficeArtDggContainerPtr rgDrawing = ODRAW::OfficeArtDggContainerPtr(new ODRAW::OfficeArtDggContainer(ODRAW::OfficeArtRecord::CA_HF));
 		rgDrawing->loadFields(record);
 		m_arHFPictureDrawing.push_back(rgDrawing);
 	}
@@ -693,6 +712,8 @@ void GlobalsSubstream::UpdateXti()
 		{
 			XTI* xti = dynamic_cast<XTI*>(extern_sheet->rgXTI[i].get());
 			if (!xti) continue;
+
+			if (xti->iSupBook >= m_arSUPBOOK.size()) continue;
 
 			SUPBOOK* index_book = dynamic_cast<SUPBOOK*>(m_arSUPBOOK[xti->iSupBook].get());
 			if (!index_book) continue;
@@ -792,8 +813,8 @@ void GlobalsSubstream::UpdateDefineNames()
 			else
 			{
 				std::vector<std::wstring> ar(ind_sheet + 1);
-			
-				ar[ind_sheet] = value;
+                if(ar.size() > ind_sheet)
+                    ar[ind_sheet] = value;
 				//ar.push_back(value);
 
 				global_info_->mapDefineNames.insert(std::make_pair(name, ar));
@@ -804,8 +825,11 @@ void GlobalsSubstream::UpdateDefineNames()
 		{
 			if (lbl->fFunc)
 			{
-				if (name == L"FORMULA") //"general_formulas.xls"
-						name = L"_xludf." + name;
+				if (name != L"CHISQDIST" &&
+					name != L"CHISQINV" &&
+					name != L"CURRENT" &&
+					name != L"EFFECTIVE")
+				name = L"_xludf." + name;
 			}
 		}
 		global_info_->arDefineNames.push_back(name);// для имен функций - todooo ... не все функции корректны !! БДИ !!
@@ -864,9 +888,25 @@ int GlobalsSubstream::serialize_format(std::wostream & _stream)
 {
 	BookExt *book_ext = dynamic_cast<BookExt*>(m_BookExt.get());
 	CodeName *code_name = dynamic_cast<CodeName*>(m_CodeName.get());
+	FileSharing *file_sharing = dynamic_cast<FileSharing*>(m_FileSharing.get());
 
 	CP_XML_WRITER(_stream)    
 	{
+		if (file_sharing)
+		{
+			CP_XML_NODE(L"fileSharing")
+			{
+				if (file_sharing->fReadOnlyRec.value())
+				{
+					CP_XML_ATTR(L"readOnlyRecommended", 0 != (*file_sharing->fReadOnlyRec.value()));
+				}
+				if (false == file_sharing->stUNUsername.value().empty())
+				{
+					CP_XML_ATTR(L"userName", file_sharing->stUNUsername.value());
+					CP_XML_ATTR(L"password", file_sharing->wResPass);
+				}
+			}
+		}
 		CP_XML_NODE(L"workbookPr")
 		{
 			if (code_name)
@@ -875,8 +915,8 @@ int GlobalsSubstream::serialize_format(std::wostream & _stream)
 			}
 			if (book_ext)
 			{
-				CP_XML_ATTR(L"hidePivotFieldList",	book_ext->fHidePivotList);
-				CP_XML_ATTR(L"filterPrivacy",		book_ext->fFilterPrivacy);
+				CP_XML_ATTR(L"hidePivotFieldList", book_ext->fHidePivotList);
+				CP_XML_ATTR(L"filterPrivacy", book_ext->fFilterPrivacy);
 			}
 		}
 	}

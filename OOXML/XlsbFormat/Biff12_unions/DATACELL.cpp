@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -54,50 +54,75 @@ namespace XLSB
     // DATACELL = CELLMETA (BrtCellBlank/ BrtCellRk/ BrtCellError/ BrtCellBool/ BrtCellReal/ BrtCellIsst/ BrtCellSt)
     const bool DATACELL::loadContent(BinProcessor& proc)
     {
-        CellBlank   cellBlank;
-        CellRk		cellRk;
-        CellError	cellError;
-        CellBool	cellBool;
-        CellReal	cellReal;
-        CellIsst    cellIsst;
-        CellSt		cellSt;
-
-        if(proc.optional(cellBlank))
+        auto type = proc.getNextRecordType();
+        switch (type)
         {
-            m_Col = cellBlank.cell.column;
+            case rt_CellBlank:
+            {
+                CellBlank   cellBlank;
+                proc.optional(cellBlank);
+                m_Col = cellBlank.cell.column;
+                break;
+            }
+            case rt_CellRk:
+            {
+                CellRk		cellRk;
+                proc.optional(cellRk);
+                m_Col = cellRk.cell.column;
+                break;
+            }
+            case rt_CellError:
+            {
+                CellError	cellError;
+                proc.optional(cellError);
+                m_Col = cellError.cell.column;
+                break;
+            }
+            case rt_CellBool:
+            {
+                CellBool	cellBool;
+                proc.optional(cellBool);
+                m_Col = cellBool.cell.column;
+                break;
+            }
+            case rt_CellReal:
+            {
+                CellReal	cellReal;
+                proc.optional(cellReal);
+                m_Col = cellReal.cell.column;
+                break;
+            }
+            case rt_CellSt:
+            {
+                CellSt		cellSt;
+                proc.optional(cellSt);
+                m_Col = cellSt.cell.column;
+                break;
+            }
+            case rt_CellIsst:
+            {
+                CellIsst    cellIsst;
+                proc.optional(cellIsst);
+                m_Col = cellIsst.cell.column;
+                break;
+            }
+            default:
+                return false;
         }
-        else if(proc.optional(cellRk))
-        {
-            m_Col = cellRk.cell.column;
-        }
-        else if(proc.optional(cellError))
-        {
-            m_Col = cellError.cell.column;
-        }
-        else if(proc.optional(cellBool))
-        {
-            m_Col = cellBool.cell.column;
-        }
-        else if(proc.optional(cellReal))
-        {
-            m_Col = cellReal.cell.column;
-        }
-        else if(proc.optional(cellIsst))
-        {
-            m_Col = cellIsst.cell.column;
-        }
-        else if(proc.optional(cellSt))
-        {
-            m_Col = cellSt.cell.column;
-        }
-        else
-        {
-            return false;
-        }
-
-        m_source = elements_.back();
+        m_source = std::move(elements_.back());
         elements_.pop_back();
+
         return true;
     }
+
+	const bool DATACELL::saveContent(BinProcessor& proc)
+	{
+		if (m_source != nullptr)
+			proc.mandatory(*m_source);
+		else
+			return false;
+
+		return true;
+	}
 
 } // namespace XLSB

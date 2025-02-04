@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -77,13 +77,16 @@ private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );
     virtual void add_child_element( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name);
 
-    draw_image_attlist				draw_image_attlist_;
-	odf_types::common_xlink_attlist xlink_attlist_;
+    draw_image_attlist draw_image_attlist_;
+    _CP_OPT(std::wstring) draw_mime_type_;
+    odf_types::common_xlink_attlist xlink_attlist_;
     
-    office_element_ptr_array		content_;
-	office_element_ptr				office_binary_data_;
+    office_element_ptr_array content_;
+	office_element_ptr office_binary_data_;
 	
-	office_element_ptr			draw_frame_ptr; //openoffice xml 1.0
+	office_element_ptr draw_frame_ptr; //openoffice xml 1.0
+
+    bool convert_pdf2image(NSFonts::IApplicationFonts* applicationFonts, const std::wstring& pdf_file_name, const std::wstring& image_file_name);
 };
 
 CP_REGISTER_OFFICE_ELEMENT2(draw_image);
@@ -145,10 +148,10 @@ public:
 class draw_frame : public office_element_impl<draw_frame>
 {
 public:
-    static const wchar_t * ns;
-    static const wchar_t * name;
-    static const xml::NodeType	xml_type	= xml::typeElement;
-    static const ElementType	type		= typeDrawFrame;
+    static const wchar_t *ns;
+    static const wchar_t *name;
+    static const xml::NodeType xml_type = xml::typeElement;
+    static const ElementType type = typeDrawFrame;
     CPDOCCORE_DEFINE_VISITABLE();
 
 	draw_frame() : oox_drawing_(), idx_in_owner(-1), is_object_(false)  {}
@@ -158,34 +161,39 @@ public:
     virtual void pptx_convert(oox::pptx_conversion_context & Context);
     virtual void pptx_convert_placeHolder(oox::pptx_conversion_context & Context);
 
+    void pptx_convert_placeHolder_styles(oox::pptx_conversion_context& Context, const graphic_format_properties* graphic_props, const paragraph_format_properties* paragraph_props, const text_format_properties* text_props);
+
     virtual std::wostream & text_to_stream(std::wostream & _Wostream, bool bXmlEncode = true) const;
 
 	int idx_in_owner ;
 	
-	odf_types::union_common_draw_attlists	common_draw_attlists_;
+	odf_types::union_common_draw_attlists common_draw_attlists_;
   
-    draw_frame_attlist						draw_frame_attlist_;
+    draw_frame_attlist draw_frame_attlist_;
 
     // draw-text-box, draw-image, draw-object, draw-object-ole, draw-applet, draw-floating-frame, draw-plugin
-    office_element_ptr_array				content_;
+    office_element_ptr_array content_;
 
-    office_element_ptr						office_event_listeners_; 
+    office_element_ptr office_event_listeners_; 
 
-	office_element_ptr						draw_glue_point_;
-    office_element_ptr						draw_image_map_;
+	office_element_ptr draw_glue_point_;
+    office_element_ptr draw_image_map_;
 
-    office_element_ptr						draw_contour_; // draw-contour-polygon or draw-contour-path
+    office_element_ptr draw_contour_; // draw-contour-polygon or draw-contour-path
+
+    office_element_ptr svg_title_;
+    office_element_ptr svg_desc_;
 
     friend class odf_document;
     friend class draw_image;
 	friend class draw_chart;
 
-	oox_drawing_ptr							oox_drawing_;
+	oox_drawing_ptr oox_drawing_;
 
-	bool                                    is_object_;
+	bool is_object_;
 private:
-    virtual void add_attributes		( const xml::attributes_wc_ptr & Attributes );
-    virtual void add_child_element	( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name);
+    virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );
+    virtual void add_child_element( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name);
 	
 	void docx_convert_start(oox::docx_conversion_context & Context);
 	void docx_convert_end(oox::docx_conversion_context & Context);
@@ -383,9 +391,9 @@ public:
     virtual void pptx_convert(oox::pptx_conversion_context & Context);
 
     odf_types::common_xlink_attlist	xlink_attlist_;
-	_CP_OPT(std::wstring)			draw_mime_type_;
+	_CP_OPT(std::wstring) draw_mime_type_;
     
-	office_element_ptr_array		content_;
+	office_element_ptr_array content_;
 
 private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );

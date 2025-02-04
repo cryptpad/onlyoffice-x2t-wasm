@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -30,6 +30,7 @@
  *
  */
 #include "Font14.h"
+#include "Document.h"
 
 namespace PdfWriter
 {
@@ -43,7 +44,7 @@ namespace PdfWriter
 		"Courier-Bold",
 		"Courier-Oblique",
 		"Courier-BoldOblique",
-		"Times",
+		"Times-Roman",
 		"Times-Bold",
 		"Times-Oblique",
 		"Times-BoldOblique",
@@ -56,5 +57,46 @@ namespace PdfWriter
 		Add("Type", "Font");
 		Add("Subtype", "Type1");
 		Add("BaseFont", c_sStandardFontNames[(int)eType]);
+		m_ushCodesCount = 0;
+	}
+	unsigned int CFont14::GetWidth(unsigned short ushCode)
+	{
+		std::map<unsigned int, unsigned short>::const_iterator oIter = m_mUnicodeToCode.find(ushCode);
+		if (oIter == m_mUnicodeToCode.end())
+			return 0;
+		ushCode = oIter->second;
+		if (ushCode >= m_vWidths.size())
+			return 0;
+
+		return m_vWidths.at(ushCode);
+	}
+	void CFont14::AddWidth(unsigned int nWidth)
+	{
+		m_vWidths.push_back(nWidth);
+	}
+	unsigned short CFont14::EncodeUnicode(const unsigned int& unGID, const unsigned int& unUnicode, bool& bNew)
+	{
+		std::map<unsigned int, unsigned short>::const_iterator oIter = m_mUnicodeToCode.find(unUnicode);
+		if (oIter != m_mUnicodeToCode.end())
+			return oIter->second;
+
+		unsigned short ushCode = EncodeGID(unGID, bNew);
+		m_mUnicodeToCode.insert(std::pair<unsigned int, unsigned short>(unUnicode, ushCode));
+		return ushCode;
+	}
+	unsigned short CFont14::EncodeGID(const unsigned int& unGID, bool& bNew)
+	{
+		for (unsigned short ushCurCode = 0, ushCodesCount = m_vCodeToGid.size(); ushCurCode < ushCodesCount; ushCurCode++)
+		{
+			if (unGID == m_vCodeToGid.at(ushCurCode))
+				return ushCurCode;
+		}
+
+		unsigned short ushCode = m_ushCodesCount++;
+
+		m_vCodeToGid.push_back(unGID);
+		bNew = true;
+
+		return ushCode;
 	}
 }

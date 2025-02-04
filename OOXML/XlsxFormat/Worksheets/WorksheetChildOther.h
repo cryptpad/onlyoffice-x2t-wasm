@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,17 +31,44 @@
  */
 #pragma once
 
-#include "../CommonInclude.h"
-#include "../Styles/rPr.h"
+#include "../WritingElement.h"
+#include "../../Base/Nullable.h"
+
+namespace SimpleTypes
+{
+	class CInch;
+	class COnOff;
+	class CDouble;
+	class CCryptAlgoritmName;
+	class CUnsignedDecimalNumber;
+	class CRelationshipId;
+	class CPageOrientation;
+
+	namespace Spreadsheet
+	{
+		class CCellComments;
+		class CPrintError;
+		class CPageOrder;
+		class CPageSize;
+		class CPageUnits;
+		class CActivePane;
+		class CPaneState;
+		class CSheetViewType;
+		class CDataConsolidateFunction;
+		class CUserProtectedRangeType;
+	}
+}
 
 namespace OOX
 {
 	namespace Spreadsheet
 	{
+		class CColor;
+
 		class CProtectedRange : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CProtectedRange)
+			WritingElement_AdditionMethods(CProtectedRange)
             WritingElement_XlsbConstructors(CProtectedRange)
 			CProtectedRange();
 			virtual ~CProtectedRange();
@@ -53,6 +80,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType() const;
 
 			void ReadAttributes(XLS::BaseObjectPtr& obj);
@@ -70,7 +98,7 @@ namespace OOX
 		class CProtectedRanges : public WritingElementWithChilds<CProtectedRange>
 		{
 		public:
-			WritingElement_AdditionConstructors(CProtectedRanges)
+			WritingElement_AdditionMethods(CProtectedRanges)
             WritingElement_XlsbVectorConstructors(CProtectedRanges)
 			CProtectedRanges();
 			virtual ~CProtectedRanges();
@@ -82,13 +110,14 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(std::vector<XLS::BaseObjectPtr>& obj);
+			std::vector<XLS::BaseObjectPtr> toBin();
 			virtual EElementType getType() const;
 		};
 
 		class CCellWatch : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CCellWatch)
+			WritingElement_AdditionMethods(CCellWatch)
 			WritingElement_XlsbConstructors(CCellWatch)
 			CCellWatch();
 			virtual ~CCellWatch();
@@ -111,7 +140,7 @@ namespace OOX
 		class CCellWatches : public WritingElementWithChilds<CCellWatch>
 		{
 		public:
-			WritingElement_AdditionConstructors(CCellWatches)
+			WritingElement_AdditionMethods(CCellWatches)
 			WritingElement_XlsbVectorConstructors(CCellWatches)
 			CCellWatches();
 			virtual ~CCellWatches();
@@ -131,7 +160,7 @@ namespace OOX
 		class CPageMargins : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CPageMargins)
+			WritingElement_AdditionMethods(CPageMargins)
             WritingElement_XlsbConstructors(CPageMargins)
 			CPageMargins();
 			virtual ~CPageMargins();
@@ -143,6 +172,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -161,7 +191,7 @@ namespace OOX
 		class CPageSetup : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CPageSetup)
+			WritingElement_AdditionMethods(CPageSetup)
             WritingElement_XlsbConstructors(CPageSetup)
 			CPageSetup();
 			virtual ~CPageSetup();
@@ -173,6 +203,8 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toBinCs();
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
@@ -203,7 +235,7 @@ namespace OOX
 		class CPrintOptions : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CPrintOptions)
+			WritingElement_AdditionMethods(CPrintOptions)
             WritingElement_XlsbConstructors(CPrintOptions)
 			CPrintOptions();
 			virtual ~CPrintOptions();
@@ -215,6 +247,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -232,7 +265,7 @@ namespace OOX
 		class CDimension : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDimension)
+			WritingElement_AdditionMethods(CDimension)
             WritingElement_XlsbConstructors(CDimension)
 			CDimension();
 			virtual ~CDimension();
@@ -243,6 +276,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
+			XLS::BaseObjectPtr toBin();
 			void fromBin(XLS::BaseObjectPtr& obj);
 			virtual EElementType getType () const;
 
@@ -257,7 +291,7 @@ namespace OOX
 		class CSheetFormatPr : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSheetFormatPr)
+			WritingElement_AdditionMethods(CSheetFormatPr)
             WritingElement_XlsbConstructors(CSheetFormatPr)
 			CSheetFormatPr();
 			virtual ~CSheetFormatPr();
@@ -269,6 +303,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -290,7 +325,7 @@ namespace OOX
 		class CPane : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CPane)
+			WritingElement_AdditionMethods(CPane)
             WritingElement_XlsbConstructors(CPane)
 			CPane();
 			virtual ~CPane();
@@ -302,6 +337,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -319,7 +355,7 @@ namespace OOX
 		class CSelection : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSelection)
+			WritingElement_AdditionMethods(CSelection)
             WritingElement_XlsbConstructors(CSelection)
 			CSelection();
 			virtual ~CSelection();
@@ -331,6 +367,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -350,7 +387,7 @@ namespace OOX
 		class CSheetView : public WritingElementWithChilds<CSelection>
 		{
 		public:
-			WritingElement_AdditionConstructors(CSheetView)
+			WritingElement_AdditionMethods(CSheetView)
             WritingElement_XlsbConstructors(CSheetView)
 			CSheetView();
 			virtual ~CSheetView();
@@ -362,6 +399,8 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toBinCs();
 			virtual EElementType getType () const;
 
 		private:
@@ -395,7 +434,7 @@ namespace OOX
 		class CSheetViews : public WritingElementWithChilds<CSheetView>
 		{
 		public:
-			WritingElement_AdditionConstructors(CSheetViews)
+			WritingElement_AdditionMethods(CSheetViews)
             WritingElement_XlsbConstructors(CSheetViews)
 			CSheetViews();
 			virtual ~CSheetViews();
@@ -407,13 +446,15 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toBinCs();
 			virtual EElementType getType () const;
 		};
 
 		class CPageSetUpPr : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CPageSetUpPr)
+			WritingElement_AdditionMethods(CPageSetUpPr)
             WritingElement_XlsbConstructors(CPageSetUpPr)
 			CPageSetUpPr();
 			virtual ~CPageSetUpPr();
@@ -425,6 +466,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			void toBin(XLS::BaseObjectPtr& obj);
 			virtual EElementType getType () const;
 
 		private:
@@ -439,7 +481,7 @@ namespace OOX
 		class COutlinePr : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(COutlinePr)
+			WritingElement_AdditionMethods(COutlinePr)
             WritingElement_XlsbConstructors(COutlinePr)
 			COutlinePr();
 			virtual ~COutlinePr();
@@ -451,6 +493,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			void toBin(XLS::BaseObjectPtr& obj);
 			virtual EElementType getType () const;
 
 		private:
@@ -467,7 +510,7 @@ namespace OOX
 		class CSheetPr : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSheetPr)
+			WritingElement_AdditionMethods(CSheetPr)
             WritingElement_XlsbConstructors(CSheetPr)
 			CSheetPr();
 			virtual ~CSheetPr();
@@ -479,6 +522,8 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toBinCs();
 			virtual EElementType getType () const;
 
 		private:
@@ -504,7 +549,7 @@ namespace OOX
 		class CHeaderFooterElement : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CHeaderFooterElement)
+			WritingElement_AdditionMethods(CHeaderFooterElement)
 			CHeaderFooterElement();
 			virtual ~CHeaderFooterElement();
 
@@ -527,7 +572,7 @@ namespace OOX
 		class CHeaderFooter : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CHeaderFooter)
+			WritingElement_AdditionMethods(CHeaderFooter)
             WritingElement_XlsbConstructors(CHeaderFooter)
 			CHeaderFooter();
 			virtual ~CHeaderFooter();
@@ -538,6 +583,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
+			XLS::BaseObjectPtr toBin();
 			void fromBin(XLS::BaseObjectPtr& obj);
 			virtual EElementType getType () const;
 
@@ -563,7 +609,7 @@ namespace OOX
 		class CLegacyDrawingHFWorksheet : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CLegacyDrawingHFWorksheet)
+			WritingElement_AdditionMethods(CLegacyDrawingHFWorksheet)
             WritingElement_XlsbConstructors(CLegacyDrawingHFWorksheet)
 			CLegacyDrawingHFWorksheet();
 			virtual ~CLegacyDrawingHFWorksheet();
@@ -575,6 +621,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -606,7 +653,7 @@ namespace OOX
 		class CPictureWorksheet : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CPictureWorksheet)
+			WritingElement_AdditionMethods(CPictureWorksheet)
             WritingElement_XlsbConstructors(CPictureWorksheet)
 			CPictureWorksheet();
 			virtual ~CPictureWorksheet();
@@ -618,6 +665,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -631,7 +679,7 @@ namespace OOX
 		class CBreak : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CBreak)
+			WritingElement_AdditionMethods(CBreak)
             WritingElement_XlsbConstructors(CBreak)
 			CBreak();
 			virtual ~CBreak();
@@ -643,6 +691,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -660,7 +709,7 @@ namespace OOX
 		class CRowColBreaks : public WritingElementWithChilds<CBreak>
 		{
 		public:
-			WritingElement_AdditionConstructors(CRowColBreaks)
+			WritingElement_AdditionMethods(CRowColBreaks)
             WritingElement_XlsbConstructors(CRowColBreaks)
 			CRowColBreaks();
 			virtual ~CRowColBreaks();
@@ -673,6 +722,8 @@ namespace OOX
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBinColumn();
+			XLS::BaseObjectPtr toBinRow();
 
 			virtual EElementType getType () const;
 
@@ -688,7 +739,7 @@ namespace OOX
 		class CSheetProtection : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSheetProtection)
+			WritingElement_AdditionMethods(CSheetProtection)
             WritingElement_XlsbConstructors(CSheetProtection)
 			CSheetProtection();
 			virtual ~CSheetProtection();
@@ -700,6 +751,8 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toBinCS();
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
@@ -733,7 +786,7 @@ namespace OOX
 		class CDataRef : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDataRef)
+			WritingElement_AdditionMethods(CDataRef)
             WritingElement_XlsbConstructors(CDataRef)
 			CDataRef();
 			virtual ~CDataRef();
@@ -745,6 +798,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XLS::BaseObjectPtr& obj);
@@ -759,7 +813,7 @@ namespace OOX
 		class CDataRefs : public WritingElementWithChilds<CDataRef>
 		{
 		public:
-			WritingElement_AdditionConstructors(CDataRefs)
+			WritingElement_AdditionMethods(CDataRefs)
             WritingElement_XlsbConstructors(CDataRefs)
 			CDataRefs();
 			virtual ~CDataRefs();
@@ -771,6 +825,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -783,7 +838,7 @@ namespace OOX
 		class CDataConsolidate : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDataConsolidate)
+			WritingElement_AdditionMethods(CDataConsolidate)
             WritingElement_XlsbConstructors(CDataConsolidate)
 			CDataConsolidate();
 			virtual ~CDataConsolidate();
@@ -795,6 +850,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XLS::BaseObjectPtr& obj);
@@ -808,5 +864,54 @@ namespace OOX
 			nullable<CDataRefs>	m_oDataRefs;
 
 		};
+		class CUserProtectedRange : public WritingElement
+		{
+		public:
+			struct _UsersGroupsDesc
+			{
+				nullable_string id;
+				nullable_string name;
+				nullable<SimpleTypes::Spreadsheet::CUserProtectedRangeType> type;
+			};
+
+			WritingElement_AdditionMethods(CUserProtectedRange)
+			CUserProtectedRange();
+			virtual ~CUserProtectedRange();
+
+			virtual void fromXML(XmlUtils::CXmlNode& node);
+			virtual std::wstring toXML() const;
+
+			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
+			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
+
+			virtual EElementType getType() const;
+
+			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
+
+			nullable_string m_oName;
+			nullable_string m_oSqref;
+			nullable_string m_oText;
+			nullable<SimpleTypes::Spreadsheet::CUserProtectedRangeType> m_oType;
+
+			std::vector<_UsersGroupsDesc> m_arUsers;
+			std::vector<_UsersGroupsDesc> m_arUsersGroups;
+		};
+
+		class CUserProtectedRanges : public WritingElementWithChilds<CUserProtectedRange>
+		{
+		public:
+			WritingElement_AdditionMethods(CUserProtectedRanges)
+			CUserProtectedRanges();
+			virtual ~CUserProtectedRanges();
+
+			virtual void fromXML(XmlUtils::CXmlNode& node);
+			virtual std::wstring toXML() const;
+
+			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
+			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
+
+			virtual EElementType getType() const;
+		};
+
 	} //Spreadsheet
 } // namespace OOX

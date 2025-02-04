@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -63,7 +63,7 @@ namespace OOX
 		template<class TypeOut> 
 		smart_ptr<TypeOut> Get (const RId& rId) const
 		{
-			boost::unordered_map<std::wstring, smart_ptr<OOX::File>>::const_iterator pFind = m_mapContainer.find(rId.get());
+			std::map<std::wstring, smart_ptr<OOX::File>>::const_iterator pFind = m_mapContainer.find(rId.get());
 			if (pFind == m_mapContainer.end ())
 				return smart_ptr<TypeOut>();
 			return pFind->second.smart_dynamic_cast<TypeOut>();
@@ -98,12 +98,12 @@ namespace OOX
 
 		const RId GetMaxRId();
 	protected:
-		static UnknowTypeFile										m_oUnknown;
-		std::vector<smart_ptr<OOX::File>>							m_arContainer;
-		boost::unordered_map<std::wstring, smart_ptr<OOX::File>>	m_mapContainer;
+		static UnknowTypeFile m_oUnknown;
+		std::vector<smart_ptr<OOX::File>> m_arContainer;
+		std::map<std::wstring, smart_ptr<OOX::File>> m_mapContainer;
 
-        boost::unordered_map<std::wstring, std::wstring>			m_mNoWriteContainer;
-        unsigned int												m_lMaxRid;
+        boost::unordered_map<std::wstring, std::wstring> m_mNoWriteContainer;
+        unsigned int m_lMaxRid;
 
 		void Read (const OOX::CRels& oRels, const OOX::CPath& oRootPath, const CPath& oPath);
 		void Write (const OOX::CPath& oFileName, const CPath& oDir, OOX::CContentTypes& oContent) const;

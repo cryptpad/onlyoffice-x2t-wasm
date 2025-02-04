@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,7 +31,19 @@
  */
 #pragma once
 
-#include "../CommonInclude.h"
+#include "../WritingElement.h"
+#include "../../Base/Nullable.h"
+
+namespace SimpleTypes
+{
+	class CRelationshipId;
+	class CUnsignedDecimalNumber;
+
+	namespace Spreadsheet
+	{
+		class CVisibleType;
+	}
+}
 
 namespace OOX
 {
@@ -42,7 +54,7 @@ namespace OOX
 		class CSheet : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSheet)
+			WritingElement_AdditionMethods(CSheet)
             WritingElement_XlsbConstructors(CSheet)
 			CSheet(OOX::Document *pMain = NULL);
 			virtual ~CSheet();
@@ -54,6 +66,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -71,7 +84,7 @@ namespace OOX
 		class CSheets : public WritingElementWithChilds<CSheet>
 		{
 		public:
-			WritingElement_AdditionConstructors(CSheets)
+			WritingElement_AdditionMethods(CSheets)
             WritingElement_XlsbVectorConstructors(CSheets)
 			CSheets(OOX::Document *pMain = NULL);
 			virtual ~CSheets();
@@ -83,9 +96,11 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(std::vector<XLS::BaseObjectPtr>& obj);
+			std::vector<XLS::BaseObjectPtr> toBin();
 			virtual EElementType getType () const;
 
 		private:
+			void AddSheetRef(const std::wstring& link, const _INT32&  sheetIndex);
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 		};
 

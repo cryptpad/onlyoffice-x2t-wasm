@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -38,6 +38,7 @@
 #include <xml/nodetype.h>
 
 #include "office_elements_create.h"
+#include "style_section_properties.h"
 
 #include "../../DataTypes/common_attlists.h"
 #include "../../DataTypes/lengthorpercent.h"
@@ -66,6 +67,8 @@ public:
 	graphic_format_properties(); //for defaults set
     void apply_from(const graphic_format_properties & Other);
 
+	void add_child_element(xml::sax* Reader, const std::wstring& Ns, const std::wstring& Name);
+
 	void serialize(std::wostream & strm, const wchar_t * ns, const wchar_t * name );
 
 	_CP_OPT(odf_types::length_or_percent)			fo_min_width_;
@@ -79,6 +82,8 @@ public:
 	_CP_OPT(odf_types::line_style)					draw_stroke_;
 	_CP_OPT(std::wstring)							draw_stroke_dash_;
 	_CP_OPT(odf_types::length_or_percent)			svg_stroke_width_;
+
+	_CP_OPT(std::wstring)							draw_stroke_gradient_name_;
 
 	_CP_OPT(odf_types::marker_style)				draw_marker_end_;
 	_CP_OPT(odf_types::marker_style)				draw_marker_start_;
@@ -138,9 +143,12 @@ public:
 	_CP_OPT(std::wstring)					style_mirror_;
 
     _CP_OPT(std::wstring)					fo_clip_;
+
 //-------------------------------------------------------------------------------------
 	office_element_ptr						style_background_image_;        
+	style_columns_ptr						style_columns_;
 };
+typedef boost::shared_ptr<graphic_format_properties> graphic_format_properties_ptr;
 
 
 class style_graphic_properties : public office_element_impl<style_graphic_properties>
@@ -161,7 +169,6 @@ public:
     graphic_format_properties content_;
 
 };
-
 CP_REGISTER_OFFICE_ELEMENT2(style_graphic_properties);
 
 class loext_graphic_properties : public office_element_impl<loext_graphic_properties>
@@ -182,7 +189,6 @@ public:
     graphic_format_properties content_;
 
 };
-
 CP_REGISTER_OFFICE_ELEMENT2(loext_graphic_properties);
 }
 }

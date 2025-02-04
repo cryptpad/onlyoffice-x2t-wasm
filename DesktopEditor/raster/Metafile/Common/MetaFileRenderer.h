@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -98,6 +98,9 @@ namespace MetaFile
 			UpdateScale();
 
 			m_bStartedPath = false;
+			m_bUpdatedClip = true;
+
+			m_pRenderer->CommandLong(c_nPenWidth0As1px, 1);
 
 			//int alpha = 0xff;
 			//m_pRenderer->put_BrushAlpha1(alpha);
@@ -137,6 +140,7 @@ namespace MetaFile
 			UpdateScale();
 
 			m_bStartedPath = false;
+			m_bUpdatedClip = false;
 
 			//int alpha = 0xff;
 			//m_pRenderer->put_BrushAlpha1(alpha);
@@ -195,14 +199,29 @@ namespace MetaFile
 			if (NULL == m_pFile)
 				return;
 
-			TRect* pBounds = m_pFile->GetDCBounds();
-			int nL = pBounds->nLeft;
-			int nR = pBounds->nRight;
-			int nT = pBounds->nTop;
-			int nB = pBounds->nBottom;
+			const TRectL& oBounds{m_pFile->GetDCBounds()};
+			m_dScaleX = m_dW / std::fabs((double)(oBounds.Right - oBounds.Left));
+			m_dScaleY = m_dH / std::fabs((double)(oBounds.Bottom - oBounds.Top));
+		}
 
-			m_dScaleX = m_dW / std::fabs((double)(nR - nL));
-			m_dScaleY = m_dH / std::fabs((double)(nB - nT));
+		double GetHeight() const
+		{
+			return m_dH;
+		}
+
+		double GetWidth() const
+		{
+			return m_dW;
+		}
+
+		double GetScaleX() const
+		{
+			return m_dScaleX;
+		}
+
+		double GetScaleY() const
+		{
+			return m_dScaleY;
 		}
 
 		void Begin()
@@ -214,6 +233,11 @@ namespace MetaFile
 			CheckEndPath();
 		}
 
+		void NeedUpdateClip()
+		{
+			m_bUpdatedClip = false;
+		}
+		
 		void DrawBitmap(double dX, double dY, double dW, double dH, BYTE* pBuffer, unsigned int unWidth, unsigned int unHeight)
 		{
 			if (!pBuffer || 0 == unWidth || 0 == unHeight)
@@ -230,10 +254,10 @@ namespace MetaFile
 			TPointD oTL = TranslatePoint(dX, dY);
 			TPointD oBR = TranslatePoint(dX + dW, dY + dH);
 
-			double dImageX = oTL.x;
-			double dImageY = oTL.y;
-			double dImageW = oBR.x - oTL.x;
-			double dImageH = oBR.y - oTL.y;
+			double dImageX = oTL.X;
+			double dImageY = oTL.Y;
+			double dImageW = oBR.X - oTL.X;
+			double dImageH = oBR.Y - oTL.Y;
 
 			if (dImageH < 0 || dImageW < 0)
 			{
@@ -266,7 +290,7 @@ namespace MetaFile
 		}
 		void DrawDriverString(const std::wstring& wsString, const std::vector<TPointD>& arPoints)
 		{
-			IFont *pFont = m_pFile->GetFont();
+			const IFont *pFont = m_pFile->GetFont();
 
 			if (NULL == pFont)
 				return;
@@ -278,17 +302,21 @@ namespace MetaFile
 			double dLogicalFontHeight = std::fabs(pFont->GetHeight());
 
 			double dM11, dM12, dM21, dM22, dRx, dRy;
+			m_pRenderer->GetTransform(&dM11, &dM12, &dM21, &dM22, &dRx, &dRy);
 
 			if (dLogicalFontHeight < M_MINFONTSIZE)
 			{
-				m_pRenderer->GetTransform(&dM11, &dM12, &dM21, &dM22, &dRx, &dRy);
 				dFontScale = dM22;
 				dLogicalFontHeight *= dFontScale;
-				m_pRenderer->SetTransform(dM11 / std::fabs(dM11), dM12, dM21, dM22 / std::fabs(dM22), dRx, dRy);
+
+				dM11 /= std::fabs(dM11);
+				dM22 /= std::fabs(dM22);
+
+				m_pRenderer->SetTransform(dM11, dM12, dM21, dM22, dRx, dRy);
 			}
 
 			m_pRenderer->put_FontName(pFont->GetFaceName());
-			m_pRenderer->put_FontSize(fabs(dLogicalFontHeight * m_dScaleX / 25.4 * 72));
+			m_pRenderer->put_FontSize(fabs(dLogicalFontHeight * m_dScaleX / 25.4 * 72.) * dM22);
 
 			int lStyle = 0;
 			if (pFont->GetWeight() > 550)
@@ -313,19 +341,19 @@ namespace MetaFile
 
 			for (unsigned int unIndex = 0; unIndex < arPoints.size(); ++unIndex)
 			{
-				arGlyphPoint[unIndex].x = (arPoints[unIndex].x * dM11) * m_dScaleX * dFontScale + dRx;
-				arGlyphPoint[unIndex].y = (arPoints[unIndex].y * dM22) * m_dScaleY * dFontScale + dRy;
+				arGlyphPoint[unIndex].X = (arPoints[unIndex].X * dM11) * m_dScaleX * dFontScale + dRx;
+				arGlyphPoint[unIndex].Y = (arPoints[unIndex].Y * dM22) * m_dScaleY * dFontScale + dRy;
 			}
 
 			for (unsigned int unIndex = 0; unIndex < std::min(arPoints.size(), wsString.length()); ++unIndex)
-				m_pRenderer->CommandDrawTextCHAR(wsString[unIndex], arGlyphPoint[unIndex].x, arGlyphPoint[unIndex].y, 0, 0);
+				m_pRenderer->CommandDrawTextCHAR(wsString[unIndex], arGlyphPoint[unIndex].X, arGlyphPoint[unIndex].Y, 0, 0);
 
 		}
 
 		void DrawString(std::wstring& wsText, unsigned int unCharsCount, double _dX, double _dY, double* pDx, int iGraphicsMode, double dXScale, double dYScale)
 		{
 			CheckEndPath();
-			IFont* pFont = m_pFile->GetFont();
+			const IFont* pFont = m_pFile->GetFont();
 			if (!pFont)
 				return;
 
@@ -423,7 +451,12 @@ namespace MetaFile
 				}
 				else
 				{
-					pFontManager->LoadFontByName(wsFaceName, dFontHeight, lStyle, 72, 72);
+					double dRendererDpiX, dRendererDpiY;
+
+					m_pRenderer->get_DpiX(&dRendererDpiX);
+					m_pRenderer->get_DpiY(&dRendererDpiY);
+
+					pFontManager->LoadFontByName(wsFaceName, dFontHeight, lStyle, dRendererDpiX, dRendererDpiY);
 					pFontManager->SetCharSpacing(dFontCharSpace * 72 / 25.4);
 
 					double dMmToPt = 25.4 / 72;
@@ -483,8 +516,8 @@ namespace MetaFile
 				}
 
 				TPointD oTextPoint = TranslatePoint(_dX * dFontScale, _dY * dFontScale);
-				double dX = oTextPoint.x;
-				double dY = oTextPoint.y + dSkipY;
+				double dX = oTextPoint.X;
+				double dY = oTextPoint.Y + dSkipY;
 
 				dSkipY += dLogicalFontHeight * m_dScaleY * 1.5;
 
@@ -707,13 +740,13 @@ namespace MetaFile
 		{
 			CheckStartPath(true);
 			TPointD oPoint = TranslatePoint(dX, dY);
-			m_pRenderer->PathCommandMoveTo(oPoint.x, oPoint.y);
+			m_pRenderer->PathCommandMoveTo(oPoint.X, oPoint.Y);
 		}
 		void LineTo(double dX, double dY)
 		{
 			CheckStartPath(false);
 			TPointD oPoint = TranslatePoint(dX, dY);
-			m_pRenderer->PathCommandLineTo(oPoint.x, oPoint.y);
+			m_pRenderer->PathCommandLineTo(oPoint.X, oPoint.Y);
 		}
 		void CurveTo(double dX1, double dY1, double dX2, double dY2, double dXe, double dYe)
 		{
@@ -722,7 +755,7 @@ namespace MetaFile
 			TPointD oPoint1 = TranslatePoint(dX1, dY1);
 			TPointD oPoint2 = TranslatePoint(dX2, dY2);
 			TPointD oPointE = TranslatePoint(dXe, dYe);
-			m_pRenderer->PathCommandCurveTo(oPoint1.x, oPoint1.y, oPoint2.x, oPoint2.y, oPointE.x, oPointE.y);
+			m_pRenderer->PathCommandCurveTo(oPoint1.X, oPoint1.Y, oPoint2.X, oPoint2.Y, oPointE.X, oPointE.Y);
 		}
 		void ArcTo(double dLeft, double dTop, double dRight, double dBottom, double dStart, double dSweep)
 		{
@@ -730,7 +763,7 @@ namespace MetaFile
 
 			TPointD oTL = TranslatePoint(dLeft, dTop);
 			TPointD oBR = TranslatePoint(dRight, dBottom);
-			m_pRenderer->PathCommandArcTo(oTL.x, oTL.y, oBR.x - oTL.x, oBR.y - oTL.y, dStart, dSweep);
+			m_pRenderer->PathCommandArcTo(oTL.X, oTL.Y, oBR.X - oTL.X, oBR.Y - oTL.Y, dStart, dSweep);
 		}
 		void ClosePath()
 		{
@@ -790,14 +823,14 @@ namespace MetaFile
 			m_pRenderer->BeginCommand(c_nPathType);
 			m_pRenderer->PathCommandStart();
 
-			TPointD oTL = TranslatePoint(oClip.dLeft, oClip.dTop);
-			TPointD oBR = TranslatePoint(oClip.dRight, oClip.dBottom);
+			TPointD oTL = TranslatePoint(oClip.Left, oClip.Top);
+			TPointD oBR = TranslatePoint(oClip.Right, oClip.Bottom);
 
-			m_pRenderer->PathCommandMoveTo(oTL.x, oTL.y);
-			m_pRenderer->PathCommandLineTo(oTL.x, oBR.y);
-			m_pRenderer->PathCommandLineTo(oBR.x, oBR.y);
-			m_pRenderer->PathCommandLineTo(oBR.x, oTL.y);
-			m_pRenderer->PathCommandLineTo(oTL.x, oTL.y);
+			m_pRenderer->PathCommandMoveTo(oTL.X, oTL.Y);
+			m_pRenderer->PathCommandLineTo(oTL.X, oBR.Y);
+			m_pRenderer->PathCommandLineTo(oBR.X, oBR.Y);
+			m_pRenderer->PathCommandLineTo(oBR.X, oTL.Y);
+			m_pRenderer->PathCommandLineTo(oTL.X, oTL.Y);
 
 			m_pRenderer->EndCommand(c_nPathType);
 			m_pRenderer->EndCommand(c_nClipType);
@@ -807,21 +840,21 @@ namespace MetaFile
 		{
 			StartClipPath(RGN_AND, ALTERNATE);
 
-			MoveTo(oClip.dLeft,  oClip.dTop);
-			LineTo(oClip.dRight, oClip.dTop);
-			LineTo(oClip.dRight, oClip.dBottom);
-			LineTo(oClip.dLeft,  oClip.dBottom);
+			MoveTo(oClip.Left,  oClip.Top);
+			LineTo(oClip.Right, oClip.Top);
+			LineTo(oClip.Right, oClip.Bottom);
+			LineTo(oClip.Left,  oClip.Bottom);
 			ClosePath();
 
-			MoveTo(oBB.dLeft,  oBB.dTop);
-			LineTo(oBB.dRight, oBB.dTop);
-			LineTo(oBB.dRight, oBB.dBottom);
-			LineTo(oBB.dLeft,  oBB.dBottom);
+			MoveTo(oBB.Left,  oBB.Top);
+			LineTo(oBB.Right, oBB.Top);
+			LineTo(oBB.Right, oBB.Bottom);
+			LineTo(oBB.Left,  oBB.Bottom);
 			ClosePath();
 
 			EndClipPath(RGN_AND);
 		}
-		void PathClip(IPath *pPath, int nClipMode, TXForm* pTransform = NULL)
+		void PathClip(const CPath& oPath, int nClipMode, TXForm *pTransform = NULL)
 		{
 			double dM11, dM12, dM21, dM22, dX, dY;
 
@@ -831,7 +864,7 @@ namespace MetaFile
 				SetTransform(pTransform->M11, pTransform->M12, pTransform->M21, pTransform->M22, pTransform->Dx, pTransform->Dy);
 			}
 
-			pPath->Draw(this, false, false, nClipMode);
+			oPath.DrawOn(this, false, false, nClipMode);
 
 			if (NULL != pTransform)
 				SetTransform(dM11, dM12, dM21, dM22, dX, dY);
@@ -932,7 +965,7 @@ namespace MetaFile
 				if (!bMoveTo)
 				{
 					TPointD oCurPos = m_pFile->GetCurPos();
-					MoveTo(oCurPos.x, oCurPos.y);
+					MoveTo(oCurPos.X, oCurPos.Y);
 				}
 			}
 		}
@@ -948,14 +981,14 @@ namespace MetaFile
 		TPointD TranslatePoint(double dX, double dY)
 		{
 			TPointD oPoint;
-			oPoint.x = m_dScaleX * dX + m_dX;
-			oPoint.y = m_dScaleY * dY + m_dY;
+			oPoint.X = m_dScaleX * dX + m_dX;
+			oPoint.Y = m_dScaleY * dY + m_dY;
 
 			return oPoint;
 		}
 		bool UpdateBrush()
 		{
-			IBrush* pBrush = m_pFile->GetBrush();
+			const IBrush* pBrush = m_pFile->GetBrush();
 			if (!pBrush)
 				return false;
 
@@ -1076,12 +1109,11 @@ namespace MetaFile
 
 				m_pRenderer->put_BrushLinearAngle(pBrush->GetStyleEx());
 
-				long Colors[2];
-				Colors[0] = pBrush->GetColor()  + (pBrush->GetAlpha()  << 24);
-				Colors[1] = pBrush->GetColor2() + (pBrush->GetAlpha2() << 24);
-				double Position[2] = {0, 1};
+				std::vector<long> arColors;
+				std::vector<double> arPositions;
 
-				m_pRenderer->put_BrushGradientColors(Colors,Position,2);
+				pBrush->GetGradientColors(arColors, arPositions);
+				m_pRenderer->put_BrushGradientColors(arColors.data(), arPositions.data(), arColors.size());
 
 			}
 			else if (	BS_RADIALGRADIENT	== unBrushStyle ||
@@ -1102,7 +1134,6 @@ namespace MetaFile
 				
 				m_pRenderer->put_BrushGradientColors(Colors,Position,2);
 			}
-
 			else //if (BS_SOLID == unBrushStyle)
 			{
 				m_pRenderer->put_BrushType(c_BrushTypeSolid);
@@ -1111,6 +1142,19 @@ namespace MetaFile
 			}
 
 			return true;
+		}
+		void UpdateClip()
+		{
+			if (m_bUpdatedClip)
+				return;
+			
+			const CClip *pClip = m_pFile->GetClip();
+			
+			if (NULL == pClip)
+				return;
+			
+			pClip->DrawOnRenderer(this);
+			m_bUpdatedClip = true;
 		}
 		void UpdateTransform(int iGraphicsMode = GM_ADVANCED)
 		{
@@ -1121,23 +1165,22 @@ namespace MetaFile
 
 			oMatrix.Copy(m_pFile->GetTransform(iGraphicsMode));
 
-			if (std::fabs(oMatrix.M11) > 100. || std::fabs(oMatrix.M22) > 100.)
-			{
-				oMatrix.M11 /= std::fabs(oMatrix.M11);
-				oMatrix.M22 /= std::fabs(oMatrix.M22);
-			}
+//			if (std::fabs(oMatrix.M11) > 100. || std::fabs(oMatrix.M22) > 100.)
+//			{
+//				oMatrix.M11 /= std::fabs(oMatrix.M11);
+//				oMatrix.M22 /= std::fabs(oMatrix.M22);
+//			}
 
 			m_pRenderer->ResetTransform();
 			m_pRenderer->SetTransform(oMatrix.M11, oMatrix.M12 * dKoefY / dKoefX, oMatrix.M21 * dKoefX / dKoefY, oMatrix.M22, oMatrix.Dx * dKoefX, oMatrix.Dy * dKoefY);
 		}
 		bool UpdatePen()
 		{
-			IPen* pPen = m_pFile->GetPen();
+			const IPen* pPen = m_pFile->GetPen();
 			if (!pPen)
 				return false;
 
 			unsigned int unMetaPenStyle = pPen->GetStyle();
-
 			unsigned int ulPenStyle     = unMetaPenStyle & PS_STYLE_MASK;
 
 			if (PS_NULL == ulPenStyle)
@@ -1175,25 +1218,8 @@ namespace MetaFile
 			else if (PS_JOIN_MITER == ulPenJoin)
 				nJoinStyle = Aggplus::LineJoinMiter;
 
-			double dWidth = pPen->GetWidth();
-
-			if (0 == dWidth || (1 == dWidth && PS_COSMETIC == ulPenType))
-			{
-				double dRendererDpiX;
-				m_pRenderer->get_DpiX(&dRendererDpiX);
-
-				dWidth = 25.4 / dRendererDpiX;
-
-				if (PS_COSMETIC == ulPenType)
-					dWidth /= m_pFile->GetTransform()->M11 / (m_pFile->GetDpi() / 96.);
-
-				nStartCapStyle = nEndCapStyle = Aggplus::LineCapFlat;
-				nJoinStyle = Aggplus::LineJoinMiter;
-			}
-			else
-				dWidth *= m_dScaleX;
-
-			double dMiterLimit = (0 != pPen->GetMiterLimit()) ? pPen->GetMiterLimit() : m_pFile->GetMiterLimit() * m_dScaleX;
+			const double dWidth = pPen->GetWidth() * m_dScaleX;
+			const double dMiterLimit = (0 != pPen->GetMiterLimit()) ? pPen->GetMiterLimit() : m_pFile->GetMiterLimit() * m_dScaleX;
 
 			BYTE nDashStyle = Aggplus::DashStyleSolid;
 
@@ -1204,69 +1230,66 @@ namespace MetaFile
 
 			if (NULL != pDataDash && 0 != unSizeDash)
 			{
-				//на данный момент производьный стиль не отрисовывается,
-				//поэтому замещает по возможно его на стандартный
 				m_pRenderer->put_PenDashOffset(pPen->GetDashOffset());
 
-				std::vector<double> arDashData;
+				double dM11, dTemp;
+				m_pRenderer->GetTransform(&dM11, &dTemp, &dTemp, &dTemp, &dTemp, &dTemp);
+				double dDpi;
+				m_pRenderer->get_DpiX(&dDpi);
+				const double dNewWidth{dWidth * dM11 * dDpi / 25.4};
+
+				std::vector<double> arDashes(unSizeDash);
 
 				for (unsigned int unIndex = 0; unIndex < unSizeDash; ++unIndex)
-					arDashData.push_back(pDataDash[unIndex] * dWidth);
+					arDashes[unIndex] = pDataDash[unIndex] * dNewWidth;
 
-				m_pRenderer->PenDashPattern(arDashData.data(), unSizeDash);
+				m_pRenderer->PenDashPattern(arDashes.data(), unSizeDash);
+
 				nDashStyle = Aggplus::DashStyleCustom;
 			}
 			else if (PS_SOLID != ulPenStyle)
 			{
 				std::vector<double> arDashPattern;
 
-				double dPixWidth = 0;
-
-				if (0 == pPen->GetWidth() || (1 == pPen->GetWidth() && PS_COSMETIC == ulPenType))
-				{
-					dPixWidth = dWidth;
-				}
-				else
-				{
-					dPixWidth = dWidth * 25.4 / 72.;
-
-					if (1 == pPen->GetWidth() && PS_COSMETIC == ulPenType)
-						dPixWidth /= m_pFile->GetTransform()->M11 / (m_pFile->GetDpi() / 96.);
-				}
+				double dM11, dTemp;
+				m_pRenderer->GetTransform(&dM11, &dTemp, &dTemp, &dTemp, &dTemp, &dTemp);
+				double dDpi;
+				m_pRenderer->get_DpiX(&dDpi);
+				const double dNewWidth{dWidth * dM11 * dDpi / 25.4};
 
 				switch (ulPenStyle)
 				{
 					case PS_DASH:
 					{
-						arDashPattern.push_back(9 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
+						arDashPattern.push_back(9 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
 
 						break;
 					}
 					case PS_DOT:
 					{
-						arDashPattern.push_back(3 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
+						arDashPattern.push_back(3 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
 
 						break;
 					}
 					case PS_DASHDOT:
 					{
-						arDashPattern.push_back(9 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
+						arDashPattern.push_back(9 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
 
 						break;
 					}
 					case PS_DASHDOTDOT:
 					{
-						arDashPattern.push_back(9 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
-						arDashPattern.push_back(3 * dPixWidth);
+						arDashPattern.push_back(9 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
+						arDashPattern.push_back(3 * dNewWidth);
 
 						break;
 					}
@@ -1296,21 +1319,11 @@ namespace MetaFile
 
 			switch (m_pFile->GetRop2Mode())
 			{
-			case R2_BLACK:   m_pRenderer->put_PenColor(METAFILE_RGBA(0, 0, 0)); break;
+			case R2_BLACK:   m_pRenderer->put_PenColor(METAFILE_RGBA(0, 0, 0, 0)); break;
 			case R2_NOP:     m_pRenderer->put_PenAlpha(0); break;
 			case R2_COPYPEN: break;
-			case R2_WHITE:   m_pRenderer->put_PenColor(METAFILE_RGBA(255, 255, 255)); break;
+			case R2_WHITE:   m_pRenderer->put_PenColor(METAFILE_RGBA(255, 255, 255, 0)); break;
 			}
-
-			return true;
-		}
-		bool UpdateClip()
-		{
-			IClip* pClip = m_pFile->GetClip();
-			if (!pClip)
-				return false;
-
-			pClip->ClipOnRenderer(this);
 
 			return true;
 		}
@@ -1327,7 +1340,8 @@ namespace MetaFile
 		double         m_dScaleX; // Коэффициенты сжатия/растяжения, чтобы
 		double         m_dScaleY; // результирующая картинка была нужных размеров.
 		bool           m_bStartedPath;
-
+		bool           m_bUpdatedClip;
+		
 		TRenderConditional *m_pSecondConditional;
 	};
 }

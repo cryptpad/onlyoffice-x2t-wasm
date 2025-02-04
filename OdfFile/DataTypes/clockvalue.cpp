@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -46,6 +46,7 @@ std::wostream & operator << (std::wostream & _Wostream, const clockvalue & _Val)
 		_Wostream << L"indefinite";
 	else
 	{
+#if 0
 		int ms	= _Val.get_value();
 		int sec = 0;
 		int min = 0;
@@ -80,6 +81,13 @@ std::wostream & operator << (std::wostream & _Wostream, const clockvalue & _Val)
 
 		if (h == 0 && min == 0 && ms == 0 && sec == 0)
 			_Wostream << "0s"; 
+#else 
+		int ms = _Val.get_value();
+		float sec = ms / 1000.0f;
+
+		_Wostream << sec << L"s";
+
+#endif
 	}
     return _Wostream;    
 }
@@ -126,7 +134,7 @@ bool parseTime(std::wstring Time, double & Hours, double & Minutes, double & Sec
 		boost::wregex r3 (L"([\\d+(\\.\\d{0,})?]+)([A-Za-z]+)");
         if (boost::regex_split(std::back_inserter(values), Time, r3, boost::match_default | boost::format_all))
         {	
-			int val = -1;
+			double val = -1;
 			for (size_t i = 0; i < values.size() ; i++ )
 			{
 				if (values[i].empty()) continue;

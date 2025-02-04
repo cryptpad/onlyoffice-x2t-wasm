@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -41,6 +41,8 @@ namespace VBA
 
 bool DirStreamObject::loadContent()
 {
+	if (!reader) return false;
+		
 	InformationRecord = boost::make_shared<PROJECTINFORMATION>(reader);
 	ReferencesRecord = boost::make_shared<PROJECTREFERENCES>(reader);
 	ModulesRecord = boost::make_shared<PROJECTMODULES>(reader);
@@ -50,12 +52,16 @@ bool DirStreamObject::loadContent()
 
 bool ModuleStreamObject::loadContent()
 {
-    SourceCode = convert_string_icu((char*)reader->getData(), (unsigned int)reader->getDataSize(), reader->CodePage);
+	if (!reader) return false;
+	
+	SourceCode = convert_string_icu((char*)reader->getData(), (unsigned int)reader->getDataSize(), reader->CodePage);
 
 	return true;
 }
 bool ProjectStreamObject::loadContent()
 {
+	if (!reader) return false;
+
 	std::string strProps((char*)reader->getData(), reader->getDataSize());
 
 	std::vector<std::string> arrProps;
@@ -72,6 +78,8 @@ bool ProjectStreamObject::loadContent()
 }
 bool VBFrameObject::loadContent()
 {
+	if (!reader) return false;
+
 	std::wstring strProps = convert_string_icu((char*)reader->getData(), (unsigned int)reader->getDataSize(), reader->CodePage);
 
 	std::vector<std::wstring> arrProps;
@@ -94,6 +102,8 @@ bool VBFrameObject::loadContent()
 
 bool FormControlStream::loadContent()
 {
+	if (!reader) return false;
+
 	unsigned char MinorVersion, MajorVersion;
 	_UINT16 cbForm;
 	

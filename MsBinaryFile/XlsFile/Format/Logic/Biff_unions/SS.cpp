@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -258,7 +258,7 @@ int SS::serialize_default(std::wostream & _stream, int series_type, int ind )
 
 		CP_XML_NODE(L"c:spPr")
 		{
-			if (m_isAutoFill && series_type != CHART_TYPE_Line && series_type != CHART_TYPE_Scatter) //line & scatter
+			if (m_isAutoFill && series_type != CHART_TYPE_Line && series_type != CHART_TYPE_Scatter && ind < 57) //line & scatter
 			{			
 				CP_XML_NODE(L"a:solidFill")
 				{
@@ -378,11 +378,14 @@ int SS::serialize(std::wostream & _stream, int series_type, int indPt)
 					else
 					{
 						if ((m_isVaried) && (*m_isVaried == false)) ind = 0;
-						CP_XML_NODE(L"a:solidFill")
+						if (ind < 57)
 						{
-							CP_XML_NODE(L"a:srgbClr")
+							CP_XML_NODE(L"a:solidFill")
 							{
-								CP_XML_ATTR(L"val",  default_series_fill_color[ind]);		
+								CP_XML_NODE(L"a:srgbClr")
+								{
+									CP_XML_ATTR(L"val", default_series_fill_color[ind]);
+								}
 							}
 						}
 					}

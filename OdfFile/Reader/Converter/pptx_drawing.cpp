@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -58,7 +58,31 @@ void pptx_serialize_text(std::wostream & strm, _pptx_drawing & val)
 			{				
 				CP_XML_NODE(L"a:p")//empty a:p
 				{
-					CP_XML_NODE(L"a:endParaRPr");
+					CP_XML_NODE(L"a:endParaRPr")
+					{
+						_CP_OPT(double) font_size;
+						odf_reader::GetProperty(val.additional, L"placeholder-font-size", font_size);
+						if (font_size)
+							CP_XML_ATTR(L"sz", *font_size * 100);
+
+						_CP_OPT(bool) bold_text;
+						odf_reader::GetProperty(val.additional, L"placeholder-font-bold", bold_text);
+						if (bold_text && *bold_text)
+							CP_XML_ATTR(L"b", 1);
+						
+						_CP_OPT(std::wstring) text_color;
+						odf_reader::GetProperty(val.additional, L"placeholder-text-color", text_color);
+						if (text_color)
+						{
+							CP_XML_NODE(L"a:solidFill")
+							{
+								CP_XML_NODE(L"a:srgbClr")
+								{
+									CP_XML_ATTR_OPT(L"val", text_color);
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -76,7 +100,8 @@ void pptx_serialize_image(std::wostream & strm, _pptx_drawing & val)
                 {
                     CP_XML_ATTR(L"id",		val.id);
                     CP_XML_ATTR(L"name",	val.name);
-
+					if (val.hidden) CP_XML_ATTR(L"hidden", true);
+					
 					oox_serialize_action(CP_XML_STREAM(), val.action);
 
 				}
@@ -123,6 +148,7 @@ void pptx_serialize_media(std::wostream & strm, _pptx_drawing & val)
                 {
                     CP_XML_ATTR(L"id",		val.id);
                     CP_XML_ATTR(L"name",	val.name);
+					if (val.hidden) CP_XML_ATTR(L"hidden", true);
 
 					oox_serialize_action(CP_XML_STREAM(), val.action);
 
@@ -210,29 +236,38 @@ void pptx_serialize_shape(std::wostream & strm, _pptx_drawing & val)
                 {
                     CP_XML_ATTR(L"id", val.id);//числовое значение val.rId
                     CP_XML_ATTR(L"name", val.name); 
+					if (val.hidden) CP_XML_ATTR(L"hidden", true);
 
 					oox_serialize_action(CP_XML_STREAM(),val.action);
                 }
 				CP_XML_NODE(L"p:cNvSpPr")//non visual properies (собственно тока 1 там)
 				{
 					if (val.sub_type == 1 || val.sub_type == 2)CP_XML_ATTR(L"txBox", 1);
-					CP_XML_NODE(L"a:spLocks")
-					{
-						CP_XML_ATTR(L"noGrp", 1);
-					}
+					//CP_XML_NODE(L"a:spLocks")
+					//{
+					//	CP_XML_ATTR(L"noGrp", 1);
+					//}
 				}
 				CP_XML_NODE(L"p:nvPr")
 				{
-					if (val.place_holder_type_.length()>0)
+					if (val.place_holder_type_.length() > 0)
 					{
 						CP_XML_NODE(L"p:ph")
 						{
-							CP_XML_ATTR(L"type",val.place_holder_type_);
-							if (val.place_holder_idx_ > 0)	CP_XML_ATTR(L"idx", val.place_holder_idx_);
-							
-							if (val.place_holder_type_ == L"dt")	{	CP_XML_ATTR(L"sz", L"half");	}
-							if (val.place_holder_type_ == L"ftr")	{	CP_XML_ATTR(L"sz", L"quarter");	}
-							if (val.place_holder_type_ == L"sldNum"){	CP_XML_ATTR(L"sz", L"quarter");	}
+							CP_XML_ATTR(L"type", val.place_holder_type_);
+
+							if (val.place_holder_type_ == L"dt") { CP_XML_ATTR(L"sz", L"half"); }
+							if (val.place_holder_type_ == L"ftr") { CP_XML_ATTR(L"sz", L"quarter"); }
+							if (val.place_holder_type_ == L"sldNum") { CP_XML_ATTR(L"sz", L"quarter"); }
+
+							CP_XML_ATTR(L"idx", (uint32_t)val.place_holder_idx_);
+						}
+					}
+					else if (val.place_holder_)
+					{
+						CP_XML_NODE(L"p:ph")
+						{
+							CP_XML_ATTR(L"idx", (uint32_t)val.place_holder_idx_);
 						}
 					}
 				}
@@ -242,19 +277,19 @@ void pptx_serialize_shape(std::wostream & strm, _pptx_drawing & val)
 				_CP_OPT(bool) bNoRect;
 				odf_reader::GetProperty(val.additional,L"no_rect",bNoRect);
 
+				if (val.cx != 0 || val.cy != 0) //layout
+				{
+					val.serialize_xfrm(CP_XML_STREAM(), L"a", true);
+				}
 				if (!bNoRect)
-				{	
-					if (val.cx != 0 || val.cy != 0) //layout
-					{
-						val.serialize_xfrm(CP_XML_STREAM(), L"a", true);
-					}
+				{
 					val.serialize_shape(CP_XML_STREAM());
 
 					oox_serialize_ln(CP_XML_STREAM(), val.additional);
 					oox_serialize_effects(CP_XML_STREAM(), val.additional);
 				}
 			}
-			 pptx_serialize_text(CP_XML_STREAM(), val);
+			pptx_serialize_text(CP_XML_STREAM(), val);
 		}
     }  // CP_XML_WRITER  
 }
@@ -270,20 +305,33 @@ void pptx_serialize_connector(std::wostream & strm, _pptx_drawing & val)
                 {
                     CP_XML_ATTR(L"id", val.id);//числовое значение val.rId
                     CP_XML_ATTR(L"name", val.name); 
+					if (val.hidden) CP_XML_ATTR(L"hidden", true);
 
 					oox_serialize_action(CP_XML_STREAM(), val.action);
                 }
 				CP_XML_NODE(L"p:cNvCxnSpPr")//non visual properies (собственно тока 1 там)
 				{
 					if (val.sub_type == 1 || val.sub_type == 2)CP_XML_ATTR(L"txBox", 1);
-					CP_XML_NODE(L"a:spLocks")
+					//CP_XML_NODE(L"a:spLocks")
+					//{
+					//	CP_XML_ATTR(L"noGrp", 1);
+					//}
+
+					CP_XML_NODE(L"a:stCxn")
 					{
-						CP_XML_ATTR(L"noGrp", 1);
+						CP_XML_ATTR(L"id", val.start_connection_shape_id);
+						CP_XML_ATTR(L"idx", val.start_connection_index);
 					}
+
+					CP_XML_NODE(L"a:endCxn")
+					{
+						CP_XML_ATTR(L"id", val.end_connection_shape_id);
+						CP_XML_ATTR(L"idx", val.end_connection_index);
+					}	
 				}
 				CP_XML_NODE(L"p:nvPr")
 				{
-					if (val.place_holder_type_.length()>0)
+					if (false == val.place_holder_type_.empty())
 					{
 						CP_XML_NODE(L"p:ph")
 						{
@@ -314,7 +362,7 @@ void pptx_serialize_connector(std::wostream & strm, _pptx_drawing & val)
 					oox_serialize_effects(CP_XML_STREAM(), val.additional);
 				}
 			}
-			 pptx_serialize_text(CP_XML_STREAM(), val);
+			pptx_serialize_text(CP_XML_STREAM(), val);
 		}
     }  // CP_XML_WRITER  
 }
@@ -330,7 +378,8 @@ void pptx_serialize_chart(std::wostream & strm, _pptx_drawing & val)
                 {
                     CP_XML_ATTR(L"id", val.id);
                     CP_XML_ATTR(L"name", val.name);
-                }
+					if (val.hidden) CP_XML_ATTR(L"hidden", true);
+				}
 
                 CP_XML_NODE(L"p:cNvGraphicFramePr");
 				CP_XML_NODE(L"p:nvPr");
@@ -367,7 +416,8 @@ void pptx_serialize_table(std::wostream & strm, _pptx_drawing & val)
                 {
                     CP_XML_ATTR(L"id", val.id);
                     CP_XML_ATTR(L"name", val.name);
-                }
+					if (val.hidden) CP_XML_ATTR(L"hidden", true);
+				}
 
                 CP_XML_NODE(L"p:cNvGraphicFramePr");
 				CP_XML_NODE(L"p:nvPr");
@@ -408,7 +458,8 @@ void pptx_serialize_object(std::wostream & strm, _pptx_drawing & val)
                 {
                     CP_XML_ATTR(L"id", val.id);
                     CP_XML_ATTR(L"name", val.name);
-                }
+					if (val.hidden) CP_XML_ATTR(L"hidden", true);
+				}
 
                 CP_XML_NODE(L"p:cNvGraphicFramePr");
 				CP_XML_NODE(L"p:nvPr");
@@ -444,9 +495,9 @@ void _pptx_drawing::serialize(std::wostream & strm)
 {
 	if (type == typeShape)
 	{
-		//if (connector) only for ms prst connectors, but not custom!!
-		//	pptx_serialize_connector(strm, *this);
-		//else			
+		if (connector) // only for ms prst connectors, but not custom!!
+			pptx_serialize_connector(strm, *this);
+		else			
 			pptx_serialize_shape(strm, *this);
 	}
 	else if (type == typeImage)

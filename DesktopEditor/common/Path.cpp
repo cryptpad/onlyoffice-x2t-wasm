@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,12 @@
  */
 #include "Path.h"
 #include "File.h"
+#include <stack>
 
 #if defined(_WIN32) || defined (_WIN64)
-    #include <tchar.h>
+#include <tchar.h>
 #elif __linux__ || MAC
-    #include <libgen.h>
+#include <libgen.h>
 #endif
 
 namespace NSSystemPath
@@ -61,7 +62,7 @@ namespace NSSystemPath
 		sRes = NSFile::CUtf8Converter::GetUnicodeStringFromUTF8((BYTE*)pDirName, strlen(pDirName));
 		delete [] pUtf8;
 #endif
-        return sRes;
+		return sRes;
 	}
 	std::wstring GetFileName(const std::wstring& strFileName)
 	{
@@ -103,17 +104,19 @@ namespace NSSystemPath
 			sRes = strLeft + strRight.substr(1);
 		}
 		else if(!bLeftSlash && !bRightSlash)
-            sRes = strLeft + L"/" + strRight;
+			sRes = strLeft + L"/" + strRight;
 		else
 			sRes = strLeft + strRight;
 		return sRes;
 	}
-	std::string NormalizePath(const std::string& strFileName)
-	{
-		const char*   pData   = strFileName.c_str();
-		int           nLen    = (int) strFileName.length();
 
-		char* pDataNorm       = new char[nLen + 1];
+	template<class CHAR, class STRING = std::basic_string<CHAR, std::char_traits<CHAR>, std::allocator<CHAR>>>
+	STRING NormalizePathTemplate(const STRING& strFileName, const bool& canHead = false)
+	{
+		const CHAR* pData = strFileName.c_str();
+		int nLen          = (int) strFileName.length();
+
+		CHAR* pDataNorm       = new CHAR[nLen + 1];
 		int*  pSlashPoints    = new int[nLen + 1];
 
 		int nStart          = 0;
@@ -122,10 +125,21 @@ namespace NSSystemPath
 		int nCurrentW       = 0;
 		bool bIsUp          = false;
 
-	#if !defined(_WIN32) && !defined (_WIN64)
+		if (canHead)
+		{
+			nCurrentSlash = 0;
+			pSlashPoints[0] = 0;
+		}
+
 		if (pData[nCurrent] == '/' || pData[nCurrent] == '\\')
+		{
+#if !defined(_WIN32) && !defined (_WIN64)
 			pDataNorm[nCurrentW++] = pData[nCurrent];
-	#endif
+#endif
+			++nCurrentSlash;
+			pSlashPoints[nCurrentSlash] = nCurrentW;
+		}
+
 		while (nCurrent < nLen)
 		{
 			if (pData[nCurrent] == '/' || pData[nCurrent] == '\\')
@@ -135,7 +149,7 @@ namespace NSSystemPath
 					bIsUp = false;
 					if ((nCurrent - nStart) == 2)
 					{
-						if (pData[nStart] == (char)'.' && pData[nStart + 1] == (char)'.')
+						if (pData[nStart] == (CHAR)'.' && pData[nStart + 1] == (CHAR)'.')
 						{
 							if (nCurrentSlash > 0)
 							{
@@ -147,7 +161,7 @@ namespace NSSystemPath
 					}
 					if (!bIsUp)
 					{
-						pDataNorm[nCurrentW++] = (char)'/';
+						pDataNorm[nCurrentW++] = (CHAR)'/';
 						++nCurrentSlash;
 						pSlashPoints[nCurrentSlash] = nCurrentW;
 					}
@@ -160,13 +174,79 @@ namespace NSSystemPath
 			++nCurrent;
 		}
 
-		pDataNorm[nCurrentW] = (char)'\0';
+		pDataNorm[nCurrentW] = (CHAR)'\0';
 
-		std::string result = std::string(pDataNorm, nCurrentW);
+		STRING result = STRING(pDataNorm, nCurrentW);
 
 		delete[] pDataNorm;
 		delete[] pSlashPoints;
 
 		return result;
 	}
+
+	std::string NormalizePath(const std::string& strFileName, const bool& canHead)
+	{
+		return NormalizePathTemplate<char>(strFileName, canHead);
+	}
+	std::wstring NormalizePath(const std::wstring& strFileName, const bool& canHead)
+	{
+		return NormalizePathTemplate<wchar_t>(strFileName, canHead);
+	}
+
+	std::wstring ShortenPath(const std::wstring &strPath, const bool& bRemoveExternalPath)
+	{
+		std::stack<std::wstring> arStack;
+		std::wstring wsToken;
+
+		for (size_t i = 0; i < strPath.size(); ++i) 
+		{
+			if (L'/' == strPath[i] || L'\\' == strPath[i])
+			{
+				if (L".." == wsToken)
+				{
+					if (!arStack.empty() && L".." != arStack.top())
+						arStack.pop();
+					else
+						arStack.push(wsToken);
+				}
+				else if (L"." != wsToken && !wsToken.empty())
+					arStack.push(wsToken);
+	
+				wsToken.clear();
+			}
+			else
+				wsToken += strPath[i];
+		}
+
+		if (L".." == wsToken)
+		{
+			if (!arStack.empty() && L".." == arStack.top())
+				arStack.pop();
+			else
+				arStack.push(wsToken);
+		}
+		else if (L"." != wsToken && !wsToken.empty())
+			arStack.push(wsToken);
+
+		wsToken.clear();
+
+		if (arStack.empty())
+			return std::wstring();
+
+		std::wstring wsNewPath;
+
+		while (!arStack.empty()) 
+		{
+			if (bRemoveExternalPath && L".." == arStack.top())
+				break;
+
+			wsNewPath = arStack.top() + L'/' + wsNewPath;
+			arStack.pop();
+		}
+
+		wsNewPath.pop_back();
+
+		return wsNewPath;
+	}
+	
 }

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -190,7 +190,15 @@ Aggplus::CBrush* CGraphicsRenderer::CreateBrush(NSStructures::CBrush* pBrush)
 	}
 	else
 	{
-		Aggplus::CBrushTexture* pNew = new Aggplus::CBrushTexture(pBrush->TexturePath, /*(Aggplus::WrapMode)TextureMode*/Aggplus::WrapModeClamp);
+		Aggplus::CBrushTexture* pNew;
+
+		if (NULL != pBrush->Image)
+			pNew = new Aggplus::CBrushTexture(pBrush->Image, Aggplus::WrapModeClamp);
+		else
+			pNew = new Aggplus::CBrushTexture(pBrush->TexturePath, Aggplus::WrapModeClamp);
+
+		pNew->SetTransform(&m_oBrush.Transform);
+
 		return pNew;
 	}
 }
@@ -548,6 +556,23 @@ HRESULT CGraphicsRenderer::put_BrushTexturePath(const std::wstring& bsPath)
 	m_oBrush.TexturePath = bsPath;
 	return S_OK;
 }
+HRESULT CGraphicsRenderer::get_BrushTextureImage(Aggplus::CImage** pImage)
+{
+	*pImage = m_oBrush.Image;
+	return S_OK;
+}
+HRESULT CGraphicsRenderer::put_BrushTextureImage(Aggplus::CImage *pImage)
+{
+	RELEASEINTERFACE(m_oBrush.Image);
+
+	if (NULL == pImage)
+		return S_OK;
+
+	m_oBrush.Image = pImage;
+	m_oBrush.Image->AddRef();
+
+	return S_OK;
+}
 HRESULT CGraphicsRenderer::get_BrushTextureMode(LONG* lMode)
 {
 	*lMode = m_oBrush.TextureMode;
@@ -576,6 +601,16 @@ HRESULT CGraphicsRenderer::get_BrushLinearAngle(double* dAngle)
 HRESULT CGraphicsRenderer::put_BrushLinearAngle(const double& dAngle)
 {
 	m_oBrush.LinearAngle = dAngle;
+	return S_OK;
+}
+HRESULT CGraphicsRenderer::get_BrushTransform(Aggplus::CMatrix &oMatrix)
+{
+	oMatrix = m_oBrush.Transform;
+	return S_OK;
+}
+HRESULT CGraphicsRenderer::put_BrushTransform(const Aggplus::CMatrix& oMatrix)
+{
+	m_oBrush.Transform = oMatrix;
 	return S_OK;
 }
 HRESULT CGraphicsRenderer::BrushRect(const INT& val, const double& left, const double& top, const double& width, const double& height)
@@ -759,6 +794,16 @@ HRESULT CGraphicsRenderer::BeginCommand(const DWORD& lType)
 		{
 			return NewPage();
 		}
+	case c_nMaskType:
+		{
+			m_pRenderer->StartCreatingAlphaMask();
+			break;
+		}
+	case c_nLayerType:
+		{
+			m_pRenderer->CreateLayer();
+			break;
+		}
 	default:
 		break;
 	};
@@ -777,7 +822,8 @@ HRESULT CGraphicsRenderer::EndCommand(const DWORD& lType)
 			m_pPath->SetRuler(bIsIn ? false : true);
 
 			INT bIsIntersect = (c_nClipRegionIntersect == (0x0100 & m_lCurrentClipMode));
-			m_pRenderer->CombineClip(m_pPath, bIsIntersect ? agg::sbool_and : agg::sbool_or);
+			INT bIsStrokePath = (c_nClipToStrokePath == (0x0010 & m_lCurrentClipMode));
+			m_pRenderer->CombineClip(m_pPath, bIsIntersect ? agg::sbool_and : agg::sbool_or, bIsStrokePath ? &m_oPen : NULL);
 
 			//m_pRenderer->SetClip(m_pPath);
 			break;
@@ -786,6 +832,21 @@ HRESULT CGraphicsRenderer::EndCommand(const DWORD& lType)
 		{
 			m_pRenderer->ResetClip();
 			m_bIsSetupClip = FALSE;
+			break;
+		}
+	case c_nMaskType:
+		{
+			m_pRenderer->EndCreatingAlphaMask();
+			break;
+		}
+	case c_nResetMaskType:
+		{
+			m_pRenderer->ResetAlphaMask();
+			break;
+		}
+	case c_nLayerType:
+		{
+			m_pRenderer->BlendLayer();
 			break;
 		}
 	default:
@@ -895,60 +956,68 @@ HRESULT CGraphicsRenderer::DrawPath(const LONG& nType)
 				}
 
 				Aggplus::CBrushTexture* pTextureBrush = NULL;
-				
-				if (NULL != m_pCache)
-				{
-                    pCacheImage = (CCacheImage*)m_pCache->Lock(m_oBrush.TexturePath);
 
-					pTextureBrush = new Aggplus::CBrushTexture(pCacheImage->GetImage(), oMode);
+				if (NULL != m_oBrush.Image)
+				{
+					pTextureBrush = new Aggplus::CBrushTexture(m_oBrush.Image, oMode);
+				}
+				else if (m_oBrush.TexturePath.find(L"data:") == 0)
+				{
+					bool bIsOnlyOfficeHatch = false;
+					if (m_oBrush.TexturePath.find(L"onlyoffice_hatch") != std::wstring::npos)
+					bIsOnlyOfficeHatch = true;
+
+					int countErase = (int)(m_oBrush.TexturePath.find(',') + 1);
+					int nInputSize = (int)(m_oBrush.TexturePath.length() - countErase);
+					const wchar_t* pInputSrc = m_oBrush.TexturePath.c_str() + countErase;
+
+					int nDecodeLen = NSBase64::Base64DecodeGetRequiredLength(nInputSize);
+					BYTE* pImageData = new BYTE[nDecodeLen];
+					if (TRUE == NSBase64::Base64Decode(pInputSrc, nInputSize, pImageData, &nDecodeLen))
+					{
+						CBgraFrame oFrame;
+						if (bIsOnlyOfficeHatch)
+						{
+							int nSize = (int)sqrt(nDecodeLen >> 2);
+							oFrame.put_IsRGBA(true);
+							oFrame.put_Data(pImageData);
+							oFrame.put_Width(nSize);
+							oFrame.put_Height(nSize);
+							oFrame.put_Stride(4 * nSize);
+						}
+						else
+						{
+							oFrame.put_IsRGBA(false);
+							oFrame.Decode(pImageData, nDecodeLen);
+							RELEASEARRAYOBJECTS(pImageData);
+						}
+						// pImage отдается pTextureBrush и освобождается вместе с pBrush
+						Aggplus::CImage* pImage = new Aggplus::CImage();
+						pImage->Create(oFrame.get_Data(), oFrame.get_Width(), oFrame.get_Height(), oFrame.get_Stride());
+						oFrame.ClearNoAttack();
+						pTextureBrush = new Aggplus::CBrushTexture(pImage, oMode);
+						pTextureBrush->m_bReleaseImage = TRUE;
+					}
+					else
+						RELEASEARRAYOBJECTS(pImageData);
 				}
 				else
 				{
-				#ifdef BUILDING_WASM_MODULE
-					if (m_oBrush.TexturePath.find(L"data:") == 0)
+					if (NULL != m_pCache)
 					{
-						bool bIsOnlyOfficeHatch = false;
-						if (m_oBrush.TexturePath.find(L"onlyoffice_hatch") != std::wstring::npos)
-							bIsOnlyOfficeHatch = true;
-						std::string sBase64MultyByte(m_oBrush.TexturePath.begin(), m_oBrush.TexturePath.end());
-						sBase64MultyByte.erase(0, sBase64MultyByte.find(',') + 1);
-						int nDecodeLen = NSBase64::Base64DecodeGetRequiredLength(sBase64MultyByte.length());
-						BYTE* pImageData = new BYTE[nDecodeLen + 64];
-						if (TRUE == NSBase64::Base64Decode(sBase64MultyByte.c_str(), sBase64MultyByte.length(), pImageData, &nDecodeLen))
-						{
-							CBgraFrame oFrame;
-							if (bIsOnlyOfficeHatch)
-							{
-								int nSize = (int)sqrt(nDecodeLen >> 2);
-								oFrame.put_IsRGBA(true);
-								oFrame.put_Data(pImageData);
-								oFrame.put_Width(nSize);
-								oFrame.put_Height(nSize);
-								oFrame.put_Stride(4 * nSize);
-							}
-							else
-							{
-								oFrame.put_IsRGBA(false);
-								oFrame.Decode(pImageData, nDecodeLen);
-								RELEASEARRAYOBJECTS(pImageData);
-							}
-							// pImage отдается pTextureBrush и освобождается вместе с pBrush
-							Aggplus::CImage* pImage = new Aggplus::CImage();
-							pImage->Create(oFrame.get_Data(), oFrame.get_Width(), oFrame.get_Height(), oFrame.get_Stride());
-							oFrame.ClearNoAttack();
-							pTextureBrush = new Aggplus::CBrushTexture(pImage, oMode);
-							pTextureBrush->m_bReleaseImage = TRUE;
-						}
-						else
-							RELEASEARRAYOBJECTS(pImageData);
+						pCacheImage = (CCacheImage*)m_pCache->Lock(m_oBrush.TexturePath);
+						pTextureBrush = new Aggplus::CBrushTexture(pCacheImage->GetImage(), oMode);
 					}
-				#else
-					pTextureBrush = new Aggplus::CBrushTexture(m_oBrush.TexturePath, oMode);
-                #endif
+					else
+					{
+						pTextureBrush = new Aggplus::CBrushTexture(m_oBrush.TexturePath, oMode);
+					}
 				}
 
 				if( pTextureBrush )
 				{
+					pTextureBrush->SetTransform(&m_oBrush.Transform);
+
 					pTextureBrush->Alpha = (BYTE)m_oBrush.TextureAlpha;
 
                     if (m_oBrush.Rectable == 1)
@@ -1344,6 +1413,26 @@ void CGraphicsRenderer::CreateFlip(BYTE* pPixels, const Aggplus::CDoubleRect& oR
 	m_pRenderer->SetPageUnit(Aggplus::UnitMillimeter);
 }
 
+void CGraphicsRenderer::SetAlphaMask(Aggplus::CAlphaMask *pAlphaMask)
+{
+	m_pRenderer->SetAlphaMask(pAlphaMask);
+}
+
+Aggplus::CSoftMask* CGraphicsRenderer::CreateSoftMask(bool bAlpha)
+{
+	return m_pRenderer->CreateSoftMask(bAlpha);
+}
+
+void CGraphicsRenderer::SetSoftMask(Aggplus::CSoftMask* pSoftMask)
+{
+	m_pRenderer->SetSoftMask(pSoftMask);
+}
+
+HRESULT CGraphicsRenderer::put_LayerOpacity(double dValue)
+{
+	return m_pRenderer->SetLayerOpacity(dValue);
+}
+
 void CGraphicsRenderer::put_GlobalAlphaEnabled(const bool& bEnabled, const double& dVal)
 {
 	m_bGlobalAlphaEnabled = bEnabled;
@@ -1396,6 +1485,7 @@ public:
     double                          m_dGlobalAlpha;
     bool                            m_bGlobalAlphaEnabled;
     bool                            m_bIntegerGrid;
+    unsigned int                    m_nBlendMode;
 
     Aggplus::CGraphics_ClipState    m_oClipState;
 };
@@ -1416,6 +1506,7 @@ void CGraphicsRenderer::Save()
     pState->m_bGlobalAlphaEnabled   = m_bGlobalAlphaEnabled;
 
     pState->m_bIntegerGrid  = m_pRenderer->m_bIntegerGrid;
+    pState->m_nBlendMode    = m_pRenderer->m_nBlendMode;
 
     m_arStates.push_back(pState);
 }
@@ -1437,6 +1528,7 @@ void CGraphicsRenderer::Restore()
     ApplyTransform(&pState->m_oTransform);
     this->put_IntegerGrid(pState->m_bIntegerGrid);
     this->put_GlobalAlphaEnabled(pState->m_bGlobalAlphaEnabled, pState->m_dGlobalAlpha);
+    this->put_BlendMode(pState->m_nBlendMode);
 
     m_pRenderer->ResetClip();
     for (std::vector<Aggplus::CGraphics_ClipStateRecord*>::iterator i = pState->m_oClipState.Records.begin(); i != pState->m_oClipState.Records.end(); i++)
@@ -1447,7 +1539,7 @@ void CGraphicsRenderer::Restore()
 
     RELEASEOBJECT(pState);
 }
-void CGraphicsRenderer::put_BlendMode(const unsigned int nBlendMode)
+void CGraphicsRenderer::put_BlendMode(const unsigned int& nBlendMode)
 {
     if (NULL != m_pRenderer)
     {

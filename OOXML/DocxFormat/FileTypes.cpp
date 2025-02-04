@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -167,19 +167,24 @@ namespace OOX
 
 		const FileType Image			(L"media", L"image", 
 												L"", 
-												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image", L"image", true);
+												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image", L"image", true, true);
 
 		const FileType Audio			(L"media", L"audio", 
 												L"", 
-												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/audio", L"audio", true);
+												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/audio", L"audio", true, true);
 
 		const FileType Video			(L"media", L"video", 
 												L"", 
-												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/video", L"video", true);
+												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/video", L"video", true, true);
 
 		const FileType Media			(L"media", L"media", 
 												L"", 
-												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/media", L"media", true);
+												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/media", L"media", true, true);
+
+		const FileType SvgBlip			(L"media", L"image",
+												L"",
+												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image", L"image", true, true);
+		
 
 		const FileType DiagramData		(L"diagrams", L"data.xml",
 												L"application/vnd.openxmlformats-officedocument.drawingml.diagramData+xml",
@@ -274,7 +279,7 @@ namespace OOX
 
 		const FileType MicrosoftOfficeUnknown(L"embeddings", L"",
 												L"",
-												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/package");
+												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/package", L"embeddings/package", true, true);
 
 		const FileType MicrosoftOfficeExcelWorksheet(L"embeddings", L"Microsoft_Office_Excel_Worksheet.xlsx",
 												L"",
@@ -341,7 +346,7 @@ namespace OOX
 
 		const FileType OleObject			(L"embeddings", L"oleObject.bin",
 												L"",
-												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject");
+												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject", L"embeddings/oleObject", true, true);
 		
 		const FileType VmlDrawing			(L"drawings", L"vmlDrawing.vml",
 												L"application/vnd.openxmlformats-officedocument.vmlDrawing",

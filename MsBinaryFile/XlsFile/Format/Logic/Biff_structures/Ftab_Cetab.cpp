@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -521,15 +521,15 @@ Ftab_Cetab::ValuesDetermination::ValuesDetermination()
     params_fixed.insert(ParamsFixed(0x01D6, 4, L"ACCRINTM"));
     params_fixed.insert(ParamsFixed(0x01D7, 2, L"WORKDAY"));
     params_fixed.insert(ParamsFixed(0x01D8, 2, L"NETWORKDAYS"));
-    params_fixed.insert(ParamsFixed(0x01D9, 1, L"GCD"));
+    params_fixed.insert(ParamsFixed(0x01D9, -1, L"GCD"));
     params_fixed.insert(ParamsFixed(0x01DA, 1, L"MULTINOMIAL"));
-    params_fixed.insert(ParamsFixed(0x01DB, 1, L"LCM"));
+    params_fixed.insert(ParamsFixed(0x01DB, -1, L"LCM"));
     params_fixed.insert(ParamsFixed(0x01DC, 2, L"FVSCHEDULE"));
     params_fixed.insert(ParamsFixed(0x01DD, 3, L"CUBEKPIMEMBER"));
     params_fixed.insert(ParamsFixed(0x01DE, 1, L"CUBESET"));
     params_fixed.insert(ParamsFixed(0x01DF, 1, L"CUBESETCOUNT"));
     params_fixed.insert(ParamsFixed(0x01E0, 2, L"IFERROR"));
-    params_fixed.insert(ParamsFixed(0x01E1, 2, L"COUNTIFS"));
+    params_fixed.insert(ParamsFixed(0x01E1, -1, L"COUNTIFS"));
     params_fixed.insert(ParamsFixed(0x01E2, 3, L"SUMIFS"));
     params_fixed.insert(ParamsFixed(0x01E3, 2, L"AVERAGEIF"));
     params_fixed.insert(ParamsFixed(0x01E4, 3, L"AVERAGEIFS"));

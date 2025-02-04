@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -86,6 +86,8 @@ namespace ParseAllCultureInfo
             public string TimeSeparator;
             [DataMember]
             public string ShortDatePattern;
+            [DataMember]
+            public string LongDatePattern;
             public ParamsSerializable(CultureInfo ci)
             {
                 LCID = ci.LCID;
@@ -174,11 +176,13 @@ namespace ParseAllCultureInfo
                     }
                 }
                 ShortDatePattern = sShortDatePattern;
+                LongDatePattern = parseLongDate(ci.DateTimeFormat.LongDatePattern);
             }
         }
         static Dictionary<int, int> g_mapUsedValues = new Dictionary<int, int>() {
             {4, 1},
             {5, 1},
+            {6, 1},
             {7, 1},
             {8, 1},
             {9, 1},
@@ -194,6 +198,7 @@ namespace ParseAllCultureInfo
             {25, 1},
             {29, 1},
             {31, 1},
+            {33, 1},
             {34, 1},
             {36, 1},
             {38, 1},
@@ -205,6 +210,7 @@ namespace ParseAllCultureInfo
             {1026, 1},
             {1028, 1},
             {1029, 1},
+            {1030, 1},
             {1031, 1},
             {1032, 1},
             {1033, 1},
@@ -222,6 +228,7 @@ namespace ParseAllCultureInfo
             {1051, 1},
             {1053, 1},
             {1055, 1},
+            {1057, 1},
             {1058, 1},
             {1060, 1},
             {1062, 1},
@@ -306,6 +313,40 @@ namespace ParseAllCultureInfo
             {31748, 1},
             {31824, 1}
         };
+        public static string parseLongDate(string format)
+        {
+            format = format.ToLower();
+            string res = "";
+            for(var i = 0; i < format.Length; ++i)
+            {
+                switch(format[i])
+                {
+                    case 'd':
+                    case 'g':
+                    case 'h':
+                    case 'm':
+                    case 's':
+                    case 'y':
+                    case ':':
+                    case '/':
+                        res += format[i];
+                        break;
+                    case '\\':
+                        res += "\\\\" + format[i+1];
+                        i++;
+                        break;
+                    case '\'':
+                    case '\"':
+                        res += "\\\"" + format.Substring(i + 1, format.IndexOf(format[i], i+1) - i - 1) + "\\\"";
+                        i = format.IndexOf(format[i], i + 1);
+                        break;
+                    default:
+                        res += "\\\\" + format[i];
+                        break;
+                }
+            }
+            return res;
+        }
         public static void parse()
         {
             List<int> aLcid = new List<int>();

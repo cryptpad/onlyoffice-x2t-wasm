@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,10 +31,10 @@
  */
 #pragma once
 
-#include  "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/BiffRecord.h"
 #include "../../XlsxFormat/WritingElement.h"
 #include "../Biff12_structures/DBType.h"
-#include "../Biff12_structures/XLWideString.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/BiffRecord.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/BIFF12/XLWideString.h"
 
 namespace XLSB
 {
@@ -49,29 +49,30 @@ namespace XLSB
 
             XLS::BaseObjectPtr clone();
 
-            void readFields(XLS::CFRecord& record);
+            void readFields(XLS::CFRecord& record) override;
+			void writeFields(XLS::CFRecord& record) override;
 
             static const XLS::ElementType	type = XLS::typeBeginExtConnection;
 
-            BYTE         bVerRefreshed;
-            BYTE         bVerRefreshableMin;
-            BYTE         pc;
-            _UINT16      wInterval;
-            bool         fMaintain;
-            bool         fNewQuery;
-            bool         fDeleted;
-            bool         fAlwaysUseConnectionFile;
-            bool         fBackgroundQuery;
-            bool         fRefreshOnLoad;
-            bool         fSaveData;
-            bool         fLoadSourceDataFile;
-            bool         fLoadSourceConnectionFile;
-            bool         fLoadConnectionDesc;
-            bool         fLoadSSOApplicationID;
+            BYTE         bVerRefreshed = 0;
+            BYTE         bVerRefreshableMin = 0;
+            BYTE         pc = 1;
+            _UINT16      wInterval = 0;
+            bool         fMaintain = false;
+            bool         fNewQuery = false;
+            bool         fDeleted = false;
+            bool         fAlwaysUseConnectionFile = false;
+            bool         fBackgroundQuery = false;
+            bool         fRefreshOnLoad = false;
+            bool         fSaveData = false;
+            bool         fLoadSourceDataFile = false;
+            bool         fLoadSourceConnectionFile = false;
+            bool         fLoadConnectionDesc = false;
+            bool         fLoadSSOApplicationID = false;
             DBType       idbtype;
-            _UINT32      irecontype;
-            _UINT32      dwConnID;
-            BYTE         iCredMethod;
+            _UINT32      irecontype = 1;
+            _UINT32      dwConnID = 1;
+            BYTE         iCredMethod = 0;
             XLWideString stDataFile;
             XLWideString stConnectionFile;
             XLWideString stConnDesc;

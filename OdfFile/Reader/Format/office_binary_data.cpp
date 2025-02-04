@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,13 +31,11 @@
  */
 
 #include "office_binary_data.h"
-
-#include <xml/xmlchar.h>
+#include "../../../DesktopEditor/raster/ImageFileFormatChecker.h"
+#include "../../../Common/OfficeFileFormatChecker.h"
 
 namespace cpdoccore { 
 namespace odf_reader {
-
-
 
 // office:binary-data
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,9 +70,24 @@ std::wstring office_binary_data::write_to(const std::wstring & path)
 	NSFile::CBase64Converter::Decode(base64Binary_.c_str(), base64Binary_.length(), pData, nLength);
 	if (pData)
 	{
+		CImageFileFormatChecker image_checker;
+		std::wstring sExt = image_checker.DetectFormatByData(pData, nLength);
+
+		if (sExt.empty())
+		{
+			std::wstring documentID;
+			COfficeFileFormatChecker office_checker;
+			
+			if (office_checker.isPdfFormatFile(pData, nLength, documentID))
+			{
+				type_binary_data = 20; // oox::_rels_type = typePDF;
+				sExt = L"pdf";
+			}
+		}
+
 		NSFile::CFileBinary file;
 
-		std::wstring bin_file = file.CreateTempFileWithUniqueName(path + FILE_SEPARATOR_STR, L"bin");
+		std::wstring bin_file = file.CreateTempFileWithUniqueName(path + FILE_SEPARATOR_STR, sExt);
 		if (file.CreateFileW(bin_file))
 		{
 			file.WriteFile(pData, nLength);

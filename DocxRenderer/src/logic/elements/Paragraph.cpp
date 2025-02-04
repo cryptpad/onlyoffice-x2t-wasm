@@ -1,225 +1,213 @@
 #include "Paragraph.h"
-#include "src/resources/ColorTable.h"
-#include "src/resources/utils.h"
+
+#include "../../resources/utils.h"
 
 namespace NSDocxRenderer
 {
-    CParagraph::CParagraph(const TextAssociationType& eType):
-        CBaseItem(ElemType::etParagraph), m_eTextAssociationType(eType)
-    {
-    }
+	CParagraph::~CParagraph()
+	{
+		Clear();
+	}
 
-    CParagraph::~CParagraph()
-    {
-        Clear();
-    }
+	void CParagraph::Clear()
+	{
+		m_arLines.clear();
+	}
 
-    void CParagraph::Clear()
-    {
-        m_arLines.clear();
-    }
+	void CParagraph::ToXml(NSStringUtils::CStringBuilder& oWriter) const
+	{
+		oWriter.WriteString(L"<w:p>");
+		oWriter.WriteString(L"<w:pPr>");
 
-    void CParagraph::ToXml(NSStringUtils::CStringBuilder& oWriter)
-    {
-        if (m_bIsNotNecessaryToUse)
-        {
-            return;
-        }
+		// styles
+		if(!m_wsStyleId.empty()) oWriter.WriteString(L"<w:pStyle w:val=\"" + m_wsStyleId + L"\"/>");
 
-        oWriter.WriteString(L"<w:p>");
-        oWriter.WriteString(L"<w:pPr>");
+		oWriter.WriteString(L"<w:spacing");
 
-        switch (m_eTextConversionType)
-        {
-        case tctTextToFrame:
-        {
-            oWriter.WriteString(L"<w:framePr");
-
-            if (m_eTextAssociationType == tatPlainParagraph)
-            {
-                if (m_bIsAroundTextWrapping)
-                {
-                    oWriter.WriteString(L" w:wrap=\"around\"");
-                }
-                else
-                {
-                    oWriter.WriteString(L" w:wrap=\"notBeside\"");
-                }
-            }
-
-            oWriter.WriteString(L" w:hAnchor=\"page\"");
-            oWriter.WriteString(L" w:vAnchor=\"page\"");
-
-            oWriter.WriteString(L" w:x=\"");
-            oWriter.AddInt(static_cast<int>(m_dLeft * c_dMMToDx));
-            oWriter.WriteString(L"\"");
-
-            oWriter.WriteString(L" w:y=\"");
-            oWriter.AddInt(static_cast<int>(m_dTop * c_dMMToDx));
-            oWriter.WriteString(L"\"");
-
-            oWriter.WriteString(L"/>"); //конец w:framePr
-            break;
-        }
-        case tctTextToShape:
-        case tctTextToParagraph:
-        {
-            oWriter.WriteString(L"<w:spacing");
-            if (m_eTextConversionType == tctTextToParagraph)
-            {
-                oWriter.WriteString(L" w:before=\"");
-                oWriter.AddInt(static_cast<int>(m_dSpaceBefore * c_dMMToDx));
-                oWriter.WriteString(L"\"");
-            }
-
-            if (m_eTextConversionType == tctTextToShape)
-            {
-                oWriter.WriteString(L" w:after=\"");
-                oWriter.AddInt(static_cast<int>(m_dSpaceAfter * c_dMMToDx));
-                oWriter.WriteString(L"\"");
-            }
-
-            if (m_dHeight > 0)
-            {
-                oWriter.WriteString(L" w:line=\"");
-                oWriter.AddInt(static_cast<int>(m_dHeight * c_dMMToDx));
-                oWriter.WriteString(L"\" w:lineRule=\"exact\""); // exact - точный размер строки
-            }
-
-            oWriter.WriteString(L"/>"); //конец w:spacing
-
-            oWriter.WriteString(L"<w:ind");
-            if (m_dLeft > 0)
-            {
-                oWriter.WriteString(L" w:left=\"");
-                oWriter.AddInt(static_cast<int>(m_dLeft * c_dMMToDx));
-                oWriter.WriteString(L"\"");
-            }
-            if (m_dRight > 0)
-            { 
-                oWriter.WriteString(L" w:right=\"");
-                oWriter.AddInt(static_cast<int>(m_dRight * c_dMMToDx));
-                oWriter.WriteString(L"\"");
-            }
-            if (m_bIsNeedFirstLineIndent)
-            {
-                oWriter.WriteString(L" w:firstLine=\"");
-                oWriter.AddInt(static_cast<int>(m_dFirstLine * c_dMMToDx));
-                oWriter.WriteString(L"\"");
-            }
-            oWriter.WriteString(L"/>"); //конец w:ind
+		oWriter.WriteString(L" w:before=\"");
+		if (m_dSpaceBefore > 0)
+			oWriter.AddInt(static_cast<int>(m_dSpaceBefore * c_dMMToDx));
+		else
+			oWriter.AddInt(static_cast<int>(0));
+		oWriter.WriteString(L"\"");
 
 
-            if (m_eTextAssociationType == tatPlainParagraph)
-            {
-                switch (m_eTextAlignmentType)
-                {
-                case tatByCenter:
-                    oWriter.WriteString(L"<w:jc w:val=\"center\"/>");
-                    break;
-                case tatByRightEdge:
-                    oWriter.WriteString(L"<w:jc w:val=\"end\"/>");
-                    break;
-                case tatByWidth:
-                    oWriter.WriteString(L"<w:jc w:val=\"both\"/>");
-                    break;
-                case tatByLeftEdge:
-                    oWriter.WriteString(L"<w:jc w:val=\"begin\"/>");
-                    break;
-                case tatUnknown:
-                default: //по умолчанию выравнивание по левому краю - можно ничего не добавлять
-                    break;
-                }
-            }
+		if (m_dSpaceAfter > 0)
+		{
+			oWriter.WriteString(L" w:after=\"");
+			oWriter.AddInt(static_cast<int>(m_dSpaceAfter * c_dMMToDx));
+			oWriter.WriteString(L"\"");
+		}
 
-            if (m_bIsShadingPresent)
-            {
-                oWriter.WriteString(L"<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"");
-                oWriter.WriteHexInt3(ConvertColorBGRToRGB(m_lColorOfShadingFill));
-                oWriter.WriteString(L"\"/>");
-            }
-            break;
-        }
-        default:
-            break;
-        }
+		if (m_dLineHeight > 0)
+		{
+			oWriter.WriteString(L" w:line=\"");
+			oWriter.AddInt(static_cast<int>(m_dLineHeight * c_dMMToDx));
+			oWriter.WriteString(L"\" w:lineRule=\"exact\""); // exact - точный размер строки
+		}
 
-        oWriter.WriteString(L"</w:pPr>");
+		oWriter.WriteString(L"/>"); //конец w:spacing
 
-        for(const auto &pLine : m_arLines)
-        {
-            pLine->ToXml(oWriter);
-        }
+		oWriter.WriteString(L"<w:ind");
+		if (m_dLeftBorder > 0)
+		{
+			oWriter.WriteString(L" w:left=\"");
+			oWriter.AddInt(static_cast<int>(m_dLeftBorder * c_dMMToDx));
+			oWriter.WriteString(L"\"");
+		}
+		if (m_dRightBorder > 0)
+		{
+			oWriter.WriteString(L" w:right=\"");
+			oWriter.AddInt(static_cast<int>(m_dRightBorder * c_dMMToDx)); //здесь m_dRight - расстояние от правого края
+			oWriter.WriteString(L"\"");
+		}
+		if (m_bIsNeedFirstLineIndent)
+		{
+			if (m_dFirstLine > 0)
+			{
+				oWriter.WriteString(L" w:firstLine=\"");
+				oWriter.AddInt(static_cast<int>(m_dFirstLine * c_dMMToDx));
+				oWriter.WriteString(L"\"");
+			}
+			else
+			{
+				oWriter.WriteString(L" w:hanging=\"");
+				oWriter.AddInt(static_cast<int>(-m_dFirstLine * c_dMMToDx));
+				oWriter.WriteString(L"\"");
+			}
+		}
+		oWriter.WriteString(L"/>"); //конец w:ind
 
-        oWriter.WriteString(L"</w:p>");
-    }
+		switch (m_eTextAlignmentType)
+		{
+		case tatByCenter:
+			oWriter.WriteString(L"<w:jc w:val=\"center\"/>");
+			break;
+		case tatByRight:
+			oWriter.WriteString(L"<w:jc w:val=\"end\"/>");
+			break;
+		case tatByWidth:
+			oWriter.WriteString(L"<w:jc w:val=\"both\"/>");
+			break;
+		case tatByLeft:
+			oWriter.WriteString(L"<w:jc w:val=\"begin\"/>");
+			break;
+		case tatUnknown:
+		default: //по умолчанию выравнивание по левому краю - можно ничего не добавлять
+			break;
+		}
 
-    void CParagraph::RemoveHighlightColor()
-    {
-        if (!m_bIsShadingPresent)
-        {
-            return;
-        }
+		if (m_bIsShadingPresent)
+		{
+			oWriter.WriteString(L"<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"");
+			oWriter.WriteHexInt3(ConvertColorBGRToRGB(m_lColorOfShadingFill));
+			oWriter.WriteString(L"\"/>");
+		}
 
-        for(const auto &pLine : m_arLines)
-        {
-            if (pLine->m_pDominantShape)
-            {
-                for (const auto &pCont : pLine->m_arConts)
-                {
-                    if (m_lColorOfShadingFill == pCont->m_lHighlightColor)
-                    {
-                        pCont->m_bIsHighlightPresent = false;
-                    }
-                }
-            }
-        }
-    }
+		oWriter.WriteString(L"</w:pPr>");
+		for(const auto& line : m_arLines)
+			if(line)
+				line->ToXml(oWriter);
+		oWriter.WriteString(L"</w:p>");
+	}
 
-    void CParagraph::MergeLines()
-    {
-        auto pLine = m_arLines.front();
+	void CParagraph::ToXmlPptx(NSStringUtils::CStringBuilder& oWriter) const
+	{
+		oWriter.WriteString(L"<a:p>");
+		oWriter.WriteString(L"<a:pPr algn=\"");
+		switch (m_eTextAlignmentType)
+		{
+		case tatByCenter:
+			oWriter.WriteString(L"ctr");
+			break;
+		case tatByRight:
+			oWriter.WriteString(L"r");
+			break;
+		case tatByWidth:
+			oWriter.WriteString(L"just");
+			break;
+		case tatByLeft:
+			oWriter.WriteString(L"l");
+			break;
+		case tatUnknown:
+		default:
+			oWriter.WriteString(L"l");
+			break;
+		}
 
-        for(size_t i = 1; i < m_arLines.size(); i++)
-        {
-            auto pLastCont = pLine->m_arConts.back();
-            size_t iNumConts = pLine->m_arConts.size() - 1;
+		oWriter.WriteString(L"\"");
 
-            while (pLastCont->m_bIsNotNecessaryToUse)
-            {
-                pLastCont = pLine->m_arConts[--iNumConts];
-            }
+		if (m_bIsNeedFirstLineIndent)
+		{
+			oWriter.WriteString(L" indent=\"");
+			oWriter.AddInt(static_cast<int>(m_dFirstLine * c_dMMToEMU));
+			oWriter.WriteString(L"\"");
+		}
+		oWriter.WriteString(L">");
 
-            //Добавляем пробел в конец каждой строки
-            pLastCont->m_oText += L" ";
-            pLastCont->m_bSpaceIsNotNeeded = true;
-            pLastCont->m_dWidth += pLine->m_arConts.back()->m_dSpaceWidthMM;
+		oWriter.WriteString(L"<a:spcBef>");
+		oWriter.WriteString(L"<a:spcPts val=\"");
+		oWriter.AddInt(static_cast<int>(m_dSpaceBefore * c_dMMToPt * 100));
+		oWriter.WriteString(L"\"/>");
+		oWriter.WriteString(L"</a:spcBef>");
 
-            auto pNext = m_arLines[i];
 
-            auto pCont = pNext->m_arConts.front();
+		oWriter.WriteString(L"<a:spcAft>");
+		oWriter.WriteString(L"<a:spcPts val=\"");
+		oWriter.AddInt(static_cast<int>(m_dSpaceBefore * c_dMMToPt * 100));
+		oWriter.WriteString(L"\"/>");
+		oWriter.WriteString(L"</a:spcAft>");
 
-            if (pLastCont->IsEqual(pCont) &&
-                pLastCont->m_eVertAlignType == pCont->m_eVertAlignType)
-            {
-                pLastCont->m_oText += pCont->m_oText;
-                pLastCont->m_dWidth += pCont->m_dWidth;
-                pLastCont->m_dRight = pCont->m_dRight;
+		oWriter.WriteString(L"<a:lnSpc>");
+		oWriter.WriteString(L"<a:spcPts val=\"");
+		oWriter.AddInt(static_cast<int>(m_dLineHeight * c_dMMToPt * 100));
+		oWriter.WriteString(L"\"/>");
+		oWriter.WriteString(L"</a:lnSpc>");
 
-                pLastCont->m_bSpaceIsNotNeeded = false;
+		oWriter.WriteString(L"</a:pPr>");
+		for(const auto& line : m_arLines)
+			if(line)
+				line->ToXmlPptx(oWriter);
+		oWriter.WriteString(L"</a:p>");
+	}
 
-                pCont->m_bIsNotNecessaryToUse = true;
-            }
+	void CParagraph::RemoveHighlightColor()
+	{
+		if (!m_bIsShadingPresent)
+			return;
 
-            for (const auto &pCont : pNext->m_arConts)
-            {
-                if (!pCont->m_bIsNotNecessaryToUse)
-                {
-                    pLine->m_arConts.push_back(pCont);
-                }
-            }
+		for(size_t i = 0; i < m_arLines.size(); ++i)
+		{
+			auto& pLine = m_arLines[i];
+			if (pLine || pLine->m_pDominantShape)
+			{
+				for (size_t j = 0; j < pLine->m_arConts.size(); ++j)
+				{
+					auto& pCont = pLine->m_arConts[j];
+					if(pCont)
+						if (m_lColorOfShadingFill == pCont->m_lHighlightColor)
+							pCont->m_bIsHighlightPresent = false;
+				}
+			}
+		}
+	}
 
-            pNext->m_bIsNotNecessaryToUse = true;
-        }
-    }
+	void CParagraph::MergeLines()
+	{
+		for(size_t i = 0; i < m_arLines.size() - 1; ++i)
+		{
+			auto pLine = m_arLines[i];
+			auto pLastCont = pLine->m_arConts.back();
+			size_t iNumConts = pLine->m_arConts.size() - 1;
+
+			while(!pLastCont)
+				pLastCont = pLine->m_arConts[--iNumConts];
+
+			auto text = pLastCont->GetText();
+			auto last_sym = text[text.length() - 1];
+
+			if (last_sym != c_SPACE_SYM && m_arLines.size() != 1)
+				pLastCont->AddSymBack(c_SPACE_SYM, 0);
+		}
+	}
 }

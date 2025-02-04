@@ -1,34 +1,34 @@
 ﻿/*
-* (c) Copyright Ascensio System SIA 2010-2019
-*
-* This program is a free software product. You can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License (AGPL)
-* version 3 as published by the Free Software Foundation. In accordance with
-* Section 7(a) of the GNU AGPL its Section 15 shall be amended to the effect
-* that Ascensio System SIA expressly excludes the warranty of non-infringement
-* of any third-party rights.
-*
-* This program is distributed WITHOUT ANY WARRANTY; without even the implied
-* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
-* details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
-*
-* You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
-* street, Riga, Latvia, EU, LV-1050.
-*
-* The  interactive user interfaces in modified source and object code versions
-* of the Program must display Appropriate Legal Notices, as required under
-* Section 5 of the GNU AGPL version 3.
-*
-* Pursuant to Section 7(b) of the License you must retain the original Product
-* logo when distributing the program. Pursuant to Section 7(e) we decline to
-* grant you any rights under trademark law for use of our trademarks.
-*
-* All the Product's GUI elements, including illustrations and icon sets, as
-* well as technical writing content are licensed under the terms of the
-* Creative Commons Attribution-ShareAlike 4.0 International. See the License
-* terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
-*
-*/
+ * (c) Copyright Ascensio System SIA 2010-2023
+ *
+ * This program is a free software product. You can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License (AGPL)
+ * version 3 as published by the Free Software Foundation. In accordance with
+ * Section 7(a) of the GNU AGPL its Section 15 shall be amended to the effect
+ * that Ascensio System SIA expressly excludes the warranty of non-infringement
+ * of any third-party rights.
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
+ * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
+ * street, Riga, Latvia, EU, LV-1050.
+ *
+ * The  interactive user interfaces in modified source and object code versions
+ * of the Program must display Appropriate Legal Notices, as required under
+ * Section 5 of the GNU AGPL version 3.
+ *
+ * Pursuant to Section 7(b) of the License you must retain the original Product
+ * logo when distributing the program. Pursuant to Section 7(e) we decline to
+ * grant you any rights under trademark law for use of our trademarks.
+ *
+ * All the Product's GUI elements, including illustrations and icon sets, as
+ * well as technical writing content are licensed under the terms of the
+ * Creative Commons Attribution-ShareAlike 4.0 International. See the License
+ * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
+ *
+ */
 
 #include "oox_plot_area.h"
 
@@ -37,7 +37,9 @@
 #include <xml/simple_xml_writer.h>
 #include <boost/algorithm/string.hpp>
 
+#include "../Format/odfcontext.h"
 #include "../Format/style_text_properties.h"
+#include "../Format/style_chart_properties.h"
 
 #include "oox_chart_shape.h"
 
@@ -100,7 +102,7 @@ namespace cpdoccore {
 			charts_.push_back(chart);
 		}
 
-		void oox_plot_area::add_axis(int type, odf_reader::chart::axis & content)
+		void oox_plot_area::add_axis(int type, odf_reader::chart::axis& content)
 		{
 			unsigned int id = axis_id_++;
 			oox_axis_content_ptr ax = oox_axis_content::create(type, id);
@@ -111,6 +113,10 @@ namespace cpdoccore {
 		void oox_plot_area::set_no_local_table(bool val)
 		{
 			no_used_local_tables_ = val;
+		}
+		void oox_plot_area::set_data_table(odf_reader::chart::simple& content)
+		{
+			data_table_content_ = content;
 		}
 		void oox_plot_area::reset_cross_axis()//обязательно после всех добавлений
 		{
@@ -136,12 +142,14 @@ namespace cpdoccore {
 				}
 			}
 		}
-		void oox_plot_area::oox_serialize_view3D(std::wostream & _Wostream)
+		void oox_plot_area::oox_serialize_view3D(std::wostream& _Wostream)
 		{
 			_CP_OPT(std::wstring)	strVal;
 			_CP_OPT(double)			doubleVal;
+			_CP_OPT(bool)			perspective;
 
-			odf_reader::GetProperty(properties_3d_, L"transform", strVal);
+			odf_reader::GetProperty(properties_, L"transform", strVal);
+			odf_reader::GetProperty(properties_, L"perspective", perspective);
 
 			if (!strVal) return;
 
@@ -196,13 +204,20 @@ namespace cpdoccore {
 
 			theta_z /= DEG2RAD;
 
+			if (this->current_chart_->type_ == CHART_TYPE_RADAR ||
+				this->current_chart_->type_ == CHART_TYPE_PIE ||
+				this->current_chart_->type_ == CHART_TYPE_DOUGHNUT)
+			{
+				theta_x += 90;
+			}
+			else theta_x = (std::abs)(theta_x);
 			CP_XML_WRITER(_Wostream)
 			{
 				CP_XML_NODE(L"c:view3D")
 				{
 					CP_XML_NODE(L"c:rotX")
 					{
-						CP_XML_ATTR(L"val", (int)(theta_x + 90.5));
+						CP_XML_ATTR(L"val", (int)(theta_x + 0.5));
 					}
 					CP_XML_NODE(L"c:rotY")
 					{
@@ -212,25 +227,27 @@ namespace cpdoccore {
 					{
 						CP_XML_ATTR(L"val", 100);
 					}
-					if (theta_z == 0)
+					if (theta_z > 0 || (perspective && *perspective))
 					{
 						CP_XML_NODE(L"c:rAngAx")
 						{
-							CP_XML_ATTR(L"val", 1);
+							CP_XML_ATTR(L"val", 0);
+						}
+						if (theta_z > 0)
+						{
+							CP_XML_NODE(L"c:perspective")
+							{
+								CP_XML_ATTR(L"val", (int)(theta_z * 2 + 0.5));
+							}
 						}
 					}
 					else
 					{
 						CP_XML_NODE(L"c:rAngAx")
 						{
-							CP_XML_ATTR(L"val", 0);
-						}
-						CP_XML_NODE(L"c:perspective")
-						{
-							CP_XML_ATTR(L"val", (int)(theta_z * 2 + 0.5));
+							CP_XML_ATTR(L"val", 1);
 						}
 					}
-
 				}
 			}
 		}
@@ -260,6 +277,72 @@ namespace cpdoccore {
 						for (size_t i = 0; i < axis_.size(); i++)
 						{
 							axis_[i]->oox_serialize(CP_XML_STREAM());
+						}
+					}
+					if (data_table_content_.bEnabled)
+					{
+						_CP_OPT(bool) boolVal;
+
+						CP_XML_NODE(L"c:dTable")
+						{
+							odf_reader::GetProperty(data_table_content_.properties_, L"show-horizontal-border", boolVal);
+							if (boolVal)
+							{
+								CP_XML_NODE(L"c:showHorzBorder")
+								{
+									CP_XML_ATTR(L"val", *boolVal);
+								}
+							}
+							odf_reader::GetProperty(data_table_content_.properties_, L"show-vertical-border", boolVal);
+							if (boolVal)
+							{
+								CP_XML_NODE(L"c:showVertBorder")
+								{
+									CP_XML_ATTR(L"val", *boolVal);
+								}
+							}
+							odf_reader::GetProperty(data_table_content_.properties_, L"show-outline", boolVal);
+							if (boolVal)
+							{
+								CP_XML_NODE(L"c:showOutline")
+								{
+									CP_XML_ATTR(L"val", *boolVal);
+								}
+							}
+							odf_reader::GetProperty(data_table_content_.properties_, L"show-keys", boolVal);
+							if (boolVal)
+							{
+								CP_XML_NODE(L"c:showKeys")
+								{
+									CP_XML_ATTR(L"val", *boolVal);
+								}
+							}
+							
+							oox_chart_shape shape_table;
+							shape_table.set(data_table_content_.graphic_properties_, data_table_content_.fill_);
+							shape_table.oox_serialize(CP_XML_STREAM());
+							
+							if (data_table_content_.text_properties_)
+							{
+								CP_XML_NODE(L"c:txPr")
+								{
+									CP_XML_NODE(L"a:bodyPr") {}
+									CP_XML_NODE(L"a:lstStyle") {}
+
+									CP_XML_NODE(L"a:p")
+									{
+										CP_XML_NODE(L"a:pPr")
+										{
+											CP_XML_NODE(L"a:defRPr")
+											{
+												//odf_reader::fonts_container & fonts = context.fontContainer();
+												odf_reader::fonts_container fonts;
+												data_table_content_.text_properties_->oox_serialize(CP_XML_STREAM(), true, fonts);
+											}
+										}
+									}
+								}
+							}
 						}
 					}
 					shape.oox_serialize(CP_XML_STREAM());

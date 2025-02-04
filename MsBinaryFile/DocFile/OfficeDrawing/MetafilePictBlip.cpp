@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -95,6 +95,21 @@ namespace DocFileFormat
 		m_pMetaHeader		= pHeader;
 		m_lMetaHeaderSize	= lSize;
 	}
+	void CMetaFileBuffer::AddData(BYTE* pBuf, LONG lBuf)
+	{
+		BYTE *pMetaFile = new BYTE[lBuf + m_lMetaFileSize];
+		if (m_pMetaFile)
+			memcpy(pMetaFile, m_pMetaFile, m_lMetaFileSize);
+		if (pBuf)
+			memcpy(pMetaFile + m_lMetaFileSize, pBuf, lBuf);
+
+		if (m_pMetaFile)
+			delete[]m_pMetaFile;
+
+		m_pMetaFile = pMetaFile;
+		m_lMetaFileSize += lBuf;
+	}
+
 	void CMetaFileBuffer::SetData(BYTE* pCompress, LONG lCompressSize, LONG lUncompressSize, bool bIsCompressed)
 	{
 		if (!bIsCompressed)
@@ -126,6 +141,18 @@ namespace DocFileFormat
 				m_lMetaFileSize = 0;
 			}
 		}
+	}
+	bool CMetaFileBuffer::isWMV()
+	{
+		if (!m_pMetaFile) return false;
+		if (m_lMetaFileSize < 3) return false;
+
+		for (int i = 0; i < (std::min)((int)m_lMetaFileSize, 1024) - 2; ++i)
+		{
+			if (m_pMetaFile[i] == 'W' && m_pMetaFile[i + 1] == 'M')
+				return true;
+		}
+		return false;
 	}
 	int CMetaFileBuffer::ToBuffer(BYTE *& Data)
 	{
@@ -196,12 +223,26 @@ namespace DocFileFormat
 		int sz = Reader->GetSize() - Reader->GetPosition();
 		m_pvBits = Reader->ReadBytes( sz/*m_cbSave*/, true );
 
+		m_cbSave = (std::min)(m_cbSave, sz);
+
 		oMetaHeader.rcBounds	= m_rcBounds;
 		oMetaHeader.cbSize		= m_cb;
 		oMetaHeader.ptSize		= m_ptSize;
-		oMetaHeader.cbSave		= m_cbSave ;
+		oMetaHeader.cbSave		= m_cbSave;
 		oMetaHeader.compression	= m_fCompression;
 		oMetaHeader.filter		= m_fFilter;
+
+		oMetaFile.SetData(m_pvBits, oMetaHeader.cbSave, oMetaHeader.cbSize, 0 == oMetaHeader.compression);
+
+		//if (sz - m_cbSave > m_cb)
+		//{
+		//	oMetaFile.AddData(m_pvBits + m_cbSave, sz - m_cbSave);
+		//}
+
+		//if (oMetaFile.isWMV())
+		//{
+		//	typeCode = 0xf01b;
+		//}
 
 		if (typeCode == 0xf01b)
 		{
@@ -218,10 +259,8 @@ namespace DocFileFormat
 		}
 		if (typeCode == 0xf01c)
 		{
-			oMetaFile.m_sExtension	= L".pcz";
-			//decompress???
+			oMetaFile.m_sExtension	= L".pct";
 		}
-		oMetaFile.SetData(m_pvBits, oMetaHeader.cbSave, oMetaHeader.cbSize, 0 == oMetaHeader.compression);
 	}
 
 	MetafilePictBlip::~MetafilePictBlip()

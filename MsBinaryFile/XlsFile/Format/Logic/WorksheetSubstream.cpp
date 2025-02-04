@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -89,6 +89,7 @@
 #include "Biff_records/XF.h"
 #include "Biff_records/Format.h"
 #include "Biff_records/Font.h"
+#include "Biff_records/Palette.h"
 
 #include "Biff_structures/ODRAW/OfficeArtDgContainer.h"
 
@@ -618,6 +619,7 @@ const bool WorksheetSubstream::loadContent(BinProcessor& proc)
 			case rt_XF_BIFF2:
 			case rt_XF_BIFF3:
 			case rt_XF_BIFF4:
+			case rt_XF:
 			{
 				size_t cell_xf_current_id = 0;
 				size_t style_xf_current_id = 0;
@@ -637,6 +639,15 @@ const bool WorksheetSubstream::loadContent(BinProcessor& proc)
 				{
 					XF_BIFF2 xf(cell_xf_current_id, style_xf_current_id);
 					count = proc.repeated(xf, 0, 0);
+				}
+				else
+				{
+					int store = global_info_->Version;
+					global_info_->Version = 0x0600;
+					XF xf(cell_xf_current_id, style_xf_current_id);
+					count = proc.repeated(xf, 0, 0);
+
+					global_info_->Version = store;
 				}
 				XFS* xfs = new XFS();
 				int ind = 0;
@@ -681,20 +692,7 @@ const bool WorksheetSubstream::loadContent(BinProcessor& proc)
 
 				while (count > 0)
 				{
-					Format *fmt = dynamic_cast<Format *>(elements_.front().get());
-					if ((fmt) && (fmt->ifmt == 0xffff))
-					{
-						std::map<std::wstring, int>::iterator pFind = global_info_->mapDefaultFormatCode.find(fmt->stFormat);
-						if (pFind != global_info_->mapDefaultFormatCode.end())
-						{
-							fmt->ifmt = pFind->second;
-						}
-						else
-						{
-							fmt->ifmt = 168 + global_info_->m_arNumFormats.size();
-						}
-					}
-					global_info_->m_arNumFormats.push_back(elements_.front());
+					global_info_->RegisterNumFormat(elements_.front());
 					elements_.pop_front();
 					count--;
 				} 
@@ -706,6 +704,16 @@ const bool WorksheetSubstream::loadContent(BinProcessor& proc)
 					FORMATTING* fmts = dynamic_cast<FORMATTING*>(m_Formating.get());
 					if (fmts)
 						fmts->m_Styles = elements_.back();
+					elements_.pop_back();
+				}
+			}break;
+			case rt_Palette:
+			{
+				if (proc.optional<Palette>())
+				{
+					FORMATTING* fmts = dynamic_cast<FORMATTING*>(m_Formating.get());
+					if (fmts)
+						fmts->m_Palette = elements_.back();
 					elements_.pop_back();
 				}
 			}break;

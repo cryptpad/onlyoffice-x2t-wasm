@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -47,19 +47,14 @@ public:
    
 	static const ElementType type = typeDrawShape;
 
-
     virtual void serialize(std::wostream & _Wostream);
     virtual void serialize_attlist(CP_ATTR_NODE);
 	
 	odf_types::common_xlink_attlist		common_xlink_attlist_;
 	
 	_CP_OPT(std::wstring)		draw_id_;//используется для анимашек
-  
-
-	
 
 	int sub_type_;
-
 };
 //----------------------------------------------------------------------------------------------
 class draw_rect_attlist
@@ -316,7 +311,8 @@ public:
 	_CP_OPT(std::wstring)		draw_enhanced_path_;
 	_CP_OPT(std::wstring)		draw_text_areas_;
 	_CP_OPT(std::wstring)		draw_glue_points_;
-	
+	_CP_OPT(std::wstring)		glue_points_leaving_directions_;
+
 	_CP_OPT(std::wstring)		draw_sub_view_size_;
 
 	_CP_OPT(odf_types::Bool)	draw_mirror_vertical_;
@@ -328,6 +324,9 @@ public:
 	_CP_OPT(std::wstring)		draw_text_path_scale_;
 
 	_CP_OPT(int)				draw_text_rotate_angle_;
+
+	_CP_OPT(std::wstring)		draw_path_stretchpoint_x_;
+	_CP_OPT(std::wstring)		draw_path_stretchpoint_y_;
 	
 	void serialize(CP_ATTR_NODE);   
 };

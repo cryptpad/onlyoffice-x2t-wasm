@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -45,8 +45,8 @@ namespace DocFileFormat
 			short cch = reader->ReadByte();
 		
 			unsigned char *chars = reader->ReadBytes(cch, true);
-			FormatUtils::GetSTLCollectionFromBytes<std::wstring>( &(newObject->m_UserInitials), chars,  cch , ENCODING_WINDOWS_1250);
-			
+			FormatUtils::GetWStringFromBytes(newObject->m_UserInitials, chars, cch , ENCODING_WINDOWS_1250);
+
 			newObject->m_AuthorIndex = reader->ReadUInt16();
 			newObject->m_BookmarkId = reader->ReadInt16();
 			
@@ -59,19 +59,17 @@ namespace DocFileFormat
 		else
 		{
 			short cch = reader->ReadInt16(); 
-
-
 			unsigned char *chars = reader->ReadBytes(18, true);
 
-			FormatUtils::GetSTLCollectionFromBytes<std::wstring>( &(newObject->m_UserInitials), chars, ( cch * 2 ), ENCODING_UTF16);
-			
+			newObject->m_UserInitials = NSFile::CUtf8Converter::GetWStringFromUTF16((unsigned short*)(chars), cch);
+			RELEASEARRAYOBJECTS(chars);
+
 			newObject->m_AuthorIndex = reader->ReadUInt16();
 
 			//skip 4 bytes
 			unsigned int skip = reader->ReadUInt32();
 
 			newObject->m_BookmarkId = reader->ReadInt32(); //-1 - comment is on a length zero text range in the Main Document
-			RELEASEARRAYOBJECTS(chars);
 		}
 
 

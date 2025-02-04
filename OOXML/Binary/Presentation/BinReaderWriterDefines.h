@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -197,22 +197,24 @@ namespace NSBinPptxRW
 #define SPTREE_TYPE_OLE					6
 #define SPTREE_TYPE_VIDEO				7
 #define SPTREE_TYPE_AUDIO				8
-#define SPTREE_TYPE_LOCKED_CANVAS                       9
+#define SPTREE_TYPE_LOCKED_CANVAS		9
+
+#define SPTREE_TYPE_ALTERNATIVE			0x99
 
 
 #define DIAGRAM_LAYOUT_TYPE_NONE			0xB0
 #define DIAGRAM_LAYOUT_TYPE_ALG				0xB1
 #define DIAGRAM_LAYOUT_TYPE_CHOOSE			0xB2
-#define DIAGRAM_LAYOUT_TYPE_CONSTRLST                   0xB3
+#define DIAGRAM_LAYOUT_TYPE_CONSTRLST		0xB3
 #define DIAGRAM_LAYOUT_TYPE_FOREACH			0xB4
-#define DIAGRAM_LAYOUT_TYPE_LAYOUTNODE                  0xB5
+#define DIAGRAM_LAYOUT_TYPE_LAYOUTNODE		0xB5
 #define DIAGRAM_LAYOUT_TYPE_PRESOF			0xB6
 #define DIAGRAM_LAYOUT_TYPE_RULELST			0xB7
 #define DIAGRAM_LAYOUT_TYPE_SHAPE			0xB8
-#define DIAGRAM_LAYOUT_TYPE_VARIABLELIST                0xB9
+#define DIAGRAM_LAYOUT_TYPE_VARIABLELIST	0xB9
 
 
-#define SPTREE_TYPE_MACRO				0xA1
+#define SPTREE_TYPE_MACRO					0xA1
 
 
 static BYTE SchemeClr_GetBYTECode(const std::wstring& sValue)

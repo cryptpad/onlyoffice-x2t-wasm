@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -74,10 +74,10 @@ namespace package
 class xlsx_conversion_context : boost::noncopyable
 {
 public:
-    xlsx_conversion_context	(cpdoccore::odf_reader::odf_document * odfDocument);
+    xlsx_conversion_context	(cpdoccore::odf_reader::odf_document *odfDocument);
     ~xlsx_conversion_context();
 
-	void set_output_document(package::xlsx_document * document);
+	void set_output_document(package::xlsx_document *document);
     void set_font_directory	(std::wstring pathFonts);
 
     void start_document	();
@@ -102,7 +102,7 @@ public:
     void start_span		(const std::wstring & styleName);
     void end_span		();
 
-    bool start_table	(std::wstring tableName, std::wstring tableStyleName);
+    bool start_table	(const std::wstring& tableName, const std::wstring& tableStyleName, const std::wstring& externalRef);
     void end_table		();
 
 	int find_sheet_by_name(std::wstring tableName);
@@ -115,7 +115,7 @@ public:
 
 	bool in_table_cell();
 
-    void start_table_cell			(const std::wstring & formula, size_t columnsSpanned, size_t rowsSpanned);
+    void start_table_cell			(size_t columnsSpanned, size_t rowsSpanned);
     void end_table_cell				();
 
     void start_table_covered_cell	();
@@ -134,6 +134,7 @@ public:
 	
     size_t	get_default_cell_style() const { return default_style_; }
 	int		get_dxfId_style(const std::wstring &style_name);
+    int     add_dxfId_style(const std::wstring& color, bool cellColor);
 
 //------------------------------------------------------------------------------------
 	void add_pivot_sheet_source				(const std::wstring & sheet_name, int index_table_view);
@@ -148,7 +149,7 @@ public:
 	size_t get_table_parts_size() {return table_parts_.size();}
 //------------------------------------------------------------------------------------
 
-    odf_reader::odf_document * root()
+    odf_reader::odf_document *root()
     {
         return odf_document_;
     }
@@ -157,7 +158,10 @@ public:
 
     void process_styles();
 
-    xlsx_text_context           & get_text_context()		{ return xlsx_text_context_; }
+    void start_text_context();
+    void end_text_context();
+    xlsx_text_context* get_text_context();
+
     xlsx_table_context          & get_table_context()		{ return xlsx_table_context_; }
     const xlsx_table_context    & get_table_context() const { return xlsx_table_context_; }
     xlsx_style_manager          & get_style_manager()		{ return xlsx_style_; }   
@@ -196,6 +200,7 @@ private:
 
 	bool								table_structure_protected_ = false;
 
+    std::vector<xlsx_xml_worksheet_ptr> external_sheets_;
     std::vector<xlsx_xml_worksheet_ptr> sheets_;
     std::vector<oox_chart_context_ptr>  charts_;
 	std::vector<std::wstring>			table_parts_;
@@ -212,7 +217,10 @@ private:
     xlsx_style_manager              xlsx_style_;
     xlsx_defined_names              xlsx_defined_names_;
     xlsx_table_context              xlsx_table_context_;
-    xlsx_text_context               xlsx_text_context_;
+
+    xlsx_text_context               xlsx_text_context_; // main
+    std::vector<xlsx_text_context*>  minor_text_contexts_;
+
 	xlsx_pivots_context				xlsx_pivots_context_;
     xlsx_comments_context_handle    xlsx_comments_context_handle_;
 	xlsx_dataValidations_context	xlsx_dataValidations_context_;

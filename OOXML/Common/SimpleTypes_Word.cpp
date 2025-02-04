@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -1680,10 +1680,11 @@ namespace SimpleTypes
 
 	EHeightRule CHeightRule::FromString(const std::wstring &sValue)
 	{
-		if      ( (L"atLeast") == sValue ) this->m_eValue = heightruleAtLeast;
-		else if ( (L"auto")    == sValue ) this->m_eValue = heightruleAuto;
-		else if ( (L"exact")   == sValue ) this->m_eValue = heightruleExact;
-		else                                this->m_eValue = heightruleAuto;
+		if      (L"atLeast"		== sValue) this->m_eValue = heightruleAtLeast;
+		else if (L"at-least"	== sValue) this->m_eValue = heightruleAtLeast;
+		else if (L"auto"		== sValue) this->m_eValue = heightruleAuto;
+		else if (L"exact"		== sValue) this->m_eValue = heightruleExact;
+		else                               this->m_eValue = heightruleAuto;
 
 		return this->m_eValue;
 	}
@@ -1819,6 +1820,12 @@ namespace SimpleTypes
 				m_unR = oPresetColorVal.Get_R();
 				m_unG = oPresetColorVal.Get_G();
 				m_unB = oPresetColorVal.Get_B();
+			}
+			else if (8 <= sValue.length())
+			{
+				this->m_eValue = hexcolorRGB;
+				m_sValue = sValue.substr(2, 6);
+				Parse();
 			}
 			else if ( 6 <= sValue.length() )
 			{
@@ -2284,7 +2291,7 @@ namespace SimpleTypes
 		else if ( (L"thaiDistribute") == sValue ) this->m_eValue = jcThaiDistribute;
 		else if ( (L"left")           == sValue ) this->m_eValue = jcLeft;
 		else if ( (L"right")          == sValue ) this->m_eValue = jcRight;
-		else                                       this->m_eValue = jcLeft;
+		else									  this->m_eValue = jcLeft;
 
 		return this->m_eValue;
 	}
@@ -2296,12 +2303,12 @@ namespace SimpleTypes
 		case jcBoth            : return (L"both");
 		case jcCenter          : return (L"center");
 		case jcDistribute      : return (L"distribute");
-		case jcEnd             : return (L"end");
+		case jcEnd             : /*return (L"end");*/ return (L"right"); //Transitional Migration Features
 		case jcHighKashida     : return (L"highKashida");
 		case jcLowKashida      : return (L"lowKashida");
 		case jcMediumKashida   : return (L"mediumKashida");
 		case jcNumTab          : return (L"numTab");
-		case jcStart           : return (L"start");
+		case jcStart           : /*return (L"start");*/ return (L"left"); //Transitional Migration Features
 		case jcThaiDistribute  : return (L"thaiDistribute");
 		case jcLeft            : return (L"left");
 		case jcRight           : return (L"right");
@@ -2315,12 +2322,12 @@ namespace SimpleTypes
 
 	EJcTable CJcTable::FromString(const std::wstring &sValue)
 	{
-		if      ( (L"center")         == sValue ) this->m_eValue = jctableCenter;
-		else if ( (L"end")            == sValue ) this->m_eValue = jctableEnd;
-		else if ( (L"start")          == sValue ) this->m_eValue = jctableStart;
-		else if ( (L"left")           == sValue ) this->m_eValue = jctableLeft;
-		else if ( (L"right")          == sValue ) this->m_eValue = jctableRight;
-		else                                       this->m_eValue = jctableLeft;
+		if      ( (L"center")	== sValue ) this->m_eValue = jctableCenter;
+		else if ( (L"end")		== sValue ) this->m_eValue = jctableEnd;
+		else if ( (L"start")	== sValue ) this->m_eValue = jctableStart;
+		else if ( (L"left")		== sValue ) this->m_eValue = jctableLeft;
+		else if ( (L"right")	== sValue ) this->m_eValue = jctableRight;
+		else								this->m_eValue = jctableLeft;
 
 		return this->m_eValue;
 	}
@@ -2332,8 +2339,8 @@ namespace SimpleTypes
 		case jctableCenter : return (L"center");
 		case jctableEnd    : return (L"end");
 		case jctableStart  : return (L"start");
-		case jctableLeft   : return (L"left");
-		case jctableRight  : return (L"right");
+		case jctableLeft   : /*return (L"start");*/ return (L"left"); //Transitional Migration Features
+		case jctableRight  : /*return (L"end");*/ return (L"right"); //Transitional Migration Features
 		default            : return (L"left");
 		}
 	}
@@ -3380,7 +3387,7 @@ namespace SimpleTypes
 		else if ( (L"thinReverseDiagStripe") == sValue ) this->m_eValue = shdThinReverseDiagStripe;
 		else if ( (L"thinVertStripe")        == sValue ) this->m_eValue = shdThinVertStripe;
 		else if ( (L"vertStripe")            == sValue ) this->m_eValue = shdVertStripe;
-		else                                              this->m_eValue = shdSolid;
+		else                                             this->m_eValue = shdClear;
 
 		return this->m_eValue;
 	}
@@ -3742,9 +3749,9 @@ namespace SimpleTypes
 
 	ETblLayoutType CTblLayoutType::FromString(const std::wstring &sValue)
 	{
-		if      ( (L"autofit") == sValue ) this->m_eValue = tbllayouttypeAutofit;
-		else if ( (L"fixed")   == sValue ) this->m_eValue = tbllayouttypeFixed;
-		else                                this->m_eValue = tbllayouttypeAutofit;
+		if (L"autofit" == sValue) this->m_eValue = tbllayouttypeAutofit;
+		else if (L"fixed" == sValue || L"Fixed" == sValue) this->m_eValue = tbllayouttypeFixed;
+		else this->m_eValue = tbllayouttypeAutofit;
 
 		return this->m_eValue;
 	}
@@ -4327,12 +4334,13 @@ namespace SimpleTypes
 
 	EWrap CWrap::FromString(const std::wstring &sValue)
 	{
-		if      ( (L"around")    == sValue ) this->m_eValue = wrapAround;
-		else if ( (L"auto")      == sValue ) this->m_eValue = wrapAuto;
-		else if ( (L"none")      == sValue ) this->m_eValue = wrapNone;
-		else if ( (L"notBeside") == sValue ) this->m_eValue = wrapNotBeside;
-		else if ( (L"through")   == sValue ) this->m_eValue = wrapThrough;
-		else if ( (L"tight")     == sValue ) this->m_eValue = wrapTight;
+		if      (L"around"		== sValue ) this->m_eValue = wrapAround;
+		else if (L"auto"		== sValue ) this->m_eValue = wrapAuto;
+		else if (L"none"		== sValue ) this->m_eValue = wrapNone;
+		else if (L"notBeside"	== sValue ) this->m_eValue = wrapNotBeside;
+		else if (L"not-beside"	== sValue) this->m_eValue = wrapNotBeside;
+		else if (L"through"		== sValue ) this->m_eValue = wrapThrough;
+		else if (L"tight"		== sValue ) this->m_eValue = wrapTight;
 		else                                  this->m_eValue = wrapAuto;
 
 		return this->m_eValue;
@@ -4681,16 +4689,17 @@ namespace SimpleTypes
 
 	ECryptAlgoritmName CCryptAlgoritmName::FromString(const std::wstring &sValue)
 	{
-		if       ( L"MD2"        == sValue || L"1"	== sValue ) this->m_eValue = cryptalgoritmnameMD2;
-		else if  ( L"MD4"        == sValue || L"2"	== sValue ) this->m_eValue = cryptalgoritmnameMD4;
-		else if  ( L"MD5"        == sValue || L"3"	== sValue ) this->m_eValue = cryptalgoritmnameMD5;
-		else if  ( L"RIPEMD-128" == sValue || L"6"	== sValue ) this->m_eValue = cryptalgoritmnameRIPEMD128;
-		else if  ( L"RIPEMD-160" == sValue || L"7"	== sValue ) this->m_eValue = cryptalgoritmnameRIPEMD160;
-		else if  ( L"SHA-1"      == sValue || L"4"	== sValue ) this->m_eValue = cryptalgoritmnameSHA1;
-		else if  ( L"SHA-256"    == sValue || L"12"	== sValue ) this->m_eValue = cryptalgoritmnameSHA256;
-		else if  ( L"SHA-384"    == sValue || L"13"	== sValue ) this->m_eValue = cryptalgoritmnameSHA384;
-		else if  ( L"SHA-512"    == sValue || L"14"	== sValue ) this->m_eValue = cryptalgoritmnameSHA512;
-		else if  ( L"WHIRLPOOL"  == sValue ) this->m_eValue = cryptalgoritmnameWHIRLPOOL;
+		if (L"MD2" == sValue || L"1" == sValue) this->m_eValue = cryptalgoritmnameMD2;
+		else if (L"MD4" == sValue || L"2" == sValue) this->m_eValue = cryptalgoritmnameMD4;
+		else if (L"MD5" == sValue || L"3" == sValue) this->m_eValue = cryptalgoritmnameMD5;
+		else if (L"RIPEMD-128" == sValue || L"6" == sValue) this->m_eValue = cryptalgoritmnameRIPEMD128;
+		else if (L"RIPEMD-160" == sValue || L"7" == sValue) this->m_eValue = cryptalgoritmnameRIPEMD160;
+		else if (L"SHA-1" == sValue || L"4" == sValue) this->m_eValue = cryptalgoritmnameSHA1;
+		else if (L"SHA-256" == sValue || L"12" == sValue) this->m_eValue = cryptalgoritmnameSHA256;
+		else if (L"SHA-384" == sValue || L"13" == sValue) this->m_eValue = cryptalgoritmnameSHA384;
+		else if (L"SHA-512" == sValue || L"14" == sValue) this->m_eValue = cryptalgoritmnameSHA512;
+		else if (L"WHIRLPOOL" == sValue) this->m_eValue = cryptalgoritmnameWHIRLPOOL;
+		else if (L"PBKDF2" == sValue) this->m_eValue = cryptalgoritmnamePBKDF2;
 		else
 			this->m_eValue = cryptalgoritmnameUnknown;
 
@@ -4711,6 +4720,7 @@ namespace SimpleTypes
 		case cryptalgoritmnameSHA384    : return (L"SHA-384");
 		case cryptalgoritmnameSHA512    : return (L"SHA-512");
 		case cryptalgoritmnameWHIRLPOOL : return (L"WHIRLPOOL");
+		case cryptalgoritmnamePBKDF2	: return (L"PBKDF2");
 		default                         : return (L"");
 		}
 	}

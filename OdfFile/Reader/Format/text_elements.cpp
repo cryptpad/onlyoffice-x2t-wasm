@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -95,7 +95,7 @@ void process_paragraph_drop_cap_attr(const paragraph_attrs & Attr, oox::docx_con
 
 	//font size пощитаем здесь .. так как его значение нужо в стиле параграфа (межстрочный интервал) - в (pt*20)
 	
-	text_format_properties_content_ptr text_properties = calc_text_properties_content (styleInst);
+	text_format_properties_ptr text_properties = calc_text_properties_content (styleInst);
 
 	if ((text_properties) && (!text_properties->fo_font_size_))
 	{		//default
@@ -229,7 +229,7 @@ size_t paragraph::drop_cap_docx_convert(oox::docx_conversion_context & Context)
 			{
 				styleInst = Context.root()->odf_context().styleContainer().style_by_name(attrs_.text_style_name_, style_family::Paragraph, Context.process_headers_footers_);
 			}
-			text_format_properties_content_ptr text_properties = calc_text_properties_content (styleInst);
+			text_format_properties_ptr text_properties = calc_text_properties_content (styleInst);
 
 			if ((text_properties) && (!text_properties->fo_font_size_))
 			{		//default
@@ -252,6 +252,50 @@ size_t paragraph::drop_cap_docx_convert(oox::docx_conversion_context & Context)
 	}
 	return index;
 }
+
+void paragraph::process_list_bullet_style(oox::docx_conversion_context& Context)
+{
+	if (content_.size() <= 0)
+		return;
+
+	span* first_span = dynamic_cast<span*>(content_[0].get());
+	if (!first_span)
+		return;
+
+	style_instance* span_style = Context.root()->odf_context().styleContainer().style_by_name(first_span->text_style_name_, style_family::Text, false);
+	if (!span_style)
+		return;
+
+	style_content* span_style_content = span_style->content();
+	if (!span_style_content)
+		return;
+
+	std::wstringstream ss;
+	style_text_properties* text_props = span_style_content->get_style_text_properties();
+
+	if (text_props)
+	{
+		if (!attrs_.text_style_name_.empty())
+		{
+			style_instance* paragraph_style = Context.root()->odf_context().styleContainer().style_by_name(attrs_.text_style_name_, style_family::Paragraph, false);
+			if (paragraph_style && paragraph_style->content())
+			{
+				paragraph_style->content()->get_style_text_properties(true)->content_.apply_from(text_props->content_);
+			}
+		}
+
+		const _CP_OPT(odf_types::font_weight)& font_weight = text_props->content_.fo_font_weight_;
+		const _CP_OPT(odf_types::font_style)& font_style = text_props->content_.fo_font_style_;
+
+		if (font_weight && font_weight->get_type() == odf_types::font_weight::WBold)
+			ss << "<w:b/>";
+		if (font_style && font_style->get_type() == odf_types::font_style::Italic)
+			ss << "<w:i/>";
+	}
+
+	Context.get_text_tracked_context().dumpRPrInsDel_ = ss.str();
+}
+
 void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std::wstring) next_element_style_name)
 {
     std::wstring styleName = attrs_.text_style_name_;
@@ -347,6 +391,8 @@ void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std
 
 	}
 	Context.start_paragraph_style(styleName);
+	
+	process_list_bullet_style(Context);
 
     int textStyle = Context.process_paragraph_attr(&attrs_);
 
@@ -439,13 +485,15 @@ void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std
 
 	if (next_masterPageName)
 	{
-		Context.set_master_page_name(*next_masterPageName);
-		std::wstring masterPageNameLayout = Context.root()->odf_context().pageLayoutContainer().page_layout_name_by_style(*next_masterPageName);
-
-		if (false == masterPageNameLayout.empty())
+		if (true == Context.set_master_page_name(*next_masterPageName))
 		{
-			Context.remove_page_properties();
-			Context.add_page_properties(masterPageNameLayout);
+			std::wstring masterPageNameLayout = Context.root()->odf_context().pageLayoutContainer().page_layout_name_by_style(*next_masterPageName);
+
+			if (false == masterPageNameLayout.empty())
+			{
+				Context.remove_page_properties();
+				Context.add_page_properties(masterPageNameLayout);
+			}
 		}
 	}
 }
@@ -462,7 +510,10 @@ void paragraph::xlsx_convert(oox::xlsx_conversion_context & Context)
 void paragraph::pptx_convert(oox::pptx_conversion_context & Context)
 {
     Context.get_text_context().start_paragraph(attrs_.text_style_name_);
-    
+	
+	if (attrs_.xml_id_ && attrs_.xml_id_.value() != L"")
+		Context.get_slide_context().set_id(attrs_.xml_id_.value());
+	
   	for (size_t i = 0; i < content_.size(); i++)
     {
         content_[i]->pptx_convert(Context); 
@@ -612,6 +663,7 @@ void list::add_attributes( const xml::attributes_wc_ptr & Attributes )
 {
     style_name_			= Attributes->get_val< std::wstring >(L"text:style-name").get_value_or(L"");
     continue_numbering_	= Attributes->get_val< bool >(L"text:continue-numbering");
+	continue_list_		= Attributes->get_val< std::wstring >(L"text:continue-list");
     // TODO
 }
 
@@ -629,7 +681,7 @@ void list::add_child_element( xml::sax * Reader, const std::wstring & Ns, const 
 
 void list::docx_convert(oox::docx_conversion_context & Context)
 {
-    bool continue_ = continue_numbering_.get_value_or(false);
+    bool continue_ = continue_numbering_.get_value_or(false) || !continue_list_.get_value_or(L"").empty();
     Context.start_list(style_name_, continue_);
 
     if (list_header_)

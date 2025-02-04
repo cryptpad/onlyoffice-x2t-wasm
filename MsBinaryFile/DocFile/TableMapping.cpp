@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -41,9 +41,9 @@ namespace DocFileFormat
 
 	TableCell::TableCell( const TableCell& _tableCell ) : cp(_tableCell.cp), depth(_tableCell.depth), documentMapping(_tableCell.documentMapping)
 	{
-		for ( std::list<ITableCellElementPtr>::const_iterator iter = _tableCell.cellElements.begin(); iter != _tableCell.cellElements.end(); iter++ )
+		for ( size_t i = 0; i < _tableCell.cellElements.size(); ++i)
 		{
-			AddItem( **iter );
+			AddItem(*_tableCell.cellElements[i]);
 		}
 	}
 
@@ -59,9 +59,9 @@ namespace DocFileFormat
 			depth = _tableCell.depth;
 			cellElements.clear();
 
-			for ( std::list<ITableCellElementPtr>::const_iterator iter = _tableCell.cellElements.begin(); iter != _tableCell.cellElements.end(); iter++ )
+			for ( size_t i = 0; i < _tableCell.cellElements.size(); ++i)
 			{
-				AddItem( **iter );
+				AddItem( *_tableCell.cellElements[i]);
 			}
 
 			documentMapping = _tableCell.documentMapping;
@@ -142,9 +142,9 @@ namespace DocFileFormat
 		documentMapping->_lastValidPapx = papxBackup;
 		documentMapping->_lastValidSepx = sepxBackup;
 
-		for (std::list<ITableCellElementPtr>::iterator iter = cellElements.begin(); iter != cellElements.end(); ++iter)
+		for ( size_t i = 0; i < cellElements.size(); ++i)
 		{
-			(*iter)->Convert( mapping );
+			cellElements[i]->Convert( mapping );
 		}
 
 	//end w:tc
@@ -215,7 +215,6 @@ namespace DocFileFormat
 			ParagraphPropertyExceptions* papxBackup = documentMapping->_lastValidPapx;
 			SectionPropertyExceptions* sepxBackup = documentMapping->_lastValidSepx;
 
-			//start w:tr
 			documentMapping->GetXMLWriter()->WriteNodeBegin( L"w:tr" );
 
 			//convert the properties
@@ -224,7 +223,7 @@ namespace DocFileFormat
 											documentMapping->m_document->DataStream,
 											documentMapping->m_document->nWordVersion);
 			
-			std::list<CharacterPropertyExceptions*>* chpxs = documentMapping->m_document->GetCharacterPropertyExceptions( fcRowEnd, fcRowEnd + 1 );
+			std::vector<CharacterPropertyExceptions*>* chpxs = documentMapping->m_document->GetCharacterPropertyExceptions( fcRowEnd, fcRowEnd + 1 );
 			if (chpxs)
 			{
 				TableRowPropertiesMapping trpMapping( documentMapping->GetXMLWriter(), *(chpxs->begin()) );
@@ -242,13 +241,12 @@ namespace DocFileFormat
 			}
 			else
 			{
-				for ( std::list<TableCell>::iterator iter = cells.begin(); iter != cells.end(); iter++ )
+				for ( size_t i = 0; i < cells.size(); ++i)
 				{
-					iter->Convert( mapping, &tapx, grid, gridIndex, nCellIndex++);
+					cells[i].Convert( mapping, &tapx, grid, gridIndex, nCellIndex++);
 				}
 			}
 
-			//end w:tr
 			documentMapping->GetXMLWriter()->WriteNodeEnd( L"w:tr" );
 
 			RELEASEOBJECT( chpxs );
@@ -450,8 +448,8 @@ namespace DocFileFormat
 					{
 						if (bBad)
 						{
+							documentMapping->m_document->m_mapBadCP.insert(std::make_pair(_cp, (char)1));
 							tableCell.AddItem(DocParagraph(documentMapping, paragraphBeginCP, _cp));
-							_cp++;
 							paragraphBeginCP = (_cp + 1);
 
 							bBadMarker = bBad;
@@ -463,11 +461,11 @@ namespace DocFileFormat
 							tableCell.SetDepth(_depth);
 
 							DocParagraph para(documentMapping, paragraphBeginCP, _cp);
-							//if (bBadMarker && !tableCell.IsEmpty())
-							//{
-							//	tableCell.GetLast()->AddCP(paragraphBeginCP, _cp);
-							//}
-							//else
+							if (bBadMarker && !tableCell.IsEmpty())
+							{
+								tableCell.GetLast()->AddCP(paragraphBeginCP, _cp);
+							}
+							else
 								tableCell.AddItem(para);
 
 							bBadMarker = false;
@@ -485,11 +483,11 @@ namespace DocFileFormat
 							tableCell.SetDepth(_depth);
 
 							DocParagraph para(documentMapping, paragraphBeginCP, _cp);
-							//if (bBadMarker && !tableCell.IsEmpty())
-							//{
-							//	tableCell.GetLast()->AddCP(paragraphBeginCP, _cp);
-							//}
-							//else
+							if (bBadMarker && !tableCell.IsEmpty())
+							{
+								tableCell.GetLast()->AddCP(paragraphBeginCP, _cp);
+							}
+							else
 								tableCell.AddItem(para);
 
 							bBadMarker = false;
@@ -507,11 +505,11 @@ namespace DocFileFormat
 					else if ( IsParagraphMarker( _cp ) )
 					{
 						DocParagraph para(documentMapping, paragraphBeginCP, _cp);
-						//if (bBadMarker && !tableCell.IsEmpty())
-						//{
-						//	tableCell.GetLast()->AddCP(paragraphBeginCP, _cp);
-						//}
-						//else 
+						if (bBadMarker && !tableCell.IsEmpty())
+						{
+							tableCell.GetLast()->AddCP(paragraphBeginCP, _cp);
+						}
+						else 
 							tableCell.AddItem(para);
 						
 						paragraphBeginCP = ( _cp + 1 );
@@ -622,9 +620,9 @@ namespace DocFileFormat
 		documentMapping->_lastValidPapx = papxBackup;
 		documentMapping->_lastValidSepx = sepxBackup;
 
-		for ( std::list<TableRow>::iterator iter = rows.begin(); iter != rows.end(); iter++ )
+		for ( size_t i = 0; i < rows.size(); ++i)
 		{
-			iter->Convert( mapping, &grid );  
+			rows[i].Convert( mapping, &grid );
 		}
 
 		//close w:tbl

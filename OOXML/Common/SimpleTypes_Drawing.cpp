@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -5025,6 +5025,7 @@ namespace SimpleTypes
 		else if (L"w" == sValue) this->m_eValue = constraintType_w;
 		else if (L"wArH" == sValue) this->m_eValue = constraintType_wArH;
 		else if (L"wOff" == sValue) this->m_eValue = constraintType_wOff;
+		else if (L"hOff" == sValue) this->m_eValue = constraintType_hOff;
 		else this->m_eValue = constraintType_none;
 
 		return this->m_eValue;
@@ -5097,6 +5098,7 @@ namespace SimpleTypes
 		case constraintType_w: return L"w";
 		case constraintType_wArH: return L"wArH";
 		case constraintType_wOff: return L"wOff";
+		case constraintType_hOff: return L"hOff";
 		default: return L"none";
 		}
 	}
@@ -5324,13 +5326,13 @@ namespace SimpleTypes
 
 	EHierBranch CHierBranch::FromString(const std::wstring &sValue)
 	{
-		if (L"none" == sValue) this->m_eValue = hierBranch_hang;
+		if (L"hang" == sValue) this->m_eValue = hierBranch_hang;
 		else if (L"init" == sValue) this->m_eValue = hierBranch_init;
 		else if (L"l" == sValue) this->m_eValue = hierBranch_l;
 		else if (L"r" == sValue) this->m_eValue = hierBranch_r;
 		else if (L"l" == sValue) this->m_eValue = hierBranch_l;
 		else if (L"std" == sValue) this->m_eValue = hierBranch_std;
-		else this->m_eValue = hierBranch_hang;
+		else this->m_eValue = hierBranch_std;
 		return this->m_eValue;
 	}
 

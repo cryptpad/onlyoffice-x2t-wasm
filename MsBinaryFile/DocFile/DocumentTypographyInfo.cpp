@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -63,13 +63,9 @@ namespace DocFileFormat
 			this->cchFollowingPunct = FormatUtils::BytesToInt16( bytes, 2, size );
 			this->cchLeadingPunct = FormatUtils::BytesToInt16( bytes, 4, size );
 
-			unsigned char fpunctBytes[202];
-			memcpy( fpunctBytes, ( bytes + 6 ), 202 );
-			FormatUtils::GetSTLCollectionFromBytes<std::wstring>( &(this->rgxchFPunct), fpunctBytes, 202, ENCODING_UTF16 );
+			this->rgxchFPunct = NSFile::CUtf8Converter::GetWStringFromUTF16((unsigned short*)(bytes + 6), 202 / 2);
+			this->rgxchLPunct = NSFile::CUtf8Converter::GetWStringFromUTF16((unsigned short*)(bytes + 208), 102 / 2);
 
-			unsigned char lpunctBytes[102];
-			memcpy( lpunctBytes, ( bytes + 208 ), 102 );
-			FormatUtils::GetSTLCollectionFromBytes<std::wstring>( &(this->rgxchLPunct), lpunctBytes, 102, ENCODING_UTF16 );
 		}
 		else
 		{

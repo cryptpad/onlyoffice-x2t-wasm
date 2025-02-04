@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,6 +34,7 @@
 #include "../../../../UnicodeConverter/UnicodeConverter.h"
 
 #include "../Logic/Biff_structures/CellRangeRef.h"
+#include "../Logic/GlobalWorkbookInfo.h"
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
@@ -47,31 +48,34 @@
 
 namespace AUX
 {
-const int normalizeColumn(const int column)
+const int normalizeColumn(const int column, const bool xlsb)
 {
-	if ((column & 0x000000ff) == 0xff)
+	int maxCol = 0;
+	if(xlsb)
 	{
-		return 0x00004000 - 1;
+		maxCol = 16383;
 	}
 	else
 	{
-		int norm_col = column;
-		while(norm_col > 255)
-		{
-			norm_col -= 0x100;
-		}
-		while(norm_col < 0)
-		{
-			norm_col += 0x100; // It is correct. must be on the second place after 255
-		}
-		return norm_col;
+		maxCol = 255;
 	}
+	int norm_col = column;
+	while (norm_col > maxCol)
+	{
+		norm_col -= (maxCol+1);
+	}
+	while (norm_col < 0)
+	{
+		norm_col += (maxCol+1); // It is correct. must be on the second place after maxCol(16383 or 255)
+	}
+	return norm_col;
+   
 }
 
 
-const std::wstring column2str(const int column, const bool col_rel)
+const std::wstring column2str(const int column, const bool col_rel, const bool xlsb)
 {
-	int column_value = normalizeColumn(column);
+	int column_value = normalizeColumn(column, xlsb);
 	const int radix = L'Z' - L'A' + 1;
 	std::wstring ret_val;
 	++column_value;
@@ -86,31 +90,40 @@ const std::wstring column2str(const int column, const bool col_rel)
 }
 
 
-const int normalizeRow(const int row)
+const int normalizeRow(const int row, const bool xlsb)
 {
-	int norm_row = row;
-	while(norm_row > 65535)
+	int maxRow = 0;
+	if(xlsb)
 	{
-		norm_row -= 0x10000;
+		maxRow = 1048576;
 	}
-	while(norm_row < 0) 
+	else
 	{
-		norm_row += 0x10000; // It is correct. must be on the second place after 65535
+		maxRow = 65536;
+	}
+	int norm_row = row;
+    while(norm_row >= maxRow)
+	{
+        norm_row -= maxRow;
+	}
+	while(norm_row < 0)
+	{
+        norm_row += maxRow; // It is correct. must be on the second place after 1048576
 	}
 	return norm_row;
 }
 
 
-const std::wstring row2str(const int row, const bool row_rel)
+const std::wstring row2str(const int row, const bool row_rel, const bool xlsb)
 {
-	int row_value = normalizeRow(row);
+	int row_value = normalizeRow(row, xlsb);
 	return  (row_rel ? L"" : L"$") + STR::int2wstr(row_value + 1, 10);
 }
 
 
-const std::wstring loc2str(const int row, const bool row_rel, const int column, const bool col_rel)
+const std::wstring loc2str(const int row, const bool row_rel, const int column, const bool col_rel, const bool xlsb)
 {
-	return column2str(column, col_rel) + row2str(row, row_rel);
+	return column2str(column, col_rel, xlsb) + row2str(row, row_rel, xlsb);
 }
 
 
@@ -129,9 +142,9 @@ const int str2column(std::wstring::const_iterator& str_begin, std::wstring::cons
 		column = (column + 1) * radix + (symb - L'A');
 	}
 
-	if(column > 255)
+	if(column > 16383)
 	{
-		column = 255;
+		column = 16383;
 	}
 
 	return column;
@@ -151,9 +164,9 @@ const int str2row(std::wstring::const_iterator& str_begin, std::wstring::const_i
 		row = row * 10 + (symb - L'0');
 	}
 	--row;
-	if(row > 65535)
+	if(row > 1048575)
 	{
-		row = 65535;
+		row = 1048575;
 	}
 	return row;
 }
@@ -265,8 +278,8 @@ const std::wstring  guid2bstr(_GUID_ & guid)
 {
 	std::wstring  guid_ret=L"{";
 
-	guid_ret += int2hex_wstr(guid.Data1, 4) + L"-" + 
-				int2hex_wstr(guid.Data2, 2) + L"-" + 
+	guid_ret += int2hex_wstr(guid.Data1, 4) + L"-" +
+				int2hex_wstr(guid.Data2, 2) + L"-" +
 				int2hex_wstr(guid.Data3, 2) + L"-" +
 				int2hex_wstr((guid.getData4())[0], 1) + int2hex_wstr((guid.getData4())[1], 1) + L"-" +
 				int2hex_wstr((guid.getData4())[2], 1) + int2hex_wstr((guid.getData4())[3], 1) +
@@ -295,6 +308,31 @@ const std::wstring guidFromStr(const std::wstring & guid_str)
 
 const bool bstr2guid(const std::wstring & guid_str, _GUID_& guid)
 {
+	std::wstring  guid_str_copy = guid_str;
+
+	if(*guid_str_copy.begin() == L'{')
+		guid_str_copy.erase(guid_str_copy.begin());
+
+	if (*(guid_str_copy.end() - 1) == L'}')
+		guid_str_copy.erase(guid_str_copy.end() - 1);
+
+	guid.Data1 = hex_str2int(guid_str_copy.substr(0, 8));
+
+	guid.Data2 = hex_str2int(guid_str_copy.substr(9, 4));
+
+	guid.Data3 = hex_str2int(guid_str_copy.substr(14, 4));
+
+	BYTE data4[8];
+	data4[0] = hex_str2int(guid_str_copy.substr(19, 2));
+	data4[1] = hex_str2int(guid_str_copy.substr(21, 2));
+
+	data4[2] = hex_str2int(guid_str_copy.substr(24, 2));
+	data4[3] = hex_str2int(guid_str_copy.substr(26, 2));
+	data4[4] = hex_str2int(guid_str_copy.substr(28, 2));
+	data4[5] = hex_str2int(guid_str_copy.substr(30, 2));
+	data4[6] = hex_str2int(guid_str_copy.substr(32, 2));
+	data4[7] = hex_str2int(guid_str_copy.substr(34, 2));
+	memcpy(&guid.Data4, data4, 8);
 	return false;
 }
 
@@ -368,7 +406,7 @@ const std::wstring unescape_ST_Xstring(const std::wstring& wstr)
 
     while(true)
 	{
-        
+
 		const auto it_range = boost::make_iterator_range(x_pos_noncopied, wstr_end);
         x_pos_next = boost::algorithm::find_first(it_range, L"_x").begin();
 
@@ -477,7 +515,7 @@ const size_t hex_str2int(const std::wstring::const_iterator& it_begin, const std
 //    {
 //#if defined (_WIN32) || defined (_WIN64)
 //		int outsize_with_0 = MultiByteToWideChar(code_page, 0, inptr, -1, NULL, NULL);
-//		sResult.resize(outsize_with_0); 
+//		sResult.resize(outsize_with_0);
 //		if (MultiByteToWideChar(code_page, 0, inptr, -1, (LPWSTR)sResult.c_str(), outsize_with_0) > 0)
 //        {
 //			sResult.erase(outsize_with_0 - 1);
@@ -514,28 +552,7 @@ const size_t hex_str2int(const std::wstring::const_iterator& it_begin, const std
 //}
 std::wstring toStdWString(std::string ansi_string, const _UINT32 code_page)
 {
-//#if defined (_WIN32) || defined (_WIN64)
-//	std::wstring sResult;
-//
-//	int outsize_with_0 = MultiByteToWideChar(code_page, 0, ansi_string.c_str(), -1, NULL, NULL);
-//	
-//	sResult.resize(outsize_with_0);
-//	if (MultiByteToWideChar(code_page, 0, ansi_string.c_str(), -1, (LPWSTR)sResult.c_str(), outsize_with_0) > 0)
-//	{
-//		sResult.erase(outsize_with_0 - 1);
-//	}
-//	else
-//	{
-//		std::locale loc("");
-//		std::ctype<wchar_t> const &facet = std::use_facet<std::ctype<wchar_t> >(loc);
-//
-//		sResult.resize(ansi_string.size());
-//
-//		facet.widen(ansi_string.c_str(), ansi_string.c_str() + ansi_string.size(), &sResult[0]);
-//	}
-//	return sResult;
-//#else
-	std::string sCodePage;
+    std::string sCodePage;
 	std::map<int, std::string>::const_iterator pFind = NSUnicodeConverter::mapEncodingsICU.find(code_page);
 	if (pFind != NSUnicodeConverter::mapEncodingsICU.end())
 	{
@@ -559,12 +576,11 @@ std::wstring toStdWString(std::string ansi_string, const _UINT32 code_page)
 
 		std::wstring result;
 		result.resize(ansi_string.size());
-	    
+
 		facet.widen(ansi_string.c_str(), ansi_string.c_str() + ansi_string.size(), &result[0]);
 
 		return result;
 	}
-//#endif
 }
 std::wstring	toStdWString(char* ansi, int size, const _UINT32 code_page)
 {
@@ -623,14 +639,14 @@ const std::wstring name2sheet_name(std::wstring name, const std::wstring prefix)
 {
 	static boost::wregex correct_sheet_name(L"^\\'.+?\\'$");
     static boost::wregex test_sheet_name(L"[\\s)(\\!\\'&:-]+"); //.??? 6442946.xls
-	
+
 	std::wstring sheet_first = prefix + name;
-	
+
 	if(!boost::regex_search(sheet_first.begin(), sheet_first.end(), correct_sheet_name))
-	{	
+	{
 		if(boost::regex_search(sheet_first.begin(), sheet_first.end(), test_sheet_name))
-		{	
-			sheet_first = boost::algorithm::replace_all_copy(sheet_first, L"'", L"''"); 
+		{
+			sheet_first = boost::algorithm::replace_all_copy(sheet_first, L"'", L"''");
 			sheet_first = std::wstring(L"'") + sheet_first + std::wstring(L"'");
 		}
 	}
@@ -644,15 +660,15 @@ const std::wstring xti_indexes2sheet_name(const short tabFirst, const short tabL
 	}
 	static boost::wregex correct_table_name(L"^\\'.+?\\'$");
     static boost::wregex test_table_name(L"([\\s)(\\!\\'&:-]+)|(^[\\d]+)"); //.??? 6442946.xls 5558608.xls
-	
-	std::wstring table_name = tab2sheet_name(tabFirst, names); 
+
+	std::wstring table_name = tab2sheet_name(tabFirst, names);
 	std::wstring sheet_first = prefix + table_name;
-	
+
 	if(!boost::regex_search(table_name.begin(), table_name.end(), correct_table_name))
-	{	
-		if(boost::regex_search(table_name.begin(), table_name.end(), test_table_name)) 
+	{
+		if(boost::regex_search(table_name.begin(), table_name.end(), test_table_name))
 		{
-			sheet_first = boost::algorithm::replace_all_copy(sheet_first, L"'", L"''"); 
+			sheet_first = boost::algorithm::replace_all_copy(sheet_first, L"'", L"''");
 			sheet_first = std::wstring(L"'") + sheet_first + std::wstring(L"'");
 		}
 	}
@@ -661,12 +677,12 @@ const std::wstring xti_indexes2sheet_name(const short tabFirst, const short tabL
 	{
 		table_name = tab2sheet_name(tabLast, names);
 		sheet_last = std::wstring(L":") + prefix + table_name;
-		
+
 		if(!boost::regex_search(table_name.begin(), table_name.end(), correct_table_name))
-		{	
+		{
 			if(boost::regex_search(table_name.begin(), table_name.end(), test_table_name))
-			{	
-				sheet_last = boost::algorithm::replace_all_copy(sheet_last, L"'", L"''"); 
+			{
+				sheet_last = boost::algorithm::replace_all_copy(sheet_last, L"'", L"''");
 				sheet_last = std::wstring(L"'") + sheet_last + std::wstring(L"'");
 			}
 		}
@@ -675,6 +691,108 @@ const std::wstring xti_indexes2sheet_name(const short tabFirst, const short tabL
 	return sheet_first + sheet_last;
 }
 
+unsigned short sheetsnames2ixti(std::wstring name)
+{
+	auto pos = std::find_if(XLS::GlobalWorkbookInfo::arXti_External_static.cbegin(), XLS::GlobalWorkbookInfo::arXti_External_static.cend(),
+			[&](XLS::GlobalWorkbookInfo::_xti i) {
+		return boost::algorithm::erase_last_copy(boost::algorithm::erase_first_copy(i.link, L"'"), L"'") == name;
+	});
 
+	if (pos != XLS::GlobalWorkbookInfo::arXti_External_static.cend())
+		return pos->iSup;
+
+	return 0xFFFF;
+}
+
+ unsigned short AddMultysheetXti(const std::wstring& name, const _INT32& firstIxti, const _INT32& secondIxti)
+ {
+     auto pos1 = std::find_if(XLS::GlobalWorkbookInfo::arXti_External_static.cbegin(), XLS::GlobalWorkbookInfo::arXti_External_static.cend(),
+             [&](XLS::GlobalWorkbookInfo::_xti i) {
+         return i.iSup == firstIxti;
+     });
+
+     auto pos2 = std::find_if(XLS::GlobalWorkbookInfo::arXti_External_static.cbegin(), XLS::GlobalWorkbookInfo::arXti_External_static.cend(),
+             [&](XLS::GlobalWorkbookInfo::_xti i) {
+         return i.iSup == secondIxti;
+     });
+     if (pos1 == XLS::GlobalWorkbookInfo::arXti_External_static.cend() || pos2 == XLS::GlobalWorkbookInfo::arXti_External_static.cend())
+         return 0;
+     XLS::GlobalWorkbookInfo::_xti newXti;
+     newXti.iSup = XLS::GlobalWorkbookInfo::arXti_External_static.size();
+     newXti.itabFirst = pos1->itabFirst;
+     newXti.itabLast = pos2->itabFirst;
+     newXti.link = name;
+     XLS::GlobalWorkbookInfo::arXti_External_static.push_back(newXti);
+     return newXti.iSup;
+ }
+
+ unsigned int AddDefinedName(const std::wstring& name)
+ {
+	XLS::GlobalWorkbookInfo::arDefineNames_static.push_back(name);
+	return (XLS::GlobalWorkbookInfo::arDefineNames_static.size());
+ }
+
+unsigned int definenames2index(std::wstring name)
+{
+	unsigned int index;
+
+	auto pos = std::find(XLS::GlobalWorkbookInfo::arDefineNames_static.cbegin(), XLS::GlobalWorkbookInfo::arDefineNames_static.cend(), name);
+
+	if (pos != XLS::GlobalWorkbookInfo::arDefineNames_static.cend())
+	{
+		index = pos - XLS::GlobalWorkbookInfo::arDefineNames_static.cbegin() + 1;
+		return index;
+	}
+
+	return 0xFFFFFFFF;
+}
+
+bool isTableFmla(const std::wstring& tableName, _UINT32& listIndex)
+{
+	for(const auto& item : XLS::GlobalWorkbookInfo::mapTableNames_static)
+	{
+		if (tableName == item.second)
+		{
+			listIndex = item.first;
+			return true;
+		}
+	}
+	return false;
+}
+bool isColumn(const std::wstring& columnName, _UINT32 listIndex, _UINT16& indexColumn)
+{
+	const auto& arrColumn = XLS::GlobalWorkbookInfo::mapTableColumnNames_static.find(listIndex);
+	if(arrColumn != XLS::GlobalWorkbookInfo::mapTableColumnNames_static.end())
+	{
+		indexColumn = -1;
+        auto unqotedName = columnName;
+        if(!unqotedName.empty() && unqotedName.at(0) == '\'')
+            unqotedName = unqotedName.substr(1, unqotedName.size() - 1);
+		for (const auto& itemColumn : arrColumn->second)
+		{
+			++indexColumn;
+            if (unqotedName == itemColumn)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+unsigned int getColumnsCount(_UINT32 listIndex)
+{
+    auto arrColumn = XLS::GlobalWorkbookInfo::mapTableColumnNames_static.find(listIndex);
+	if(arrColumn != XLS::GlobalWorkbookInfo::mapTableColumnNames_static.end())
+	{
+		auto counter = 0;
+		for(auto i:arrColumn->second)
+		{
+			if(!i.empty())
+				counter++;
+		}
+		return counter;
+	}
+	return 0;
+}
 } //namespace XMLSTUFF
 

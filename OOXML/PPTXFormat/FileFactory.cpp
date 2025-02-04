@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,8 +34,6 @@
 #include "FileMap.h"
 #include "FileTypes.h"
 
-#include "App.h"
-#include "Core.h"
 #include "Theme.h"
 #include "HandoutMaster.h"
 #include "Presentation.h"
@@ -72,7 +70,8 @@
 #include "../DocxFormat/External/HyperLink.h"
 #include "../DocxFormat/UnknowTypeFile.h"
 #include "../DocxFormat/CustomXml.h"
-
+#include "../DocxFormat/App.h"
+#include "../DocxFormat/Core.h"
 
 namespace PPTX
 {
@@ -84,9 +83,9 @@ namespace PPTX
 		}
 		
 		if (relation.Type() == OOX::FileTypes::App)
-			return smart_ptr<OOX::File>(new PPTX::App(pMain, filename, map));
+			return smart_ptr<OOX::File>(new OOX::CApp(pMain, filename));
 		else if (relation.Type() == OOX::FileTypes::Core)
-			return smart_ptr<OOX::File>(new PPTX::Core(pMain, filename, map));
+			return smart_ptr<OOX::File>(new OOX::CCore(pMain, filename));
 		else if (relation.Type() == OOX::FileTypes::CustomProperties)
 			return smart_ptr<OOX::File>(new PPTX::CustomProperties(pMain, filename, map));
 		else if (relation.Type() == OOX::Presentation::FileTypes::Presentation || 
@@ -158,7 +157,7 @@ namespace PPTX
 		else if (relation.Type() == OOX::FileTypes::VbaProject)
 			return smart_ptr<OOX::File>(new OOX::VbaProject( pMain, filename, filename ));
 		else if (relation.Type() == OOX::FileTypes::JsaProject)
-			return smart_ptr<OOX::File>(new OOX::JsaProject( pMain, filename ));
+			return smart_ptr<OOX::File>(new OOX::JsaProject( pMain, filename, relation.IsExternal()));
 		else if (relation.Type() == OOX::FileTypes::CustomXml)
 			return smart_ptr<OOX::File>(new OOX::CCustomXML(pMain, filename, filename));
 		else if (relation.Type() == OOX::FileTypes::ActiveX_xml)

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -35,6 +35,11 @@
 #include "PtgParen.h"
 
 #include <boost/regex.hpp>
+#include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include "PtgList.h"
+#include "FutureFunctionParser.h"
+
 #include "../../../../../OOXML/Base/Unit.h"
 
 namespace XLS
@@ -292,8 +297,9 @@ const bool SyntaxPtg::extract_PtgUnion(std::wstring::const_iterator& first, std:
 const bool SyntaxPtg::is_PtgIsect(std::wstring::const_iterator& first, std::wstring::const_iterator last)
 {
 	static boost::wregex reg_before_comma(L"^ *[,()]");
+    static boost::wregex reg_before_space(L"[,(\\n] *$");
 	static boost::wregex reg_isect(L"^ ");
-	return !boost::regex_search(first, last, reg_before_comma) &&
+    return !boost::regex_search(first, last, reg_before_comma) && !boost::regex_search(first, last, reg_before_space) &&
 			boost::regex_search(first, last, reg_isect);
 }
 
@@ -423,31 +429,233 @@ const bool SyntaxPtg::extract_PtgStr(std::wstring::const_iterator& first, std::w
 // static
 const bool SyntaxPtg::extract_PtgName(std::wstring::const_iterator& first, std::wstring::const_iterator last, unsigned int& out_num)
 {
-	static boost::wregex reg_name(L"^(\\w[\\w\\d.]*)([-+*/^&%<=>: ;),]|$)");
+    static boost::wregex reg_name(L"^([\\w[:Unicode:]][\\w[:Unicode:]\\d.]*)([-+*/^&%<=>: ;),]|$)");
 	
-	//boost::match_results<std::wstring::const_iterator> results;
-	//if(boost::regex_search(first, last, results, reg_name))
-	//{
-	//	std::wstring name(results.str(1));
-	//	std::wstring  query(L"root/WorkbookStreamObject/GlobalsSubstream/LBL/Lbl");
-	//	MSXML2::IXMLDOMNodeListPtr nodes = parent->GetownerDocument()->selectNodes(query);
-	//	MSXML2::IXMLDOMElementPtr lbl;
-	//	
-	//	for(size_t counter = 1; (lbl = nodes->nextNode()); ++counter)
-	//	{
-	//		MSXML2::IXMLDOMAttributePtr lbl_name(lbl->getAttributeNode(L"Name"));
-	//		if(lbl_name && boost::algorithm::to_upper_copy(name) == 
-	//			boost::algorithm::to_upper_copy(std::wstring(static_cast<wchar_t*>(static_cast<std::wstring >(lbl_name->Getvalue())))))
-	//		{
-	//			out_num = counter;
-	//			first = results[1].second;
-	//			return true;
-	//		}
-	//	}
-	//}
+	boost::match_results<std::wstring::const_iterator> results;
+	if(boost::regex_search(first, last, results, reg_name))
+	{
+		std::wstring define_names = results.str(1);
+
+		out_num = XMLSTUFF::definenames2index(define_names);
+		if (0xFFFFFFFF != out_num)
+		{
+			first = results[1].second;
+			return true;
+		}
+	}
 	return false;
 }
 
+// static
+const bool SyntaxPtg::extract_PtgList(std::wstring::const_iterator& first, std::wstring::const_iterator last, PtgList& ptgList, unsigned short ixti)
+{
+    static boost::wregex reg_table_name(L"^([\\w[:Unicode:]][[:Unicode:]\\w\\d.]*)\\["); //tableName '=SUM(tblName[Total])'
+
+	boost::match_results<std::wstring::const_iterator> results;
+	if (boost::regex_search(first, last, results, reg_table_name))
+	{
+		std::wstring tableName;
+		_UINT32 indexTable;
+		tableName = results.str(1);
+
+		if (XMLSTUFF::isTableFmla(tableName, indexTable))
+		{
+			for(auto i:XLS::GlobalWorkbookInfo::mapXtiTables_static)
+			{
+				for(auto tablIndex:i.second)
+				{
+					if(tablIndex == indexTable)
+						ixti = i.first; 
+				}
+			}
+			ptgList.listIndex = indexTable;
+			ptgList.squareBracketSpace = false;
+			ptgList.commaSpace = false;
+			ptgList.invalid = false;
+			ptgList.nonresident = false;
+			ptgList.ixti = ixti;
+            static boost::wregex reg_inside_table1(L"\\[#?[\\s\\w[:Unicode:]\\d.]+\\]");
+            static boost::wregex reg_inside_table2(L"\\[#[\\w[:Unicode:]][\\s\\w[:Unicode:]\\d.]*\\],\\[#[\\w[:Unicode:]][[:Unicode:]\\s\\w\\d.]*\\]");
+            static boost::wregex reg_inside_table3(L"^[,;:]?\\[#?[[:Unicode:]\\s\\w\\d.]+\\]");
+			static boost::wregex reg_inside_table4(L"\\[#?(\\[.+?\\]\\,)?(\\[.+?\\])?.+?\\]");
+			static boost::wregex reg_inside_table5(L"^[,;:]?\\[.+?\\]");
+			static boost::wregex reg_inside_table6(L"\\[\\]");
+
+			first = results[1].second;
+
+			boost::match_results<std::wstring::const_iterator> results_1;
+			if (boost::regex_search(first, last, results_1, reg_inside_table1))
+			{
+				_UINT16 indexColumn = -1;
+				std::wstring insider;
+				ptgList.rowType = 0x00;
+				ptgList.columns = 0x00;
+				ptgList.colFirst = 65535;
+
+				insider = results_1.str(0);
+
+				if (insider == L"[#Data]")
+				{
+					if (boost::regex_search(first, last, results_1, reg_inside_table2))
+					{
+						if (results_1.str(0) == L"[#Data],[#Totals]")
+						{
+							ptgList.rowType = 0x0C;
+						}
+					}
+					else
+						ptgList.rowType = 0x00;
+
+				}
+				else if (insider == L"[#All]")
+				{
+					ptgList.rowType = 0x01;
+				}
+				else if (insider == L"[#Headers]")
+				{
+					if (boost::regex_search(first, last, results_1, reg_inside_table2))
+					{
+						if (results_1.str(0) == L"[#Headers],[#Data]")
+						{
+							ptgList.rowType = 0x06;
+						}
+					}
+					else
+						ptgList.rowType = 0x02;
+				}
+				else if (insider == L"[#Totals]")
+				{
+					ptgList.rowType = 0x08;
+				}
+				else if (insider == L"[#This Row]")
+				{
+					ptgList.rowType = 0x10;
+				}
+				else if (XMLSTUFF::isColumn(boost::algorithm::erase_last_copy(boost::algorithm::erase_first_copy(insider, L"["), L"]"), indexTable, indexColumn))
+				{
+					ptgList.rowType = 0x00;
+					ptgList.colFirst = indexColumn;
+					ptgList.columns = 0x01;
+				}
+
+				//first = results_1[0].first;
+				first = results_1[0].second;
+
+				if (boost::regex_search(first, last, results_1, reg_inside_table3))
+				{
+					insider = results_1.str(0);      
+					if (!insider.empty() && insider[0] != '[')
+						insider.erase(0, 1);
+
+					if (XMLSTUFF::isColumn(boost::algorithm::erase_last_copy(boost::algorithm::erase_first_copy(insider, L"["), L"]"), indexTable, indexColumn))
+					{
+						//first = results_1[0].first;
+						first = results_1[0].second;
+
+						if (ptgList.colFirst == 65535)
+						{
+							ptgList.columns = 0x01;
+                            ptgList.colFirst = indexColumn;
+                            ptgList.colLast = indexColumn;
+
+							if (boost::regex_search(first, last, results_1, reg_inside_table3))
+							{
+								insider = results_1.str(0);                                
+								if (!insider.empty() && insider[0] != '[')
+									insider.erase(0, 1);
+
+								if (XMLSTUFF::isColumn(boost::algorithm::erase_last_copy(boost::algorithm::erase_first_copy(insider, L"["), L"]"), indexTable, indexColumn))
+								{
+									ptgList.columns = 0x02;
+									ptgList.colLast = indexColumn;
+									//first = results_1[0].first;
+									first = results_1[0].second;
+								}
+							}
+							else if(boost::regex_search(first, last, results_1, reg_inside_table5))
+							{
+								insider = results_1.str(0);                             
+								insider = boost::algorithm::erase_first_copy(insider, L":");
+
+								if (XMLSTUFF::isColumn(boost::algorithm::erase_last_copy(boost::algorithm::erase_first_copy(insider, L"["), L"]"), indexTable, indexColumn))
+								{
+									ptgList.columns = 0x02;
+									ptgList.colLast = indexColumn;
+								}
+								first = results_1[0].second;
+							}
+						}
+						else
+						{
+							ptgList.columns = 0x02;
+							ptgList.colLast = indexColumn;
+						}
+					}					
+				}
+                else if(boost::regex_search(first, last, results_1, reg_inside_table5))
+				{
+					insider = results_1.str(0);
+                    insider = boost::algorithm::erase_first_copy(insider, L",");              
+
+                    if (XMLSTUFF::isColumn(boost::algorithm::erase_last_copy(boost::algorithm::erase_first_copy(insider, L"["), L"]"), indexTable, indexColumn))
+                    {
+                        if (ptgList.colFirst == 65535)
+                        {
+                            ptgList.columns = 0x01;
+                            ptgList.colFirst = indexColumn;
+                            ptgList.colLast = indexColumn;
+                        }
+                    }
+					first = results_1[0].second;
+				}
+
+				if (first != last && *first == ']')
+					++first;
+					
+				return true;
+				
+			}
+			else if (boost::regex_search(first, last, results_1, reg_inside_table6))
+			{
+				auto colCount = XMLSTUFF::getColumnsCount(indexTable);
+				if(colCount>1)
+				{
+					ptgList.columns = 0x02;
+					ptgList.colFirst = 0;
+					ptgList.colLast = colCount-1;
+                    first = results_1[0].second;
+				}
+				else
+				{
+					ptgList.columns = 0x01;
+					ptgList.colFirst = 0;
+                    ptgList.colLast = 0;
+					first = results_1[0].second;
+				}
+				return true;
+			}
+			else if(boost::regex_search(first, last, results_1, reg_inside_table4))
+			{
+				_UINT16 indexColumn = -1;
+                ptgList.rowType = 0x00;
+				auto insider = results_1.str(0);
+
+				if (XMLSTUFF::isColumn(boost::algorithm::erase_last_copy(boost::algorithm::erase_first_copy(insider, L"["), L"]"), indexTable, indexColumn))
+				{
+					ptgList.columns = 0x01;
+					ptgList.colFirst = indexColumn;
+                    ptgList.colLast = ptgList.colFirst;
+                    first = results_1[0].second;
+                    return true;
+				}
+				
+				if (first != last && *first == ']')
+					++first;
+			}
+		}
+	}
+	return false;
+}
 
 // static
 const bool SyntaxPtg::extract_PtgRefErr(std::wstring::const_iterator& first, std::wstring::const_iterator last)
@@ -515,30 +723,47 @@ const bool SyntaxPtg::extract_PtgRef(std::wstring::const_iterator& first, std::w
 // static
 const bool SyntaxPtg::extract_3D_part(std::wstring::const_iterator& first, std::wstring::const_iterator last, unsigned short& ixti)
 {
-	//static boost::wregex reg_sheets(L"^(\\w[\\w\\d.]*(:\\w[\\w\\d.]*)?)!");
-	//static boost::wregex reg_quoted(L"^'((''|[^]['\\/*?])*)'!");
-	//boost::match_results<std::wstring::const_iterator> results;
-	//if (boost::regex_search(first, last, results, reg_sheets) ||
-	//	boost::regex_search(first, last, results, reg_quoted))
-	//{
+    static boost::wregex reg_sheets(L"^([\\w[:Unicode:]][[:Unicode:]\\w\\d.]*(:[\\w[:Unicode:]][[:Unicode:]\\w\\d.]*)?)!");
+    static boost::wregex reg_sheet(L"^([^:]+):(.*)$");
+    static boost::wregex reg_quoted(L"^'((''|[^]['\\/*?])*)'!");
+    boost::match_results<std::wstring::const_iterator> results;
+    if (boost::regex_search(first, last, results, reg_sheets) ||
+        boost::regex_search(first, last, results, reg_quoted))
+    {
 
-	//	std::wstring sheets_names = results.str(1);
+        std::wstring sheets_names = results.str(1);
 
-	//	ixti = XMLSTUFF::sheetsnames2ixti(boost::algorithm::replace_all_copy(sheets_names, L"''", L"'"), parent->GetownerDocument());
-	//	if(0xFFFF != ixti)
-	//	{
-	//		first = results[0].second;
-	//		return true;
-	//	}
-	//}
-	return false;
+        ixti = XMLSTUFF::sheetsnames2ixti(boost::algorithm::replace_all_copy(sheets_names, L"''", L"'"));
+        if(0xFFFF != ixti)
+        {
+            first = results[0].second;
+            return true;
+        }
+       boost::match_results<std::wstring::const_iterator> results2;
+        if (boost::regex_search(sheets_names, results2, reg_sheet))
+        {
+            auto firstSheetName = results2.str(1);
+            auto secondSheetName = results2.str(2);
+            auto xti1 = XMLSTUFF::sheetsnames2ixti(boost::algorithm::replace_all_copy(firstSheetName, L"''", L"'"));
+            auto xti2 = XMLSTUFF::sheetsnames2ixti(boost::algorithm::replace_all_copy(secondSheetName, L"''", L"'"));
+            if(0xFFFF != xti1 && 0xFFFF != xti2)
+            {
+                ixti = XMLSTUFF::AddMultysheetXti(sheets_names, xti1, xti2);
+                if(!ixti)
+                    return false;
+                first = results[0].second;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 
 // static
 const bool SyntaxPtg::extract_UndefinedName(std::wstring::const_iterator& first, std::wstring::const_iterator last)
 {
-	static boost::wregex reg_undef(L"^([\\w\\d.]+)([-+*/^&%<=>: ;),]|$)");
+    static boost::wregex reg_undef(L"^([[:Unicode:]\\w\\d.]+)([-+*/^&%<=>: ;),]|$)");
 	boost::match_results<std::wstring::const_iterator> results;
 	if(boost::regex_search(first, last, results, reg_undef))
 	{
@@ -607,6 +832,49 @@ const bool SyntaxPtg::extract_PtgFunc(std::wstring::const_iterator& first, std::
 	return false;
 }
 
+// static
+const bool SyntaxPtg::extract_FutureFunction(const std::wstring &funcName, unsigned int& out_num)
+{
+	std::wstring tempName = funcName;
+	
+	if(XLS::FutureFunctionParser::GetFutureFunction(tempName))
+	{
+		auto funcNum = XMLSTUFF::definenames2index(tempName);
+		if(funcNum != 0xFFFFFFFF)
+		{
+			out_num = funcNum;
+		}
+		else
+		{
+			out_num = XMLSTUFF::AddDefinedName(tempName);
+		}
+		return true;
+	}
+	return false;
+}
+
+// static
+const void SyntaxPtg::extract_CustomFunction(const std::wstring &funcName, unsigned int& out_num)
+{
+	auto funcNum = XMLSTUFF::definenames2index(funcName);
+	if(funcNum != 0xFFFFFFFF)
+	{
+		out_num = funcNum;
+	}
+	else
+	{
+		out_num = XMLSTUFF::AddDefinedName(funcName);
+	}
+}
+
+// static
+const void SyntaxPtg::remove_extraSymbols(std::wstring::const_iterator& first, std::wstring::const_iterator& last)
+{
+    while(first != last && (first[0] == L' ' || first[0] == L'\n'))
+	{
+       first++;
+	}
+}
 
 } // namespace XLS
 

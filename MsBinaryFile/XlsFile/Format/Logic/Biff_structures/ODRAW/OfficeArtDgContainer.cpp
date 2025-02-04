@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -86,9 +86,14 @@ void OfficeArtDgContainer::loadFields(XLS::CFRecord& record)
 	
     for (size_t i = 0 ; i < child_records.size(); i++)
 	{
+		//Log::warning("ArtRecord : " + STR::int2str(child_records[i]->rh_own.recType, 16));
+		
 		switch(child_records[i]->rh_own.recType)
 		{
-		case ODRAW::OfficeArtRecord::DgContainer:
+			case ODRAW::OfficeArtRecord::DggContainer:
+			{
+			}break;
+			case ODRAW::OfficeArtRecord::DgContainer:
 			{
 				OfficeArtDgContainer * dg = dynamic_cast<OfficeArtDgContainer *>(child_records[i].get());
 				if (dg)
@@ -107,22 +112,22 @@ void OfficeArtDgContainer::loadFields(XLS::CFRecord& record)
 				}
 				child_records.erase(child_records.begin() + i, child_records.begin() + i + 1); i--;
 			}break;
-		case ODRAW::OfficeArtRecord::FDG:
+			case ODRAW::OfficeArtRecord::FDG:
 			{
 				m_OfficeArtFDG = child_records[i];
 				child_records.erase(child_records.begin() + i, child_records.begin() + i + 1); i--;
 			}break;
-		case ODRAW::OfficeArtRecord::FRITContainer:
+			case ODRAW::OfficeArtRecord::FRITContainer:
 			{
 				m_OfficeArtFRITContainer = child_records[i];
 				child_records.erase(child_records.begin() + i, child_records.begin() + i + 1); i--;
 			}break;
-		case ODRAW::OfficeArtRecord::SpgrContainer:
+			case ODRAW::OfficeArtRecord::SpgrContainer:
 			{
 				m_OfficeArtSpgrContainer = child_records[i];
 				child_records.erase(child_records.begin() + i, child_records.begin() + i + 1); i--;
 			}break;
-		case ODRAW::OfficeArtRecord::SpContainer:
+			case ODRAW::OfficeArtRecord::SpContainer:
 			{
 				m_OfficeArtSpContainer.push_back(child_records[i]);
 				child_records.erase(child_records.begin() + i,child_records.begin() + i + 1); i--; 
@@ -132,8 +137,8 @@ void OfficeArtDgContainer::loadFields(XLS::CFRecord& record)
 		//		m_OfficeArtSpgrContainerFileBlock = OfficeArtContainerPtr(art_container);
 		//		child_records.erase(child_records.begin() + i,child_records.begin() + i + 1);
 		//	}break;		
-		default:
-			break;
+			default:
+				break;
 		}
 	}
 

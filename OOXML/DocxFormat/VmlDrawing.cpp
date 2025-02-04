@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -58,7 +58,7 @@ namespace OOX
 			return;
 
 		std::wstring sName1 = XmlUtils::GetNameNoNS(oReader.GetName());
-		if ( _T("xml") == sName1 )
+		if ( L"xml" == sName1 )
 		{
 			ReadAttributes( oReader );
 
@@ -96,76 +96,76 @@ namespace OOX
 								switch ( wChar2 )
 								{
 								case 'a':
-									if ( _T("v:arc") == sName )
+									if ( L"v:arc" == sName )
 									{
-										pItem = new OOX::Vml::CArc(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::CArc, oSubReader)
 										bReadyElement = true;
 
 									}
 									break;
 								case 'c':
-									if ( _T("v:curve") == sName )
+									if ( L"v:curve" == sName )
 									{
-										pItem = new OOX::Vml::CCurve(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::CCurve, oSubReader)
 										bReadyElement = true;
 									}
 									break;
 								case 'g':
-									if ( _T("v:group") == sName )
+									if ( L"v:group" == sName )
 									{
-										pItem = new OOX::Vml::CGroup(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::CGroup, oSubReader)
 										bReadyElement = true;
 									}
 									break;
 								case 'i':
-									if ( _T("v:image") == sName )
+									if ( L"v:image" == sName )
 									{
-										pItem = new OOX::Vml::CImage( oSubReader );
+										AssignPtrXmlContent(pItem, OOX::Vml::CImage, oSubReader)
 										bReadyElement = true;
 									}
 									break;
 								case 'l':
-									if ( _T("v:line") == sName )
+									if ( L"v:line" == sName )
 									{
-										pItem = new OOX::Vml::CLine(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::CLine, oSubReader)
 										bReadyElement = true;
 									}
 									break;
 								case 'o':
-									if ( _T("v:oval") == sName )
+									if ( L"v:oval" == sName )
 									{
-										pItem = new OOX::Vml::COval(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::COval, oSubReader)
 										bReadyElement = true;
 									}
 									break;
 								case 'p':
-									if ( _T("v:polyline") == sName )
+									if ( L"v:polyline" == sName )
 									{
-										pItem = new OOX::Vml::CPolyLine(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::CPolyLine, oSubReader)
 										bReadyElement = true;
 									}
 									break;
 								case 'r':
-									if ( _T("v:rect") == sName )
+									if ( L"v:rect" == sName )
 									{
-										pItem = new OOX::Vml::CRect(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::CRect, oSubReader)
 										bReadyElement = true;
 									}
-									else if ( _T("v:roundrect") == sName )
+									else if ( L"v:roundrect" == sName )
 									{
-										pItem =  new OOX::Vml::CRoundRect(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::CRoundRect, oSubReader)
 										bReadyElement = true;
 									}
 									break;
 								case 's':
-									if ( _T("v:shape") == sName )
+									if ( L"v:shape" == sName )
 									{
-										pItem = new OOX::Vml::CShape(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::CShape, oSubReader)
 										bReadyElement = true;
 									}
-									else if ( _T("v:shapetype") == sName )
+									else if ( L"v:shapetype" == sName )
 									{
-										pItem = new OOX::Vml::CShapeType(oSubReader);
+										AssignPtrXmlContent(pItem, OOX::Vml::CShapeType, oSubReader)
 									}
 									break;
 								}								
@@ -204,10 +204,10 @@ namespace OOX
 							{
 								_vml_shape element;
 								
-								element.nId			= (int)m_arrItems.size()-1;
-								element.sXml		= elementContent;
-								element.pElement	= pItem;
-                                element.bUsed       = bComment;
+								element.nId = (int)m_arrItems.size()-1;
+								element.sXml = elementContent;
+								element.pElement = pItem;
+								element.bComment = bComment;
 
 								m_mapShapes.insert(std::make_pair(sSpid, element));
 							}
@@ -257,21 +257,21 @@ namespace OOX
 		{
 			// элементы вида <br> без </br>
 			// test_vml4.xlsx
-			XmlUtils::replace_all(m_sFileContent, _T("<br>"), _T(""));
+			XmlUtils::replace_all(m_sFileContent, L"<br>", L"");
 
 
 			// элементы вида <![if ...]>, <![endif]>
 			// Zigmunds.pptx
 			while(true)
 			{
-				int res1 = (int)m_sFileContent.find(_T("<!["));
-				if (res1 < 0) break;
+				size_t res1 = m_sFileContent.find(L"<![");
+				if (res1 == std::wstring::npos) break;
 
-				int res2 = (int)m_sFileContent.find(_T(">"), res1);
+				size_t res2 = m_sFileContent.find(L">", res1);
 
-				if (res1 >=0 && res2>=0)
+				if (res1 != std::wstring::npos && res2 != std::wstring::npos)
 				{
-					m_sFileContent = m_sFileContent.erase(res1 ,res2 - res1 + 1);
+					m_sFileContent = m_sFileContent.erase(res1, res2 - res1 + 1);
 				}
 			}
 			read(m_sFileContent);
@@ -369,23 +369,23 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 					comment->m_nBottom.IsInit() && comment->m_nBottomOffset.IsInit())
 				{
 					sClientData += L"<x:Anchor>";
-					sClientData += boost::lexical_cast<std::wstring>(comment->m_nLeft.get())          + L",";
-					sClientData += boost::lexical_cast<std::wstring>(comment->m_nLeftOffset.get())    + L",";
-					sClientData += boost::lexical_cast<std::wstring>(comment->m_nTop.get())           + L",";
-					sClientData += boost::lexical_cast<std::wstring>(comment->m_nTopOffset.get())     + L",";
-					sClientData += boost::lexical_cast<std::wstring>(comment->m_nRight.get())         + L",";
-					sClientData += boost::lexical_cast<std::wstring>(comment->m_nRightOffset.get())   + L",";
-					sClientData += boost::lexical_cast<std::wstring>(comment->m_nBottom.get())        + L",";
-					sClientData += boost::lexical_cast<std::wstring>(comment->m_nBottomOffset.get());
+					sClientData += std::to_wstring(comment->m_nLeft.get())          + L",";
+					sClientData += std::to_wstring(comment->m_nLeftOffset.get())    + L",";
+					sClientData += std::to_wstring(comment->m_nTop.get())           + L",";
+					sClientData += std::to_wstring(comment->m_nTopOffset.get())     + L",";
+					sClientData += std::to_wstring(comment->m_nRight.get())         + L",";
+					sClientData += std::to_wstring(comment->m_nRightOffset.get())   + L",";
+					sClientData += std::to_wstring(comment->m_nBottom.get())        + L",";
+					sClientData += std::to_wstring(comment->m_nBottomOffset.get());
 					sClientData += L"</x:Anchor>";
 				}
 				sClientData += L"<x:AutoFill>False</x:AutoFill>";
 
 				if(comment->m_nRow.IsInit())
-						sClientData += L"<x:Row>" + boost::lexical_cast<std::wstring>(comment->m_nRow.get()) + L"</x:Row>";
+						sClientData += L"<x:Row>" + std::to_wstring(comment->m_nRow.get()) + L"</x:Row>";
 
 				if(comment->m_nCol.IsInit())
-					sClientData += L"<x:Column>" + boost::lexical_cast<std::wstring>(comment->m_nCol.get()) + L"</x:Column>";
+					sClientData += L"<x:Column>" + std::to_wstring(comment->m_nCol.get()) + L"</x:Column>";
 
 				sClientData += L"</x:ClientData>";
 
@@ -394,7 +394,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 					sGfxdata = L"o:gfxdata=\"" + *comment->m_sGfxdata + L"\"";
 
 				std::wstring sShape;
-				sShape += L"<v:shape id=\"_x0000_s" + boost::lexical_cast<std::wstring>(nIndex++) + L" \" type=\"#_x0000_t202\" style='position:absolute;";
+				sShape += L"<v:shape id=\"_x0000_s" + std::to_wstring(nIndex++) + L" \" type=\"#_x0000_t202\" style='position:absolute;";
 				sShape += sStyle;
 				sShape += L"z-index:4;visibility:hidden' ";
 				sShape += sGfxdata;
@@ -419,7 +419,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 	{
 		smart_ptr<OOX::WritingElement> oElement;
 		
-		boost::unordered_map<std::wstring, OOX::CVmlDrawing::_vml_shape>::iterator pFind = m_mapShapes.find(spid);
+		std::map<std::wstring, OOX::CVmlDrawing::_vml_shape>::iterator pFind = m_mapShapes.find(spid);
 		
 		if (pFind != m_mapShapes.end())
 		{

@@ -98,12 +98,8 @@ namespace NSJSBase
 					if (pCacheData)
 					{
 						// save cache to file
-						NSFile::CFileBinary oFileTest;
-						if (oFileTest.CreateFileW(Path))
-						{
-							oFileTest.WriteFile(pCacheData->data, (DWORD)pCacheData->length);
-							oFileTest.CloseFile();
-						}
+						oFileTest.WriteFile(pCacheData->data, (DWORD)pCacheData->length);
+						oFileTest.CloseFile();
 					}
 				}
 
@@ -150,125 +146,131 @@ namespace NSJSBase
 		}
 	};
 
-	class CJSIsolateScopeV8 : public CJSIsolateScope
-	{
-	public:
-		v8::Isolate::Scope  isolate_scope;
-		v8::Locker          isolate_locker;
-
-	public:
-		CJSIsolateScopeV8(v8::Isolate* isolate) : CJSIsolateScope(),
-			isolate_scope(isolate),
-			isolate_locker(isolate)
-		{
-		}
-		virtual ~CJSIsolateScopeV8()
-		{
-		}
-	};
-
-	class CJSContextScopeV8 : public CJSContextScope
-	{
-	public:
-		v8::Context::Scope m_scope;
-
-	public:
-		CJSContextScopeV8(v8::Local<v8::Context> context) : m_scope(context)
-		{
-		}
-		virtual ~CJSContextScopeV8()
-		{
-		}
-	};
-
-	class CJSLocalScopeV8 : public CJSLocalScope
+	class CJSLocalScopePrivate
 	{
 	public:
 		v8::HandleScope m_scope;
 
 	public:
-		CJSLocalScopeV8() : m_scope(CV8Worker::GetCurrent())
+		CJSLocalScopePrivate() : m_scope(CV8Worker::GetCurrent())
 		{
 		}
-		virtual ~CJSLocalScopeV8()
+		~CJSLocalScopePrivate()
 		{
 		}
 	};
 
+	CJSLocalScope::CJSLocalScope() : m_internal(new CJSLocalScopePrivate())
+	{
+	}
 
-	CJSContext::CJSContext()
+	CJSLocalScope::~CJSLocalScope()
+	{
+		delete m_internal;
+	}
+
+	CJSContext::CJSContext(const bool& bIsInitialize)
 	{
 		m_internal = new CJSContextPrivate();
+		if (bIsInitialize)
+			Initialize();
 	}
+
 	CJSContext::~CJSContext()
 	{
+		if (m_internal->m_isolate && !m_internal->m_contextPersistent.IsEmpty())
+			Dispose();
 		RELEASEOBJECT(m_internal);
 	}
 
-	CJSTryCatch* CJSContext::GetExceptions()
+	JSSmart<CJSTryCatch> CJSContext::GetExceptions()
 	{
 		return new CV8TryCatch();
 	}
 
-	void CJSContext::Initialize()
+	void CJSContext::Initialize(const std::wstring& snapshotPath)
 	{
-		m_internal->m_isolate = CV8Worker::getInitializer().CreateNew();
+		if (m_internal->m_isolate == NULL)
+		{
+#ifdef V8_SUPPORT_SNAPSHOTS
+			if (!snapshotPath.empty())
+			{
+				BYTE* data = NULL;
+				DWORD dataLength = 0;
+				if (NSFile::CFileBinary::ReadAllBytes(snapshotPath, &data, dataLength))
+				{
+					m_internal->m_startup_data.data = reinterpret_cast<const char*>(data);
+					m_internal->m_startup_data.raw_size = (int)dataLength;
+				}
+			}
+#endif
+
+			// get new isolate
+			v8::Isolate* isolate = CV8Worker::getInitializer().CreateNew(m_internal->m_startup_data.data ? &m_internal->m_startup_data : nullptr);
+			m_internal->m_isolate = isolate;
+			// get new context
+			v8::Isolate::Scope iscope(isolate);
+			v8::HandleScope scope(isolate);
+			m_internal->m_contextPersistent.Reset(isolate, v8::Context::New(isolate));
+			// create temporary local handle to context
+			m_internal->m_context = v8::Local<v8::Context>::New(isolate, m_internal->m_contextPersistent);
+			// insert CreateEmbedObject() function to global object of this context
+			m_internal->InsertToGlobal("CreateEmbedObject", CreateEmbedNativeObject);
+			// clear temporary local handle
+			m_internal->m_context.Clear();
+		}
 	}
 	void CJSContext::Dispose()
 	{
 #ifdef V8_INSPECTOR
-		v8_debug::disposeInspector(m_internal->m_context);
+		if (CV8Worker::getInitializer().isInspectorUsed())
+			CInspectorPool::get().disposeInspector(m_internal->m_isolate);
 #endif
-		unsigned int nEmbedDataCount = m_internal->m_isolate->GetNumberOfDataSlots();
-		if (nEmbedDataCount > 0)
-		{
-			void* pSingletonData = m_internal->m_isolate->GetData(0);
-			if (NULL != pSingletonData)
-			{
-				CIsolateAdditionalData* pData = (CIsolateAdditionalData*)pSingletonData;
-				delete pData;
-			}
-		}
 
+		m_internal->m_contextPersistent.Reset();
 		m_internal->m_isolate->Dispose();
 		m_internal->m_isolate = NULL;
 	}
 
-	void CJSContext::CreateContext()
+	bool CJSContext::isSnapshotUsed()
 	{
-		m_internal->m_context = v8::Context::New(CV8Worker::GetCurrent(), NULL, m_internal->m_global);
+		return m_internal->m_startup_data.data != NULL;
 	}
 
-	void CJSContext::CreateGlobalForContext()
-	{
-		m_internal->m_global = v8::ObjectTemplate::New(CV8Worker::GetCurrent());
-	}
-
-	CJSObject* CJSContext::GetGlobal()
+	JSSmart<CJSObject> CJSContext::GetGlobal()
 	{
 		CJSObjectV8* ret = new CJSObjectV8();
 		ret->value = m_internal->m_context->Global();
 		return ret;
 	}
 
-	CJSIsolateScope* CJSContext::CreateIsolateScope()
+	void CJSContext::Enter()
 	{
-		return new CJSIsolateScopeV8(m_internal->m_isolate);
+		v8::Isolate* isolate = m_internal->m_isolate;
+#ifdef LOG_TO_COUT
+		std::cout << "Entering isolate \t" << m_internal->m_isolate << std::endl;
+#endif
+		isolate->Enter();
+		m_internal->m_scope.push(new CJSLocalScope());
+		m_internal->m_context = v8::Local<v8::Context>::New(isolate, m_internal->m_contextPersistent);
+		if (!m_internal->m_context.IsEmpty())
+			m_internal->m_context->Enter();
 	}
 
-	CJSContextScope* CJSContext::CreateContextScope()
+	void CJSContext::Exit()
 	{
-		CJSContextScope* pScope = new CJSContextScopeV8(m_internal->m_context);
-
-		JSSmart<CJSObject> global = GetCurrent()->GetGlobal();
-		global->set("window", global.GetPointer());
-
-		return pScope;
-	}
-
-	CJSLocalScope* CJSContext::CreateLocalScope()
-	{
-		return new CJSLocalScopeV8();
+#ifdef LOG_TO_COUT
+		std::cout << "Exiting isolate \t" << m_internal->m_isolate << std::endl;
+#endif
+		if (!m_internal->m_context.IsEmpty())
+			m_internal->m_context->Exit();
+		delete m_internal->m_scope.top();
+		m_internal->m_scope.pop();
+		if (m_internal->m_scope.empty())
+			m_internal->m_context.Clear();
+		else
+			m_internal->m_context = m_internal->m_isolate->GetCurrentContext();
+		m_internal->m_isolate->Exit();
 	}
 
 	CJSValue* CJSContext::createUndefined()
@@ -363,8 +365,10 @@ namespace NSJSBase
 	JSSmart<CJSValue> CJSContext::runScript(const std::string& script, JSSmart<CJSTryCatch> exception, const std::wstring& scriptPath)
 	{
 #ifdef V8_INSPECTOR
-		v8_debug::before(m_internal->m_context, CV8Worker::getInitializer()->getPlatform(), "");
+		if (CV8Worker::getInitializer().isInspectorUsed())
+			CInspectorPool::get().getInspector(m_internal->m_isolate).startAgent();
 #endif
+
 		LOGGER_START
 
 		v8::Local<v8::String> _source = CreateV8String(CV8Worker::GetCurrent(), script.c_str());
@@ -402,19 +406,62 @@ namespace NSJSBase
 
 		LOGGER_LAP("run")
 
-				return _return;
+		return _return;
 	}
 
-	CJSContext* CJSContext::GetCurrent()
+	bool CJSContext::generateSnapshot(const std::string& script, const std::wstring& snapshotPath)
 	{
-		CJSContext* ret = new CJSContext();
+#ifdef V8_SUPPORT_SNAPSHOTS
+		bool result = false;
+		// Snapshot creator should be in its own scope, because it handles entering, exiting and disposing the isolate
+		v8::SnapshotCreator snapshotCreator;
+		v8::Isolate* isolate = snapshotCreator.GetIsolate();
+		{
+			v8::HandleScope handle_scope(isolate);
+			// Create a new context
+			v8::Local<v8::Context> context = v8::Context::New(isolate);
+			v8::Context::Scope context_scope(context);
+
+			// Handle compile & run errors
+			v8::Local<v8::Object> global = context->Global();
+			global->Set(context, v8::String::NewFromUtf8Literal(isolate, "window"), global).Check();
+			global->Set(context, v8::String::NewFromUtf8Literal(isolate, "self"), global).Check();
+			global->Set(context, v8::String::NewFromUtf8Literal(isolate, "native"), v8::Undefined(isolate)).Check();
+
+			// Compile and run
+			v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, script.c_str()).ToLocalChecked();
+			v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
+
+			script->Run(context).IsEmpty();
+			snapshotCreator.SetDefaultContext(context);
+		}
+		v8::StartupData data = snapshotCreator.CreateBlob(v8::SnapshotCreator::FunctionCodeHandling::kKeep);
+		// Save snapshot to file
+		NSFile::CFileBinary snapshotFile;
+		if (data.data && snapshotFile.CreateFile(snapshotPath))
+		{
+			snapshotFile.WriteFile(data.data, (DWORD)data.raw_size);
+			snapshotFile.CloseFile();
+			result = true;
+		}
+
+		delete[] data.data;
+
+		return result;
+#else
+		return false;
+#endif
+	}
+
+	JSSmart<CJSContext> CJSContext::GetCurrent()
+	{
+		CJSContext* ret = new CJSContext(false);
 		ret->m_internal->m_isolate = CV8Worker::GetCurrent();
 		ret->m_internal->m_context = ret->m_internal->m_isolate->GetCurrentContext();
-		// global???
 		return ret;
 	}
 
-	CJSValue* CJSContext::JSON_Parse(const char *sTmp)
+	JSSmart<CJSValue> CJSContext::JSON_Parse(const char *sTmp)
 	{
 		CJSValueV8* _value = new CJSValueV8();
 #ifndef V8_OS_XP
@@ -424,9 +471,42 @@ namespace NSJSBase
 		else
 			_value->doUndefined();
 #else
+		// TODO: Use MaybeLocal version
 		_value->value = v8::JSON::Parse(CreateV8String(CV8Worker::GetCurrent(), sTmp));
 #endif
 		return _value;
+	}
+
+	std::string CJSContext::JSON_Stringify(JSSmart<CJSValue> value)
+	{
+		// if don't return an empty string explicitly, V8 will return "undefined", which is incorrect
+		if (value->isUndefined())
+			return "";
+
+		CJSValueV8* _value = static_cast<CJSValueV8*>(value.GetPointer());
+		v8::MaybeLocal<v8::String> result;
+#ifndef V8_OS_XP
+#ifdef V8_VERSION_89_PLUS
+		result = v8::JSON::Stringify(m_internal->m_context, _value->value);
+#else
+		v8::MaybeLocal<v8::Object> json_object = _value->value->ToObject(m_internal->m_context);
+		if (json_object.IsEmpty())
+			// in case of null and other non-object values
+			result = _value->value->ToString(m_internal->m_context);
+		else
+			result = v8::JSON::Stringify(m_internal->m_context, json_object.ToLocalChecked());
+#endif
+#else
+		// there is no built-in stringifier in V8_XP, so use JSON.stringify() from JS
+		v8::Local<v8::Object> json = m_internal->m_context->Global()->Get(CreateV8String(m_internal->m_isolate, "JSON"))->ToObject();
+		v8::Local<v8::Function> stringify = json->Get(CreateV8String(m_internal->m_isolate, "stringify")).As<v8::Function>();
+		result = stringify->Call(json, 1, &_value->value)->ToString(m_internal->m_context);
+#endif
+		if (result.IsEmpty())
+			return "";
+
+		v8::String::Utf8Value data(V8IsolateFirstArg result.ToLocalChecked());
+		return std::string((char*)(*data), data.length());
 	}
 
 	void CJSContext::MoveToThread(ASC_THREAD_ID* id)
@@ -454,5 +534,116 @@ namespace NSJSBase
 	void NSAllocator::Free(unsigned char* data, const size_t& size)
 	{
 		CV8Worker::getInitializer().getAllocator()->Free(data, size);
+	}
+}
+
+// embed
+namespace NSJSBase
+{
+	class CJSFunctionArgumentsV8 : public CJSFunctionArguments
+	{
+		const v8::FunctionCallbackInfo<v8::Value>* m_args;
+		int m_count;
+		// TODO: do we actually need it?
+		int m_skip_count;
+	public:
+		CJSFunctionArgumentsV8(const v8::FunctionCallbackInfo<v8::Value>* args, const bool skip_count = 1)
+		{
+			m_args = args;
+			m_skip_count = skip_count;
+			m_count = m_args->Length() - m_skip_count;
+		}
+	public:
+		virtual int GetCount() override
+		{
+			return m_count;
+		}
+		virtual JSSmart<CJSValue> Get(const int& index) override
+		{
+			if (index < m_count)
+				return js_value(m_args->operator[](index + m_skip_count));
+			return js_value(v8::Undefined(m_args->GetIsolate()));
+		}
+	};
+
+	// this function is called when method from embedded object is called
+	void _Call(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		CJSEmbedObject* _this = (CJSEmbedObject*)unwrap_native(args.Holder());
+		CJSFunctionArgumentsV8 _args(&args, 0);
+		JSSmart<CJSValue> funcIndex = js_value(args.Data());
+		CJSEmbedObjectAdapterV8* _adapter = static_cast<CJSEmbedObjectAdapterV8*>(_this->getAdapter());
+		JSSmart<CJSValue> ret = _adapter->Call(funcIndex->toInt32(), &_args);
+		js_return(args, ret);
+	}
+
+	v8::Handle<v8::ObjectTemplate> CreateEmbedObjectTemplate(v8::Isolate* isolate, CJSEmbedObject* pNativeObj)
+	{
+		v8::EscapableHandleScope handle_scope(isolate);
+		CJSEmbedObjectAdapterV8* pAdapter = static_cast<CJSEmbedObjectAdapterV8*>(pNativeObj->getAdapter());
+
+		v8::Local<v8::ObjectTemplate> result = v8::ObjectTemplate::New(isolate);
+		result->SetInternalFieldCount(1);
+
+		pAdapter->initFunctions(pNativeObj);
+		std::vector<std::string> arNames = pAdapter->getMethodNames();
+		for (int i = 0, len = arNames.size(); i < len; ++i)
+		{
+			// associate all methods with corresponding Call() index
+			result->Set(CreateV8String(isolate, arNames[i].c_str()), v8::FunctionTemplate::New(isolate, _Call, v8::Integer::New(isolate, i)));
+		}
+
+		return handle_scope.Escape(result);
+	}
+
+	void CreateEmbedNativeObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Isolate* isolate = args.GetIsolate();
+		v8::HandleScope scope(isolate);
+
+		if (args.Length() != 1)
+		{
+			args.GetReturnValue().Set(v8::Undefined(isolate));
+			return;
+		}
+
+		std::string sName;
+		v8::String::Utf8Value data(V8IsolateFirstArg args[0]);
+		if (NULL != *data)
+			sName = std::string((char*)*data, data.length());
+
+		CEmbedObjectRegistrator& oRegistrator = CEmbedObjectRegistrator::getInstance();
+		CEmbedObjectRegistrator::store_t::iterator itFound = oRegistrator.m_infos.find(sName);
+		if (itFound == oRegistrator.m_infos.end())
+		{
+			args.GetReturnValue().Set(v8::Undefined(isolate));
+			return;
+		}
+
+		CEmbedObjectRegistrator::CEmdedClassInfo& oInfo = itFound->second;
+
+		if (oInfo.m_bIsCreationAllowed == false)
+		{
+			args.GetReturnValue().Set(v8::Undefined(isolate));
+			return;
+		}
+
+		CJSEmbedObject* pNativeObj = oInfo.m_creator();
+		v8::Local<v8::ObjectTemplate> oCurTemplate;
+		CJSEmbedObjectAdapterV8Template* pTemplateAdapter = dynamic_cast<CJSEmbedObjectAdapterV8Template*>(pNativeObj->getAdapter());
+		if (pTemplateAdapter)
+		{
+			oCurTemplate = pTemplateAdapter->getTemplate(isolate);
+		}
+		else
+		{
+			oCurTemplate = CreateEmbedObjectTemplate(isolate, pNativeObj);
+		}
+		v8::MaybeLocal<v8::Object> oTemplateMayBe = oCurTemplate->NewInstance(isolate->GetCurrentContext());
+		v8::Local<v8::Object> obj = oTemplateMayBe.ToLocalChecked();
+		obj->SetInternalField(0, v8::External::New(CV8Worker::GetCurrent(), pNativeObj));
+
+		NSJSBase::CJSEmbedObjectPrivate::CreateWeaker(obj);
+		args.GetReturnValue().Set(obj);
 	}
 }

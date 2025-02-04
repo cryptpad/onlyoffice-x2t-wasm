@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -203,6 +203,12 @@ namespace PdfWriter
 		m_unPermission = ENABLE_PRINT | ENABLE_EDIT_ALL | ENABLE_COPY | ENABLE_EDIT | PERMISSION_PAD;
 		
 		MemSet(m_anEncryptID, 0, ID_LEN);
+
+		MemSet(m_anOwnerKey, 0, 48);
+		MemSet(m_anUserKey, 0, 48);
+		MemSet(m_anOwnerEncryptKey, 0, 32);
+		MemSet(m_anUserEncryptKey, 0, 32);
+		MemSet(m_anPermEncrypt, 0, 16);
 	}
     CEncrypt::~CEncrypt()
     {

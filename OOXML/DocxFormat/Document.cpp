@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -30,18 +30,17 @@
  *
  */
 #pragma once
-#include "Document.h"
 
+#include "Document.h"
 #include "Math/oMathPara.h"
-#include "Math/OMath.h"
 
 #include "Logic/Annotations.h"
 #include "Logic/Hyperlink.h"
 #include "Logic/Paragraph.h"
 #include "Logic/Sdt.h"
 #include "Logic/Table.h"
-
-#include "External/HyperLink.h"
+#include "Logic/DocParts.h"
+#include "Logic/Vml.h"
 
 namespace OOX
 {
@@ -145,7 +144,42 @@ namespace OOX
 				WritingElement_ReadAttributes_Read_else_if(oReader, L"w:themeTint", m_oThemeTint)
 			WritingElement_ReadAttributes_End(oReader)
 		}
+//------------------------------------------------------------------------------------------------------------------------------------------------
+		CDocSuppData::CDocSuppData(OOX::Document* pMain) : WritingElement(pMain)
+		{
+		}
+		CDocSuppData::~CDocSuppData()
+		{
+		}
+		void CDocSuppData::fromXML(XmlUtils::CXmlNode& oNode)
+		{
+		}
+		std::wstring CDocSuppData::toXML() const
+		{
+			return L"";
+		}
+		EElementType CDocSuppData::getType() const
+		{
+			return et_w_docSuppData;
+		}
+		void CDocSuppData::fromXML(XmlUtils::CXmlLiteReader& oReader)
+		{
+			if (oReader.IsEmptyNode())
+				return;
 
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+				if (L"binData" == sName)
+					m_oBinData = oReader;
+			}
+		}
+		void CDocSuppData::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
+		{
+		}
+//------------------------------------------------------------------------------------------------------------------------------------------------
 		CBgPict::CBgPict(OOX::Document *pMain) : WritingElement(pMain)
 		{
 		}
@@ -224,26 +258,40 @@ namespace OOX
 	{
 		m_bMacroEnabled = false;
 
+		std::wstring fileName = XmlUtils::GetLower(oPath.GetFilename());
+		size_t pos = fileName.find(L".");
+	
+		if (pos != std::wstring::npos) fileName = fileName.substr(0, pos);
+
 		CDocx* docx = dynamic_cast<CDocx*>(pMain);
 		if (docx)
 		{
-			if (type == OOX::FileTypes::Document)
+			OOX::CDocument* current = NULL;
+			if (type == OOX::FileTypes::Document || type == FileTypes::DocumentMacro)
 			{
-				docx->m_oMain.document = this;
-			}
-			else if (type == FileTypes::DocumentMacro)
-			{
-				docx->m_oMain.document = this;
-				m_bMacroEnabled = true;
+				current = docx->m_oMain.document;
 			}
 			else if (type == OOX::FileTypes::GlossaryDocument)
 			{
-				docx->m_oGlossary.document = this;
-				docx->m_bGlossaryRead = true;
+				current = docx->m_oGlossary.document;
 			}
-			else
+
+			if (/*std::wstring::npos != fileName.find(L"document")*/ fileName == L"document" || !current)
 			{
-				//???
+				if (type == OOX::FileTypes::Document)
+				{
+					docx->m_oMain.document = this;
+				}
+				else if (type == FileTypes::DocumentMacro)
+				{
+					docx->m_oMain.document = this;
+					m_bMacroEnabled = true;
+				}
+				else if (type == OOX::FileTypes::GlossaryDocument)
+				{
+					docx->m_oGlossary.document = this;
+					docx->m_bGlossaryRead = true;
+				}
 			}
 		}
 
@@ -339,18 +387,18 @@ namespace OOX
 				m_oSectPr = new Logic::CSectionProperty( document );
 				m_oSectPr->fromXML(oReader);
 //-------------------------------------------------------------------------
-				OOX::CDocx *docx = dynamic_cast<OOX::CDocx*>(document);
-				if (docx)
+				OOX::CDocx* docx = dynamic_cast<OOX::CDocx*>(document);
+				OOX::CDocument* document = docx ? (docx->m_bGlossaryRead ? docx->m_oGlossary.document : (docx->m_oMain.document ? docx->m_oMain.document : this)) : this;
+
+				if (document)
 				{
-					OOX::CDocument *doc = docx->m_bGlossaryRead ? docx->m_oGlossary.document : docx->m_oMain.document;
-					
-					if (doc->m_arrSections.empty())
+					if (document->m_arrSections.empty())
 					{
 						OOX::CDocument::_section section;
-						doc->m_arrSections.push_back(section);
+						document->m_arrSections.push_back(section);
 					}
-					doc->m_arrSections.back().sect = m_oSectPr.GetPointer();
-					doc->m_arrSections.back().end_elm = doc->m_arrItems.size(); //активный рутовый еще не добавлен
+					document->m_arrSections.back().sect = m_oSectPr.GetPointer();
+					document->m_arrSections.back().end_elm = document->m_arrItems.size(); //активный рутовый еще не добавлен
 				}
 //-------------------------------------------------------------------------
 			}
@@ -388,7 +436,6 @@ namespace OOX
 				pItem->fromXML(oReader);
 				m_arrItems.push_back(pItem);
 			}
-
 			if ( pItem )
 			{
 				pItem->fromXML(oReader);

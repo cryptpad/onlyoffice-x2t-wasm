@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -41,8 +41,10 @@ namespace oox {
 class xlsx_xml_worksheet::Impl
 {
 public:
-    Impl(std::wstring const & name, bool hidden) : name_(name), hidden_(hidden) {}
-    std::wstring name_;
+    Impl(std::wstring const & name, bool hidden, const std::wstring& external) : name_(name), hidden_(hidden), external_(external) {}
+    
+	std::wstring external_;
+	std::wstring name_;
 	bool hidden_;
   
 	void clear()
@@ -78,6 +80,7 @@ public:
 	std::wstringstream	tableParts_;
     std::wstringstream	autofilter_;
 	std::wstringstream	conditionalFormatting_;
+	std::wstringstream	conditionalFormattingEx_;
 	std::wstringstream  picture_background_;
 	std::wstringstream  dataValidations_;
 	std::wstringstream  dataValidationsX14_;
@@ -87,6 +90,7 @@ public:
 	std::wstringstream	controls_;
 	std::wstringstream	protection_;
 	std::wstringstream	breaks_;
+	std::wstringstream	sparklines_;
 
 	rels sheet_rels_;
 
@@ -108,21 +112,21 @@ bool xlsx_xml_worksheet::hidden() const
 {
     return impl_->hidden_;
 }
-
-xlsx_xml_worksheet_ptr xlsx_xml_worksheet::create(std::wstring const & name, bool hidden)
+std::wstring xlsx_xml_worksheet::external_ref() const
 {
-    return boost::make_shared<xlsx_xml_worksheet>(name, hidden);
+	return impl_->external_;
 }
-
-xlsx_xml_worksheet::xlsx_xml_worksheet(std::wstring const & name, bool hidden)
- : impl_(new xlsx_xml_worksheet::Impl(name, hidden))
+xlsx_xml_worksheet_ptr xlsx_xml_worksheet::create(std::wstring const & name, bool hidden, const std::wstring& external)
+{
+    return boost::make_shared<xlsx_xml_worksheet>(name, hidden, external);
+}
+xlsx_xml_worksheet::xlsx_xml_worksheet(std::wstring const & name, bool hidden, const std::wstring& external)
+ : impl_(new xlsx_xml_worksheet::Impl(name, hidden, external))
 {
 }
-
 xlsx_xml_worksheet::~xlsx_xml_worksheet()
 {
 }
-
 std::wostream & xlsx_xml_worksheet::cols()
 {
     return impl_->cols_;
@@ -146,6 +150,10 @@ std::wostream & xlsx_xml_worksheet::tableParts()
 std::wostream & xlsx_xml_worksheet::conditionalFormatting()
 {
     return impl_->conditionalFormatting_;
+}
+std::wostream& xlsx_xml_worksheet::conditionalFormattingEx()
+{
+	return impl_->conditionalFormattingEx_;
 }
 std::wostream & xlsx_xml_worksheet::sort()
 {
@@ -199,12 +207,23 @@ std::wostream & xlsx_xml_worksheet::breaks()
 {
     return impl_->breaks_;
 }
+std::wostream& xlsx_xml_worksheet::sparklines()
+{
+	return impl_->sparklines_;
+}
 //---------------------------------------------------------------------------------------
 rels & xlsx_xml_worksheet::sheet_rels()
 {
     return impl_->sheet_rels_;
 }
-
+void xlsx_xml_worksheet::write_external_to(std::wostream& strm)
+{
+	if (impl_->sheetData_.rdbuf()->in_avail() != 0)
+	{
+		impl_->sheetData_.flush();
+		strm << impl_->sheetData_.rdbuf();
+	}
+}
 void xlsx_xml_worksheet::write_to(std::wostream & strm)
 {
     CP_XML_WRITER(strm)
@@ -215,6 +234,7 @@ void xlsx_xml_worksheet::write_to(std::wostream & strm)
             CP_XML_ATTR(L"xmlns:r",		L"http://schemas.openxmlformats.org/officeDocument/2006/relationships");
 			CP_XML_ATTR(L"xmlns:xdr",	L"http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing");
 			CP_XML_ATTR(L"xmlns:x14",	L"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
+			CP_XML_ATTR(L"xmlns:xr2", L"http://schemas.microsoft.com/office/spreadsheetml/2015/revision2");
             CP_XML_ATTR(L"xmlns:mc",	L"http://schemas.openxmlformats.org/markup-compatibility/2006");
             CP_XML_ATTR(L"mc:Ignorable",L"x14ac");
             CP_XML_ATTR(L"xmlns:x14ac", L"http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac");
@@ -305,16 +325,45 @@ void xlsx_xml_worksheet::write_to(std::wostream & strm)
 			CP_XML_STREAM() << impl_->picture_background_.str();
 
 			std::wstring dataValidations14 = impl_->dataValidationsX14_.str();
-			if (false == dataValidations14.empty())
+			std::wstring sparklines = impl_->sparklines_.str();
+			std::wstring condFormattings = impl_->conditionalFormattingEx_.str();
+			
+			if (false == dataValidations14.empty() || false == sparklines.empty() || false == condFormattings.empty())
 			{
 				CP_XML_NODE(L"extLst")
 				{
-					CP_XML_NODE(L"ext")
+					if (false == dataValidations14.empty())
 					{
-						CP_XML_ATTR(L"uri", L"{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}");
-						CP_XML_ATTR(L"xmlns:x14", L"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
+						CP_XML_NODE(L"ext")
+						{
+							CP_XML_ATTR(L"uri", L"{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}");
+							CP_XML_ATTR(L"xmlns:x14", L"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
 
-						CP_XML_STREAM() << dataValidations14;
+							CP_XML_STREAM() << dataValidations14;
+						}
+					}
+					if (false == sparklines.empty())
+					{
+						CP_XML_NODE(L"ext")
+						{
+							CP_XML_ATTR(L"uri", L"{05C60535-1F16-4fd2-B633-F4F36F0B64E0}");
+							CP_XML_ATTR(L"xmlns:x14", L"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
+
+							CP_XML_STREAM() << sparklines;
+						}
+					}
+					if (false == condFormattings.empty())
+					{
+						CP_XML_NODE(L"ext")
+						{
+							CP_XML_ATTR(L"uri", L"{78C0D931-6437-407d-A8EE-F0AAD7539E65}");
+							CP_XML_ATTR(L"xmlns:x14", L"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
+
+							CP_XML_NODE(L"x14:conditionalFormattings")
+							{
+								CP_XML_STREAM() << condFormattings;
+							}
+						}
 					}
 				}
 			}

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -39,7 +39,6 @@ using namespace PPT;
 
 CRecordOfficeArtBlip::CRecordOfficeArtBlip()
 {
-    m_oDocumentInfo = NULL;
 }
 
 CRecordOfficeArtBlip::~CRecordOfficeArtBlip()
@@ -50,7 +49,7 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 {
 	if ((oHeader.RecVersion == PSFLAG_CONTAINER) || ((oHeader.RecVersion & 0x0F) == 0x0F)) return;
 	
-	CRYPT::ECMADecryptor *pDecryptor = m_oDocumentInfo ? m_oDocumentInfo->m_arUsers[0]->m_pDecryptor : NULL;
+	CRYPT::ECMADecryptor *pDecryptor = m_pDocumentInfo ? m_pDocumentInfo->m_arUsers[0]->m_pDecryptor : NULL;
 
 	CMetaFileBuffer	oMetaFile;
 	std::wstring sExt = L".jpg";
@@ -123,7 +122,7 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 			oMetaFile.SetData(pData, oMetaHeader.cbSave, oMetaHeader.cbSize, (bool)(oMetaHeader.compression != 0xFE) );
 
 		}break;
-		case RECORD_TYPE_ESCHER_BLIP_PICT://Medwoche.ppt , (483)
+		case RECORD_TYPE_ESCHER_BLIP_PICT://Medwoche.ppt , (483), synergieInspiratie.ppt
 		{
 			if		(0x0542 == oHeader.RecInstance)	lOffset = 16;
 			else if (0x0543 == oHeader.RecInstance)	lOffset = 32;
@@ -132,11 +131,10 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 
 			lOffset += 34;
 
-			oMetaFile.m_bIsValid	= TRUE;
-			oMetaFile.m_sExtension	= L".wmf";//L".pct"; - ВРЕМЕННО пока не сделана конвертация pct(pic) хоть во что нито  !!!
-			
+			sExt = L".pct";
+
 			CMetaHeader oMetaHeader;
-			oMetaHeader.FromStream(pStream, pDecryptor); //отдельно вынесенный заголовок.. "форматный" находится в блоке данных
+			oMetaHeader.FromStream(pStream, pDecryptor); 
 
 			BYTE* pData = new BYTE[oHeader.RecLen - lOffset];
 			pStream->read(pData, oHeader.RecLen - lOffset); 
@@ -153,7 +151,7 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 			
 			StreamUtils::StreamSkip(lOffset, pStream);
 			
-			sExt = _T(".jpg");
+			sExt = L".jpg";
 			break;
 		}
 		case RECORD_TYPE_ESCHER_BLIP_PNG:
@@ -163,7 +161,7 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 
 			StreamUtils::StreamSkip(lOffset, pStream);
 
-			sExt = _T(".png");
+			sExt = L".png";
 			break;
 		}
 		case RECORD_TYPE_ESCHER_BLIP_DIB:
@@ -173,7 +171,7 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 			
 			StreamUtils::StreamSkip(lOffset, pStream);
 		
-			sExt = _T(".bmp");
+			sExt = L".bmp";
 			break;
 		}
 		case RECORD_TYPE_ESCHER_BLIP_TIFF:
@@ -183,7 +181,7 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 
 			StreamUtils::StreamSkip(lOffset, pStream);
 			
-			sExt = _T(".tif");
+			sExt = L".tif";
 			break;
 		}
 		default:
@@ -192,9 +190,9 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 		}
 	}
 	int nImagesCount = 0;
-	if (m_oDocumentInfo)
+	if (m_pDocumentInfo)
 	{
-		nImagesCount = m_oDocumentInfo->m_mapStoreImageFile.size();
+		nImagesCount = m_pDocumentInfo->m_mapStoreImageFile.size();
 	}
 	//else nImagesCount = generate uniq name
 
@@ -204,12 +202,43 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 
 		NSFile::CFileBinary fileMeta;
 	
-		if (fileMeta.CreateFileW(m_strTmpDirectory + FILE_SEPARATOR_STR + strFile))
+		if (fileMeta.CreateFileW(m_pCommonInfo->tempPath + FILE_SEPARATOR_STR + strFile))
 		{
 			oMetaFile.ToFile(&fileMeta);
 			fileMeta.CloseFile();
 		}
-		m_sFileName = strFile;
+		m_fileName = strFile;
+	}
+	else if (oHeader.RecType == RECORD_TYPE_ESCHER_BLIP_PICT)
+	{
+		unsigned char* newData = NULL;
+		unsigned int newDataSize = oMetaFile.ToBuffer(newData);
+
+		std::wstring strFile = L"Image " + std::to_wstring(nImagesCount + 1) + sExt;
+		
+		NSFile::CFileBinary fileImage;
+		if (newData && fileImage.CreateFileW(m_pCommonInfo->tempPath + FILE_SEPARATOR_STR + strFile))
+		{
+			fileImage.WriteFile(newData, newDataSize);
+			fileImage.CloseFile();
+		}
+		if (newData)
+			delete[]newData;
+		try
+		{
+			CBgraFrame bgraFrame;
+			if (bgraFrame.OpenFile(m_pCommonInfo->tempPath + FILE_SEPARATOR_STR + strFile))
+			{
+				NSFile::CFileBinary::Remove(m_pCommonInfo->tempPath + FILE_SEPARATOR_STR + strFile);
+
+				strFile = L"Image " + std::to_wstring(nImagesCount + 1) + L".png";
+				bgraFrame.SaveFile(m_pCommonInfo->tempPath + FILE_SEPARATOR_STR + strFile, 4); // png
+			}
+		}
+		catch (...)
+		{
+		}
+		m_fileName = strFile;
 	}
 	else
 	{
@@ -220,11 +249,24 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 		{
 			pDecryptor->Decrypt((char*)pImage, oHeader.RecLen - lOffset, 0);
 		}
+		
+		size_t lOffset2 = 0;
+		if (oHeader.RecType == RECORD_TYPE_ESCHER_BLIP_PNG)
+		{
+			std::string test((char*)pImage, (std::min)((int)oHeader.RecLen - lOffset, 4096));
+			if (std::string::npos != (lOffset2 = test.find("GIF89")))
+			{//gif in png chuncks - todooo from read header, chunks ....
+				sExt = L".gif";
+				lOffset += lOffset2;
+			}
+			else lOffset2 = 0;
+		}
+
 		std::wstring strFile = L"Image " + std::to_wstring(nImagesCount + 1) + sExt;
 		
 		NSFile::CFileBinary fileImage;
 
-		if (fileImage.CreateFileW(m_strTmpDirectory + FILE_SEPARATOR_STR + strFile))
+		if (fileImage.CreateFileW(m_pCommonInfo->tempPath + FILE_SEPARATOR_STR + strFile))
 		{
 			if (RECORD_TYPE_ESCHER_BLIP_DIB == oHeader.RecType)
 			{
@@ -237,13 +279,13 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 				_UINT32 dwOffset = 2;
 				fileImage.WriteFile((BYTE*)&dwOffset, 4);
 			}
-			fileImage.WriteFile(pImage, oHeader.RecLen - lOffset);
+			fileImage.WriteFile(pImage + lOffset2, oHeader.RecLen - lOffset);
 			fileImage.CloseFile();
 		}
 		if (pImage)delete[] pImage;
 		pImage = NULL;	
 
-		m_sFileName = strFile;
+		m_fileName = strFile;
 	}
 }
 

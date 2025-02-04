@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -288,9 +288,16 @@ void docx_serialize_image_child(std::wostream & strm, _docx_drawing & val)
 				{
 					CP_XML_NODE(L"pic:cNvPr")
 					{
+						_CP_OPT(std::wstring) title, descr;
+						GetProperty(val.additional, L"svg:title", title);
+						GetProperty(val.additional, L"svg:desc", descr);
+
 						//CP_XML_ATTR(L"desc text",L"");
 						CP_XML_ATTR(L"id", val.id + 1);
 						CP_XML_ATTR(L"name", val.name);
+
+						CP_XML_ATTR_OPT(L"title", title);
+						CP_XML_ATTR_OPT(L"descr", descr);
 					
 						//oox_serialize_action(CP_XML_STREAM(), val.action);
 					}
@@ -399,8 +406,15 @@ void docx_serialize_common(std::wostream & strm, _docx_drawing & val)
     {
 		CP_XML_NODE(L"wp:docPr")
 		{
+			_CP_OPT(std::wstring) title, descr;
+			GetProperty(val.additional, L"svg:title", title);
+			GetProperty(val.additional, L"svg:desc", descr);
+
 			CP_XML_ATTR(L"name",	val.name);
 			CP_XML_ATTR(L"id",		0xf000 + val.id + 1);
+
+			CP_XML_ATTR_OPT(L"title", title);
+			CP_XML_ATTR_OPT(L"descr", descr);
 			
 			oox_serialize_action(CP_XML_STREAM(), val.action);
 		}
@@ -740,7 +754,8 @@ void _docx_drawing::serialize(std::wostream & strm/*, bool insideOtherDrawing*/)
 		return docx_serialize_child(strm, *this);
 	
 	if (type == typeMsObject ||
-		type == typeOleObject)
+		type == typeOleObject ||
+		type == typePDF)
 	{
 		docx_serialize_object(strm, *this);
 	}

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -36,6 +36,7 @@
 #include "../../DataTypes/noteclass.h"
 
 #include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <boost/shared_ptr.hpp>
 #include <list>
 
@@ -66,6 +67,7 @@ namespace cpdoccore {
 		class style_columns;
 		class form_element;
 		class text_linenumbering_configuration;
+		class text_list_style;
 
 		namespace text
 		{
@@ -525,6 +527,7 @@ public:
 		bool						active = false;
 		bool						in_drawing = false;
 		bool						out_active = false;
+		bool						in_para = false;
 		_UINT32						oox_id = 0;
 
 		void clear()
@@ -802,6 +805,7 @@ public:
 	std::wstring  dump_settings_document();
 	std::wstring  dump_settings_app();
 	std::wstring  dump_settings_core();
+	std::wstring  dump_settings_custom();
 
  	bool next_dump_page_properties_;
 	bool next_dump_section_;
@@ -881,7 +885,7 @@ public:
 	void last_dump_page_properties			(bool val);
 	bool is_last_dump_page_properties		();
 
-    void set_master_page_name(const std::wstring & MasterPageName);
+    bool set_master_page_name(const std::wstring & MasterPageName);
     const std::wstring & get_master_page_name() const;
 
     void start_text_list_style	(const std::wstring & StyleName);
@@ -894,7 +898,11 @@ public:
     void end_list				();
     void start_list_item		(bool restart = false);
     void end_list_item	();
-    
+
+	size_t get_list_style_level() { return list_style_stack_.size(); }
+	size_t get_list_style_occurances(const std::wstring& styleName) { return list_styles_occurances_[styleName]; }
+	const std::vector<std::wstring>& get_list_style_stack() const { return list_style_stack_; }
+
 	void serialize_list_properties(std::wostream & strm);
 	void serialize_paragraph_style(std::wostream & strm, const std::wstring & ParentId, bool in_styles = false);
    
@@ -986,8 +994,8 @@ public:
 	bool		delayed_converting_;
 	bool		convert_delayed_enabled_;
 
-	void		start_changes();
-	void		end_changes();
+	void		start_changes(bool in_para);
+	void		end_changes(bool in_para);
 
 	void		add_jsaProject(const std::string &content);
 
@@ -1084,6 +1092,9 @@ private:
 	std::map<std::wstring, std::vector<odf_reader::office_element_ptr>> mapAlphabeticals;
 
 	std::vector<std::wstring>											arBibliography;
+
+	std::vector<_CP_PTR(odf_reader::text_list_style)>					restarted_list_styles;
+	std::unordered_map<std::wstring, size_t>							list_styles_occurances_;
 };
 
 }

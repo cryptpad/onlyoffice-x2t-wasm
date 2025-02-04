@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -41,28 +41,28 @@ std::wostream & operator << (std::wostream & _Wostream, const line_style & _Val)
     switch(_Val.get_type())
     {
     case line_style::None:
-        _Wostream << "none";
+        _Wostream << L"none";
         break;
     case line_style::Solid:
-        _Wostream << "solid";
+        _Wostream << L"solid";
         break;
     case line_style::Dotted:
-        _Wostream << "dotted";
+        _Wostream << L"dotted";
         break;
     case line_style::Dash:
-        _Wostream << "dash";
+        _Wostream << L"dash";
         break;
     case line_style::LongDash:
-        _Wostream << "long-dash";
+        _Wostream << L"long-dash";
         break;
     case line_style::DotDash:
-        _Wostream << "dot-dash";
+        _Wostream << L"dot-dash";
         break;
     case line_style::DotDotDash:
-        _Wostream << "dot-dot-dash";
+        _Wostream << L"dot-dot-dash";
         break;
     case line_style::Wave:
-        _Wostream << "wave";
+        _Wostream << L"wave";
         break;
     default:
         break;

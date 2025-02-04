@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -66,13 +66,37 @@ void Label::readFields(CFRecord& record)
 	}
 	else if (global_info_->Version < 0x0600)
 	{
-		LPAnsiString name;
-		record >> name;
+		unsigned short test;
+		record >> test;
+		record.RollRdPtrBack(2);
 		
-		st = name;
+		if (test > record.getDataSize())
+		{
+			//wrong version !! 
+			record.RollRdPtrBack(record.getRdPtr());
+
+			int store = global_info_->Version;
+			global_info_->Version = 0x0200;
+
+			ShortXLAnsiString name;
+
+			record >> cell >> name;
+			st = name;
+
+			global_info_->Version = store;
+		}
+		else
+		{
+			LPAnsiString name;
+			record >> name;
+
+			st = name;
+		}
 	}
 	else
+	{
 		record >> st;
+	}
 
     isst_ = global_info_->startAddedSharedStrings + global_info_->arAddedSharedStrings.size() ;
 	global_info_->arAddedSharedStrings.push_back(st.value());

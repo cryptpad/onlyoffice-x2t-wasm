@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,6 +31,7 @@
  */
 
 #include "Selection.h"
+#include <boost/algorithm/string.hpp>
 
 namespace XLS
 {
@@ -54,7 +55,7 @@ void Selection::readFields(CFRecord& record)
 {
     if (record.getGlobalWorkbookInfo()->Version < 0x0800)
     {
-        unsigned short cref;
+        _UINT16 cref;
         R_RwU			rwAct_2b;
         ColU			colAct_2b;
         _INT16			irefAct_2b;
@@ -79,18 +80,55 @@ void Selection::readFields(CFRecord& record)
     {
         XLSB::UncheckedSqRfX    sqrfx;
         record >> pnn_xlsb >> rwAct >> colAct >> irefAct >> sqrfx;
-        activeCell = static_cast<std::wstring >(CellRef(rwAct, colAct, true, true));
+        activeCell = CellRef(rwAct, colAct, true, true).toString(true);
         std::wstring  sqref_str;
         int i = 0, cref = sqrfx.rgrfx.size();
 
         std::for_each(sqrfx.rgrfx.begin(), sqrfx.rgrfx.end(), [&](XLSB::UncheckedRfX &refu) {
-            sqref_str += std::wstring (refu.toString(false).c_str()) + ((i == cref - 1) ? L"" : L" ");
+            sqref_str += std::wstring (refu.toString(false, true).c_str()) + ((i == cref - 1) ? L"" : L" ");
         });
 
         sqref = sqref_str;
     }
 }
+void Selection::writeFields(CFRecord& record)
+{
+	std::vector<std::wstring> results;
+	if (record.getGlobalWorkbookInfo()->Version < 0x0800)
+	{
+		_UINT16			cref;
+		CellRef			ref(activeCell);
+		R_RwU			rwAct_2b = ref.row;
+		ColU			colAct_2b = ref.column;
+		_INT16			irefAct_2b = irefAct;
 
+		record << pnn << rwAct_2b << colAct_2b << irefAct_2b;
+
+		boost::algorithm::split(results, sqref, boost::is_any_of(L" "));
+		cref = results.size();
+
+		record << cref;
+
+		for (auto& item : results)
+		{
+			RefU refu(item);
+			record << refu;			
+		}
+	}
+	else
+	{
+		XLSB::UncheckedSqRfX    sqrfx;
+		CellRef					ref(activeCell);
+
+		rwAct = ref.row;
+		colAct = ref.column;
+
+		record << pnn_xlsb << rwAct << colAct << irefAct;
+
+		sqrfx.strValue = sqref;
+		record << sqrfx;		
+	}
+}
 int Selection::serialize(std::wostream & stream)
 {	
 	if (pnn == (unsigned char)PaneType::REVTPNNTOPLEFT &&

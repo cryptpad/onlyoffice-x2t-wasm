@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -68,7 +68,7 @@ void CCommandManager::Flush()
     size_t nCommandsCount = m_vCommands.size();
     if (nCommandsCount > 0)
     {
-        PdfWriter::CPage* pPage = m_pRenderer->m_pPage;
+        PdfWriter::CPage* pPage = m_pRenderer->GetPage();
         pPage->GrSave();
 
         pPage->SetTransform(m_oTransform.m11, m_oTransform.m12, m_oTransform.m21, m_oTransform.m22, m_oTransform.dx, m_oTransform.dy);
@@ -171,13 +171,22 @@ void CCommandManager::Flush()
                     isNeedDoItalic = pText->IsNeedDoItalic();
                 }
 
+				if (!pText->GetPUA().empty())
+				{
+					oTextLine.Flush(pPage);
+					PdfWriter::CDictObject* pBDC = new PdfWriter::CDictObject();
+					pBDC->Add("ActualText", new PdfWriter::CStringObject(pText->GetPUA().c_str(), true));
+					pPage->BeginMarkedContentDict("Span", pBDC);
+					RELEASEOBJECT(pBDC);
+				}
+
                 unsigned char* pCodes    = pText->GetCodes();
                 unsigned short ushCode   = (pCodes[0] << 8) + pCodes[1];
                 unsigned int   unLen     = pText->GetCodesLen();
                 double         dX        = pText->GetX();
                 double         dY        = pText->GetY();
                 double         dTextSize = pText->GetSize();
-                double         dWidth    = ((PdfWriter::CFontCidTrueType*)pText->GetFont())->GetWidth(ushCode) / 1000.0 * dTextSize;
+                double         dWidth    = pText->GetFont()->GetWidth(ushCode) / 1000.0 * dTextSize;
 
                 if (!oTextLine.Add(pCodes, unLen, dX, dY, dWidth, dTextSize))
                 {
@@ -187,6 +196,12 @@ void CCommandManager::Flush()
                         pPage->DrawText(dX, dY, pCodes, unLen);
                     }
                 }
+
+				if (!pText->GetPUA().empty())
+				{
+					oTextLine.Flush(pPage);
+					pPage->EndMarkedContent();
+				}
             }
 
             oTextLine.Flush(pPage);

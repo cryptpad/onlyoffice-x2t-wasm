@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,31 +34,24 @@
 #include "BinReaderWriterDefines.h"
 
 #include "../../../DocxFormat/DocxFlat.h"
-#include "../../../DocxFormat/Docx.h"
-#include "../../../Binary/MathEquation/MathEquation.h"
-
 #include "../../../DocxFormat/Document.h"
-#include "../../../DocxFormat/FontTable.h"
 #include "../../../DocxFormat/Numbering.h"
 #include "../../../DocxFormat/Styles.h"
 #include "../../../DocxFormat/Comments.h"
 #include "../../../DocxFormat/Settings/Settings.h"
-#include "../../../DocxFormat/External/HyperLink.h"
-#include "../../../DocxFormat/Media/VbaProject.h"
 #include "../../../DocxFormat/Media/JsaProject.h"
 #include "../../../DocxFormat/HeaderFooter.h"
-#include "../../../DocxFormat/App.h"
-#include "../../../DocxFormat/Core.h"
 #include "../../../DocxFormat/Footnote.h"
 #include "../../../DocxFormat/Endnote.h"
-#include "../../../DocxFormat/Math/OMath.h"
 #include "../../../DocxFormat/Math/oMathPara.h"
+
 #include "../../../DocxFormat/Logic/Sdt.h"
 #include "../../../DocxFormat/Logic/Table.h"
 #include "../../../DocxFormat/Logic/Paragraph.h"
 #include "../../../DocxFormat/Logic/Annotations.h"
 #include "../../../DocxFormat/Logic/Hyperlink.h"
 #include "../../../DocxFormat/Logic/FldSimple.h"
+#include "../../../DocxFormat/Logic/DocParts.h"
 
 namespace NSBinPptxRW
 {
@@ -105,6 +98,8 @@ namespace BinDocxRW
 					 NSFontCutter::CEmbeddedFontsManager* pEmbeddedFontsManager);
 
 		std::wstring AddEmbeddedStyle(const std::wstring & styleId);
+
+		bool bWriteAlternative = false;
 	};
 	class ParamsDocumentWriter
 	{
@@ -215,9 +210,12 @@ namespace BinDocxRW
 							 const nullable<ComplexTypes::Word::CDecimalNumber>& numStart, nullable<ComplexTypes::Word::CFtnPos>* ftnPos,
 							 nullable<ComplexTypes::Word::CEdnPos>* endPos, std::vector<OOX::CFtnEdnSepRef*>* refs);
 		void WriteNumFmt(const ComplexTypes::Word::CNumFmt& oNumFmt);
+		void WriteCnfStyle(ComplexTypes::Word::CCnf *cnf);
+		void WriteDocGrid(const ComplexTypes::Word::CDocGrid& docGrid);
 	};
 	class Binary_tblPrWriter
 	{
+		Binary_pPrWriter bpPrs;
 		BinaryCommonWriter m_oBcw;
 	public:
 		Binary_tblPrWriter(ParamsWriter& oParamsWriter);
@@ -318,7 +316,7 @@ namespace BinDocxRW
 		Binary_tblPrWriter				btblPrs;
 		OOX::Logic::CSectionProperty*	pSectPr;
 		OOX::WritingElement*			pBackground;
-		OOX::CDocument*					poDocument;
+		OOX::CDocument*					pDocument;
 		OOX::JsaProject*				pJsaProject;
 
 		bool							m_bWriteSectPr;//Записывать ли свойства верхнего уровня в данном экземпляре BinaryOtherTableWriter
@@ -345,8 +343,8 @@ namespace BinDocxRW
 		template<typename T> void WriteMoveRangeEnd(const T& elem);
 		void WriteComment(OOX::EElementType eType, nullable<SimpleTypes::CDecimalNumber>& oId);
 		void WriteFldChar(OOX::Logic::CFldChar* pFldChar);
-		void WritePermission(OOX::Logic::CPermStart* pPerm);
-		void WritePermission(OOX::Logic::CPermEnd* pPerm);
+		void WritePermission(unsigned char type, OOX::Logic::CPermStart* pPerm);
+		void WritePermission(unsigned char type, OOX::Logic::CPermEnd* pPerm);
 		void WriteFldSimple(OOX::Logic::CFldSimple* pFldSimple);
 		void WriteFldSimpleContent(OOX::Logic::CFldSimple* pFldSimple);
 		void WriteFFData(const OOX::Logic::CFFData& oFFData);

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,12 +34,13 @@
 #include "BiffRecord.h"
 #include "../Biff_structures/BiffString.h"
 #include "../Biff_structures/NameParsedFormula.h"
-#include "../../../../../OOXML/XlsbFormat/Biff12_structures/XLWideString.h"
+#include "../Biff_structures/BIFF12/XLWideString.h"
 
 
 namespace XLS
 {
 
+// Logical representation of Lbl record in BIFF8 and BrtName in BIFF12
 class Lbl: public BiffRecord
 {
 	BIFF_RECORD_DEFINE_TYPE_INFO(Lbl)
@@ -50,7 +51,8 @@ public:
 
 	BaseObjectPtr clone();
 
-	void readFields(CFRecord& record);
+	void readFields(CFRecord& record) override;
+	void writeFields(CFRecord& record) override;
 
 	static const ElementType	type = typeLbl;
 
@@ -80,16 +82,6 @@ public:
     XLSB::XLNullableWideString  helpTopic; //biff12
     XLSB::XLNullableWideString  unusedstring2; //biff12
 
-};
-class Lbl_BIFF34 : public Lbl
-{
-	BIFF_RECORD_DEFINE_TYPE_INFO(Lbl_BIFF34)
-	BASE_OBJECT_DEFINE_CLASS_NAME(Lbl_BIFF34)
-public:
-	Lbl_BIFF34();
-	~Lbl_BIFF34();
-
-	BaseObjectPtr clone();
 };
 
 } // namespace XLS

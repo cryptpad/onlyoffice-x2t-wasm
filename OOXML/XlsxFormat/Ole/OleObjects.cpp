@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,6 +31,14 @@
  */
 
 #include "OleObjects.h"
+
+#include "../Drawing/FromTo.h"
+
+#include "../../Common/SimpleTypes_Shared.h"
+#include "../../Common/SimpleTypes_Spreadsheet.h"
+
+#include "../../XlsbFormat/Biff12_unions/OLEOBJECTS.h"
+#include "../../XlsbFormat/Biff12_records/OleObject.h"
 
 namespace OOX
 {
@@ -285,6 +293,52 @@ namespace OOX
 		{
 			ReadAttributes(obj);
 		}
+		XLS::BaseObjectPtr COleObject::toBin()
+		{
+			auto ptr(new XLSB::OleObject);
+			XLS::BaseObjectPtr objectPtr(ptr);
+			if(m_oDvAspect.IsInit())
+			{
+				if(m_oDvAspect == SimpleTypes::Spreadsheet::EDvAspect::Content)
+					ptr->dwAspect = 0x00000001;
+				else if(m_oDvAspect == SimpleTypes::Spreadsheet::EDvAspect::Icon)
+					ptr->dwAspect = 0x00000004;
+			}
+			if(m_oOleUpdate.IsInit())
+			{
+				if(m_oOleUpdate == SimpleTypes::Spreadsheet::EOleUpdate::Always)
+					ptr->dwOleUpdate = 0x00000001;
+				else if(m_oOleUpdate == SimpleTypes::Spreadsheet::EOleUpdate::OnCall)
+					ptr->dwOleUpdate = 0x00000003;
+			}
+
+			if(m_oShapeId.IsInit())
+				ptr->shapeId = m_oShapeId->GetValue();
+            if(m_oAutoLoad.IsInit())
+                ptr->fAutoLoad =  m_oAutoLoad->GetValue();
+            else
+                ptr->fAutoLoad = false;
+
+			if(m_oProgId.IsInit())
+				ptr->strProgID =  m_oProgId.get();
+			else
+				ptr->strProgID.setSize(0);
+
+			if(m_oLink.IsInit())
+			{
+				ptr->fLinked = true;
+				ptr->link =  m_oLink.get();
+			}
+			else
+				ptr->fLinked = false;
+
+			if(m_oRid.IsInit())
+				ptr->strRelID.value =  m_oRid->GetValue();
+			else
+				ptr->strRelID.value.setSize(0);
+
+			return objectPtr;
+		}
 		EElementType COleObject::getType () const
 		{
 			return et_x_OleObject;
@@ -377,7 +431,9 @@ namespace OOX
 
 				if ( (L"oleObject") == sName )
 				{
-					COleObject* pOleObject = new COleObject(oReader);
+					COleObject* pOleObject = new COleObject();
+					*pOleObject = oReader;
+
 					if(pOleObject->m_oShapeId.IsInit())
 					{
 						m_mapOleObjects[pOleObject->m_oShapeId->GetValue()] = pOleObject;
@@ -402,7 +458,9 @@ namespace OOX
 								std::wstring sSubSubName = XmlUtils::GetNameNoNS(oReader.GetName());
 								if ( (L"oleObject") == sSubSubName )
 								{
-									COleObject* pOleObject = new COleObject(oReader);
+									COleObject* pOleObject = new COleObject();
+									*pOleObject = oReader;
+
 									if(pOleObject->m_oShapeId.IsInit())
 									{
 										m_mapOleObjects[pOleObject->m_oShapeId->GetValue()] = pOleObject;
@@ -442,6 +500,16 @@ namespace OOX
 					}
 				}
 			}
+		}
+		XLS::BaseObjectPtr COleObjects::toBin()
+		{
+			auto ptr(new XLSB::OLEOBJECTS);
+			XLS::BaseObjectPtr objectPtr(ptr);
+			for(auto i:m_mapOleObjects)
+			{
+				ptr->m_arBrtOleObject.push_back(i.second->toBin());
+			}
+			return objectPtr;
 		}
 		EElementType COleObjects::getType () const
 		{

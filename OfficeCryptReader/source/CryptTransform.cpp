@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -305,8 +305,16 @@ _buf GenerateOdfKey(_buf & pSalt, _buf & pPassword, int keySize, int spin, CRYPT
 {
 	_buf pKey		(keySize);
 	_buf empty		(NULL, 0, false);
+    _buf pPassword_hash;
 
-	_buf pPassword_hash = HashAppend(pPassword, empty, algorithm);
+    if (algorithm == CRYPT_METHOD::None)
+    {
+        pPassword_hash = pPassword;
+    }
+    else
+    {
+        pPassword_hash = HashAppend(pPassword, empty, algorithm);
+    }
 
 	PKCS5_PBKDF2_HMAC<SHA1> pbkdf;
 		
@@ -570,6 +578,11 @@ bool ECMADecryptor::SetPassword(std::wstring _password)
 
 	if (password.empty()) return false;
 	
+	if (cryptData.keySize > 64 || cryptData.keySize < 1)  return false;
+	if (cryptData.hashSize > 64 || cryptData.hashSize < 1)  return false;
+	if (cryptData.blockSize > 64 || cryptData.blockSize < 1)  return false;
+	if (cryptData.saltSize > 64 || cryptData.saltSize < 1)  return false;
+
 	_buf pPassword		(password);
 	_buf pSalt			(cryptData.saltValue);
 	_buf empty			(NULL, 0, false);
@@ -747,8 +760,10 @@ bool ECMADecryptor::CheckDataIntegrity(unsigned char* data, int  size)
 	return (hmac == expected);
 }
 
-void ECMADecryptor::Decrypt(unsigned char* data_inp, int  size, unsigned char*& data_out, unsigned long start_iv_block)
+void ECMADecryptor::Decrypt(unsigned char* data_inp, int size, unsigned char*& data_out, unsigned long start_iv_block)
 {
+	if (!data_inp || size < 0) return;
+
 	data_out = new unsigned char[size];
 	
 	_buf pPassword	(password);
@@ -812,36 +827,63 @@ void ECMADecryptor::Decrypt(unsigned char* data_inp, int  size, unsigned char*& 
 	}
 }
 //-----------------------------------------------------------------------------------------------------------
-void odfWriteProtect::SetPassword (const std::wstring &password_)
+void ODFWriteProtect::SetPassword (const std::wstring &password_)
 {
 	password = password_;
 }
-void odfWriteProtect::SetProtectKey (const std::string &key)
-{
-	protect_key = key;
-}
-void odfWriteProtect::SetProtectAlgorithm (const CRYPT_METHOD::_hashAlgorithm &alg)
-{
-	hash = alg;
-}
-void odfWriteProtect::Generate()
-{
-	_buf pPassword	(password);
-	_buf empty		(NULL, 0, false);		
 
-	_buf pHashTest = HashAppend(empty, pPassword, hash);
-		
-	protect_key = std::string((char*)pHashTest.ptr, pHashTest.size);
-}
-bool odfWriteProtect::Verify()
+void ODFWriteProtect::SetCryptData(_odfWriteProtectData &_data)
 {
-	_buf pPassword	(password);
-	_buf empty		(NULL, 0, false);		
-	_buf pHash		(protect_key);
+    data = _data;
+}
+void ODFWriteProtect::GetCryptData(_odfWriteProtectData &_data)
+{
+    _data = data;
+}
 
-	_buf pHashTest = HashAppend(empty, pPassword, hash);
-		
-	return (pHashTest == pHash);
+void ODFWriteProtect::Generate()
+{
+    //сгенерить соль
+    RandomPool prng;
+    SecByteBlock seed_salt(16);
+    OS_GenerateRandomBlock(false, seed_salt, seed_salt.size());
+    if (prng.CanIncorporateEntropy())
+    {
+        prng.IncorporateEntropy(seed_salt, seed_salt.size());
+    }
+
+    std::string passw_ansi = std::string(password.begin(), password.end());
+    _buf pPassword	(passw_ansi);
+    _buf pSalt		(seed_salt.data(), seed_salt.size());
+
+    _buf pHash = GenerateOdfKey(pSalt, pPassword, 16, data.spinCount, CRYPT_METHOD::None);
+
+    data.saltValue = std::string((char*)pSalt.ptr, pSalt.size);
+    data.hashValue = std::string((char*)pHash.ptr, pHash.size);
+}
+bool ODFWriteProtect::Verify()
+{
+    std::string passw_ansi = std::string(password.begin(), password.end());
+
+    _buf pPassword	(passw_ansi);
+    _buf pHash (data.hashValue);
+
+    if (data.hashAlgorithm == CRYPT_METHOD::PBKDF2)
+    {
+        _buf pSalt (data.saltValue);
+
+        _buf pHashTest = GenerateOdfKey(pSalt, pPassword, 16, data.spinCount, CRYPT_METHOD::None);
+
+        return (pHashTest == pHash);
+    }
+    else
+    {
+        _buf empty (NULL, 0, false);
+
+        _buf pHashTest = HashAppend(empty, pPassword, data.hashAlgorithm);
+
+        return (pHashTest == pHash);
+    }
 }
 //----------------------------------------------------------------------------------------------------------
 void ECMAWriteProtect::SetPassword (const std::wstring &password_)

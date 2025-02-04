@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -148,6 +148,9 @@ namespace VBA
 	std::wstring readStringPadding(CVbaFileStreamPtr stream, _UINT32 & size)
 	{
 		if (!stream) return L"";
+		
+		if ( GETBITS(size, 0, 30) > 0xfff)
+			return L"";
 
 		std::wstring result = readString(stream->getDataCurrent(), size);
 
@@ -1014,7 +1017,7 @@ namespace VBA
 	//}
 	//const bool PROJECTMODULES::loadContent(BinProcessor& proc)
 	//{
-	//	BiffAttributeSimple<unsigned short> nCount;
+	//	unsigned short nCount;
 
 	//	proc.nCount;
 
@@ -1088,8 +1091,9 @@ namespace VBA
 		}
 		stream->Align(4);
 		if (propMask.fZoom) *stream >> Zoom;
-		if (propMask.fPictureAlignment) *stream >> PictureAlignment;
-		if (propMask.fPictureSizeMode) *stream >> PictureSizeMode;
+		if (propMask.fPicture && propMask.fPictureAlignment) *stream >> PictureAlignment;
+		if (propMask.fPicture && propMask.fPictureSizeMode) *stream >> PictureSizeMode;
+		stream->Align(4);
 		if (propMask.fShapeCookie) *stream >> ShapeCookie;
 		if (propMask.fDrawBuffer) *stream >> DrawBuffer;
 //- FormExtraDataBlock		
@@ -1237,6 +1241,11 @@ namespace VBA
 		
 		TypeOrCount = GETBITS(flag, 0, 6);
 		fCount = GETBIT(flag, 7);
+
+		if (fCount == 1)
+		{
+			*stream >> OptionalType; // 1 - OLE control
+		}
 	}
 //------------------------------------------------------------------------------------------
 	OleSiteConcreteControl::OleSiteConcreteControl(CVbaFileStreamPtr stream) { load(stream); }
@@ -1307,10 +1316,17 @@ namespace VBA
 		{
 			*stream >> RuntimeLicKeyLengthAndCompression;
 		}
+		pos1 = stream->GetDataPos();
 		if (propMask.fControlSource)
 		{
 			*stream >> ControlSourceLengthAndCompression;
 		}
+		//pos2 = stream->GetDataPos();
+		//count_padding = 4 - ((pos2 - pos1) % 4);
+
+		//if (count_padding > 0 && count_padding < 4)
+		//	stream->skipBytes(count_padding);
+
 		if (propMask.fRowSource)
 		{
 			*stream >> RowSourceLengthAndCompression;
@@ -1365,7 +1381,10 @@ namespace VBA
 			}
 		}		
 		_UINT32 CountOfSites = 0, CountOfBytes = 0;
-		*stream >> CountOfSites >> CountOfBytes;		
+		*stream >> CountOfSites >> CountOfBytes;	
+
+		if (CountOfSites > 0xffff)
+			return;
 		
 		_UINT32 pos1 = stream->GetDataPos();
 

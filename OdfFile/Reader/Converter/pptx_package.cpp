@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -46,8 +46,11 @@ pptx_content_types_file::pptx_content_types_file()
     content()->add_default(L"rels",  L"application/vnd.openxmlformats-package.relationships+xml");
     content()->add_default(L"xml",   L"application/xml");
 
-    content()->add_default(L"jpg",     L"image/jpeg");
-    content()->add_default(L"png",     L"image/png");
+    content()->add_default(L"jpg",      L"image/jpeg");
+    content()->add_default(L"png",      L"image/png");
+    
+    content()->add_default(L"mp3",      L"audio/mpeg");
+    content()->add_default(L"wav",      L"audio/wav");
  
 	content()->add_override(L"/_rels/.rels",			L"application/vnd.openxmlformats-package.relationships+xml");
     
@@ -511,7 +514,9 @@ void ppt_files::add_notesMaster(slide_content_ptr slide)
 }
 void ppt_files::set_media(mediaitems_ptr & _mediaitems)
 {
-	if (_mediaitems->count_image + _mediaitems->count_media > 0)
+	if (_mediaitems->count_image + 
+        _mediaitems->count_media + 
+        _mediaitems->count_audio > 0)
 	{
 		media_ = element_ptr( new media(_mediaitems, _mediaitems->applicationFonts()) );
 	}

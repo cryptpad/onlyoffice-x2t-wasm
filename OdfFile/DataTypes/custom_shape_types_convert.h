@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -30,6 +30,7 @@
  *
  */
 #pragma once
+#include <string>
 
 struct _shape_converter
 {
@@ -53,8 +54,8 @@ static const _shape_converter _OO_OOX_custom_shapes[]=
 {L"octagon"						,L"octagon"	,0	,0	,0	},
 {L"star4"						,L"star4"	,1	,0	,50000	},
 {L"star5"						,L"star5"	,0	,0	,50000	},//??? 19098 неверно
-{L"star8"						,L"star8"	,1	,0	,50000	},
-{L"star24"						,L"star24"	,1	,0	,50000	},
+{L"star8"						,L"star8"	,0	,0	,50000	},
+{L"star24"						,L"star24"	,0	,0	,50000	},
 {L"star6"						,L"star6"	,0	,0	,50000	},
 {L"star12"						,L"star12"	,1	,0	,50000	},
 {L"round-rectangle"				,L"roundRect"	,0	,0	,0	},

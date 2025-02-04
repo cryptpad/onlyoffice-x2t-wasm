@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -73,15 +73,28 @@ bool OOXTextItemReader::Parse(OOX::WritingElement* ooxElement, ReaderParameter o
 
 			OOXParagraphReader	oParagraphReader(pParagraph);
 			RtfParagraphPtr oNewParagraph(new RtfParagraph());
-			//применяем к новому параграфу default property
+		//применяем к новому параграфу default property
 			oNewParagraph->m_oProperty = oParam.oRtf->m_oDefaultParagraphProp;
 			oNewParagraph->m_oProperty.m_oCharProperty = oParam.oRtf->m_oDefaultCharProp;
-			oNewParagraph->m_oProperty.m_nItap = 0;
+			
+			if (oParam.oReader->m_bInTable)
+			{
+				if (NULL != oParam.poTableStyle)
+					oNewParagraph->m_oProperty.m_nTableStyle = oParam.poTableStyle->m_nID;
+				oNewParagraph->m_oProperty.m_bInTable = 1;
+				oNewParagraph->m_oProperty.m_nItap = oParam.oReader->m_nCurItap;
+			}
+			else
+			{
+				oNewParagraph->m_oProperty.m_nItap = 0;
+			}
 
 			if (true == oParagraphReader.Parse(oParam, (*oNewParagraph), CcnfStyle()))
 			{
 				m_oTextItems->AddItem(oNewParagraph);
 			}
+
+
 		}break;
 		case OOX::et_w_tbl:
 		{

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -134,7 +134,7 @@ int SERIESAXIS::serialize(std::wostream & _stream)
 	CatSerRange * cat_ser_range = dynamic_cast<CatSerRange*>(m_CatSerRange.get());
 	Axis		* axis			= dynamic_cast<Axis*>		(m_Axis.get());
 
-	int axes_type = axis->wType + 1;
+	int axes_type = axis ? axis->wType + 1 : 0;
 
 	CP_XML_WRITER(_stream)    
 	{
@@ -145,7 +145,7 @@ int SERIESAXIS::serialize(std::wostream & _stream)
 		
 		CP_XML_NODE(L"c:scaling")
 		{
-			if (cat_ser_range->fReversed)
+			if (cat_ser_range && cat_ser_range->fReversed)
 			{
 				CP_XML_NODE(L"c:orientation"){  CP_XML_ATTR(L"val", L"maxMin"); }
 			}else
@@ -175,8 +175,10 @@ int SERIESAXIS::serialize(std::wostream & _stream)
 			}
 		}
 //-----------------------------------------------------------------------------------
-		m_AXS->serialize(_stream);
-
+		if (m_AXS)
+		{
+			m_AXS->serialize(_stream);
+		}
 		if (cat_ser_range)
 		{
 			CP_XML_NODE(L"c:crosses")
@@ -184,6 +186,20 @@ int SERIESAXIS::serialize(std::wostream & _stream)
 				if (cat_ser_range->fMaxCross == true)	CP_XML_ATTR(L"val", L"max");
 				else									CP_XML_ATTR(L"val", L"autoZero");
 			}	
+			if (cat_ser_range->catLabel > 1 && cat_ser_range->catLabel < 32000)
+			{
+				CP_XML_NODE(L"c:tickLblSkip")
+				{
+					CP_XML_ATTR(L"val", cat_ser_range->catLabel);
+				}
+			}
+			if (cat_ser_range->catMark > 1 && cat_ser_range->catMark < 32000)
+			{
+				CP_XML_NODE(L"c:tickMarkSkip")
+				{
+					CP_XML_ATTR(L"val", cat_ser_range->catMark);
+				}
+			}
 		}
 	}
 	

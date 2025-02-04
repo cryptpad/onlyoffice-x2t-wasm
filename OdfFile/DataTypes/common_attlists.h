@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -52,9 +52,12 @@
 #include "anchortype.h"
 #include "linewidth.h"
 #include "presentationclass.h"
+#include "presentationnodetype.h"
 #include "xlink.h"
 #include "drawfill.h"
 #include "clockvalue.h"
+#include "smil_attributename.h"
+#include "smil_fill.h"
 #include "stylerepeat.h"
 #include "officevaluetype.h"
 #include "fillimagerefpoint.h"
@@ -243,6 +246,7 @@ public:
 	void serialize(CP_ATTR_NODE);
 
     _CP_OPT(writing_mode) style_writing_mode_;
+	_CP_OPT(writing_mode) loext_writing_mode_;
 };
 
 /// common-draw-data-attlist
@@ -334,7 +338,6 @@ public:
 	void serialize(CP_ATTR_NODE);
 
     _CP_OPT(unsigned int) style_rotation_angle_;
-
 };
 
 // common-num-format-attlist
@@ -578,6 +581,7 @@ public:
 
 struct union_common_draw_attlists
 {
+    //_CP_OPT(std::wstring)                           xml_id_;
     common_draw_shape_with_text_and_styles_attlist	shape_with_text_and_styles_;
     common_draw_position_attlist					position_;
     common_draw_rel_size_attlist					rel_size_;
@@ -592,14 +596,21 @@ public:
     void apply_from		(const common_anim_smil_attlist & Other);
 	void serialize		(CP_ATTR_NODE);
 
-	_CP_OPT(std::wstring)			presentation_node_type_;
+	_CP_OPT(odf_types::presentation_node_type)		presentation_node_type_;
 
-	_CP_OPT(std::wstring)			smil_direction_;
-	_CP_OPT(std::wstring)			smil_restart_;
-	_CP_OPT(odf_types::clockvalue)	smil_dur_;
+	_CP_OPT(std::wstring)			                smil_direction_;
+	_CP_OPT(std::wstring)			                smil_restart_;
+	_CP_OPT(odf_types::clockvalue)	                smil_dur_;
+    _CP_OPT(std::wstring)	                        smil_target_element_;
+    _CP_OPT(odf_types::smil_attribute_name)	        smil_attribute_name_;
+    _CP_OPT(odf_types::smil_fill)	                smil_fill_;
+    _CP_OPT(odf_types::Bool)                        smil_auto_reverse_;
 
-	_CP_OPT(std::wstring)			smil_begin_;
-	_CP_OPT(std::wstring)			smil_end_;
+	_CP_OPT(std::wstring)			                smil_begin_;
+	_CP_OPT(std::wstring)			                smil_end_;
+
+    _CP_OPT(double)			                        smil_accelerate_;
+    _CP_OPT(double)			                        smil_decelerate_;
 };
 
 class section_attlists

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,23 +31,46 @@
  */
 #pragma once
 
-#include "../CommonInclude.h"
-#include "../Drawing/FromTo.h"
 #include "../Ole/OleObjects.h"
+#include "../../DocxFormat/IFileContainer.h"
+
+#include "../Drawing/FromTo.h"
+
+
+namespace SimpleTypes
+{
+	class CColorType;
+
+	namespace Spreadsheet
+	{
+		class CObjectType;
+		class CDropStyle;
+		class CChecked;
+		class CSelType;
+		class CHorizontalAlignment;
+		class CVerticalAlignment;
+		class CEditValidation;
+	}
+}
 
 namespace OOX
 {
+	namespace Drawing
+	{
+		class COfficeArtExtensionList;
+	}
+
 	namespace Spreadsheet
 	{
 //------------------------------------------------------------------------------------------------------------------------------
 		class CListItem : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CListItem)
-			
+			WritingElement_AdditionMethods(CListItem)
+
 			CListItem();
 			virtual ~CListItem();
-			
+
 			virtual void fromXML(XmlUtils::CXmlNode& node);
 			virtual std::wstring toXML() const;
 
@@ -57,18 +80,18 @@ namespace OOX
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
-			
+
 			nullable_string	m_oVal;
 		};
 //-----------------------------------------------------------------------------------------------------------------------------
 		class CListItems : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CListItems)
-			
+			WritingElement_AdditionMethods(CListItems)
+
 			CListItems();
 			virtual ~CListItems();
-			
+
 			virtual void fromXML(XmlUtils::CXmlNode& node);
 			virtual std::wstring toXML() const;
 
@@ -78,7 +101,7 @@ namespace OOX
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader){}
-			
+
 			std::vector<nullable<CListItem>> m_arrItems;
 			nullable<OOX::Drawing::COfficeArtExtensionList>	m_oExtLst;
 		};
@@ -86,7 +109,7 @@ namespace OOX
 		class CFormControlPr : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CFormControlPr)
+			WritingElement_AdditionMethods(CFormControlPr)
 			CFormControlPr();
 			virtual ~CFormControlPr();
 
@@ -99,7 +122,7 @@ namespace OOX
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
-			
+
 			nullable<SimpleTypes::CUnsignedDecimalNumber>				m_oDropLines;
 			nullable<SimpleTypes::Spreadsheet::CObjectType>				m_oObjectType;
 			nullable<SimpleTypes::Spreadsheet::CChecked>				m_oChecked;
@@ -119,7 +142,7 @@ namespace OOX
 			nullable_string		m_oFmlaGroup;
 			nullable_string		m_oFmlaLink;
 			nullable_string		m_oFmlaRange;
-			nullable_string		m_oFmlaTxbx;		
+			nullable_string		m_oFmlaTxbx;
 			nullable_bool		m_oColored;
 			nullable_bool		m_oFirstButton;
 			nullable_bool		m_oHoriz;
@@ -143,7 +166,7 @@ namespace OOX
 		class CControlPr : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CControlPr)
+			WritingElement_AdditionMethods(CControlPr)
 			CControlPr();
 			virtual ~CControlPr();
 
@@ -182,7 +205,7 @@ namespace OOX
 		class CControl : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CControl)
+			WritingElement_AdditionMethods(CControl)
 			WritingElement_XlsbConstructors(CControl)
 			CControl();
 			virtual ~CControl();
@@ -192,9 +215,10 @@ namespace OOX
 
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void toXML2(NSStringUtils::CStringBuilder& writer, bool bControlPr) const;
-   
+
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
-					void fromBin(XLS::BaseObjectPtr& obj);
+			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -219,7 +243,7 @@ namespace OOX
 		class CControls : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CControls)
+			WritingElement_AdditionMethods(CControls)
 			WritingElement_XlsbConstructors(CControls)
 			CControls();
 			virtual ~CControls();
@@ -229,9 +253,10 @@ namespace OOX
 
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
-			
+
 			void read(XmlUtils::CXmlLiteReader& oReader, bool bOldVersion = false);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -360,14 +360,17 @@ void common_keep_with_next_attlist::serialize(CP_ATTR_NODE)
 void common_writing_mode_attlist::add_attributes( const xml::attributes_wc_ptr & Attributes )
 {
     CP_APPLY_ATTR(L"style:writing-mode", style_writing_mode_);
+	CP_APPLY_ATTR(L"loext:writing-mode", loext_writing_mode_);
 }
 void common_writing_mode_attlist::apply_from(const common_writing_mode_attlist & Other)
 {
     _CP_APPLY_PROP(style_writing_mode_, Other.style_writing_mode_);
+	_CP_APPLY_PROP(loext_writing_mode_, Other.loext_writing_mode_);
 }
 void common_writing_mode_attlist::serialize(CP_ATTR_NODE)
 {
     CP_XML_ATTR_OPT(L"style:writing-mode", style_writing_mode_);
+	CP_XML_ATTR_OPT(L"loext:writing-mode", loext_writing_mode_);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -436,6 +439,7 @@ void common_value_and_type_attlist::apply_from(const common_value_and_type_attli
 void common_value_and_type_attlist::serialize(CP_ATTR_NODE)
 {
 	CP_XML_ATTR_OPT(L"office:value-type", office_value_type_);
+    CP_XML_ATTR_OPT(L"calcext:value-type", office_value_type_);
     CP_XML_ATTR_OPT(L"office:value", office_value_);
 	if (office_value_)
 	{
@@ -882,17 +886,28 @@ void common_anim_smil_attlist::add_attributes( const xml::attributes_wc_ptr & At
 	CP_APPLY_ATTR(L"smil:end",					smil_end_);
 	CP_APPLY_ATTR(L"smil:restart",				smil_restart_);
 	CP_APPLY_ATTR(L"smil:dur",					smil_dur_);
-
+    CP_APPLY_ATTR(L"smil:targetElement",        smil_target_element_);
+    CP_APPLY_ATTR(L"smil:attributeName",        smil_attribute_name_);
+    CP_APPLY_ATTR(L"smil:fill",                 smil_fill_);
+    CP_APPLY_ATTR(L"smil:autoReverse",          smil_auto_reverse_);
+	CP_APPLY_ATTR(L"smil:accelerate",           smil_accelerate_);
+	CP_APPLY_ATTR(L"smil:decelerate",           smil_decelerate_);
 }
 void common_anim_smil_attlist::apply_from(const common_anim_smil_attlist & Other)
 {
 	_CP_APPLY_PROP(presentation_node_type_, Other.presentation_node_type_);
 
-    _CP_APPLY_PROP(smil_direction_,		Other.smil_direction_);
-    _CP_APPLY_PROP(smil_begin_,			Other.smil_begin_);
-	_CP_APPLY_PROP(smil_end_,			Other.smil_end_);
-	_CP_APPLY_PROP(smil_restart_,		Other.smil_restart_);
-    _CP_APPLY_PROP(smil_dur_,			Other.smil_dur_);
+    _CP_APPLY_PROP(smil_direction_,		    Other.smil_direction_);
+    _CP_APPLY_PROP(smil_begin_,			    Other.smil_begin_);
+	_CP_APPLY_PROP(smil_end_,			    Other.smil_end_);
+	_CP_APPLY_PROP(smil_restart_,		    Other.smil_restart_);
+    _CP_APPLY_PROP(smil_dur_,			    Other.smil_dur_);
+    _CP_APPLY_PROP(smil_target_element_,    Other.smil_target_element_);
+    _CP_APPLY_PROP(smil_attribute_name_,    Other.smil_attribute_name_);
+    _CP_APPLY_PROP(smil_fill_,              Other.smil_fill_);
+    _CP_APPLY_PROP(smil_auto_reverse_,      Other.smil_auto_reverse_);
+    _CP_APPLY_PROP(smil_accelerate_,        Other.smil_accelerate_);
+    _CP_APPLY_PROP(smil_decelerate_,        Other.smil_decelerate_);
 }
 void common_anim_smil_attlist::serialize(CP_ATTR_NODE)
 {
@@ -902,9 +917,16 @@ void common_anim_smil_attlist::serialize(CP_ATTR_NODE)
 	CP_XML_ATTR_OPT(L"presentation:node-type",	presentation_node_type_);
 	CP_XML_ATTR_OPT(L"smil:begin",				smil_begin_);
 	CP_XML_ATTR_OPT(L"smil:end",				smil_end_);
+	CP_XML_ATTR_OPT(L"smil:targetElement",      smil_target_element_);
+	CP_XML_ATTR_OPT(L"smil:attributeName",      smil_attribute_name_);
+    CP_XML_ATTR_OPT(L"smil:fill",               smil_fill_);
+    CP_XML_ATTR_OPT(L"smil:autoReverse",        smil_auto_reverse_);
+    CP_XML_ATTR_OPT(L"smil:accelerate",         smil_accelerate_);
+    CP_XML_ATTR_OPT(L"smil:decelerate",         smil_decelerate_);
 }
 void union_common_draw_attlists::serialize(CP_ATTR_NODE)
 {
+    //CP_XML_ATTR_OPT(L"xml:id", xml_id_);
     shape_with_text_and_styles_.serialize(CP_GET_XML_NODE());
     rel_size_.serialize(CP_GET_XML_NODE());
     position_.serialize(CP_GET_XML_NODE());

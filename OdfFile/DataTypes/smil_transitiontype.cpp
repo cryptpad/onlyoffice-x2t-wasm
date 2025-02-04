@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -78,7 +78,7 @@ std::wostream & operator << (std::wostream & _Wostream, const smil_transition_ty
 	case smil_transition_type::pushWipe			:	_Wostream << L"pushWipe"		; break;
 	case smil_transition_type::slideWipe		:	_Wostream << L"slideWipe"		; break;
 	case smil_transition_type::fade				:	_Wostream << L"fade"			; break;
-	case smil_transition_type::checkerBoardWipe	:	_Wostream << L"checkerboardWipe"; break;
+	case smil_transition_type::checkerBoardWipe	:	_Wostream << L"checkerBoardWipe"; break;
 	case smil_transition_type::blindsWipe		:	_Wostream << L"blindsWipe"		; break;
 	case smil_transition_type::dissolve			:	_Wostream << L"dissolve"		; break;
 	case smil_transition_type::randomBarWipe	:	_Wostream << L"randomBarWipe"	; break;

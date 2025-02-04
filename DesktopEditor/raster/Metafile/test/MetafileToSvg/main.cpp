@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,35 +29,33 @@
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
  */
-//#include <QCoreApplication>
+// #include <QCoreApplication>
 
+#include "../../../../fontengine/ApplicationFontsWorker.h"
 #include "../../../../graphics/pro/Fonts.h"
 #include "../../../../graphics/pro/Graphics.h"
-#include "../../../../fontengine/ApplicationFontsWorker.h"
 
-#include "../../../../raster/BgraFrame.h"
 #include "../../../../common/Directory.h"
+#include "../../../../raster/BgraFrame.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    // Check system fonts
-    CApplicationFontsWorker oWorker;
-    oWorker.m_sDirectory = NSFile::GetProcessDirectory() + L"/fonts_cache";
-    oWorker.m_bIsNeedThumbnails = false;
+	// Check system fonts
+	CApplicationFontsWorker oWorker;
+	oWorker.m_sDirectory = NSFile::GetProcessDirectory() + L"/fonts_cache";
+	oWorker.m_bIsNeedThumbnails = false;
 
-    if (!NSDirectory::Exists(oWorker.m_sDirectory))
-        NSDirectory::CreateDirectory(oWorker.m_sDirectory);
+	if (!NSDirectory::Exists(oWorker.m_sDirectory))
+		NSDirectory::CreateDirectory(oWorker.m_sDirectory);
 
-    NSFonts::IApplicationFonts* pFonts = oWorker.Check();
+	NSFonts::IApplicationFonts* pFonts = oWorker.Check();
 
-    MetaFile::IMetaFile* pMetafile = MetaFile::Create(pFonts);
-    pMetafile->LoadFromFile(L"PATH_TO_METAFILE");
+	MetaFile::IMetaFile* pMetafile = MetaFile::Create(pFonts);
+	pMetafile->LoadFromFile(L"D:/image1.wmf");
 
-	std::wstring wsData;
-
-	pMetafile->ConvertToSvg(wsData);
+	std::wstring wsData = pMetafile->ConvertToSvg();
 	pMetafile->Release();
 
-    pFonts->Release();
-    return 0;
+	pFonts->Release();
+	return 0;
 }

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -89,7 +89,9 @@ oox_shape_ptr oox_shape::create(int ooxPrstGeomType)
 	case SimpleTypes::shapetypeMoon:				return boost::make_shared<oox_shape_moon>();
 	case SimpleTypes::shapetypeLightningBolt:		return boost::make_shared<oox_shape_lightningBolt>();
 	case SimpleTypes::shapetypeHeart:				return boost::make_shared<oox_shape_heart>();
-	
+	case SimpleTypes::shapetypeIrregularSeal1:		return boost::make_shared<oox_shape_IrregularSeal1>();
+	case SimpleTypes::shapetypeIrregularSeal2:		return boost::make_shared<oox_shape_IrregularSeal2>();
+
 	case SimpleTypes::shapetypeCircularArrow:		return boost::make_shared<oox_shape_CircularArrow>();
 	case SimpleTypes::shapetypeCurvedLeftArrow:		return boost::make_shared<oox_shape_CurvedLeftArrow>();
 	case SimpleTypes::shapetypeCurvedRightArrow:	return boost::make_shared<oox_shape_CurvedRightArrow>();
@@ -123,6 +125,9 @@ oox_shape_ptr oox_shape::create(int ooxPrstGeomType)
 	case SimpleTypes::shapetypeParallelogram:		return boost::make_shared<oox_shape_Parallelogram>();
 	case SimpleTypes::shapetypeDiamond:				return boost::make_shared<oox_shape_Diamond>();
 	case SimpleTypes::shapetypePlus:				return boost::make_shared<oox_shape_Plus>();
+	case SimpleTypes::shapetypeTeardrop:			return boost::make_shared<oox_shape_Teardrop>();
+	case SimpleTypes::shapetypeDiagStripe:			return boost::make_shared<oox_shape_DiagStripe>();
+	case SimpleTypes::shapetypeHalfFrame: 			return boost::make_shared<oox_shape_HalfFrame>();
 
 	case SimpleTypes::shapetypePlaque:				return boost::make_shared<oox_shape_Plaque>();
 	case SimpleTypes::shapetypeDoubleWave:			return boost::make_shared<oox_shape_DoubleWave>();
@@ -236,7 +241,9 @@ oox_shape_ptr oox_shape::create(int ooxPrstGeomType)
 void oox_shape::add(std::wstring name,std::wstring frmla)
 {
     XmlUtils::replace_all(name, L"gd", L"f");
-    _equation q = {name, frmla};
+	XmlUtils::replace_all(frmla, L"gd", L"?f");
+	
+	_equation q = {name, frmla};
     equations.push_back(q);
 }
 }

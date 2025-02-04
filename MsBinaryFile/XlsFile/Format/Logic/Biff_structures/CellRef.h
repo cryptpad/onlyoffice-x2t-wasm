@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -49,14 +49,15 @@ public:
 
 	static const ElementType type = typeCellRef;	
 
-	const std::wstring	toString() const;
+	const std::wstring	toString(const bool xlsb = false) const;
 	void				fromString(const std::wstring& str);
 	operator std::wstring  () const;
 
 	void operator+=(const CellRef& appended_ref);
 	void operator-=(const CellRef& subtracted_ref);
 
-    virtual void load(CFRecord& record) {}
+    void load(CFRecord& record) override {}
+	void save(CFRecord& record) override {}
 
     const int	getRow() const;
     const int	getColumn() const;
@@ -105,7 +106,14 @@ template<class NameProducer, class RwType, class ColType, RELATIVE_INFO rel_info
 class CellRef_T : public CellRef
 {
 public:
-    CellRef_T(const std::wstring & str_ref) : CellRef(str_ref) {}
+    CellRef_T(const std::wstring & str_ref) : CellRef(str_ref)
+    {
+        if(sizeof(RwType) < 4)
+        {
+            column = AUX::normalizeColumn(column);
+            row = AUX::normalizeRow(row);
+        }
+    }
     CellRef_T() {}
     CellRef_T(const int row_init, const int column_init, const bool row_relative_init, const bool col_relative_init)
         :	CellRef(row_init, column_init, row_relative_init, col_relative_init) {}
@@ -142,32 +150,60 @@ public:
 		return BiffStructurePtr(new CellRef_T(*this));
 	};
 
-	virtual void load(CFRecord& record)
+	void load(CFRecord& record) override
 	{
 		RwType rw;
 		ColType col;
 		record >> rw >> col;
 		row = rw;
+		
 		fQuoted = false;
 		switch(rel_info)
 		{
 			case rel_Present:
-				column = (col << 2) >> 2;
-				rowRelative = 0 != (col & (1 << (sizeof(ColType) * 8 - 1)));
-				colRelative = 0 != (col & (1 << (sizeof(ColType) * 8 - 2)));
-				break;
+			{
+				column = GETBITS(col, 0, sizeof(ColType) * 8 - 3);
+				
+				colRelative = GETBIT(col, sizeof(ColType) * 8 - 2);
+				rowRelative = GETBIT(col, sizeof(ColType) * 8 - 1);
+			}break;
 			case rel_Absent:
+			{
 				column = col;
+				
 				rowRelative = true;
 				colRelative = true;
-				break;
+			}break;
 			case rel_PresentQuoted:
-				column = (col << 2) >> 2;
-				colRelative = rowRelative = 0 != (col & (1 << (sizeof(ColType) * 8 - 1)));
-				fQuoted = 0 != (col & (1 << (sizeof(ColType) * 8 - 2)));
-				break;
+			{
+				column = GETBITS(col, 0, sizeof(ColType) * 8 - 3);
+				
+				fQuoted = GETBIT(col, sizeof(ColType) * 8 - 2);
+				colRelative = rowRelative = GETBIT(col, sizeof(ColType) * 8 - 1);
+			}break;
 		}
-	};
+	}
+
+	void save(CFRecord& record) override
+	{
+		RwType rw;
+        ColType col = 0;
+		rw = row;
+		auto version = record.getGlobalWorkbookInfo()->Version;
+		
+		if (version < 0x0800)
+		{
+			col = column;
+		}
+		else
+		{
+        	SETBITS(col, 0, 13, column);
+        	SETBIT(col, 14, colRelative);
+        	SETBIT(col, 15, rowRelative);
+		}
+
+		record << rw << col;
+	}
 
 };
 

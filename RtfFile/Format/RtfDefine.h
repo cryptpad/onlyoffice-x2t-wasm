@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -108,13 +108,15 @@ const long g_cdMaxPercent = 1000000;
 #define RENDER_TO_OOX_PARAM_STYLES				18
 #define RENDER_TO_OOX_PARAM_BORDER_ATTRIBUTE	19
 #define RENDER_TO_OOX_PARAM_BORDER_TAG			20
-#define RENDER_TO_OOX_PARAM_SHAPE_WSHAPE		22
-#define RENDER_TO_OOX_PARAM_SHAPE_WSHAPE2		23
+#define RENDER_TO_OOX_PARAM_PIC_BULLET		    22
+#define RENDER_TO_OOX_PARAM_SHAPE_CHILD		    23
 #define RENDER_TO_OOX_PARAM_FIRST_SECTION		24
 #define RENDER_TO_OOX_PARAM_OLE_ONLY			25
 #define RENDER_TO_OOX_PARAM_OLDLIST_ABS			26
 #define RENDER_TO_OOX_PARAM_OLDLIST_OVR			27
 #define RENDER_TO_OOX_PARAM_COMMENT				28
+#define RENDER_TO_OOX_PARAM_SHAPE     			29
+#define RENDER_TO_OOX_PARAM_FIELD     			30
 
 #define RENDER_TO_RTF_PARAM_UNKNOWN				0
 #define RENDER_TO_RTF_PARAM_CHAR				1

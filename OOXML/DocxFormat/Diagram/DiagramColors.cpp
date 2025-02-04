@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,10 +32,58 @@
 #pragma once
 
 #include "DiagramColors.h"
+#include "../../Common/SimpleTypes_Drawing.h"
+
+#include "../Document.h"
+#include "../../XlsxFormat/Xlsx.h"
+
+#include "../Drawing/DrawingExt.h"
 #include "../../Binary/Presentation/BinaryFileReaderWriter.h"
 
 namespace OOX
 {
+	CDiagramColors::CDiagramColors(OOX::Document* pMain, bool bDocument) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
+	{
+		m_bDocument = bDocument;
+		m_bSpreadsheets = (NULL != dynamic_cast<OOX::Spreadsheet::CXlsx*>(pMain));
+	}
+	CDiagramColors::CDiagramColors(OOX::Document* pMain, const CPath& uri) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
+	{
+		m_bDocument = (NULL != dynamic_cast<OOX::CDocument*>(pMain));
+		m_bSpreadsheets = (NULL != dynamic_cast<OOX::Spreadsheet::CXlsx*>(pMain));
+
+		read(uri.GetDirectory(), uri);
+	}
+	CDiagramColors::CDiagramColors(OOX::Document* pMain, const CPath& oRootPath, const CPath& oPath) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
+	{
+		m_bDocument = (NULL != dynamic_cast<OOX::CDocument*>(pMain));
+		m_bSpreadsheets = (NULL != dynamic_cast<OOX::Spreadsheet::CXlsx*>(pMain));
+
+		read(oRootPath, oPath);
+	}
+	CDiagramColors::~CDiagramColors()
+	{
+	}
+	const OOX::FileType CDiagramColors::type() const
+	{
+		return FileTypes::DiagramColors;
+	}
+	const CPath CDiagramColors::DefaultDirectory() const
+	{
+		if (m_bDocument)
+			return type().DefaultDirectory();
+		else
+			return L"../" + type().DefaultDirectory();
+	}
+	const CPath CDiagramColors::DefaultFileName() const
+	{
+		return type().DefaultFileName();
+	}
+	void CDiagramColors::read(const CPath& oFilePath)
+	{
+		CPath oRootPath;
+		read(oRootPath, oFilePath);
+	}
 	void CDiagramColors::read(const CPath& oRootPath, const CPath& oFilePath)
 	{
 		IFileContainer::Read(oRootPath, oFilePath);
@@ -74,7 +122,9 @@ namespace OOX
 					}
 					else if (L"dgm:styleLbl" == sName)
 					{
-						m_arStyleLbl.push_back(new Diagram::CColorStyleLbl(oReader));
+						Diagram::CColorStyleLbl* pColorStyleLbl = new Diagram::CColorStyleLbl();
+						*pColorStyleLbl = oReader;
+						m_arStyleLbl.push_back(pColorStyleLbl);
 					}
 					else if (L"dgm:extLst" == sName)
 					{
@@ -199,6 +249,8 @@ namespace OOX
 	}
 	void Diagram::CClrLst::fromXML(XmlUtils::CXmlLiteReader& oReader)
 	{
+		node_name = oReader.GetName();
+
 		ReadAttributes(oReader);
 
 		if (oReader.IsEmptyNode())

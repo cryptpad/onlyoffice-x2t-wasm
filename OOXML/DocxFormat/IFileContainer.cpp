@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -104,6 +104,13 @@ namespace OOX
 			if (pFile.IsInit() == false || pFile->type() == FileTypes::Unknown)
 				pFile = OOX::CreateFile(oRootPath, oPath, oRels.m_arRelations[i], m_pMainDocument);
 
+			if (oRels.m_arRelations[i]->IsExternal())
+			{
+				smart_ptr<OOX::Media> pMedia = pFile.smart_dynamic_cast<OOX::Media>();
+				if (pMedia.IsInit())
+					pMedia->set_filename(oRels.m_arRelations[i]->Target().GetPath(), true);
+			}
+
 			Add(oRels.m_arRelations[i]->rId(), pFile);
 		}
     }
@@ -121,7 +128,7 @@ namespace OOX
 	{
 		const OOX::File* pFileOwner = dynamic_cast<const OOX::File*>(this);
 
-		for (boost::unordered_map<std::wstring, smart_ptr<OOX::File>>::const_iterator pPair = m_mapContainer.begin(); pPair != m_mapContainer.end(); ++pPair)
+		for (std::map<std::wstring, smart_ptr<OOX::File>>::const_iterator pPair = m_mapContainer.begin(); pPair != m_mapContainer.end(); ++pPair)
 		{
 			smart_ptr<OOX::File>		pFile	= pPair->second;
 
@@ -225,7 +232,7 @@ namespace OOX
 	{
 		std::map<std::wstring, size_t> mNamepair;
 
-		for (boost::unordered_map<std::wstring, smart_ptr<OOX::File>>::const_iterator pPair = m_mapContainer.begin(); pPair != m_mapContainer.end(); ++pPair)
+		for (std::map<std::wstring, smart_ptr<OOX::File>>::const_iterator pPair = m_mapContainer.begin(); pPair != m_mapContainer.end(); ++pPair)
 		{
 			smart_ptr<OOX::File>		pFile	= pPair->second;
 
@@ -276,7 +283,7 @@ namespace OOX
 
 	const bool IFileContainer::IsExist(const RId& rId) const
 	{
-        boost::unordered_map<std::wstring, smart_ptr<OOX::File>>::const_iterator pFind = m_mapContainer.find(rId.get());
+        std::map<std::wstring, smart_ptr<OOX::File>>::const_iterator pFind = m_mapContainer.find(rId.get());
 		return (pFind != m_mapContainer.end());
 	}
 
@@ -299,7 +306,7 @@ namespace OOX
 	}
 	const bool IFileContainer::IsExternal(const OOX::RId& rId) const
 	{
-        boost::unordered_map<std::wstring, smart_ptr<OOX::File>>::const_iterator pFind = m_mapContainer.find(rId.get());
+        std::map<std::wstring, smart_ptr<OOX::File>>::const_iterator pFind = m_mapContainer.find(rId.get());
 
 		if (pFind != m_mapContainer.end())
 		{
@@ -409,7 +416,7 @@ namespace OOX
 
 	smart_ptr<OOX::File> IFileContainer::Find(const OOX::RId& rId) const
 	{
-		boost::unordered_map<std::wstring, smart_ptr<OOX::File>>::const_iterator pPair = m_mapContainer.find(rId.get());
+		std::map<std::wstring, smart_ptr<OOX::File>>::const_iterator pPair = m_mapContainer.find(rId.get());
 
 		if ( pPair != m_mapContainer.end())
 			return pPair->second;
@@ -419,7 +426,7 @@ namespace OOX
 
 	smart_ptr<OOX::File> IFileContainer::Find(const FileType& oType) const
 	{
-		for (boost::unordered_map<std::wstring, smart_ptr<OOX::File>>::const_iterator pPair = m_mapContainer.begin(); pPair != m_mapContainer.end(); ++pPair)
+		for (std::map<std::wstring, smart_ptr<OOX::File>>::const_iterator pPair = m_mapContainer.begin(); pPair != m_mapContainer.end(); ++pPair)
 		{
 			if (pPair->second->type() == oType)
 				return pPair->second;
@@ -434,7 +441,7 @@ namespace OOX
 	}	
 	smart_ptr<OOX::File> IFileContainer::operator [](const OOX::RId rId)
 	{
-        boost::unordered_map<std::wstring, smart_ptr<OOX::File>>::const_iterator pFind = m_mapContainer.find(rId.get());
+        std::map<std::wstring, smart_ptr<OOX::File>>::const_iterator pFind = m_mapContainer.find(rId.get());
 		if ( pFind != m_mapContainer.end())
 			return pFind->second;
 

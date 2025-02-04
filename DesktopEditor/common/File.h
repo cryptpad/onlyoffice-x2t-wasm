@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -125,6 +125,8 @@ namespace NSFile
 		// utf16
 		static void GetUtf16StringFromUnicode_4bytes(const wchar_t* pUnicodes, LONG lCount, BYTE*& pData, int& lOutputCount, bool bIsBOM = false);
 		static void GetUtf16StringFromUnicode_4bytes2(const wchar_t* pUnicodes, LONG lCount, CStringUtf16& data);
+		static long GetUtf16SizeFromUnicode_4bytes(const wchar_t* pUnicodes, LONG lCount, bool bIsBOM = false);
+		static long GetUtf16SizeFromUnicode(const wchar_t* pUnicodes, LONG lCount, bool bIsBOM = false);
 
 		static std::wstring GetWStringFromUTF16(const CStringUtf16& data);
 		static std::wstring GetWStringFromUTF16(const unsigned short* pUtf16, LONG lCount);
@@ -187,12 +189,24 @@ namespace NSFile
 
 		static void SetTempPath(const std::wstring& strTempPath);
 		static std::wstring GetTempPath();
+		static bool IsGlobalTempPathUse();
 
 		static std::wstring CreateTempFileWithUniqueName(const std::wstring& strFolderPathRoot, const std::wstring& Prefix);
 		static bool OpenTempFile(std::wstring *pwsName, FILE **ppFile, wchar_t *wsMode, wchar_t *wsExt, wchar_t *wsFolder, wchar_t* wsName = NULL);
 		static FILE* OpenFileNative(const std::wstring& sFileName, const std::wstring& sMode);
 
-		static unsigned long GetDateTime(const std::wstring & strFileName);
+		// returns true if everything is OK;
+		// you can set ptmLastWrite / ptmLastAccess to nullptr if you are not going to use them;
+		// tm_wday && tm_yday && tm_isdst is unused on windows
+		static bool GetTime(const std::wstring& sFilename,
+				struct tm* ptmLastWrite = nullptr,
+				struct tm* ptmLastAccess = nullptr);
+
+		// returns true if everything is OK;
+		// you can set ptmLastWrite / ptmLastAccess to nullptr if you are not going to change them
+		static bool SetTime(const std::wstring& sFilename,
+				struct tm* ptmLastWrite = nullptr,
+				struct tm* ptmLastAccess = nullptr);
 	};
 
 	class KERNEL_DECL CBase64Converter
@@ -201,6 +215,13 @@ namespace NSFile
 		static bool Encode(BYTE* pDataSrc, int nLenSrc, char*& pDataDst, int& nLenDst, DWORD dwFlags = NSBase64::B64_BASE64_FLAG_NONE);
 		static bool Decode(const char* pDataSrc, int nLenSrc, BYTE*& pDataDst, int& nLenDst);
 	};
+
+#ifdef _IOS
+	namespace NSIOS
+	{
+		KERNEL_DECL std::string GetFileSystemRepresentation(const std::wstring& path);
+	}
+#endif
 }
 
 namespace NSFile

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -60,6 +60,8 @@ BiffStructurePtr PtgExtraArray::clone()
 
 void PtgExtraArray::load(CFRecord& record)
 {
+    auto tempcols = 0;
+    auto temprows = 0;
     if (record.getGlobalWorkbookInfo()->Version < 0x0800)
     {
         DColunByteU cols_xls;
@@ -67,28 +69,76 @@ void PtgExtraArray::load(CFRecord& record)
         record >> cols_xls >> rows_xls;
         cols = cols_xls;
         rows = rows_xls;
+        tempcols = cols_xls+1;
+        temprows = rows_xls+1;
     }
     else
     {
         record >> cols >> rows;
+        tempcols = cols;
+        temprows = rows;
     }
-	for(int i = 0; i < (cols + 1) * (rows + 1); ++i)
+    for(int i = 0; i < (tempcols) * (temprows); ++i)
 	{
-		if (record.getRdPtr() >= record.getDataSize()) 
+		if (record.getRdPtr() >= record.getDataSize())
 			break;
 		unsigned char rec_type;
 		record >> rec_type;
+        if (record.getGlobalWorkbookInfo()->Version >= 0x0800)
+        {
+            switch(rec_type)
+            {
+                case 0:
+                    rec_type = SerAr::SerType::typeSerNum;
+                    break;
+                case 1:
+                    rec_type = SerAr::SerType::typeSerStr;
+                    break;
+                case 2:
+                    rec_type = SerAr::SerType::typeSerBool;
+                case 4:
+                    rec_type = SerAr::SerType::typeSerErr;
+                    break;
+                default:
+                    rec_type = SerAr::SerType::typeSerNil;
+                    break;
+            }
+        }
 		SerArPtr ser(SerAr::createSerAr(rec_type));
-		record >> *ser;
-		array_.push_back(ser);
+        if(ser.get())
+        {
+            record >> *ser;
+            array_.push_back(ser);
+        }
 	}
 }
 
+void PtgExtraArray::save(CFRecord& record)
+{
+	if (record.getGlobalWorkbookInfo()->Version < 0x0800)
+	{
+		DColunByteU cols_xls;
+		DRw rows_xls;
+		cols_xls = cols;
+		rows_xls = rows;
+		record << cols_xls << rows_xls;
+	}
+	else
+	{
+		cols++;
+		rows++;
+        record << rows << cols;
+	}
+	for (auto& item : array_)
+	{
+		record << *item;
+	}
+}
 
 const std::wstring PtgExtraArray::toString() const
 {
 	std::wstring ret_val;
-	unsigned char col_cnt = cols + 1;
+    unsigned char col_cnt = cols + 1;
 
 	if (array_.empty()) return L"";
 
@@ -102,7 +152,7 @@ const std::wstring PtgExtraArray::toString() const
 		else
 		{
 			ret_val += L';';
-			col_cnt = cols + 1;
+            col_cnt = cols + 1;
 		}
 	}
 	ret_val += array_.back()->toString();

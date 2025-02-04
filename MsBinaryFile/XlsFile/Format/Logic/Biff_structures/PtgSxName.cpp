@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -39,6 +39,8 @@
 #include "../Biff_records/SXFDB.h"
 #include "../Biff_records/SxName.h"
 #include "../Biff_records/SXPair.h"
+#include "../../../../../OOXML/XlsbFormat/Biff12_records/BeginPName.h"
+
 
 namespace XLS
 {
@@ -53,6 +55,13 @@ void PtgSxName::loadFields(CFRecord& record)
 {
 	record >> sxIndex;
 	
+	global_info = record.getGlobalWorkbookInfo();
+}
+
+void PtgSxName::writeFields(CFRecord& record)
+{
+	record << sxIndex;
+
 	global_info = record.getGlobalWorkbookInfo();
 }
 
@@ -118,6 +127,18 @@ void PtgSxName::assemble(AssemblerStack& ptg_stack, PtgQueue& extra_data, bool f
 						}
 					}
 				}
+			}
+		}
+		else if(static_cast<XLSB::BeginPName*>(global_info->arPivotSxNames[sxIndex].name.get()))
+		{
+			auto pname = static_cast<XLSB::BeginPName*>(global_info->arPivotSxNames[sxIndex].name.get());
+			if(pname->ifdb >=0 && pname->ifdb < global_info->arPivotCacheSxNames.size())
+			{
+				_Name = global_info->arPivotCacheSxNames[pname->ifdb];
+                if (std::wstring::npos != _Name.find(L" "))
+                {
+                    _Name = L"'" + _Name + L"'";
+                }
 			}
 		}
 		ptg_stack.push(_Name);

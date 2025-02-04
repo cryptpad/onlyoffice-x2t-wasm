@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -60,7 +60,8 @@ struct drawing_object_description
 	bool									bInner_;
 
 	std::wstring							name_;	
-	std::wstring							descriptor_;	
+	std::wstring							descriptor_;
+	std::wstring 							xml_id_;
 
 	_CP_OPT(_rect)							svg_rect_;
 
@@ -75,6 +76,8 @@ struct drawing_object_description
 	_action_desc							action_;
 	std::vector<_hlink_desc>				hlinks_;
 
+	bool									hidden_;
+
 	std::vector<odf_reader::_property>		additional_;	//shape properties
 	
 	std::wstring							xlink_href_;	//ссылка на внешний объект
@@ -86,6 +89,11 @@ struct drawing_object_description
 	bool									lined_;
 	bool									connector_;
 	int										shape_type_;	//default - frame
+	_CP_OPT(std::wstring)					start_shape_id;
+	_CP_OPT(int)							start_shape_glue_point;
+	_CP_OPT(std::wstring)					end_shape_id;
+	_CP_OPT(int)							end_shape_glue_point;
+	_CP_OPT(std::wstring)					draw_type_;
 
 	std::vector<drawing_object_description>	child_objects_;
 };

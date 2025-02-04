@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -194,7 +194,7 @@ std::wstring VirtualStreamReader::ReadXst()
 		int xstzSize = DocFileFormat::FormatUtils::BytesToUChar( cch, 0, cchSize ) * 1;
 		xstz = ReadBytes(xstzSize, true);
 
-		DocFileFormat::FormatUtils::GetSTLCollectionFromBytes<std::wstring>( &wstrResult, xstz, xstzSize, ENCODING_WINDOWS_1250 );
+		DocFileFormat::FormatUtils::GetWStringFromBytes( wstrResult, xstz, xstzSize, ENCODING_WINDOWS_1250 );
 	}
 	else
 	{
@@ -204,7 +204,7 @@ std::wstring VirtualStreamReader::ReadXst()
 		int xstzSize = DocFileFormat::FormatUtils::BytesToInt16( cch, 0, cchSize ) * 2;
 		xstz = ReadBytes(xstzSize, true);
 
-		DocFileFormat::FormatUtils::GetSTLCollectionFromBytes<std::wstring>( &wstrResult, xstz, xstzSize, ENCODING_UTF16 );
+		wstrResult = NSFile::CUtf8Converter::GetWStringFromUTF16((unsigned short*)(xstz), xstzSize / 2);
 	}
 
 	RELEASEARRAYOBJECTS(xstz);
@@ -228,7 +228,7 @@ std::wstring VirtualStreamReader::ReadLengthPrefixedUnicodeString()
 		//dont read the terminating zero
 		unsigned char* stringBytes = ReadBytes( ( cch * 2 ), true );
 
-		DocFileFormat::FormatUtils::GetSTLCollectionFromBytes<std::wstring>( &result, stringBytes, ( ( cch * 2 ) - 2 ), ENCODING_UTF16 );
+		result = NSFile::CUtf8Converter::GetWStringFromUTF16((unsigned short*)(stringBytes), cch - 1);
 
 		RELEASEARRAYOBJECTS( stringBytes );
 	}
@@ -272,7 +272,7 @@ std::wstring VirtualStreamReader::ReadLengthPrefixedAnsiString(unsigned int max_
 			//dont read the terminating zero
 			stringBytes = ReadBytes( cch, true );
 
-			DocFileFormat::FormatUtils::GetSTLCollectionFromBytes<std::wstring>( &result, stringBytes, ( cch - 1 ), ENCODING_WINDOWS_1250);
+			DocFileFormat::FormatUtils::GetWStringFromBytes( result, stringBytes, ( cch - 1 ), ENCODING_WINDOWS_1250);
 
 		}
 	RELEASEARRAYOBJECTS( stringBytes );

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,6 +32,19 @@
 
 #include "PPTXWriter.h"
 
+#include "../../PPTXFormat/NotesSlide.h"
+#include "../../PPTXFormat/Logic/ClrMapOvr.h"
+#include "../../PPTXFormat/Logic/TxStyles.h"
+#include "../../PPTXFormat/Logic/Hf.h"
+
+#include "../../PPTXFormat/ViewProps/GridSpacing.h"
+#include "../../PPTXFormat/ViewProps/NormalViewPr.h"
+#include "../../PPTXFormat/ViewProps/NotesTextViewPr.h"
+#include "../../PPTXFormat/ViewProps/NotesViewPr.h"
+#include "../../PPTXFormat/ViewProps/OutlineViewPr.h"
+#include "../../PPTXFormat/ViewProps/SlideViewPr.h"
+#include "../../PPTXFormat/ViewProps/SorterViewPr.h"
+
 namespace NSBinPptxRW
 {
 		CPPTXWriter::CPPTXWriter() : m_oPresentation(&m_oDocument), m_oTableStyles(&m_oDocument), m_oVmlDrawing(&m_oDocument),
@@ -43,6 +56,10 @@ namespace NSBinPptxRW
 		}
 		CPPTXWriter::~CPPTXWriter()
 		{
+		}
+		bool CPPTXWriter::GetMacroEnabled()
+		{
+			return m_oPresentation.m_bMacroEnabled;
 		}
 		void CPPTXWriter::Init(std::wstring strFolder, bool bMacro)
 		{
@@ -141,8 +158,8 @@ namespace NSBinPptxRW
 				m_oReader.Init(pDstBuffer, 0, dstLen);
 				m_oReader.Seek(start_pos);
 			}
-
-			m_oReader.m_strFolder = srcFolder;
+			OOX::CPath path(srcFolder);
+			m_oReader.m_strFolder = path.GetPath();
 			m_oReader.m_strFolderExternalThemes = strThemesFolder;
 
 			for (LONG i = 0; i < 30/*main tables max*/; ++i)
@@ -1092,7 +1109,7 @@ namespace NSBinPptxRW
 		}
 		void CPPTXWriter::SetRequiredDefaultsApp()
 		{
-			m_oApp.AppVersion.reset(NULL);
+			m_oApp.m_sAppVersion.reset(NULL);
 			std::wstring sApplication = NSSystemUtils::GetEnvVariable(NSSystemUtils::gc_EnvApplicationName);
 			if (sApplication.empty())
 				sApplication = NSSystemUtils::gc_EnvApplicationNameDefault;
@@ -1100,20 +1117,20 @@ namespace NSBinPptxRW
 			std::string s = VALUE2STR(INTVER);
 			sApplication += L"/" + std::wstring(s.begin(), s.end());
 #endif
-			m_oApp.Application = sApplication;
+			m_oApp.m_sApplication = sApplication;
 		}
 		void CPPTXWriter::CreateDefaultApp()
 		{
-			m_oApp.TotalTime = 0;
-			m_oApp.Words = 0;
+			m_oApp.m_nTotalTime = 0;
+			m_oApp.m_nWords = 0;
 			SetRequiredDefaultsApp();
-			m_oApp.PresentationFormat = L"On-screen Show (4:3)";
-			m_oApp.Paragraphs = 0;
-			m_oApp.Slides = (int)m_arSlides.size();
-			m_oApp.Notes = (int)m_arSlides.size();
-			m_oApp.HiddenSlides = 0;
-			m_oApp.MMClips = 2;
-			m_oApp.ScaleCrop = false;
+			m_oApp.m_sPresentationForm = L"On-screen Show (4:3)";
+			m_oApp.m_nParagraphs = 0;
+			m_oApp.m_nSlides = (int)m_arSlides.size();
+			m_oApp.m_nNotes = (int)m_arSlides.size();
+			m_oApp.m_nHiddenSlides = 0;
+			m_oApp.m_nMMClips = 2;
+			m_oApp.m_bScaleCrop = false;
 
 			int nCountThemes = (int)m_arSlideMasters.size();
 			int nCountSlides = (int)m_arSlides.size();
@@ -1145,35 +1162,35 @@ namespace NSBinPptxRW
 				m_oApp.TitlesOfParts[nCountThemes + i].m_title = s;
 			}
 
-			m_oApp.LinksUpToDate = false;
-			m_oApp.SharedDoc = false;
-			m_oApp.HyperlinksChanged = false;
+			m_oApp.m_bLinksUpToDate = false;
+			m_oApp.m_bSharedDoc = false;
+			m_oApp.m_bHyperlinksChanged = false;
 		}
 		void CPPTXWriter::SetRequiredDefaultsCore()
 		{
-			if (!m_oCore.creator.IsInit())
+			if (!m_oCore.m_sCreator.IsInit())
 			{
 				std::wstring sCreator = NSSystemUtils::GetEnvVariable(NSSystemUtils::gc_EnvCreator);
 				if (!sCreator.empty())
-					m_oCore.creator = sCreator;
+					m_oCore.m_sCreator = sCreator;
 			}
-			if (!m_oCore.created.IsInit())
+			if (!m_oCore.m_sCreated.IsInit())
 			{
 				std::wstring sCreated = NSSystemUtils::GetEnvVariable(NSSystemUtils::gc_EnvCreated);
 				if (!sCreated.empty())
-					m_oCore.created = sCreated;
+					m_oCore.m_sCreated = sCreated;
 			}
 			std::wstring sLastModifiedBy = NSSystemUtils::GetEnvVariable(NSSystemUtils::gc_EnvLastModifiedBy);
 			if (!sLastModifiedBy.empty())
-				m_oCore.lastModifiedBy = sLastModifiedBy;
+				m_oCore.m_sLastModifiedBy = sLastModifiedBy;
 			std::wstring sModified = NSSystemUtils::GetEnvVariable(NSSystemUtils::gc_EnvModified);
 			if (!sModified.empty())
-				m_oCore.modified = sModified;
+				m_oCore.m_sModified = sModified;
 		}
 		void CPPTXWriter::CreateDefaultCore()
 		{
 //			m_oCore.creator  = _T("");
-			m_oCore.lastModifiedBy = _T("");
+			m_oCore.m_sLastModifiedBy = _T("");
 		}
 		void CPPTXWriter::CreateDefaultViewProps()
 		{

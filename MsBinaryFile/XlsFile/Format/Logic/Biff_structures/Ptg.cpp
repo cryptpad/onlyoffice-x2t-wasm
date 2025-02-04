@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -61,7 +61,10 @@ const size_t Ptg::getSizeOfStruct() const
 
 void Ptg::addFuncWrapper(AssemblerStack& ptg_stack, const std::wstring& func_name)
 {
-	ptg_stack.top() = func_name + L'(' + ptg_stack.top() + L')';
+	if (false == ptg_stack.empty())
+	{
+		ptg_stack.top() = func_name + L'(' + ptg_stack.top() + L')';
+	}
 }
 
 void Ptg::assemble(AssemblerStack& ptg_stack, PtgQueue& extra_data, bool full_ref)
@@ -82,6 +85,24 @@ void Ptg::load(CFRecord& record)
 		ptg_id = static_cast<unsigned short>(short_type) + (static_cast<unsigned short>(high_part) << 8);
 	}
 	loadFields(record);
+	size_of_struct = record.getRdPtr() - offset_in_record.get_value_or(0);
+}
+
+void Ptg::save(CFRecord& record)
+{
+	offset_in_record = record.getRdPtr();
+	if(ptg_id.get() < 256)
+	{
+		unsigned char ptg_1b = ptg_id.get();
+		record << ptg_1b;
+	}
+	else
+	{
+		unsigned short ptg_2b = ptg_id.get();
+		record << ptg_2b;
+	}
+
+	writeFields(record);
 	size_of_struct = record.getRdPtr() - offset_in_record.get_value_or(0);
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -30,18 +30,21 @@
  *
  */
 #pragma once
-#ifndef PPTX_PRESPROPS_FILE_INCLUDE_H_
-#define PPTX_PRESPROPS_FILE_INCLUDE_H_
 
 #include "WrapperFile.h"
 #include "FileContainer.h"
 #include "FileTypes.h"
 
 #include "Logic/UniColor.h"
-#include "ShowPr/ShowPr.h"
 
 namespace PPTX
 {
+	namespace nsPresentationPr
+	{
+		class ShowPr;
+		class PrintPr;
+	}
+
 	class PresProps : public WrapperFile, public PPTX::FileContainer
 	{
 	public:
@@ -49,7 +52,6 @@ namespace PPTX
 		PresProps(OOX::Document* pMain, const OOX::CPath& filename, FileMap& map);
 		virtual ~PresProps();
 
-	public:
 		virtual void read(const OOX::CPath& filename, FileMap& map);
 		virtual void write(const OOX::CPath& filename, const OOX::CPath& directory, OOX::CContentTypes& content) const;
 
@@ -57,16 +59,12 @@ namespace PPTX
 		virtual void toXmlWriter(NSBinPptxRW::CXmlWriter* pWriter) const;
 		virtual void fromPPTY(NSBinPptxRW::CBinaryFileReader* pReader);
 
-	public:
 		virtual const OOX::FileType type() const;
 		virtual const OOX::CPath DefaultDirectory() const;
 		virtual const OOX::CPath DefaultFileName() const;
 
-	public:
-		std::vector<Logic::UniColor>	ClrMru;
-		nullable<nsShowPr::ShowPr>	showPr;
-		//prnPr (Printing Properties)
+		std::vector<Logic::UniColor> ClrMru;
+		nullable<nsPresentationPr::ShowPr>	showPr;
+		nullable<nsPresentationPr::PrintPr>	printPr;
 	};
 } // namespace PPTX
-
-#endif // PPTX_PRESPROPS_FILE_INCLUDE_H_

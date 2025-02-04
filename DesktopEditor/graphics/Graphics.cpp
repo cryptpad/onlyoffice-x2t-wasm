@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -67,6 +67,9 @@ namespace Aggplus
 
 		m_dDpiTile = -1;
 
+		m_pAlphaMask = NULL;
+		m_pSoftMask  = NULL;
+
 		m_nTextRenderMode = FT_RENDER_MODE_NORMAL;
 		m_nBlendMode = agg::comp_op_src_over;
 
@@ -102,7 +105,10 @@ namespace Aggplus
 #endif
 
 		m_dDpiTile = -1;
-		
+
+		m_pAlphaMask = NULL;
+		m_pSoftMask  = NULL;
+
 		m_nTextRenderMode = FT_RENDER_MODE_NORMAL;
 		m_nBlendMode = agg::comp_op_src_over;
 
@@ -143,7 +149,10 @@ namespace Aggplus
 #endif
 
 		m_dDpiTile = -1;
-		
+
+		m_pAlphaMask = NULL;
+		m_pSoftMask  = NULL;
+
 		m_nTextRenderMode = FT_RENDER_MODE_NORMAL;
 		m_nBlendMode = agg::comp_op_src_over;
 
@@ -156,6 +165,15 @@ namespace Aggplus
 		RELEASEOBJECT(m_pGraphics);
 		RELEASEOBJECT(m_pBitmap);
 #endif
+
+		RELEASEINTERFACE(m_pAlphaMask);
+		RELEASEINTERFACE(m_pSoftMask);
+
+		while (!m_arLayers.empty())
+		{
+			RELEASEINTERFACE(m_arLayers.top());
+			m_arLayers.pop();
+		}
 	}
 
 	INT CGraphics::IsDib()
@@ -484,18 +502,41 @@ namespace Aggplus
 		return Ok;
 	}
 
-	Status CGraphics::CombineClip(CGraphicsPath* pPath, agg::sbool_op_e op)
+	Status CGraphics::CombineClip(CGraphicsPath* pPath, agg::sbool_op_e op, NSStructures::CPen* pPen)
 	{
 		Aggplus::CMatrix m;
-		return InternalClip(pPath, (m_bIntegerGrid || pPath->m_internal->m_pTransform != NULL) ? &m : &m_oFullTransform, op);
+		return InternalClip(pPath, (m_bIntegerGrid || pPath->m_internal->m_pTransform != NULL) ? &m : &m_oFullTransform, op, pPen);
 	}
 
-	Status CGraphics::InternalClip(CGraphicsPath* pPath, CMatrix* pTransform, agg::sbool_op_e op)
+	Status CGraphics::InternalClip(CGraphicsPath* pPath, CMatrix* pTransform, agg::sbool_op_e op, NSStructures::CPen* pPen)
 	{
 		if (NULL == pPath)
 			return InvalidParameter;
 
-		m_oClip.Combine(pPath, pTransform, op);
+		bool bTempRasterizer = false;
+		CClipMulti::clip_rasterizer* pRasterizer = m_oClip.GetRasterizer();
+		if (!pRasterizer)
+		{
+			pRasterizer = new CClipMulti::clip_rasterizer();
+			pRasterizer->clip_box(0, 0, m_oClip.m_lWidth, m_oClip.m_lHeight);
+			bTempRasterizer = true;
+		}
+
+		agg::trans_affine* pAffine = NULL;
+		if (pPen)
+			pAffine = DoStrokePath(pPen, pPath, pRasterizer);
+		else
+		{
+			typedef agg::conv_transform<agg::path_storage> trans_type;
+			trans_type trans(pPath->m_internal->m_agg_ps, pTransform->m_internal->m_agg_mtx);
+
+			typedef agg::conv_curve<trans_type> conv_crv_type;
+			conv_crv_type c_c_path(trans);
+
+			pRasterizer->add_path(c_c_path);
+		}
+
+		m_oClip.Combine(pPath->m_internal->m_bEvenOdd, op, pRasterizer);
 
 		// write to clips history
 		CGraphics_ClipStateRecord* pRecord = new CGraphics_ClipStateRecord();
@@ -503,6 +544,11 @@ namespace Aggplus
 		pRecord->Transform = (NULL != pTransform) ? new CMatrix(*pTransform) : new CMatrix();
 		pRecord->Operation = op;
 		m_oClipState.AddRecord(pRecord);
+
+		if (pAffine)
+			delete pAffine;
+		if (bTempRasterizer)
+			delete pRasterizer;
 
 		return Ok;
 	}
@@ -592,173 +638,7 @@ namespace Aggplus
 
 		m_rasterizer.get_rasterizer().reset();
 
-		agg::line_join_e LineJoin = agg::round_join;
-		switch(pPen->LineJoin)
-		{
-		case LineJoinMiter			: LineJoin = agg::miter_join_revert; break;
-		case LineJoinBevel			: LineJoin = agg::bevel_join; break;
-		case LineJoinRound			: LineJoin = agg::round_join; break;
-		case LineJoinMiterClipped	: LineJoin = agg::miter_join_revert; break;
-		default:	break;
-		}
-		agg::line_cap_e LineCap = agg::round_cap;
-		switch(pPen->LineStartCap)
-		{
-		case LineCapFlat         : LineCap = agg::butt_cap; break;
-		case LineCapRound        : LineCap = agg::round_cap; break;
-		case LineCapSquare       : LineCap = agg::square_cap; break;
-		default:	break;
-		}
-
-		double dWidth		 = pPen->Size;
-		double dWidthMinSize = 1.0 / sqrt(m_oCoordTransform.m_internal->m_agg_mtx.determinant());
-
-		if ((0 == dWidth && !m_bIntegerGrid) || dWidth < dWidthMinSize)
-		{
-			if (m_bIs0PenWidthAs1px)
-				dWidth = dWidthMinSize;
-		}
-		
-		double dblMiterLimit = pPen->MiterLimit;
-		
-		agg::path_storage path_copy(pPath->m_internal->m_agg_ps);
-		bool bIsUseIdentity = m_bIntegerGrid;
-		if (!bIsUseIdentity)
-		{
-			agg::trans_affine* full_trans = &m_oFullTransform.m_internal->m_agg_mtx;
-			double dDet = full_trans->determinant();
-
-			if (fabs(dDet) < 0.0001)
-			{
-				path_copy.transform_all_paths(m_oFullTransform.m_internal->m_agg_mtx);
-				dWidth *= sqrt(dDet);
-
-				bIsUseIdentity = true;
-			}
-		}
-
-		typedef agg::conv_curve<agg::path_storage> conv_crv_type;
-
-		conv_crv_type c_c_path(path_copy);
-		c_c_path.approximation_scale(25.0);
-		c_c_path.approximation_method(agg::curve_inc);
-		DashStyle eStyle = (DashStyle)pPen->DashStyle;
-
-		if (DashStyleCustom == eStyle)
-		{
-			if (0 == pPen->Count || NULL == pPen->DashPattern)
-			{
-				eStyle = DashStyleSolid;
-			}
-			else
-			{
-				bool bFoundNormal = false;
-				for (int i = 0; i < pPen->Count; i++)
-				{
-					if (fabs(pPen->DashPattern[i]) > 0.0001)
-					{
-						bFoundNormal = true;
-						break;
-					}
-				}
-				if (!bFoundNormal)
-					eStyle = DashStyleSolid;
-			}
-		}
-
-		agg::trans_affine* pAffine = &m_oFullTransform.m_internal->m_agg_mtx;
-		if (bIsUseIdentity)
-			pAffine = new agg::trans_affine();
-
-		if (DashStyleSolid == eStyle)
-		{
-			typedef agg::conv_stroke<conv_crv_type> Path_Conv_StrokeN;
-			Path_Conv_StrokeN pgN(c_c_path);
-
-			//pgN.line_join(agg::miter_join_revert);
-
-			pgN.line_cap(LineCap);
-			
-			pgN.line_join(LineJoin);
-			pgN.inner_join(agg::inner_round);
-			
-			pgN.miter_limit(dblMiterLimit);
-			pgN.width(dWidth);
-
-			pgN.approximation_scale(25.0);
-
-			typedef agg::conv_transform<Path_Conv_StrokeN> transStroke;
-
-			transStroke trans(pgN, *pAffine);
-			m_rasterizer.get_rasterizer().add_path(trans);
-		}
-		else
-		{
-			typedef agg::conv_dash<conv_crv_type> Path_Conv_Dash;
-			Path_Conv_Dash poly2_dash(c_c_path);
-
-			typedef agg::conv_stroke<Path_Conv_Dash> Path_Conv_StrokeD;
-			Path_Conv_StrokeD pgD(poly2_dash);
-
-			switch (eStyle)
-			{
-			case DashStyleDash:
-				poly2_dash.add_dash(3.00*dWidth, dWidth);
-				break;
-			case DashStyleDot:
-				poly2_dash.add_dash(dWidth, dWidth);
-				break;
-			case DashStyleDashDot:
-				poly2_dash.add_dash(3.00*dWidth, dWidth);
-				poly2_dash.add_dash(dWidth, dWidth);
-				break;
-			case DashStyleDashDotDot:
-				poly2_dash.add_dash(3.00*dWidth, dWidth);
-				poly2_dash.add_dash(dWidth, dWidth);
-				poly2_dash.add_dash(dWidth, dWidth);
-				break;
-			default:
-			case DashStyleCustom:
-			{
-				double offset	= pPen->DashOffset;
-				double* params	= pPen->DashPattern;
-				LONG lCount		= pPen->Count;
-				LONG lCount2	= lCount / 2;
-
-				double dKoef = 1.0;
-
-				for (LONG i = 0; i < lCount2; ++i)
-				{
-					if (0 == i)
-					{
-						poly2_dash.add_dash((params[i * 2]) * dKoef, params[i * 2 + 1] * dKoef);
-					}
-					else
-					{
-						poly2_dash.add_dash(params[i * 2] * dKoef, params[i * 2 + 1] * dKoef);
-					}
-				}
-				if (1 == (lCount % 2))
-				{
-					poly2_dash.add_dash(params[lCount - 1] * dKoef, 0);
-				}
-				poly2_dash.dash_start(offset * dKoef);
-
-				break;
-			}
-			}
-
-			if ((0 == dWidth && !m_bIntegerGrid) || dWidth < dWidthMinSize)
-				dWidth = dWidthMinSize;
-
-			pgD.line_cap(LineCap);
-			pgD.line_join(LineJoin);
-			pgD.miter_limit(dblMiterLimit);
-			pgD.width(dWidth);
-
-			agg::conv_transform<Path_Conv_StrokeD> trans(pgD, *pAffine);
-			m_rasterizer.get_rasterizer().add_path(trans);
-		}
+		agg::trans_affine* pAffine = DoStrokePath(pPen, pPath, &m_rasterizer.get_rasterizer());
 
 		CColor oColor((BYTE)(pPen->Alpha * m_dGlobalAlpha), pPen->Color, m_bSwapRGB);
 		CBrushSolid oBrush(oColor);
@@ -773,8 +653,7 @@ namespace Aggplus
 		if (gamma >= 0)
 			m_rasterizer.gamma(1.0);
 
-		if (bIsUseIdentity)
-			RELEASEOBJECT(pAffine);
+		RELEASEOBJECT(pAffine);
 
 		return Ok;
 	}
@@ -953,7 +832,7 @@ namespace Aggplus
 				b = ptxBrush->m_oBounds.bottom;
 			}
 
-			CMatrix brushMatrix;
+			CMatrix brushMatrix(ptxBrush->m_mtx);
 			if (ptxBrush->GetWrapMode() == Aggplus::WrapModeClamp)
 			{
 				double dScaleX = (r - x) / dwPatternWidth;
@@ -991,7 +870,7 @@ namespace Aggplus
 
 		if(width == 0.00 || height == 0.00)
 			return InvalidParameter;
-		
+
 		CGraphicsPath oPath;
 		oPath.MoveTo(x, y);
 		oPath.LineTo(x+width, y);
@@ -1207,9 +1086,253 @@ namespace Aggplus
 		return TRUE;
 	}
 
+	Status CGraphics::SetAlphaMask(CAlphaMask *pAlphaMask)
+	{
+		RELEASEINTERFACE(m_pAlphaMask);
+		m_pAlphaMask = pAlphaMask;
+
+		if (m_pAlphaMask)
+			m_pAlphaMask->AddRef();
+
+		return CreateLayer();
+	}
+
+	Status CGraphics::StartCreatingAlphaMask()
+	{
+		return CreateLayer();
+	}
+
+	Status CGraphics::EndCreatingAlphaMask()
+	{
+		if (m_arLayers.empty())
+			return WrongState;
+
+		CGraphicsLayer *pCurrentGraphicsLayer = m_arLayers.top();
+		m_arLayers.pop();
+
+		if (pCurrentGraphicsLayer->Empty())
+			return GenericError;
+
+		BYTE* pBuffer = pCurrentGraphicsLayer->GetBuffer();
+
+		pCurrentGraphicsLayer->ClearBuffer(false);
+
+		RELEASEINTERFACE(pCurrentGraphicsLayer);
+		RELEASEINTERFACE(m_pAlphaMask);
+
+		m_pAlphaMask = new CAlphaMask(pBuffer, EMaskDataType::ImageBuffer, false);
+		return CreateLayer();
+	}
+
+	Status CGraphics::ResetAlphaMask()
+	{
+		BlendLayer();
+		RELEASEINTERFACE(m_pAlphaMask);
+		return Ok;
+	}
+
+	CSoftMask* CGraphics::CreateSoftMask(bool bAlpha)
+	{
+		if (m_arLayers.empty())
+			return NULL;
+
+		CGraphicsLayer *pCurrentGraphicsLayer = m_arLayers.top();
+		m_arLayers.pop();
+
+		if (pCurrentGraphicsLayer->Empty())
+		{
+			RELEASEINTERFACE(pCurrentGraphicsLayer);
+			return NULL;
+		}
+
+		BYTE* pBuffer = pCurrentGraphicsLayer->GetBuffer();
+		pCurrentGraphicsLayer->ClearBuffer(false);
+
+		RELEASEINTERFACE(pCurrentGraphicsLayer);
+		RELEASEINTERFACE(m_pSoftMask);
+
+		unsigned int unWidth = m_frame_buffer.ren_buf().width(), unHeight = m_frame_buffer.ren_buf().height();
+		bool bFlip = m_frame_buffer.ren_buf().stride() < 0;
+		m_pSoftMask = new CSoftMask(pBuffer, unWidth, unHeight, bFlip, m_bSwapRGB, bAlpha);
+
+		pBuffer = m_arLayers.empty() ? m_pPixels : m_arLayers.top()->GetBuffer();
+		if (!pBuffer)
+		{
+			RELEASEINTERFACE(pCurrentGraphicsLayer);
+			return NULL;
+		}
+
+		m_frame_buffer.ren_buf().attach(pBuffer, unWidth, unHeight, m_frame_buffer.ren_buf().stride());
+
+		return m_pSoftMask;
+	}
+
+	Status CGraphics::SetSoftMask(CSoftMask* pSoftMask)
+	{
+		if (m_pSoftMask == pSoftMask)
+			return Ok;
+
+		RELEASEINTERFACE(m_pSoftMask);
+		m_pSoftMask = pSoftMask;
+
+		if (m_pSoftMask)
+			m_pSoftMask->AddRef();
+
+		return Ok;
+	}
+
+	Status CGraphics::AddLayer(CGraphicsLayer *pGraphicsLayer)
+	{
+		if (NULL == pGraphicsLayer || pGraphicsLayer->Empty())
+			return InvalidParameter;
+
+		m_arLayers.push(pGraphicsLayer);
+		pGraphicsLayer->AddRef();
+
+		int nStride                 = m_frame_buffer.ren_buf().stride();
+		const unsigned int unWidth  = m_frame_buffer.ren_buf().width();
+		const unsigned int unHeight = m_frame_buffer.ren_buf().height();
+
+		m_frame_buffer.create(unWidth, unHeight, nStride < 0, nStride, pGraphicsLayer->GetBuffer());
+
+		return Ok;
+	}
+
+	Status CGraphics::CreateLayer()
+	{
+		int nStride                 = m_frame_buffer.ren_buf().stride();
+		const unsigned int unWidth  = m_frame_buffer.ren_buf().width();
+		const unsigned int unHeight = m_frame_buffer.ren_buf().height();
+
+		UINT unSize = unWidth * unHeight * m_frame_buffer.pix_size;
+
+		BYTE *pBuffer = new BYTE[unSize];
+
+		memset(pBuffer, 0x00, unSize);
+
+		m_frame_buffer.create(unWidth, unHeight, nStride < 0, nStride, pBuffer);
+
+		m_arLayers.push(new CGraphicsLayer(pBuffer, false));
+		return Ok;
+	}
+
+	Status CGraphics::BlendLayer()
+	{
+		if (m_arLayers.empty())
+			return WrongState;
+
+		CGraphicsLayer *pCurrentGraphicsLayer = m_arLayers.top();
+		m_arLayers.pop();
+
+		BYTE* pBuffer = NULL;
+
+		if (!m_arLayers.empty())
+			pBuffer = m_arLayers.top()->GetBuffer();
+		else
+			pBuffer = m_pPixels;
+
+		if (NULL == pBuffer)
+		{
+			RELEASEINTERFACE(pCurrentGraphicsLayer);
+			return WrongState;
+		}
+
+		m_frame_buffer.ren_buf().attach(pBuffer, m_frame_buffer.ren_buf().width(), m_frame_buffer.ren_buf().height(), m_frame_buffer.ren_buf().stride());
+
+		if (m_pAlphaMask)
+		{
+			switch(m_pAlphaMask->GetDataType())
+			{
+			case EMaskDataType::ImageBuffer:
+			{
+				Aggplus::BlendTo<agg::rgb_to_gray_mask_u8<2, 1, 0>>(pCurrentGraphicsLayer, m_frame_buffer.pixfmt(), m_pAlphaMask->GetBuffer(), m_pAlphaMask->GetStep());
+				break;
+			}
+			case EMaskDataType::AlphaBuffer:
+			{
+				Aggplus::BlendTo<agg::one_component_mask_u8>(pCurrentGraphicsLayer, m_frame_buffer.pixfmt(), m_pAlphaMask->GetBuffer(), m_pAlphaMask->GetStep());
+				break;
+			}
+			}
+		}
+		else if (m_pSoftMask)
+		{
+			ESoftMaskType nType = m_pSoftMask->GetDataType();
+			if (nType == ESoftMaskType::RGBGrayBuffer)
+				Aggplus::BlendTo<agg::rgb_to_gray_mask_u8<0, 1, 2>>(pCurrentGraphicsLayer, m_frame_buffer.pixfmt(), m_pSoftMask->GetBuffer(), m_pSoftMask->GetStep());
+			else if (nType == ESoftMaskType::BGRGrayBuffer)
+				Aggplus::BlendTo<agg::rgb_to_gray_mask_u8<2, 1, 0>>(pCurrentGraphicsLayer, m_frame_buffer.pixfmt(), m_pSoftMask->GetBuffer(), m_pSoftMask->GetStep());
+			else if (nType == ESoftMaskType::Alpha4Buffer)
+				Aggplus::BlendTo<agg::one_component_mask_u8>(pCurrentGraphicsLayer, m_frame_buffer.pixfmt(), m_pSoftMask->GetBuffer() + 3, m_pSoftMask->GetStep());
+		}
+		else
+		{
+			if (m_nBlendMode != agg::comp_op_src_over)
+			{
+				pixfmt_type_comp pixfmt(m_frame_buffer.ren_buf(), m_nBlendMode);
+				Aggplus::BlendTo(pCurrentGraphicsLayer, pixfmt, m_nBlendMode);
+			}
+			else
+				Aggplus::BlendTo(pCurrentGraphicsLayer, m_frame_buffer.pixfmt());
+		}
+
+		RELEASEINTERFACE(pCurrentGraphicsLayer);
+		return Ok;
+	}
+	
+	Status CGraphics::RemoveLayer()
+	{
+		if (m_arLayers.empty())
+			return WrongState;
+
+		CGraphicsLayer *pCurrentGraphicsLayer = m_arLayers.top();
+		m_arLayers.pop();
+
+		BYTE* pBuffer = NULL;
+
+		if (!m_arLayers.empty())
+			pBuffer = m_arLayers.top()->GetBuffer();
+		else
+			pBuffer = m_pPixels;
+
+		if (NULL == pBuffer)
+		{
+			RELEASEINTERFACE(pCurrentGraphicsLayer);
+			return WrongState;
+		}
+
+		m_frame_buffer.ren_buf().attach(pBuffer, m_frame_buffer.ren_buf().width(), m_frame_buffer.ren_buf().height(), m_frame_buffer.ren_buf().stride());
+
+		RELEASEINTERFACE(pCurrentGraphicsLayer);
+		return Ok;
+	}
+	
+	Status CGraphics::SetLayerSettings(const TGraphicsLayerSettings &oSettings)
+	{
+		if (m_arLayers.empty())
+			return WrongState;
+
+		m_arLayers.top()->SetSettings(oSettings);
+
+		return Ok;
+	}
+
+	Status CGraphics::SetLayerOpacity(double dOpacity)
+	{
+		if (dOpacity < 0. || dOpacity > 1.)
+			return InvalidParameter;
+
+		if (m_arLayers.empty())
+			return WrongState;
+
+		m_arLayers.top()->SetOpacity(dOpacity);
+
+		return Ok;
+	}
+
 	void CGraphics::CalculateFullTransform()
 	{
-		m_oFullTransform	= m_oCoordTransform;
+		m_oFullTransform = m_oCoordTransform;
 		m_oFullTransform.Multiply(&m_oBaseTransform, MatrixOrderAppend);
 		m_oFullTransform.Multiply(&m_oTransform, MatrixOrderPrepend);
 	}
@@ -1218,40 +1341,41 @@ namespace Aggplus
 		return m_oClip.IsClip();
 	}
 
-	template<class Renderer>
-	void CGraphics::render_scanlines(Renderer& ren)
+	template<class Rasterizer, class Renderer, class Scanline>
+	void CGraphics::render_scanlines_3(Rasterizer& ras, Renderer& ren, Scanline& sl)
 	{
 		if (!m_oClip.IsClip())
 		{
-			return agg::render_scanlines(m_rasterizer.get_rasterizer(), m_rasterizer.get_scanline(), ren);
+			agg::render_scanlines(ras, sl, ren);
 		}
 		else
 		{
 			if (!m_oClip.IsClip2())
 			{
-				typedef agg::scanline_p8                               sbool_scanline_type;
+				typedef agg::scanline_p8 sbool_scanline_type;
 
-				sbool_scanline_type sl_result;
 				sbool_scanline_type sl1;
 				sbool_scanline_type sl2;
 
-				agg::sbool_combine_shapes_aa(agg::sbool_and, m_rasterizer.get_rasterizer(), m_oClip.m_rasterizer,
-											 sl1, sl2, sl_result, ren);
+				agg::sbool_combine_shapes_aa(agg::sbool_and, ras, m_oClip.m_rasterizer, sl1, sl2, sl, ren);
 			}
 			else
 			{
-				typedef agg::scanline_p8                               sbool_scanline_type;
 
-				sbool_scanline_type sl_result;
+				typedef agg::scanline_p8 sbool_scanline_type;
+
 				sbool_scanline_type sl1;
 				sbool_scanline_type sl2;
 
-				sbool_scanline_type sl;
-
-				agg::sbool_combine_shapes_aa(agg::sbool_and, m_rasterizer.get_rasterizer(),
-											 (1 == m_oClip.m_lCurStorage) ? m_oClip.m_storage1 :	m_oClip.m_storage2,	sl1, sl2, sl_result, ren);
+				agg::sbool_combine_shapes_aa(agg::sbool_and, ras, (1 == m_oClip.m_lCurStorage) ? m_oClip.m_storage1 : m_oClip.m_storage2, sl1, sl2, sl, ren);
 			}
 		}
+	}
+
+	template<class Renderer>
+	void CGraphics::render_scanlines(Renderer& ren)
+	{
+		render_scanlines_2(m_rasterizer.get_rasterizer(), ren);
 	}
 
 	template<class Renderer>
@@ -1271,39 +1395,19 @@ namespace Aggplus
 	}
 
 	template<class Rasterizer, class Renderer>
-	void CGraphics::render_scanlines(Rasterizer& ras, Renderer& ren)
+	void CGraphics::render_scanlines_2(Rasterizer& ras, Renderer& ren)
 	{
-		if (!m_oClip.IsClip())
+		if (m_pSoftMask)
 		{
-			return agg::render_scanlines(ras, m_rasterizer.get_scanline(), ren);
+			ESoftMaskType nType = m_pSoftMask->GetDataType();
+			if (nType == ESoftMaskType::RGBGrayBuffer)
+				return render_scanlines_3(ras, ren, ((CSoftMaskRGBAgray*)m_pSoftMask->m_pInternal)->GetScanline());
+			if (nType == ESoftMaskType::BGRGrayBuffer)
+				return render_scanlines_3(ras, ren, ((CSoftMaskBGRAgray*)m_pSoftMask->m_pInternal)->GetScanline());
+			if (nType == ESoftMaskType::Alpha4Buffer)
+				return render_scanlines_3(ras, ren, ((CSoftMaskAlpha*)m_pSoftMask->m_pInternal)->GetScanline());
 		}
-		else
-		{
-			if (!m_oClip.IsClip2())
-			{
-				typedef agg::scanline_p8                               sbool_scanline_type;
-
-				sbool_scanline_type sl_result;
-				sbool_scanline_type sl1;
-				sbool_scanline_type sl2;
-
-				agg::sbool_combine_shapes_aa(agg::sbool_and, ras, m_oClip.m_rasterizer,
-											 sl1, sl2, sl_result, ren);
-			}
-			else
-			{
-				typedef agg::scanline_p8                               sbool_scanline_type;
-
-				sbool_scanline_type sl_result;
-				sbool_scanline_type sl1;
-				sbool_scanline_type sl2;
-
-				sbool_scanline_type sl;
-
-				agg::sbool_combine_shapes_aa(agg::sbool_and, ras,
-											 (1 == m_oClip.m_lCurStorage) ? m_oClip.m_storage1 :	m_oClip.m_storage2,	sl1, sl2, sl_result, ren);
-			}
-		}
+		render_scanlines_3(ras, ren, m_rasterizer.get_scanline());
 	}
 
 	void CGraphics::DoFillPathSolid(CColor dwColor)
@@ -1313,10 +1417,8 @@ namespace Aggplus
 			typedef agg::renderer_scanline_aa_solid<comp_renderer_type> solid_comp_renderer_type;
 			solid_comp_renderer_type ren_solid;
 			comp_renderer_type ren_base;
-			pixfmt_type_comp pixfmt;
+			pixfmt_type_comp pixfmt(m_frame_buffer.ren_buf(), m_nBlendMode);
 
-			pixfmt.attach(m_frame_buffer.ren_buf());
-			pixfmt.comp_op(m_nBlendMode);
 			ren_base.attach(pixfmt);
 			ren_solid.attach(ren_base);
 
@@ -1995,6 +2097,186 @@ namespace Aggplus
 			break;
 		}
 	}
+	template<class Rasterizer>
+	agg::trans_affine* CGraphics::DoStrokePath(NSStructures::CPen* pPen, CGraphicsPath* pPath, Rasterizer* pRasterizer)
+	{
+		agg::line_join_e LineJoin = agg::round_join;
+		switch(pPen->LineJoin)
+		{
+		case LineJoinMiter			: LineJoin = agg::miter_join_revert; break;
+		case LineJoinBevel			: LineJoin = agg::bevel_join; break;
+		case LineJoinRound			: LineJoin = agg::round_join; break;
+		case LineJoinMiterClipped	: LineJoin = agg::miter_join_revert; break;
+		default:	break;
+		}
+		agg::line_cap_e LineCap = agg::round_cap;
+		switch(pPen->LineStartCap)
+		{
+		case LineCapFlat         : LineCap = agg::butt_cap; break;
+		case LineCapRound        : LineCap = agg::round_cap; break;
+		case LineCapSquare       : LineCap = agg::square_cap; break;
+		default:	break;
+		}
+
+		double dWidth = pPen->Size;
+		if (!m_bIntegerGrid && m_bIs0PenWidthAs1px)
+		{
+			double dWidthMinSize, dSqrtDet = sqrt(abs(m_oFullTransform.m_internal->m_agg_mtx.determinant()));
+			if (0 == dWidth)
+			{
+				double dX = 0.72, dY = 0.72;
+				agg::trans_affine invert = ~m_oFullTransform.m_internal->m_agg_mtx;
+				invert.transform_2x2(&dX, &dY);
+				dWidth = std::min(abs(dX), abs(dY));
+			}
+			else if (0 != dSqrtDet && dWidth < (dWidthMinSize = 1.0 / dSqrtDet))
+				dWidth = dWidthMinSize;
+		}
+
+		double dblMiterLimit = pPen->MiterLimit;
+
+		agg::path_storage path_copy(pPath->m_internal->m_agg_ps);
+		bool bIsUseIdentity = m_bIntegerGrid;
+		if (!bIsUseIdentity)
+		{
+			agg::trans_affine* full_trans = &m_oFullTransform.m_internal->m_agg_mtx;
+			double dDet = full_trans->determinant();
+
+			if (fabs(dDet) < 0.0001)
+			{
+				path_copy.transform_all_paths(m_oFullTransform.m_internal->m_agg_mtx);
+				dWidth *= sqrt(fabs(dDet));
+
+				bIsUseIdentity = true;
+			}
+		}
+
+		typedef agg::conv_curve<agg::path_storage> conv_crv_type;
+
+		conv_crv_type c_c_path(path_copy);
+		c_c_path.approximation_scale(25.0);
+		c_c_path.approximation_method(agg::curve_inc);
+		DashStyle eStyle = (DashStyle)pPen->DashStyle;
+
+		if (DashStyleCustom == eStyle)
+		{
+			if (0 == pPen->Count || NULL == pPen->DashPattern)
+			{
+				eStyle = DashStyleSolid;
+			}
+			else
+			{
+				bool bFoundNormal = false;
+				for (int i = 0; i < pPen->Count; i++)
+				{
+					if (fabs(pPen->DashPattern[i]) > 0.0001)
+					{
+						bFoundNormal = true;
+						break;
+					}
+				}
+				if (!bFoundNormal)
+					eStyle = DashStyleSolid;
+			}
+		}
+
+		agg::trans_affine* pAffine = &m_oFullTransform.m_internal->m_agg_mtx;
+		if (bIsUseIdentity)
+			pAffine = new agg::trans_affine();
+
+		if (DashStyleSolid == eStyle)
+		{
+			typedef agg::conv_stroke<conv_crv_type> Path_Conv_StrokeN;
+			Path_Conv_StrokeN pgN(c_c_path);
+
+			//pgN.line_join(agg::miter_join_revert);
+
+			pgN.line_cap(LineCap);
+
+			pgN.line_join(LineJoin);
+			pgN.inner_join(agg::inner_round);
+
+			pgN.miter_limit(dblMiterLimit);
+			pgN.width(dWidth);
+
+			pgN.approximation_scale(25.0);
+
+			typedef agg::conv_transform<Path_Conv_StrokeN> transStroke;
+
+			transStroke trans(pgN, *pAffine);
+			pRasterizer->add_path(trans);
+		}
+		else
+		{
+			typedef agg::conv_dash<conv_crv_type> Path_Conv_Dash;
+			Path_Conv_Dash poly2_dash(c_c_path);
+
+			typedef agg::conv_stroke<Path_Conv_Dash> Path_Conv_StrokeD;
+			Path_Conv_StrokeD pgD(poly2_dash);
+
+			switch (eStyle)
+			{
+			case DashStyleDash:
+				poly2_dash.add_dash(3.00*dWidth, dWidth);
+				break;
+			case DashStyleDot:
+				poly2_dash.add_dash(dWidth, dWidth);
+				break;
+			case DashStyleDashDot:
+				poly2_dash.add_dash(3.00*dWidth, dWidth);
+				poly2_dash.add_dash(dWidth, dWidth);
+				break;
+			case DashStyleDashDotDot:
+				poly2_dash.add_dash(3.00*dWidth, dWidth);
+				poly2_dash.add_dash(dWidth, dWidth);
+				poly2_dash.add_dash(dWidth, dWidth);
+				break;
+			default:
+			case DashStyleCustom:
+			{
+				double offset	= pPen->DashOffset;
+				double* params	= pPen->DashPattern;
+				LONG lCount		= pPen->Count;
+				LONG lCount2	= lCount / 2;
+
+				double dKoef = 1.0;
+
+				for (LONG i = 0; i < lCount2; ++i)
+				{
+					if (0 == i)
+					{
+						poly2_dash.add_dash((params[i * 2]) * dKoef, params[i * 2 + 1] * dKoef);
+					}
+					else
+					{
+						poly2_dash.add_dash(params[i * 2] * dKoef, params[i * 2 + 1] * dKoef);
+					}
+				}
+				if (1 == (lCount % 2))
+				{
+					poly2_dash.add_dash(params[lCount - 1] * dKoef, 0);
+				}
+				poly2_dash.dash_start(offset * dKoef);
+
+				break;
+			}
+			}
+
+			double dWidthMinSize = 1.0 / sqrt(abs(m_oCoordTransform.m_internal->m_agg_mtx.determinant()));
+			if ((0 == dWidth && !m_bIntegerGrid) || dWidth < dWidthMinSize)
+				dWidth = dWidthMinSize;
+
+			pgD.line_cap(LineCap);
+			pgD.line_join(LineJoin);
+			pgD.miter_limit(dblMiterLimit);
+			pgD.width(dWidth);
+
+			agg::conv_transform<Path_Conv_StrokeD> trans(pgD, *pAffine);
+			pRasterizer->add_path(trans);
+		}
+
+		return bIsUseIdentity ? pAffine : NULL;
+	}
 	// text methods
 	int CGraphics::FillGlyph2(int nX, int nY, TGlyph* pGlyph, Aggplus::CBrush* pBrush)
 	{
@@ -2043,7 +2325,7 @@ namespace Aggplus
 			ren_fine.color(clr.GetAggColor());
 
 			//agg::render_scanlines(storage, m_rasterizer.get_scanline(), ren_fine);
-			render_scanlines(storage, ren_fine);
+			render_scanlines_2(storage, ren_fine);
 		}
 		
 		return 0;

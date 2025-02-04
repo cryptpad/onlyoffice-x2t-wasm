@@ -5,21 +5,7 @@ TARGET = docbuilder
 CONFIG   += console
 CONFIG   -= app_bundle
 
-PRODUCT_VERSION=$$(PRODUCT_VERSION)
-BUILD_NUMBER=$$(BUILD_NUMBER)
-
-isEmpty(PRODUCT_VERSION) {
-    BINARYVERSION = 0.0.0.0
-}
-else {
-    BINARYVERSION = $$(PRODUCT_VERSION).$$(BUILD_NUMBER)
-}
-
-DEFINES += INTVER=$$BINARYVERSION
-
 TEMPLATE = app
-
-CONFIG += core_static_link_libstd
 
 CORE_ROOT_DIR = $$PWD/../../../../core
 PWD_ROOT_DIR = $$PWD
@@ -39,7 +25,7 @@ core_windows {
 DESTDIR = $$CORE_BUILDS_BINARY_PATH
 ################################################
 
-ADD_DEPENDENCY(graphics, kernel, kernel_network, UnicodeConverter, doctrenderer)
+ADD_DEPENDENCY(graphics, kernel, kernel_network, UnicodeConverter, doctrenderer, PdfFile, XpsFile, DjVuFile, DocxRenderer)
 
 core_linux {
     LIBS += -ldl

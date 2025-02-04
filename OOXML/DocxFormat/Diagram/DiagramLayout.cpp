@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,6 +32,14 @@
 #pragma once
 
 #include "DiagramLayout.h"
+#include "../Drawing/DrawingExt.h"
+
+#include "../Document.h"
+#include "../../XlsxFormat/Xlsx.h"
+
+#include "../../Common/SimpleTypes_Shared.h"
+#include "../../Common/SimpleTypes_Drawing.h"
+
 #include "../../Binary/Presentation/BinaryFileReaderWriter.h"
 
 #define Diagram_Layout_Read_Xml() \
@@ -45,25 +53,25 @@ while (oReader.ReadNextSiblingNode(nParentDepth))\
 	std::wstring sName = oReader.GetName();\
 	WritingElement *pItem = NULL;\
 	if (L"dgm:alg" == sName)\
-		pItem = new CAlg(oReader);\
+		AssignPtrXmlContentNoMain(pItem, CAlg, oReader)\
 	else if (L"dgm:choose" == sName)\
-		pItem = new CChoose(oReader);\
+		AssignPtrXmlContentNoMain(pItem, CChoose, oReader)\
 	else if (L"dgm:constrLst" == sName)\
-		pItem = new CConstrLst(oReader);\
+		AssignPtrXmlContentNoMain(pItem, CConstrLst, oReader)\
 	else if (L"dgm:forEach" == sName)\
-		pItem = new CForEach(oReader);\
+		AssignPtrXmlContentNoMain(pItem, CForEach, oReader)\
 	else if (L"dgm:layoutNode" == sName)\
-		pItem = new CLayoutNode(oReader);\
+		AssignPtrXmlContentNoMain(pItem, CLayoutNode, oReader)\
 	else if (L"dgm:presOf" == sName)\
-		pItem = new CPresOf(oReader);\
+		AssignPtrXmlContentNoMain(pItem, CPresOf, oReader)\
 	else if (L"dgm:ruleLst" == sName)\
-		pItem = new CRuleLst(oReader);\
+		AssignPtrXmlContentNoMain(pItem, CRuleLst, oReader)\
 	else if (L"dgm:shape" == sName)\
-		pItem = new CShape(oReader);\
+		AssignPtrXmlContentNoMain(pItem, CShape, oReader)\
 	else if (L"dgm:varLst" == sName)\
-		pItem = new CVariableList(oReader);\
+		AssignPtrXmlContentNoMain(pItem, CVariableList, oReader)\
 	else if (L"dgm:extLst" == sName)\
-		pItem = new OOX::Drawing::COfficeArtExtensionList(oReader);\
+		AssignPtrXmlContentNoMain(pItem, OOX::Drawing::COfficeArtExtensionList, oReader)\
 	if (pItem)\
 		m_arrItems.push_back(pItem);\
 }}
@@ -119,15 +127,23 @@ for (size_t i = 0; i < m_arrItems.size(); ++i)\
 //------------------------------------------------------------------------------------------------------------------
 namespace OOX
 {
-	CDiagramLayout::CDiagramLayout(OOX::Document* pMain) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
+	CDiagramLayout::CDiagramLayout(OOX::Document* pMain, bool bDocument) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
 	{
+		m_bDocument = bDocument;
+		m_bSpreadsheets = (NULL != dynamic_cast<OOX::Spreadsheet::CXlsx*>(pMain));
 	}
 	CDiagramLayout::CDiagramLayout(OOX::Document* pMain, const CPath& uri) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
 	{
+		m_bDocument = (NULL != dynamic_cast<OOX::CDocument*>(pMain));
+		m_bSpreadsheets = (NULL != dynamic_cast<OOX::Spreadsheet::CXlsx*>(pMain));
+
 		read(uri.GetDirectory(), uri);
 	}
 	CDiagramLayout::CDiagramLayout(OOX::Document* pMain, const CPath& oRootPath, const CPath& oPath) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
 	{
+		m_bDocument = (NULL != dynamic_cast<OOX::CDocument*>(pMain));
+		m_bSpreadsheets = (NULL != dynamic_cast<OOX::Spreadsheet::CXlsx*>(pMain));
+
 		read(oRootPath, oPath);
 	}
 	CDiagramLayout::~CDiagramLayout()
@@ -227,7 +243,10 @@ namespace OOX
 	}
 	const CPath CDiagramLayout::DefaultDirectory() const
 	{
-		return type().DefaultDirectory();
+		if (m_bDocument)
+			return type().DefaultDirectory();
+		else
+			return L"../" + type().DefaultDirectory();
 	}
 	const CPath CDiagramLayout::DefaultFileName() const
 	{
@@ -356,10 +375,13 @@ namespace OOX
 	}
 	void Diagram::CDiferentData::fromXML(XmlUtils::CXmlLiteReader& oReader)
 	{
+		node_name = oReader.GetName();
+
 		ReadAttributes(oReader);
 
 		if (oReader.IsEmptyNode())
 			return;
+
 		int nParentDepth = oReader.GetDepth();
 		while (oReader.ReadNextSiblingNode(nParentDepth))
 		{
@@ -1010,7 +1032,9 @@ namespace OOX
 			
 			if (L"dgm:if" == sName)
 			{
-				OOX::Diagram::CIf *pItem = new Diagram::CIf(oReader);
+				OOX::Diagram::CIf *pItem = new Diagram::CIf();
+				*pItem = oReader;
+
 				if (pItem)
 					m_arrItems.push_back(pItem); 
 			}
@@ -1119,7 +1143,9 @@ namespace OOX
 
 			if (L"dgm:param" == sName)
 			{
-				CParam* pItem = new CParam(oReader);
+				CParam* pItem = new CParam();
+				*pItem = oReader;
+
 				if (pItem)
 					m_arrItems.push_back(pItem);
 			}
@@ -1223,7 +1249,9 @@ namespace OOX
 
 			if (L"dgm:constr" == sName)
 			{
-				CConstraint* pItem = new CConstraint(oReader);
+				CConstraint* pItem = new CConstraint();
+				*pItem = oReader;
+
 				if (pItem)
 					m_arrItems.push_back(pItem);
 			}
@@ -1295,7 +1323,9 @@ namespace OOX
 
 			if (L"dgm:rule" == sName)
 			{
-				CRule* pItem = new CRule(oReader);
+				CRule* pItem = new CRule();
+				*pItem = oReader;
+
 				if (pItem)
 					m_arrItems.push_back(pItem);
 			}
@@ -1367,7 +1397,9 @@ namespace OOX
 
 			if (L"dgm:adj" == sName)
 			{
-				CShapeAdjust* pItem = new CShapeAdjust(oReader);
+				CShapeAdjust* pItem = new CShapeAdjust();
+				*pItem = oReader;
+
 				if (pItem)
 					m_arrItems.push_back(pItem);
 			}

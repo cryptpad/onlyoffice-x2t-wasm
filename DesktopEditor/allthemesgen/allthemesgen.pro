@@ -15,7 +15,7 @@ TARGET = allthemesgen
 
 DEFINES += KERNEL_USE_DYNAMIC_LIBRARY
 DEFINES += GRAPHICS_USE_DYNAMIC_LIBRARY
-ADD_DEPENDENCY(graphics, kernel, kernel_network, UnicodeConverter, doctrenderer)
+ADD_DEPENDENCY(graphics, kernel, kernel_network, UnicodeConverter, doctrenderer, PdfFile, XpsFile, DjVuFile, DocxRenderer)
 
 core_windows {
     DEFINES -= UNICODE
@@ -25,10 +25,6 @@ core_windows {
     LIBS += -lShell32
     LIBS += -lGdi32
     LIBS += -lUser32
-}
-
-core_linux {
-    QMAKE_LFLAGS += -Wl,--rpath=./
 }
 
 SOURCES += main.cpp

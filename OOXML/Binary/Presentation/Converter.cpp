@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,6 +31,8 @@
  */
 
 #include "Converter.h"
+#include "../../PPTXFormat/Presentation/SldSz.h"
+#include "../../PPTXFormat/NotesSlide.h"
 
 namespace PPTX2EditorAdvanced
 {
@@ -252,7 +254,7 @@ namespace PPTX2EditorAdvanced
 		oBinaryWriter.WriteULONG(0);
 
 // App
-		smart_ptr<PPTX::App> app = oFolder.Get(OOX::FileTypes::App).smart_dynamic_cast<PPTX::App>();
+		smart_ptr<OOX::CApp> app = oFolder.Get(OOX::FileTypes::App).smart_dynamic_cast<OOX::CApp>();
 		if (app.is_init())
 		{
 			oBinaryWriter.StartMainRecord(NSBinPptxRW::NSMainTables::App);
@@ -260,7 +262,7 @@ namespace PPTX2EditorAdvanced
 		}
 
 // Core
-		smart_ptr<PPTX::Core> core = oFolder.Get(OOX::FileTypes::Core).smart_dynamic_cast<PPTX::Core>();
+		smart_ptr<OOX::CCore> core = oFolder.Get(OOX::FileTypes::Core).smart_dynamic_cast<OOX::CCore>();
 		if (core.is_init())
 		{
 			oBinaryWriter.StartMainRecord(NSBinPptxRW::NSMainTables::Core);

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -51,6 +51,11 @@
 #include "FormFieldData.h"
 #include "FormFieldDataMapping.h"
 
+#define START_PARAGRAPH           0x1
+#define END_PARAGRAPH             0x2
+#define START_END_PARAGRAPH       0x3
+#define NOSTART_NOEND_PARAGRAPH   0x0
+
 namespace DocFileFormat
 {
 	class FootnotesMapping;
@@ -87,7 +92,7 @@ namespace DocFileFormat
 		bool isSectionEnd		( int cp );
 
 		int writeParagraph( int cp, int cpEnd ); 
-		int writeParagraph( int initialCp, int cpEnd, bool sectionEnd, bool lastBad = false );
+		int writeParagraph( int initialCp, int cpEnd, bool sectionEnd, bool lastBad = false, int paragraphState = 0 );
 		int writeRun( std::vector<wchar_t>* chars, CharacterPropertyExceptions* chpx, int initialCp );
 		int	writeText			( std::vector<wchar_t>* chars, int initialCp, CharacterPropertyExceptions* chpx, bool writeDeletedText );
 		void writeParagraphRsid	( const ParagraphPropertyExceptions* papx );
@@ -97,7 +102,7 @@ namespace DocFileFormat
 		void writeField			(const std::wstring& sFieldString, int cpFieldStart, int cpFieldEnd);		
 	
 		ParagraphPropertyExceptions* findValidPapx( int fc );
-		std::list<std::vector<wchar_t> >* splitCharList( std::vector<wchar_t>* chars, std::vector<int>* splitIndices );
+		std::vector<std::vector<wchar_t> >* splitCharList( std::vector<wchar_t>* chars, std::vector<int>* splitIndices );
 		int writeTable		( int initialCp, unsigned int nestingLevel );
 		bool buildTableGrid( int initialCp, unsigned int nestingLevel, std::vector<short>& grid);
 		int findRowEndFc		( int initialCp, int& rowEndCp, unsigned int nestingLevel );
@@ -132,6 +137,8 @@ namespace DocFileFormat
 		Symbol	getSymbol ( const CharacterPropertyExceptions* chpx );
 
 		void AddBoundary(short boundary1, short boundary2, std::map<short, short> &boundaries);
+
+		std::vector<std::pair<int, int>> get_subsequence(int cpStart, int cpEnd, int fcStars, int fcEnd);
 //----------------------------------------------------------------------------------------------------------------------
 		bool							m_bInternalXmlWriter; 
 

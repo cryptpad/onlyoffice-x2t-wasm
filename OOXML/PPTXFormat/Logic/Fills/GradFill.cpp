@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -113,14 +113,13 @@ namespace PPTX
 			if (oNode.IsValid())
 				XmlMacroLoadArray(oNode, _T("*"), GsLst, Gs);
 
-			XmlUtils::CXmlNodes oNodes;
+			std::vector<XmlUtils::CXmlNode> oNodes;
 			if (node.GetNodes(_T("*"), oNodes))
 			{
-				int nCount = oNodes.GetCount();
-				for (int i = 0; i < nCount; ++i)
+				size_t nCount = oNodes.size();
+				for (size_t i = 0; i < nCount; ++i)
 				{
-					XmlUtils::CXmlNode oNode;
-					oNodes.GetAt(i, oNode);
+					XmlUtils::CXmlNode& oNode = oNodes[i];
 
 					std::wstring strName = XmlUtils::GetNameNoNS(oNode.GetName());
 
@@ -165,12 +164,12 @@ namespace PPTX
 			std::wstring strName;
 			if (XMLWRITER_DOC_TYPE_WORDART == pWriter->m_lDocType)
 			{
-				sAttrNamespace = _T("w14:");
-				strName = _T("w14:gradFill");
+				sAttrNamespace = L"w14:";
+				strName = L"w14:gradFill";
 			}
 			else
 			{
-				strName = m_namespace.empty() ? _T("gradFill") : (m_namespace + _T(":gradFill"));
+				strName = m_namespace.empty() ? L"gradFill" : (m_namespace + L":gradFill");
 			}
 
 			pWriter->StartNode(strName);
@@ -181,9 +180,9 @@ namespace PPTX
 			pWriter->EndAttributes();
 
 			if (XMLWRITER_DOC_TYPE_WORDART == pWriter->m_lDocType)
-				pWriter->WriteArray(_T("w14:gsLst"), GsLst);
+				pWriter->WriteArray(L"w14:gsLst", GsLst);
 			else
-				pWriter->WriteArray(_T("a:gsLst"), GsLst);
+				pWriter->WriteArray(L"a:gsLst", GsLst);
 			pWriter->Write(path);
 			pWriter->Write(lin);
 			pWriter->Write(tileRect);

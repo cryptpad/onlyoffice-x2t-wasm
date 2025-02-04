@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -59,6 +59,7 @@ public:
 	virtual void end_document();
 
 	void start_slide();
+	void hide_slide();
 	void end_slide();
 
 	size_t get_pages_count();
@@ -79,7 +80,7 @@ public:
 			odp_slide_context		* slide_context();
 			odf_comment_context		* comment_context();
 
-	virtual odf_style_context		* styles_context();
+	virtual odf_style_context_ptr	styles_context();
 
 	void start_comment			(int oox_comment_id);
 	void end_comment			();
@@ -89,10 +90,26 @@ public:
 	void start_note(bool bMaster = false);
 	void end_note();
 
-	std::map<std::wstring, table_style_state> map_table_styles_;
+	int next_id();
+	std::wstring map_indentifier(std::wstring id);
+	std::wstring get_mapped_identifier(const std::wstring& id);
+
+	void add_page_name(const std::wstring& page_name);
+
+	std::map<std::wstring, table_style_state>	map_table_styles_;
+
+	// NOTE(Kamil Kerimov): Key - PPTX identifier, value - ODP identifier
+	using IdentifierMap = std::unordered_map<std::wstring, std::wstring>;
+	std::vector<IdentifierMap> map_identifiers_;
+
+	// NOTE(Kamil Kerimov): Key - slide name in pptx (e.g. slide1.xml), Value - slide name in odp (e.g. "This is a title")
+	using SlidenameMap = std::map<std::wstring, std::wstring>;
+	SlidenameMap map_slidenames_;
 private:
 	odp_slide_context			slide_context_;
 	office_presentation*		root_presentation_;
+
+	int rId_;
 };
 
 

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -57,7 +57,7 @@ CRecordShapeProgBinaryTagSubContainerOrAtom *CRecordOfficeArtClientData::getProg
 {
     for (auto* progtag : m_rgShapeClientRoundtripData)
     {
-        if (progtag->m_pTagName->m_strText == tagname)
+        if ((progtag->m_pTagName) && (progtag->m_pTagName->m_strText == tagname))
             return progtag;
     }
 
@@ -84,28 +84,31 @@ void CRecordOfficeArtClientData::ReadFromStream(SRecordHeader &oHeader, POLE::St
 
         switch (ReadHeader.RecType)
         {
-        case RT_ProgTags:
-        {
-            // ShapeProgBinaryTagContainer
-            ReadHeader.ReadFromStream(pStream);
+            case RT_ProgTags:
+            {
+                // ShapeProgBinaryTagContainer
+                ReadHeader.ReadFromStream(pStream);
 
-            auto pRec = new CRecordShapeProgBinaryTagSubContainerOrAtom;
-            pRec->ReadFromStream(ReadHeader, pStream);
-            m_rgShapeClientRoundtripData.push_back(pRec);
-            break;
-        }
-        case RT_VbaInfo:
-        {
-            auto pRec = new CRecordsContainer;
-            pRec->ReadFromStream(ReadHeader, pStream);
-            break;
-        }
-        default:
-            IRecord* pRecord = CreateByType(ReadHeader);
-            pRecord->ReadFromStream(ReadHeader, pStream);
+                auto pRec = new CRecordShapeProgBinaryTagSubContainerOrAtom;
+                pRec->m_pCommonInfo = m_pCommonInfo;
+                pRec->ReadFromStream(ReadHeader, pStream);
 
-            m_arRecords.push_back(pRecord);
-            break;
+                m_rgShapeClientRoundtripData.push_back(pRec);
+            }break;
+            case RT_VbaInfo:
+            {
+                auto pRec = new CRecordsContainer;
+                pRec->m_pCommonInfo = m_pCommonInfo;
+                pRec->ReadFromStream(ReadHeader, pStream);                
+            }break;
+            default:
+            {
+                IRecord* pRecord = CreateByType(ReadHeader, m_pCommonInfo);
+                pRecord->ReadFromStream(ReadHeader, pStream);
+
+                m_arRecords.push_back(pRecord);
+
+            }break;
         }
 
     }

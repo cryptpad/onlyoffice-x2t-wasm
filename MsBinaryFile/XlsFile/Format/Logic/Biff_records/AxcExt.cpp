@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -105,20 +105,26 @@ int AxcExt::serialize(std::wostream & _stream)
 				CP_XML_ATTR(L"val", catMinor);
 			}
 		}	
-		if ( fAutoBase == false)
+		if ( fAutoBase == false && duBase < 3)
 		{
 			CP_XML_NODE(L"c:baseTimeUnit")
 			{
 				CP_XML_ATTR(L"val", DateUnit[duBase]);
 			}
 		}
-		CP_XML_NODE(L"c:majorTimeUnit")
+		if ( duMajor < 3)
 		{
-			CP_XML_ATTR(L"val", DateUnit[duMajor]);
+			CP_XML_NODE(L"c:majorTimeUnit")
+			{
+				CP_XML_ATTR(L"val", DateUnit[duMajor]);
+			}
 		}
-		CP_XML_NODE(L"c:minorTimeUnit")
+		if (duMinor < 3)
 		{
-			CP_XML_ATTR(L"val", DateUnit[duMinor]);
+			CP_XML_NODE(L"c:minorTimeUnit")
+			{
+				CP_XML_ATTR(L"val", DateUnit[duMinor]);
+			}
 		}
 	}
 	return 0;
