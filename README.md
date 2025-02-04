@@ -27,7 +27,6 @@ Since the clone contains small changes there may be merge conflicts.
 ## See changes we made to https://github.com/ONLYOFFICE/core.git
 
 ``` shell
-git remote add upstream https://github.com/ONLYOFFICE/core.git
-git fetch upstream
-git diff v7.3.3.60 HEAD:core
+git fetch --depth=1 https://github.com/ONLYOFFICE/core.git v7.3.3.60
+git diff FETCH_HEAD HEAD:core
 ```
