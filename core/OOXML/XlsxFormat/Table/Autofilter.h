@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,8 +31,25 @@
  */
 #pragma once
 
-#include "../CommonInclude.h"
+#include "../WritingElement.h"
+#include "../../Base/Nullable.h"
 
+namespace SimpleTypes
+{
+	class COnOff;
+	class CDouble;
+	class CRelationshipId;
+	class CUnsignedDecimalNumber;
+
+	namespace Spreadsheet
+	{
+		class CSortBy;
+		class CSortMethod;
+		class CCustomFilter;
+		class CDateTimeGroup;
+		class CDynamicFilterType;
+	}
+}
 
 namespace OOX
 {
@@ -42,7 +59,7 @@ namespace OOX
 		class CSortCondition : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSortCondition)
+			WritingElement_AdditionMethods(CSortCondition)
 			WritingElement_XlsbConstructors(CSortCondition)
 			CSortCondition();
 			virtual ~CSortCondition();
@@ -54,6 +71,7 @@ namespace OOX
 			void toXMLWithNS(NSStringUtils::CStringBuilder& writer, const std::wstring &node_ns, const std::wstring &node_name, const std::wstring &child_ns) const;
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
+			XLS::BaseObjectPtr toBin();
 			void fromBin(XLS::BaseObjectPtr& obj);
 
 			virtual EElementType getType () const;
@@ -72,7 +90,7 @@ namespace OOX
 		class CSortState : public WritingElementWithChilds<CSortCondition>
 		{
 		public:
-			WritingElement_AdditionConstructors(CSortState)
+			WritingElement_AdditionMethods(CSortState)
 			WritingElement_XlsbConstructors(CSortState)
 			CSortState();
 			virtual ~CSortState();
@@ -84,6 +102,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:
@@ -101,7 +120,7 @@ namespace OOX
 		class CColorFilter : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CColorFilter)
+			WritingElement_AdditionMethods(CColorFilter)
 			WritingElement_XlsbConstructors(CColorFilter)
 			CColorFilter();
 			virtual ~CColorFilter();
@@ -114,6 +133,7 @@ namespace OOX
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -129,7 +149,7 @@ namespace OOX
 		class CDynamicFilter : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDynamicFilter)
+			WritingElement_AdditionMethods(CDynamicFilter)
 			WritingElement_XlsbConstructors(CDynamicFilter)
 			CDynamicFilter();
 			virtual ~CDynamicFilter();
@@ -142,6 +162,7 @@ namespace OOX
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -158,7 +179,7 @@ namespace OOX
 		class CCustomFilter : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CCustomFilter)
+			WritingElement_AdditionMethods(CCustomFilter)
 			WritingElement_XlsbConstructors(CCustomFilter)
 			CCustomFilter();
 			virtual ~CCustomFilter();
@@ -171,6 +192,7 @@ namespace OOX
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -186,7 +208,7 @@ namespace OOX
 		class CCustomFilters : public WritingElementWithChilds<CCustomFilter>
 		{
 		public:
-			WritingElement_AdditionConstructors(CCustomFilters)
+			WritingElement_AdditionMethods(CCustomFilters)
 			WritingElement_XlsbConstructors(CCustomFilters)
 			CCustomFilters();
 			virtual ~CCustomFilters();
@@ -199,6 +221,7 @@ namespace OOX
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -213,7 +236,7 @@ namespace OOX
 		class CFilter : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CFilter)
+			WritingElement_AdditionMethods(CFilter)
 			WritingElement_XlsbConstructors(CFilter)
 			CFilter();
 			virtual ~CFilter();
@@ -225,7 +248,8 @@ namespace OOX
 			void toXMLWithNS(NSStringUtils::CStringBuilder& writer, const std::wstring &node_ns, const std::wstring &node_name, const std::wstring &child_ns) const;
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
-			void fromBin(XLS::BaseObjectPtr& obj);;
+			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -240,7 +264,7 @@ namespace OOX
 		class CDateGroupItem : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDateGroupItem)
+			WritingElement_AdditionMethods(CDateGroupItem)
 			WritingElement_XlsbConstructors(CDateGroupItem)
 			CDateGroupItem();
 			virtual ~CDateGroupItem();
@@ -253,6 +277,7 @@ namespace OOX
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -273,7 +298,7 @@ namespace OOX
 		class CFilters : public WritingElementWithChilds<>
 		{
 		public:
-			WritingElement_AdditionConstructors(CFilters)
+			WritingElement_AdditionMethods(CFilters)
 			WritingElement_XlsbConstructors(CFilters)
 			CFilters();
 			virtual ~CFilters();
@@ -286,6 +311,7 @@ namespace OOX
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -300,7 +326,7 @@ namespace OOX
 		class CTop10 : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CTop10)
+			WritingElement_AdditionMethods(CTop10)
 			WritingElement_XlsbConstructors(CTop10)
 			CTop10();
 			virtual ~CTop10();
@@ -313,6 +339,7 @@ namespace OOX
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -330,7 +357,7 @@ namespace OOX
 		class CFilterColumn : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CFilterColumn)
+			WritingElement_AdditionMethods(CFilterColumn)
 			WritingElement_XlsbConstructors(CFilterColumn)
 			CFilterColumn();
 			virtual ~CFilterColumn();
@@ -343,6 +370,7 @@ namespace OOX
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const;
 
@@ -365,7 +393,7 @@ namespace OOX
 		class CAutofilter : public WritingElementWithChilds<CFilterColumn>
 		{
 		public:
-			WritingElement_AdditionConstructors(CAutofilter)
+			WritingElement_AdditionMethods(CAutofilter)
 			WritingElement_XlsbConstructors(CAutofilter)
 			CAutofilter();
 			virtual ~CAutofilter();
@@ -376,6 +404,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
+			XLS::BaseObjectPtr toBin();
 			void fromBin(XLS::BaseObjectPtr& obj);
 			virtual EElementType getType () const;
 

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -41,9 +41,8 @@
 #include "../../../OOXML/PPTXFormat/Logic/Shape.h"
 #include "../../../OOXML/PPTXFormat/Logic/SpTree.h"
 
-#include "../../Common/ODraw/CustomShape.h"
-#include "../../Common/ODraw/CustomShapeConvert.h"
-
+#include "../../Common/Vml/PPTShape/PptShape.h"
+#include "../../Common/Vml/PPTShape/Ppt2PptxShapeConverter.h"
 
 namespace oox {
 
@@ -82,13 +81,7 @@ namespace oox {
 		0x00666666,	0x00C0C0C0,	0x00DDDDDD,	0x00C0C0C0,	
 		0x00888888,	0x00FFFFFF,	0x00CCCCCC,	0x00000000
 	};
-	void _color::SetRGB(unsigned char nR, unsigned char  nG, unsigned char  nB)
-	{
-		nRGB = (nR<<16) | (nG<<8) | nB;
-		sRGB = STR::toRGB(nR, nG, nB);
 
-		index = -1;
-	}
 //-----------------------------------------------------------------------------------------------------
 class xlsx_drawing_context_handle::Impl
 {
@@ -880,32 +873,42 @@ void xlsx_drawing_context::end_drawing(_drawing_state_ptr & drawing_state)
 		current_drawing_states->back()->child_anchor.cy = bottom - top;
 	}
 
-	if (  drawing_state->type == external_items::typeImage ||
-		( drawing_state->type == external_items::typeShape && drawing_state->shape_id == msosptPictureFrame ))
+	if (  drawing_state->type == external_items::typeImage || drawing_state->type == external_items::typeShape )
 	{
-		drawing_state->type = external_items::typeImage;
+		if (drawing_state->shape_id == msosptPictureFrame)
+		{
+			drawing_state->type = external_items::typeImage;
+		}
 
 		if (!drawing_state->fill.picture_target.empty())
 			drawing_state->fill.texture_target = drawing_state->fill.picture_target;
 
+		bool isIternal = false;
 		if (!drawing_state->fill.texture_target.empty())
 		{
-			bool isIternal = false;
-			drawing_state->objectId = handle_.impl_->get_mediaitems().find_image( drawing_state->fill.texture_target, isIternal);
-			
+			drawing_state->objectId = handle_.impl_->get_mediaitems().find_image(drawing_state->fill.texture_target, isIternal);
+		}
+
+		if (drawing_state->type == external_items::typeImage)
+		{
 			serialize_pic(drawing_state);
+		}
+		else
+		{
+			serialize_shape(drawing_state);
+		}
 		
+		if (!drawing_state->fill.texture_target.empty())
+		{
 			if (drawing_state->vml_HF_mode_)
 			{
-				vml_HF_rels_->add(isIternal, drawing_state->objectId , drawing_state->fill.texture_target, drawing_state->type);
+				vml_HF_rels_->add(isIternal, drawing_state->objectId, drawing_state->fill.texture_target, drawing_state->type);
 			}
 			else
 			{
-				rels_->add(isIternal, drawing_state->objectId , drawing_state->fill.texture_target, drawing_state->type);
+				rels_->add(isIternal, drawing_state->objectId, drawing_state->fill.texture_target, drawing_state->type);
 			}
 		}
-		else 
-			drawing_state->type = external_items::typeShape;
 	}
 	if ( drawing_state->type == external_items::typeChart )
 	{
@@ -927,10 +930,10 @@ void xlsx_drawing_context::end_drawing(_drawing_state_ptr & drawing_state)
 	
 		context_.get_comments_context().end_comment();
 	}
-	if ( drawing_state->type == external_items::typeShape)
-	{
-		serialize_shape(drawing_state);
-	}
+	//if ( drawing_state->type == external_items::typeShape)
+	//{
+	//	serialize_shape(drawing_state);
+	//}
 	if ( drawing_state->type == external_items::typeOleObject )
 	{
 		serialize_shape(drawing_state);
@@ -988,7 +991,7 @@ void xlsx_drawing_context::serialize_group()
 					
 					if (!drawing_state->description.empty())
 					{
-						CP_XML_ATTR(L"descr", drawing_state->description);
+						CP_XML_ATTR(L"descr", XmlUtils::EncodeXmlString(drawing_state->description));
 					}
 					if (drawing_state->hidden)
 					{
@@ -1112,9 +1115,9 @@ void xlsx_drawing_context::serialize_vml_shape(_drawing_state_ptr & drawing_stat
 			CP_XML_NODE(L"v:fill")
 			{
 				CP_XML_ATTR(L"color", std::wstring(L"#") + drawing_state->fill.color.sRGB);
-				if (drawing_state->fill.opacity > 0.00001)
+				if (drawing_state->fill.color.opacity > 0.00001)
 				{
-					CP_XML_ATTR(L"opacity", drawing_state->fill.opacity * 65536);
+					CP_XML_ATTR(L"opacity", drawing_state->fill.color.opacity * 65536);
 				}			
 				bool  isIternal = false;
 				std::wstring rId = handle_.impl_->get_mediaitems().find_image( drawing_state->fill.texture_target, isIternal);
@@ -1135,9 +1138,9 @@ void xlsx_drawing_context::serialize_vml_shape(_drawing_state_ptr & drawing_stat
 				else if (drawing_state->fill.type == fillGradient || drawing_state->fill.type == fillGradientOne)
 				{
 					CP_XML_ATTR(L"color2", std::wstring(L"#") + drawing_state->fill.color2.sRGB);
-					if (drawing_state->fill.opacity2 > 0.00001)
+					if (drawing_state->fill.color2.opacity > 0.00001)
 					{
-						CP_XML_ATTR(L"opacity2", drawing_state->fill.opacity2 * 65536);
+						CP_XML_ATTR(L"opacity2", drawing_state->fill.color2.opacity * 65536);
 					}
 					CP_XML_ATTR(L"type", L"gradient");
 				}
@@ -1359,12 +1362,12 @@ void xlsx_drawing_context::serialize_pic(_drawing_state_ptr & drawing_state)
 				{
 					CP_XML_ATTR(L"id", drawing_state->id);
 					if (drawing_state->name.empty())	
-						drawing_state->name = L"Picture_" + drawing_state->objectId.substr(5);
+						drawing_state->name = L"Picture_" + (drawing_state->objectId.size() > 5 ? drawing_state->objectId.substr(5) : std::to_wstring(drawing_state->id));
 					CP_XML_ATTR(L"name", drawing_state->name);		
 
 					if (!drawing_state->description.empty())
 					{
-						CP_XML_ATTR(L"descr", drawing_state->description);
+						CP_XML_ATTR(L"descr", XmlUtils::EncodeXmlString(drawing_state->description));
 					}
 					if (drawing_state->hidden)
 					{
@@ -1439,7 +1442,7 @@ void xlsx_drawing_context::serialize_chart(_drawing_state_ptr & drawing_state)
 					CP_XML_ATTR(L"name", drawing_state->name);
 					if (!drawing_state->description.empty())
 					{
-						CP_XML_ATTR(L"descr", drawing_state->description);
+						CP_XML_ATTR(L"descr", XmlUtils::EncodeXmlString(drawing_state->description));
 					}
 					if (drawing_state->hidden)
 					{
@@ -1491,7 +1494,7 @@ void xlsx_drawing_context::serialize_control(_drawing_state_ptr & drawing_state)
 					
 					if (!drawing_state->description.empty())
 					{
-						CP_XML_ATTR(L"descr", drawing_state->description);
+						CP_XML_ATTR(L"descr", XmlUtils::EncodeXmlString(drawing_state->description));
 					}
 					CP_XML_ATTR(L"hidden", 1);
 
@@ -1592,7 +1595,7 @@ void xlsx_drawing_context::serialize_shape(_drawing_state_ptr & drawing_state)
 					
 					if (!drawing_state->description.empty())
 					{
-						CP_XML_ATTR(L"descr", drawing_state->description);
+						CP_XML_ATTR(L"descr", XmlUtils::EncodeXmlString(drawing_state->description));
 					}
 					if (drawing_state->hidden)
 					{
@@ -1687,7 +1690,8 @@ void xlsx_drawing_context::serialize_shape(_drawing_state_ptr & drawing_state)
 				}
 				if (!is_lined_shape(drawing_state))
 				{
-					if (false == drawing_state->xmlFillAlternative.empty()) //Family budget (monthly)1.xls
+					if (false == drawing_state->xmlFillAlternative.empty() && 
+						std::wstring::npos == drawing_state->xmlFillAlternative.find(L"r:emb")) //Family budget (monthly)1.xls
 					{
 						CP_XML_STREAM() << drawing_state->xmlFillAlternative;
 					}
@@ -1765,7 +1769,9 @@ bool xlsx_drawing_context::is_lined_shape(_drawing_state_ptr & drawing_state)
 
 std::wstring xlsx_drawing_context::convert_custom_shape(_drawing_state_ptr & drawing_state)
 {
-	NSCustomShapesConvert::CCustomShape * shape = NSCustomShapesConvert::CCustomShape::CreateByType(drawing_state->shape_id);
+	CBaseShapePtr shapePtr = CPPTShape::CreateByType(static_cast<PPTShapes::ShapeType>(drawing_state->shape_id));
+	CPPTShape *shape = dynamic_cast<CPPTShape*>(shapePtr.get());
+
 	if (shape == NULL) return L"";
 
 	std::wstring strResult;
@@ -1785,7 +1791,7 @@ std::wstring xlsx_drawing_context::convert_custom_shape(_drawing_state_ptr & dra
 	
 	for (size_t i = 0 ; i < drawing_state->custom_guides.size(); i++)
 	{//todooo объеденить/срастить !!
-		NSCustomShapesConvert::CGuide guid;
+		NSCustomVML::CGuide guid;
 		
 		guid.m_eType		= drawing_state->custom_guides[i].m_eType;
 		guid.m_param_type1	= drawing_state->custom_guides[i].m_param_type1;
@@ -1802,10 +1808,10 @@ std::wstring xlsx_drawing_context::convert_custom_shape(_drawing_state_ptr & dra
 	{
 		if (0 == drawing_state->custom_segments[i].m_nCount)
 		{
-			if ((NSCustomShapesConvert::rtEnd		!= drawing_state->custom_segments[i].m_eRuler) &&
-				(NSCustomShapesConvert::rtNoFill	!= drawing_state->custom_segments[i].m_eRuler) &&
-				(NSCustomShapesConvert::rtNoStroke	!= drawing_state->custom_segments[i].m_eRuler) &&
-				(NSCustomShapesConvert::rtClose		!= drawing_state->custom_segments[i].m_eRuler))
+			if ((ODRAW::rtEnd		!= drawing_state->custom_segments[i].m_eRuler) &&
+				(ODRAW::rtNoFill	!= drawing_state->custom_segments[i].m_eRuler) &&
+				(ODRAW::rtNoStroke	!= drawing_state->custom_segments[i].m_eRuler) &&
+				(ODRAW::rtClose		!= drawing_state->custom_segments[i].m_eRuler))
 			{
 				continue;
 			}
@@ -1824,7 +1830,7 @@ std::wstring xlsx_drawing_context::convert_custom_shape(_drawing_state_ptr & dra
 		}
 	}
 	if (drawing_state->custom_path >= 0)
-		shape->m_oCustomVML.SetPath((NSCustomShapesConvert::RulesType)drawing_state->custom_path);
+		shape->m_oCustomVML.SetPath((ODRAW::RulesType)drawing_state->custom_path);
 
 	shape->m_oCustomVML.ToCustomShape(shape, shape->m_oManager);
 	shape->ReCalculate();
@@ -1834,12 +1840,12 @@ std::wstring xlsx_drawing_context::convert_custom_shape(_drawing_state_ptr & dra
 		shape->m_oPath.SetCoordsize(drawing_state->custom_rect.cx, drawing_state->custom_rect.cy);
 	}
 
-	NSCustomShapesConvert::CFormParam pParamCoef;
-	pParamCoef.m_eType	= NSCustomShapesConvert::ptValue;
+	NSGuidesVML::CFormParam pParamCoef;
+	pParamCoef.m_eType	= NSGuidesVML::ptValue;
 	pParamCoef.m_lParam = 65536;
 	pParamCoef.m_lCoef	= 65536;
 	
-	NSCustomShapesConvert::CFormulaConverter pFormulaConverter;
+	NSGuidesVML::CFormulaConverter pFormulaConverter;
 
 	//coeff
 	pFormulaConverter.ConvertCoef(pParamCoef);
@@ -1904,7 +1910,8 @@ std::wstring xlsx_drawing_context::convert_custom_shape(_drawing_state_ptr & dra
 		strResult = strm.str();
 	}
 
-	delete shape;
+	//delete shape;
+	//shapePtr.reset();
 
 	return strResult;
 }
@@ -1970,7 +1977,7 @@ void xlsx_drawing_context::serialize_fill(std::wostream & stream, _drawing_state
 //------------ 
 	if (fill.color.index >= 0 || !fill.color.sRGB.empty())
 	{
-		serialize_solid_fill(stream, fill.color, fill.opacity);
+		serialize_solid_fill(stream, fill.color, fill.color.opacity);
 	}
 	else serialize_none_fill(stream);
 }
@@ -2060,7 +2067,7 @@ void xlsx_drawing_context::serialize_gradient_fill(std::wostream & stream, _draw
 						CP_XML_NODE(L"a:gs")
 						{
 							CP_XML_ATTR(L"pos",  (int)(fill.colorsPosition[i].first * 100000));
-							serialize_color(CP_XML_STREAM(), fill.colorsPosition[i].second);
+							serialize_color(CP_XML_STREAM(), fill.colorsPosition[i].second, fill.colorsPosition[i].second.opacity);
 							//проверить что если тут индексы то они берутся с программных а не с юзерских (см как ниже)
 						}
 					}
@@ -2071,13 +2078,13 @@ void xlsx_drawing_context::serialize_gradient_fill(std::wostream & stream, _draw
 					{
 						fill.color.bScheme = false; // по общим индексам
 						CP_XML_ATTR(L"pos", 0);
-						serialize_color(CP_XML_STREAM(), fill.color, fill.opacity);
+						serialize_color(CP_XML_STREAM(), fill.color, fill.color.opacity);
 					}
 					CP_XML_NODE(L"a:gs")
 					{
 						fill.color2.bScheme = false; // по общим индексам
 						CP_XML_ATTR(L"pos", 100000);
-						serialize_color(CP_XML_STREAM(), fill.color2, fill.opacity2);
+						serialize_color(CP_XML_STREAM(), fill.color2, fill.color2.opacity);
 					}
 				}
 			}
@@ -2946,7 +2953,7 @@ void xlsx_drawing_context::set_picture_crop_right (double val)
 }
 void xlsx_drawing_context::set_picture_name(const std::wstring & str)
 {
-	//....
+	current_drawing_states->back()->fill.name = str;
 }
 void xlsx_drawing_context::set_picture_grayscale(bool val)
 {
@@ -3141,8 +3148,8 @@ void xlsx_drawing_context::set_fill_opacity	(double val, bool background)
 	if (current_drawing_states == NULL) return;
 	if (current_drawing_states->empty()) return;
 	
-	if (background)	current_drawing_states->back()->fill.opacity2	= val;
-	else			current_drawing_states->back()->fill.opacity	= val;
+	if (background)	current_drawing_states->back()->fill.color2.opacity	= val;
+	else			current_drawing_states->back()->fill.color.opacity	= val;
 }
 void xlsx_drawing_context::add_fill_colors(double position, const std::wstring & col)
 {

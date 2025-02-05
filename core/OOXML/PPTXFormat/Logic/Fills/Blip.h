@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,9 +31,10 @@
  */
 #pragma once
 
-#include "./../../WrapperWritingElement.h"
-#include "./../../Limit/BlipCompression.h"
-#include "./../UniEffect.h"
+#include "../../WrapperWritingElement.h"
+#include "../../Limit/BlipCompression.h"
+#include "../UniEffect.h"
+#include "../ExtP.h"
 #include "../../../DocxFormat/RId.h"
 
 namespace PPTX
@@ -43,7 +44,7 @@ namespace PPTX
 		class Blip : public WrapperWritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(Blip)
+			WritingElement_AdditionMethods(Blip)
 
 			Blip(std::wstring ns = L"a");
 			Blip& operator=(const Blip& oSrc);
@@ -64,7 +65,8 @@ namespace PPTX
 			virtual std::wstring GetFullPicName(OOX::IFileContainer* pRels = NULL) const;
 			virtual std::wstring GetFullOleName(const OOX::RId& pRId, OOX::IFileContainer* pRels = NULL) const;
 
-			std::vector<UniEffect> Effects;
+			std::vector<UniEffect>	Effects;
+			std::vector<Ext>		ExtLst;
 
 			nullable_limit<Limit::BlipCompression> cstate;
 			nullable<OOX::RId>	embed;
@@ -82,6 +84,7 @@ namespace PPTX
 			std::wstring		oleFilepathImage;
 			
 			std::wstring		dataFilepathImage;
+			std::string			dataFilepathImageA;
 
 		protected:
 			virtual void FillParentPointersForChilds();

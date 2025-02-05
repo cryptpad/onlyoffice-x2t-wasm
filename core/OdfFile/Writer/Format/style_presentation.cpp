@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -58,7 +58,7 @@ void presentation_placeholder::serialize(std::wostream & strm)
 			CP_XML_ATTR_OPT(L"svg:width", svg_width_);
 			CP_XML_ATTR_OPT(L"svg:x", svg_x_);
 			CP_XML_ATTR_OPT(L"svg:y", svg_y_);
-
+			CP_XML_ATTR_OPT(L"draw:text-style-name", text_style_name_);
 		}
 	}
 }
@@ -99,6 +99,8 @@ void drawing_page_properties::serialize(std::wostream & strm, const wchar_t * ns
 			CP_XML_ATTR_OPT(L"presentation:display-page-number",presentation_display_page_number_);
 			CP_XML_ATTR_OPT(L"presentation:display-date-time",	presentation_display_date_time_);
 			CP_XML_ATTR_OPT(L"presentation:display-header",		presentation_display_header_);
+
+			CP_XML_ATTR_OPT(L"presentation:visibility", presentation_visibility_);
 
 			if (presentation_sound_)
 				presentation_sound_->serialize(CP_XML_STREAM());

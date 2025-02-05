@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,7 +32,10 @@
 
 #include "MergeCells.h"
 
+#include "../../Common/SimpleTypes_Shared.h"
 #include "../../XlsbFormat/Biff12_records/MergeCell.h"
+#include "../../XlsbFormat/Biff12_records/BeginMergeCells.h"
+#include "../../XlsbFormat/Biff12_unions/MERGECELLS.h"
 
 namespace OOX
 {
@@ -68,6 +71,13 @@ namespace OOX
 		{
 			ReadAttributes(obj);
 		}
+		XLS::BaseObjectPtr CMergeCell::toBin()
+		{
+			auto castedPtr(new XLSB::MergeCell);
+			XLS::BaseObjectPtr ptr(castedPtr);
+			castedPtr->rfx = m_oRef.get();
+			return ptr;
+		}
 		EElementType CMergeCell::getType () const
 		{
 			return et_x_MergeCell;
@@ -81,7 +91,7 @@ namespace OOX
 		void CMergeCell::ReadAttributes(XLS::BaseObjectPtr& obj)
 		{
 			auto ptr = static_cast<XLSB::MergeCell*>(obj.get());
-			m_oRef  = ptr->rfx.toString();
+			m_oRef  = ptr->rfx.toString(true, true);
 		}
 
 		CMergeCells::CMergeCells(OOX::Document *pMain) : WritingElementWithChilds<CMergeCell>(pMain)
@@ -150,6 +160,19 @@ namespace OOX
 
 				pMergeCell->fromBin(mergeCell);
 			}
+		}
+		XLS::BaseObjectPtr CMergeCells::toBin()
+		{
+			auto castedPtr(new XLSB::MERGECELLS);
+            auto beginCells(new XLSB::BeginMergeCells);
+            castedPtr->m_BrtBeginMergeCells = XLS::BaseObjectPtr{beginCells};
+			XLS::BaseObjectPtr ptr(castedPtr);
+			for(auto i:m_arrItems)
+			{
+				castedPtr->m_arBrtMergeCell.push_back(i->toBin());
+			}
+            beginCells->cmcs = castedPtr->m_arBrtMergeCell.size();
+			return ptr;
 		}
 		EElementType CMergeCells::getType () const
 		{

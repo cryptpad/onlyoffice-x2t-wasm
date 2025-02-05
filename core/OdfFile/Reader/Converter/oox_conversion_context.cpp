@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -252,7 +252,7 @@ void styles_context::docx_serialize_table_style(std::wostream & strm, std::wstri
 }
 
 math_context::math_context(odf_reader::fonts_container & fonts, bool graphic) :
-						base_font_size_(12), fonts_container_(fonts), is_need_e_(false)
+						base_font_size_(12), fonts_container_(fonts)
 {
 	graphRPR_ = graphic;
 
@@ -261,13 +261,20 @@ math_context::math_context(odf_reader::fonts_container & fonts, bool graphic) :
 }
 void math_context::start()
 {
+	width = 0;
+	height = 0;
+
 	text_properties_ = odf_reader::style_text_properties_ptr(new odf_reader::style_text_properties());
 	
-	text_properties_->content_.style_font_name_ = L"Cambria Math";
+	text_properties_->content_.fo_font_family_ = base_font_name_.empty() ? L"Cambria Math" : base_font_name_;
 	text_properties_->content_.fo_font_size_ = odf_types::length(base_font_size_, odf_types::length::pt);
+	
+	start_level();
 }
 std::wstring math_context::end()
 {
+	end_level();
+	
 	std::wstring math = math_stream_.str();
 	
 	math_stream_.str( std::wstring() );

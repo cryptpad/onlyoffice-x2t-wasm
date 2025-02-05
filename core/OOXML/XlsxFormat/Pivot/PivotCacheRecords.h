@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,20 +31,33 @@
  */
 #pragma once
 
-#include "../CommonInclude.h"
+#include "../WritingElement.h"
+#include "../../Base/Nullable.h"
+#include "../FileTypes_Spreadsheet.h"
+#include "../../DocxFormat/IFileContainer.h"
+
+namespace SimpleTypes
+{
+	class CUnsignedDecimalNumber;
+}
 
 namespace OOX
 {
+	namespace Drawing
+	{
+		class COfficeArtExtensionList;
+	}
+
 	namespace Spreadsheet
 	{
 		class CPivotCacheRecord : public WritingElementWithChilds<WritingElement>
 		{
 		public:
-			WritingElement_AdditionConstructors(CPivotCacheRecord)
+			WritingElement_AdditionMethods(CPivotCacheRecord)
             WritingElement_XlsbConstructors(CPivotCacheRecord)
 			CPivotCacheRecord(){}
 			virtual ~CPivotCacheRecord() {}
-			
+
 			virtual void fromXML(XmlUtils::CXmlNode& node)
 			{
 			}
@@ -55,6 +68,8 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+            void fromBin(XLS::StreamCacheReaderPtr& reader);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const
 			{
 				return et_x_PivotCacheRecord;
@@ -64,7 +79,7 @@ namespace OOX
 		class CPivotCacheRecords : public WritingElementWithChilds<CPivotCacheRecord>
 		{
 		public:
-			WritingElement_AdditionConstructors(CPivotCacheRecords)
+			WritingElement_AdditionMethods(CPivotCacheRecords)
             WritingElement_XlsbConstructors(CPivotCacheRecords)
 			CPivotCacheRecords()
 			{
@@ -83,11 +98,13 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+            void fromBin(XLS::StreamCacheReaderPtr& reader);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const
 			{
 				return et_x_PivotCacheRecords;
 			}
-			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);		
+			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 
 			nullable<SimpleTypes::CUnsignedDecimalNumber>	m_oCount;
 			nullable<OOX::Drawing::COfficeArtExtensionList>	m_oExtLst;
@@ -101,7 +118,7 @@ namespace OOX
 			CPivotCacheRecordsFile(OOX::Document* pMain) : OOX::FileGlobalEnumerated(pMain), OOX::IFileContainer(pMain)
 			{
 				m_bSpreadsheets = true;
-				
+
 				m_pData = NULL;
 				m_nDataLength = 0;
 			}
@@ -132,12 +149,10 @@ namespace OOX
 				memcpy(m_pData, pData, length);
             }
             void readBin(const CPath& oPath);
+			XLS::BaseObjectPtr WriteBin() const;
 			virtual void read(const CPath& oRootPath, const CPath& oPath);
 			virtual void write(const CPath& oPath, const CPath& oDirectory, CContentTypes& oContent) const;
-			virtual const OOX::FileType type() const
-			{
-				return OOX::Spreadsheet::FileTypes::PivotCacheRecords;
-			}
+			virtual const OOX::FileType type() const;
 			virtual const CPath DefaultDirectory() const
 			{
 				return type().DefaultDirectory();
@@ -152,11 +167,12 @@ namespace OOX
 			}
 //---------------------------------------------------------------------
 			nullable<CPivotCacheRecords> m_oPivotCacheRecords;
-	//--------- 
+	//---------
 			BYTE *m_pData = NULL;
 			DWORD m_nDataLength = 0;
 		private:
-			CPath m_oReadPath;			
+			CPath m_oReadPath;
+			std::wstring prepareData() const;
 		};
 	} //Spreadsheet
 } // namespace OOX

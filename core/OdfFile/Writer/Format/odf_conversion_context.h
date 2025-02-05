@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -64,7 +64,8 @@ namespace odf_writer {
 		bool		 italic = false;
 		bool		 bold = false;
 
-		double		 approx_symbol_size = 0;//in pt
+		double		 approx_symbol_width = 0;//in pt
+		double		 approx_symbol_height = 0;//in pt
 	};
 //----------------------------------------------------------------------
 	class office_element;
@@ -87,7 +88,8 @@ class odf_conversion_context : boost::noncopyable
 		std::vector<office_element_ptr>		content_styles;
 		std::vector<office_element_ptr>		styles;	
 		office_element_ptr					settings;	
-	
+		std::vector<office_element_ptr>		meta;
+
 		odf_style_context_ptr				style_context;	
 		odf_settings_context_ptr			settings_context;
 		_mediaitems							mediaitems;
@@ -99,11 +101,14 @@ class odf_conversion_context : boost::noncopyable
 
 public:
 	const _office_type_document	type;
+	std::wstring temp_path_;
 
     odf_conversion_context(_office_type_document type, package::odf_document * outputDocument);
     virtual ~odf_conversion_context();
 
-    void set_fonts_directory(std::wstring pathFonts);
+    void set_fonts_directory(const std::wstring & fontsPath);
+	void set_temp_directory(const std::wstring & tempPath);
+	
 	void add_font(const std::wstring & font_name);
 
     virtual void	start_document() = 0 ;
@@ -118,11 +123,16 @@ public:
 
     std::wstring add_image		(const std::wstring & image_file_name, bool bExternal = false);
     std::wstring add_media		(const std::wstring & file_name, bool bExternal = false);
-    std::wstring add_oleobject	(const std::wstring & ole_file_name);
-    std::wstring add_imageobject(const std::wstring & ole_file_name);
+    std::wstring add_oleobject	(const std::wstring & ole_file_name, bool bExternal = false);
+    std::wstring add_imageobject(const std::wstring & ole_file_name, bool bExternal = false);
 	
-	virtual odf_style_context		* styles_context();
+	void add_meta(const std::wstring & ns, const std::wstring & name, const std::wstring & content);
+	void add_meta(const office_element_ptr &elm);
+	void add_meta_user_define(const std::wstring& name, const std::wstring& content);
 	
+	virtual odf_style_context_ptr	styles_context();
+	virtual void					set_styles_context(odf_style_context_ptr styles_context);
+
 	odf_settings_context			* settings_context();
 	odf_chart_context				* chart_context();
 	odf_page_layout_context			* page_layout_context();
@@ -162,9 +172,13 @@ public:
 		void add_tab(_CP_OPT(int) type, _CP_OPT(odf_types::length) length, _CP_OPT(int) leader);
 	void end_tabs();
 
-	void calculate_font_metrix(std::wstring name, double size, bool italic, bool bold);
-	double convert_symbol_width(double val);
+	void calculate_font_metrix(std::wstring name, double size, bool italic, bool bold, bool recalc = false);
+	double convert_symbol_width(double va, bool add_padding = false);
 
+	void add_hyperlink(office_element_ptr& elem, const std::wstring& ref);
+	std::vector<std::pair<office_element_ptr, std::wstring>> get_deferred_hyperlinks();
+
+	std::pair<double, double> font_metrix() { return std::make_pair(font_metrix_.approx_symbol_width, font_metrix_.approx_symbol_height); }
 protected:
 	std::vector<odf_text_context_ptr> text_context_;
 	std::vector<odf_drawing_context_ptr> drawing_context_;
@@ -185,22 +199,7 @@ private:
 	
 	int	 current_object_;
 
-	//page_layout_container & pageLayoutContainer()	{ return page_layout_container_; }
-	//fonts_container		& fontContainer()		{ return fonts_container_; }
-	//list_style_container	& listStyleContainer()	{ return list_style_container_; }
-
-	//notes_configuration &	noteConfiguration()		{ return notes_configuration_; }
-
-	//styles_lite_container &	Templates()			{ return template_container_; }
-
-
-    //styles_container		major_style_container_;
-	//page_layout_container	page_layout_container_;
-	//fonts_container		fonts_container_;
-	//list_style_container	list_style_container_;
-	//notes_configuration	notes_configuration_;
-
-	//styles_lite_container	template_container_;
+	std::vector<std::pair<office_element_ptr, std::wstring>> hyperlinks_;
 };
 
 }

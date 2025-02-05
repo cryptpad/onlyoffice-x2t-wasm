@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,6 +34,9 @@
 #include "../XlsxFlat.h"
 
 #include "../../XlsbFormat/Biff12_unions/COLINFOS.h"
+#include "../../XlsbFormat/Biff12_records/CommonRecords.h"
+
+#include "../../Common/SimpleTypes_Shared.h"
 
 namespace OOX
 {
@@ -77,6 +80,56 @@ namespace OOX
 			void CCol::fromBin(XLS::BaseObjectPtr& obj)
 			{
 				ReadAttributes(obj);
+			}
+			XLS::BaseObjectPtr CCol::toBin()
+			{
+				auto castedPtr = new XLSB::ColInfo;
+				XLS::BaseObjectPtr ptr(castedPtr);
+				if(m_oBestFit.IsInit())
+					castedPtr->fBestFit = m_oBestFit->ToBool();
+				else
+					castedPtr->fBestFit = false;
+				if(m_oCollapsed.IsInit())
+					castedPtr->fCollapsed = m_oCollapsed->ToBool();
+				else
+					castedPtr->fCollapsed = false;
+				if(m_oCustomWidth.IsInit())
+					castedPtr->fUserSet = m_oCustomWidth->ToBool();
+				else
+					castedPtr->fUserSet = false;
+				if(m_oHidden.IsInit())
+					castedPtr->fHidden = m_oHidden->ToBool();
+				else
+					castedPtr->fHidden = false;
+				if(m_oMax.IsInit())
+					castedPtr->colLast = m_oMax->m_eValue - 1;
+				else
+                    castedPtr->colLast = 16383;
+				if(m_oMin.IsInit())
+					castedPtr->colFirst  = m_oMin->m_eValue - 1;
+				else
+					castedPtr->colFirst = 0;
+				if(m_oOutlineLevel.IsInit())
+					castedPtr->iOutLevel =  m_oOutlineLevel->m_eValue;
+				else
+					castedPtr->iOutLevel = false;
+				if(m_oPhonetic.IsInit())
+					castedPtr->fPhonetic = m_oPhonetic->ToBool();
+				else
+					castedPtr->fPhonetic = false;
+				if(m_oStyle.IsInit())
+					castedPtr->ixfeXLSB = m_oStyle->m_eValue;
+                else
+                    castedPtr->ixfeXLSB = 0;
+
+				if (m_oWidth.IsInit())
+				{
+					if(m_oWidth->GetValue() > 0)
+						castedPtr->coldx           = m_oWidth->GetValue() * 256;
+				}
+				else
+					castedPtr->coldx = 2304; ///standart col width(9) * 256
+				return ptr;
 			}
 			EElementType CCol::getType() const
 			{
@@ -226,6 +279,15 @@ namespace OOX
 						m_arrItems.push_back(pCol);
 					}
 				}
+			}
+			std::vector<XLS::BaseObjectPtr> CCols::toBin()
+			{
+				std::vector<XLS::BaseObjectPtr> ptrVector;
+				for(auto i:m_arrItems)
+				{
+					ptrVector.push_back(i->toBin());
+				}
+				return ptrVector;
 			}
 			EElementType CCols::getType () const
 			{

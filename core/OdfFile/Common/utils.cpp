@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -96,8 +96,8 @@ namespace _graphics_utils_
                     double dpi_x = file->GetHorizontalResolution();
                     double dpi_y = file->GetVerticalResolution();
 
-                    if (dpi_x <1 )dpi_x = 96;
-                    if (dpi_y <1 )dpi_y = 96;
+                    if (dpi_x <1 ) dpi_x = 96;
+                    if (dpi_y <1 ) dpi_y = 96;
 
                     Height = Height *72. / dpi_y;
                     Width = Width * 72. /dpi_x;
@@ -110,16 +110,17 @@ namespace _graphics_utils_
         }
 		return result;
 	}
-	double calculate_size_symbol_win(std::wstring name, double size, bool italic, bool bold, std::wstring test_str)
+	std::pair<double, double> calculate_size_symbol_win(std::wstring name, double size, bool italic, bool bold, std::wstring test_str)
 	{
-		double result =0;
+		std::pair<double, double> result = std::make_pair(7., 8.);
+
 #if defined(_WIN32) || defined(_WIN64)
 		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 		ULONG_PTR gdiplusToken=0;
 		Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 		////
 		bool to_one_char = false;
-		if (test_str.length() <1 )
+		if (test_str.empty())
 		{
 			test_str = L"0123456789";
 			to_one_char = true;
@@ -142,13 +143,22 @@ namespace _graphics_utils_
 				Gdiplus::RectF bound;
 				Gdiplus::Status res = gr->MeasureString(test_str.c_str(),test_str.length(),font,layout,&bound);
 
-				if (res==0)result = (bound.Width - 2);
-				if (to_one_char) result /= test_str.length();
+				if (res == 0)
+				{
+					result.first = (bound.Width - 2);
+					result.second = (bound.Height - 2);
+				}
+				if (to_one_char)
+				{
+					result.first /= test_str.length();
+				}
 
 				//normalize to dpi = 96;
-				double dpi = gr->GetDpiX();
+				double dpiX = gr->GetDpiX();
+				double dpiY = gr->GetDpiY();
 
-				result = result * 96./dpi;
+				result.first = result.first * 96./ dpiX;
+				result.second = result.second * 96. / dpiY;
 
 				delete font;
 			}
@@ -158,12 +168,12 @@ namespace _graphics_utils_
 #endif
 		return result;
 	}
-	std::pair<float,float> calculate_size_symbol_asc(std::wstring name, double size, bool italic, bool bold , NSFonts::IApplicationFonts *appFonts)
+	std::pair<double, double> calculate_size_symbol_asc(std::wstring name, double size, bool italic, bool bold , NSFonts::IApplicationFonts *appFonts)
 	{
 		if (name.empty())
-			name = L"Arial";
+			name = L"Calibri";
 
-		std::pair<float,float> val = cpdoccore::utils::GetMaxDigitSizePixels(name, size, 96., 0 , appFonts);
+		std::pair<double, double> val = cpdoccore::utils::GetMaxDigitSizePixels(name, size, 96., 0 , appFonts);
 
         return val;
 	}

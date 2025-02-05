@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -56,17 +56,35 @@ BiffStructurePtr PtgName::clone()
 
 void PtgName::loadFields(CFRecord& record)
 {
-	record >> nameindex;
 	
 	if (record.getGlobalWorkbookInfo()->Version < 0x0600)
 	{
+		_UINT16 val;
+		record >> val;
+		nameindex = val;
 		record.skipNunBytes(12);
 	}
 	else
 	{
-		record.skipNunBytes(2);
+		record >> nameindex;		
 	}
 	
+	global_info = record.getGlobalWorkbookInfo();
+}
+
+void PtgName::writeFields(CFRecord& record)
+{
+	record << nameindex;
+
+	if (record.getGlobalWorkbookInfo()->Version < 0x0600)
+	{
+		record.reserveNunBytes(12);
+	}
+    else if(record.getGlobalWorkbookInfo()->Version < 0x0800 )
+	{
+		record.reserveNunBytes(2);
+	}
+
 	global_info = record.getGlobalWorkbookInfo();
 }
 
@@ -84,7 +102,7 @@ void PtgName::assemble(AssemblerStack& ptg_stack, PtgQueue& extra_data, bool ful
 
 	std::wstring ptg;
 	
-	if ((global_info) && (nameindex <= global_info->arDefineNames.size()))
+    if ((global_info) && (nameindex <= global_info->arDefineNames.size()) && nameindex)
 	{
 		ptg = global_info->arDefineNames[nameindex-1];
 	}

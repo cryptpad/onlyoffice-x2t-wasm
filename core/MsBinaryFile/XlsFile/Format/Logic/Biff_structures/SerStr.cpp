@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -71,10 +71,30 @@ void SerStr::load(CFRecord& record)
     }
 }
 
+void SerStr::save(CFRecord& record)
+{
+    char serType;
+    if (record.getGlobalWorkbookInfo()->Version < 0x0800)
+    {
+        serType = 2;
+        record << serType << string_;
+    }
+    else
+    {
+        serType = 1;
+        rgch = string_;
+        cch = string_.getSize();
+        record <<serType << cch;
+        for(auto i:rgch)
+        {
+            record.storeAnyData(i);
+        }
+    }
+}
 
 const std::wstring SerStr::toString() const
 {
-	return L"\"" + boost::algorithm::replace_all_copy(std::wstring(string_), L"\"", L"\"\"") + L"\"";
+    return L"\"" + boost::algorithm::replace_all_copy(std::wstring(rgch), L"\"", L"\"\"") + L"\"";
 }
 
 

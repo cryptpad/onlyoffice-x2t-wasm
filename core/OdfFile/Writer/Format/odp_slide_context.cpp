@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -46,17 +46,17 @@ namespace cpdoccore {
 
 namespace odf_writer {
 
-odp_slide_context::odp_slide_context(odp_conversion_context & Context) : styles_context_(NULL), context_(Context), table_context_(&Context), comment_context_(&Context)
+odp_slide_context::odp_slide_context(odp_conversion_context & Context) : context_(Context), table_context_(&Context), comment_context_(&Context)
 {       
 	count_slides_	= 0;
 	styles_context_ = Context.styles_context();
 }
-void odp_slide_context::set_styles_context(odf_style_context*  styles_context)
+void odp_slide_context::set_styles_context(odf_style_context_ptr  styles_context)
 {
 	styles_context_ = styles_context;
 }
 
-odf_style_context* odp_slide_context::get_styles_context()
+odf_style_context_ptr odp_slide_context::get_styles_context()
 {
 	return styles_context_;
 }
@@ -66,8 +66,14 @@ odp_page_state & odp_slide_context::state()
     return page_state_list_.back();
 }
 
+int odp_slide_context::page_index()
+{
+	return count_slides_ - 1;
+}
+
 void odp_slide_context::start_page(office_element_ptr & elm)
 {
+	context_.map_identifiers_.push_back(odp_conversion_context::IdentifierMap());
 	page_state_list_.push_back( odp_page_state(&context_, elm) );
 	
 	std::wstring style_name_new = L"dp" + std::to_wstring(++count_slides_);
@@ -78,6 +84,11 @@ void odp_slide_context::start_page(office_element_ptr & elm)
 	state().set_page_id(count_slides_);
 	state().set_page_style(style);
 	state().drawing_context()->set_styles_context(styles_context_);
+}
+
+void odp_slide_context::hide_page()
+{
+	state().hide_page();
 }
 
 void odp_slide_context::end_page()
@@ -185,7 +196,7 @@ void odp_slide_context::start_table_row (bool styled)
 
 	if (styled)
 	{
-		styles_context_->create_style(L"",odf_types::style_family::TableRow, true, false, -1);
+		styles_context_->create_style(L"", odf_types::style_family::TableRow, true, false, -1);
 		
 		odf_style_state_ptr style_state = styles_context_->last_state(style_family::TableRow);
 		if (style_state)
@@ -228,10 +239,10 @@ void odp_slide_context::start_table_cell(int col, bool covered, bool styled)
 
 				if (gr && gr_def) gr->apply_from(*gr_def);
 
-				style_paragraph_properties *para = style_state->get_paragraph_properties();
-				style_paragraph_properties *para_def = style_state_def->get_paragraph_properties();
+				paragraph_format_properties *para = style_state->get_paragraph_properties();
+				paragraph_format_properties *para_def = style_state_def->get_paragraph_properties();
 				
-				if (para && para_def) para->apply_from(para_def);
+				if (para && para_def) para->apply_from(*para_def);
 			}
 		}
 	}

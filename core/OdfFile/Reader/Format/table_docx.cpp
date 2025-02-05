@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -202,7 +202,7 @@ void table_table::docx_convert(oox::docx_conversion_context & Context)
 
 	_Wostream << L"<w:tbl>";    
 
-	Context.start_changes(); //TblPrChange
+	Context.start_changes(false); //TblPrChange
 	
 	Context.get_table_context().start_table(tableStyleName);
 
@@ -292,16 +292,16 @@ void table_table_column_group::docx_convert(oox::docx_conversion_context & Conte
 void table_table_column::docx_convert(oox::docx_conversion_context & Context)
 {
     std::wostream & _Wostream = Context.output_stream();
-    const unsigned int columnsRepeated = table_table_column_attlist_.table_number_columns_repeated_;
-    const std::wstring defaultCellStyle = table_table_column_attlist_.table_default_cell_style_name_.get_value_or(L"");
+    const unsigned int columnsRepeated = attlist_.table_number_columns_repeated_;
+    const std::wstring defaultCellStyle = attlist_.table_default_cell_style_name_.get_value_or(L"");
     Context.get_table_context().start_column(columnsRepeated, defaultCellStyle);
 
     for (unsigned int i = 0; i < columnsRepeated; ++i)
     {
 		bool bAddWidth = false;
-        if (table_table_column_attlist_.table_style_name_)
+        if (attlist_.table_style_name_)
         {
-            const std::wstring colStyleName = table_table_column_attlist_.table_style_name_.get();
+            const std::wstring colStyleName = attlist_.table_style_name_.get();
             if (style_instance * inst = 
                 Context.root()->odf_context().styleContainer().style_by_name( colStyleName , style_family::TableColumn, Context.process_headers_footers_ ))
             {

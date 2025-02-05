@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -38,27 +38,40 @@ namespace PPTX
 	{		
 		ChartBuildType::ChartBuildType()
 		{
-			m_strValue = _T("allAtOnce");
+			m_strValue = L"allAtOnce";
 		}
 		void ChartBuildType::set(const std::wstring& strValue)
 		{
-			if ((_T("allAtOnce") == strValue) ||
-				(_T("category") == strValue) ||
-				(_T("categoryEl") == strValue) ||
-				(_T("series") == strValue) ||
-				(_T("seriesEl") == strValue))
+			if ((L"allAtOnce" == strValue) ||
+				(L"category" == strValue) ||
+				(L"categoryEl" == strValue) ||
+				(L"series" == strValue) ||
+				(L"seriesEl" == strValue))
 			{
 				m_strValue = strValue;
 			}
 		}
-		BYTE ChartBuildType::GetBYTECode() const
+		unsigned char ChartBuildType::GetBYTECode() const
 		{
-			//not using yet
+			if (L"allAtOnce" == m_strValue)	return 0;
+			if (L"category" == m_strValue)	return 1;
+			if (L"categoryEl" == m_strValue)return 2;
+			if (L"series" == m_strValue)	return 3;
+			if (L"seriesEl" == m_strValue)	return 4;
+
 			return 0;
 		}
-		void ChartBuildType::SetBYTECode(const BYTE& src)
+		void ChartBuildType::SetBYTECode(const unsigned char& src)
 		{
-			//not using yet
+			switch (src)
+			{
+			case 0:		m_strValue = L"allAtOnce";			break;
+			case 1:		m_strValue = L"category";		break;
+			case 2:		m_strValue = L"categoryEl";		break;
+			case 3:		m_strValue = L"series";	break;
+			case 4:		m_strValue = L"seriesEl";		break;
+			default:	m_strValue = L"allAtOnce";
+			}
 		}
 	} // namespace Limit
 } // namespace PPTX

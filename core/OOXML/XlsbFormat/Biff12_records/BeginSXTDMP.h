@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,9 +31,9 @@
  */
 #pragma once
 
-#include  "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/BiffRecord.h"
 #include "../../XlsxFormat/WritingElement.h"
-#include "../Biff12_structures/XLWideString.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/BiffRecord.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/BIFF12/XLWideString.h"
 
 namespace XLSB
 {
@@ -48,13 +48,15 @@ namespace XLSB
 
             XLS::BaseObjectPtr clone();
 
-            void readFields(XLS::CFRecord& record);
+			void readFields(XLS::CFRecord& record) override;
+			void writeFields(XLS::CFRecord& record) override;
 
-            _UINT16             cchLevelUnq;
-            _UINT16             ichPropName;
-            _UINT32             isxtl;
-            _INT32              isxvd;
-            bool                fDisplayInReport;
+            _UINT16             cchLevelUnq = 0;
+            _UINT16             ichPropName = 0;
+            _UINT16             cchPropName = 0;
+            _UINT32             isxtl = 0;
+            _INT32              isxvd = -1;
+            bool                fDisplayInReport = false;
             XLWideString        irstProperty;
     };
 

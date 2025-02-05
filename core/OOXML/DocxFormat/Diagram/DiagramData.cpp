@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2016
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,6 +32,16 @@
 #pragma once
 
 #include "DiagramData.h"
+
+#include "../../Common/SimpleTypes_Drawing.h"
+#include "../../Common/SimpleTypes_Shared.h"
+
+#include "../Drawing/DrawingExt.h"
+
+#include "../Document.h"
+#include "../../XlsxFormat/Xlsx.h"
+
+#include "../../PPTXFormat/Logic/SpTree.h"
 #include "../../Binary/Presentation/BinaryFileReaderWriter.h"
 
 namespace OOX
@@ -174,7 +184,7 @@ namespace OOX
 
 	void Diagram::CAnimLvl::toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const
 	{
-		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : 0, pWriter);
+		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : SimpleTypes::EAnimLvlStr::animLvlStr_none, pWriter);
 	}
 
 //------------------------------------------------------------------------------------------------------
@@ -204,7 +214,7 @@ namespace OOX
 
 	void Diagram::CAnimOne::toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const
 	{
-		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : 0, pWriter);
+		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : SimpleTypes::EAnimOneStr::animOneStr_none, pWriter);
 	}
 
 //------------------------------------------------------------------------------------------------------
@@ -234,7 +244,7 @@ namespace OOX
 
 	void Diagram::CBulletEnabled::toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const
 	{
-		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : 0, pWriter);
+		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : SimpleTypes::onoffFalse, pWriter);
 	}
 
 //------------------------------------------------------------------------------------------------------
@@ -324,7 +334,7 @@ namespace OOX
 
 	void Diagram::CDirection::toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const
 	{
-		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : 0, pWriter);
+		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : SimpleTypes::EDirectionDraw::direction_norm, pWriter);
 	}
 
 //------------------------------------------------------------------------------------------------------
@@ -353,7 +363,7 @@ namespace OOX
 
 	void Diagram::CHierBranch::toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const
 	{
-		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : 0, pWriter);
+		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : SimpleTypes::EHierBranch::hierBranch_std, pWriter);
 	}
 
 //------------------------------------------------------------------------------------------------------
@@ -383,7 +393,7 @@ namespace OOX
 
 	void Diagram::COrgChart::toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const
 	{
-		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : 0, pWriter);
+		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : SimpleTypes::EOnOff::onoffFalse, pWriter);
 	}
 
 //------------------------------------------------------------------------------------------------------
@@ -413,7 +423,7 @@ namespace OOX
 
 	void Diagram::CResizeHandles::toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const
 	{
-		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : 0, pWriter);
+		WriteByteToPPTY(m_oVal.IsInit() ? (BYTE)m_oVal->GetValue() : SimpleTypes::EResizeHandles::resizeHandles_exact, pWriter);
 	}
 
 //------------------------------------------------------------------------------------------------------
@@ -436,6 +446,8 @@ namespace OOX
 
 	void Diagram::CVariableList::fromXML(XmlUtils::CXmlLiteReader& oReader)
 	{
+		node_name = oReader.GetName();
+
 		if (oReader.IsEmptyNode())
 			return;
 
@@ -946,7 +958,9 @@ namespace OOX
 
 			if (L"dgm:pt" == sName)
 			{
-				m_arrItems.push_back(new Diagram::CPt(oReader));
+				Diagram::CPt* pPt = new Diagram::CPt();
+				*pPt = oReader;
+				m_arrItems.push_back(pPt);
 			}
 			else if (L"mc:AlternateContent" == sName)
 			{
@@ -1149,7 +1163,12 @@ namespace OOX
 			std::wstring sName = oReader.GetName();
 
 			if (L"dgm:cxn" == sName)
-				m_arrItems.push_back(new Diagram::CCxn(oReader));
+			{
+				Diagram::CCxn* pCxn = new Diagram::CCxn();
+				*pCxn = oReader;
+
+				m_arrItems.push_back(pCxn);
+			}
 		}
 	}
 
@@ -1620,7 +1639,12 @@ namespace OOX
 			std::wstring sName = oReader.GetName();
 
 			if (L"dgm:cat" == sName)
-				m_arrItems.push_back(new Diagram::CCat(oReader));
+			{
+				Diagram::CCat* pCat = new Diagram::CCat();
+				*pCat = oReader;
+
+				m_arrItems.push_back(pCat);
+			}
 		}
 	}
 
@@ -1682,6 +1706,8 @@ namespace OOX
 
 	void Diagram::CText::fromXML(XmlUtils::CXmlLiteReader& oReader)
 	{
+		node_name = oReader.GetName();
+
 		ReadAttributes(oReader);
 
 		if (oReader.IsEmptyNode())
@@ -1732,17 +1758,25 @@ namespace OOX
 
 //-------------------------------------------------------------------------------------------
 
-	CDiagramData::CDiagramData(OOX::Document* pMain) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
+	CDiagramData::CDiagramData(OOX::Document* pMain, bool bDocument) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
 	{
+		m_bDocument = bDocument;
+		m_bSpreadsheets = (NULL != dynamic_cast<OOX::Spreadsheet::CXlsx*>(pMain));
 	}
 
 	CDiagramData::CDiagramData(OOX::Document* pMain, const CPath& uri) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
 	{
+		m_bDocument = (NULL != dynamic_cast<OOX::CDocument*>(pMain));
+		m_bSpreadsheets = (NULL != dynamic_cast<OOX::Spreadsheet::CXlsx*>(pMain));
+
 		read(uri.GetDirectory(), uri);
 	}
 
 	CDiagramData::CDiagramData(OOX::Document* pMain, const CPath& oRootPath, const CPath& oPath) : OOX::IFileContainer(pMain), OOX::FileGlobalEnumerated(pMain)
 	{
+		m_bDocument = (NULL != dynamic_cast<OOX::CDocument*>(pMain));
+		m_bSpreadsheets = (NULL != dynamic_cast<OOX::Spreadsheet::CXlsx*>(pMain));
+
 		read( oRootPath, oPath );
 	}
 
@@ -1809,7 +1843,10 @@ namespace OOX
 
 	const CPath CDiagramData::DefaultDirectory() const
 	{
-		return type().DefaultDirectory();
+		if (m_bDocument)
+			return type().DefaultDirectory();
+		else
+			return L"../" + type().DefaultDirectory();
 	}
 
 	const CPath CDiagramData::DefaultFileName() const

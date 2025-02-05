@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,7 +32,6 @@
 #pragma once
 
 #include "../../DesktopEditor/xml/include/xmlutils.h"
-#include "../../MsBinaryFile/XlsFile/Format/Logic/BaseObject.h"
 #include "../Base/SmartPtr.h"
 
 namespace NSBinPptxRW
@@ -41,42 +40,39 @@ namespace NSBinPptxRW
 	class CBinaryFileReader;
 	class CXmlWriter;
 }
+
 namespace OOX
 {
-#define WritingElement_AdditionConstructors(Class) \
-	explicit Class(XmlUtils::CXmlNode& oNode)\
-	{\
-	m_pMainDocument = NULL;\
-	fromXML( oNode );\
-}\
-	explicit Class(const XmlUtils::CXmlNode& node)\
-	{\
-	m_pMainDocument = NULL;\
-	fromXML(const_cast<XmlUtils::CXmlNode&> (node));\
-}\
-	Class(XmlUtils::CXmlLiteReader& oReader)\
-	{\
-	m_pMainDocument = NULL;\
-	fromXML( oReader );\
-}\
+#define AssignPtrXmlContentNoMain(Ptr, Class, Content) \
+{\
+	Ptr = new Class();\
+	Class *pClass = dynamic_cast<Class*>(Ptr);\
+	*pClass = Content;\
+}
+#define AssignPtrXmlContent(Ptr, Class, Content) \
+{\
+	Ptr = new Class(WritingElement::m_pMainDocument);\
+	Class *pClass = dynamic_cast<Class*>(Ptr);\
+	*pClass = Content;\
+}
+
+#define WritingElement_AdditionMethods(Class) \
 	const Class& operator =(const XmlUtils::CXmlNode &oNode)\
 	{\
-	m_pMainDocument = NULL;\
 	fromXML( (XmlUtils::CXmlNode &)oNode );\
 	return *this;\
 }\
 	const Class& operator =(const XmlUtils::CXmlLiteReader& oReader)\
 	{\
-	m_pMainDocument = NULL;\
 	fromXML( (XmlUtils::CXmlLiteReader&)oReader );\
 	return *this;\
 }\
-	const Class& operator =(XmlUtils::CXmlNode& node)				\
-	{																\
+	const Class& operator =(XmlUtils::CXmlNode& node)\
+	{\
 	m_pMainDocument = NULL;\
-	fromXML(node);												\
-	return *this;												\
-}																\
+	fromXML(node);\
+	return *this;\
+}\
 
 #define WritingElement_XlsbConstructors(Class) \
 	explicit Class(XLS::BaseObjectPtr& obj)\
@@ -501,6 +497,7 @@ namespace OOX
 		et_graphicFrame,	// <...:graphicFrame>
 		et_pic,				// <...:pic>
 		et_cxnSp,			// <...:cxnSp>
+		et_oleobject,
 		
 		et_p_cNvPicPr,        // <p:cNvPicPr>
 		et_p_cNvPr,            // <p:cNvPr>
@@ -791,6 +788,7 @@ namespace OOX
 		et_w_bdo, // <w:bdo>
 		et_w_binData, // <w:binData>
 		et_w_bgPict,  // <w:bgPict>
+		et_w_docSuppData,  // <w:docSuppData> 
 		et_w_bookmarkEnd, // <w:bookmarkEnd>
 		et_w_bookmarkStart, // <w:bookmarkStart>
 		et_w_br, // <w:br>
@@ -1169,6 +1167,10 @@ namespace OOX
 		et_ct_alternatecontent,
 		et_ct_alternatecontentchoice,
 		et_ct_alternatecontentfallback,
+		et_ct_CategoryFilterExceptions,
+		et_ct_CategoryFilterException,
+		et_ct_SeriesDataLabelsRange,
+		et_ct_SeriesFiltering,
 
 		et_ct_TickMarks,
 		et_ct_Gridlines,
@@ -1222,6 +1224,7 @@ namespace OOX
 		et_x_WorkbookPr,
 		et_x_WorkbookProtection,
 		et_x_WorkbookView, // <workbookView>
+		et_x_FileSharing,
 		et_x_DefinedNames, // <definedNames>
 		et_x_DefinedName, // <definedName>
 		et_x_Sheets, // <sheets>
@@ -1371,6 +1374,7 @@ namespace OOX
 		et_x_ExternalSheetData,
 		et_x_ExternalRow,
 		et_x_ExternalCell,
+		et_x_AlternateUrls,
 		et_x_OleLink,
 		et_x_OleItems,
 		et_x_OleItem,
@@ -1397,6 +1401,9 @@ namespace OOX
 		et_x_FormControlPr,
 		et_x_ListItems,
 		et_x_ListItem,
+
+		et_x_UserProtectedRange,
+		et_x_UserProtectedRanges,
 
 		et_x_WorkbookPivotCache,
 		et_x_WorkbookPivotCaches,
@@ -1490,7 +1497,46 @@ namespace OOX
 		et_x_SparklineGroup,
 		et_x_Sparklines,
 		et_x_Sparkline,
-		et_x_Style2003
+
+		et_x_Style2003,
+
+		et_x_TimelineCachePivotTable,
+		et_x_TimelineRange,
+		et_x_TimelineCachePivotTables,
+		et_x_Timeline,
+		et_x_Timelines,
+		et_x_TimelineCacheDefinition,
+		et_x_TimelinePivotFilter,
+		et_x_TimelineState,
+		et_x_TimelineRefs,
+		et_x_TimelineRef,
+		et_x_TimelineCacheRefs,
+		et_x_TimelineCacheRef,	
+		et_x_Timeslicer,
+		et_x_TimelineStyles,
+		et_x_TimelineStyle,
+		et_x_TimelineStyleElement,
+
+		et_x_Metadata,
+		et_x_FutureMetadata,
+		et_x_FutureMetadataBlock,
+		et_x_MetadataType,
+		et_x_MetadataTypes,
+		et_x_MetadataBlocks,
+		et_x_MetadataBlock,
+		et_x_MetadataRecord,
+		et_x_MetadataString,
+		et_x_MetadataStrings,
+		et_x_MdxMetadata,
+		et_x_Mdx,
+		et_x_MdxTuple,
+		et_x_MetadataStringIndex,
+		et_x_MdxSet,
+		et_x_MdxMemeberProp,
+		et_x_MdxKPI,
+
+		et_x_DynamicArrayProperties,
+		et_x_RichValueBlock
 	};
 
 	class File;
@@ -1502,12 +1548,13 @@ namespace OOX
 		virtual ~Document();
 
 		std::wstring m_sDocumentPath;
+		std::wstring m_sTempPath;
 		std::map<std::wstring, NSCommon::smart_ptr<OOX::File>> m_mapContent;
 	};
 
 	class WritingElement
 	{
-	public:
+	public:		
 		WritingElement(OOX::Document *pMain = NULL);
 		virtual ~WritingElement();
 

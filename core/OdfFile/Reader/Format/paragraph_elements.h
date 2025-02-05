@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -42,6 +42,7 @@
 #include "../../DataTypes/noteclass.h"
 #include "../../DataTypes/bool.h"
 #include "../../DataTypes/bibliography.h"
+#include "../../DataTypes/referenceformat.h"
 
 #include "../../Reader/Converter/docx_conversion_context.h"
 
@@ -67,11 +68,17 @@ public:
 	virtual void xlsx_convert(oox::xlsx_conversion_context & Context){}
 	virtual void pptx_convert(oox::pptx_conversion_context & Context){}
 
-	virtual void docx_serialize_sdt_placeholder(const std::wstring & name, office_element_ptr & text, oox::docx_conversion_context & Context);
-	virtual void docx_serialize_field(const std::wstring & field_name, office_element_ptr & text, oox::docx_conversion_context & Context, bool bLock = false);
-	virtual void docx_serialize_run(office_element_ptr & text, oox::docx_conversion_context & Context);
+    virtual void docx_serialize_sdt_placeholder(const std::wstring& name, office_element_ptr_array& content, oox::docx_conversion_context& Context);
+    virtual void docx_serialize_sdt_placeholder(const std::wstring & name, office_element_ptr & text, oox::docx_conversion_context & Context);
+	
+    virtual void docx_serialize_field(const std::wstring & field_name, office_element_ptr & content, oox::docx_conversion_context & Context, bool bLock = false);
+    virtual void docx_serialize_field(const std::wstring& field_name, office_element_ptr_array& text, oox::docx_conversion_context& Context, bool bLock = false);
+   
+    virtual void docx_serialize_run(office_element_ptr & text, oox::docx_conversion_context & Context);
+    virtual void docx_serialize_run(office_element_ptr_array& content, oox::docx_conversion_context& Context);
 
-	virtual void xlsx_serialize(std::wostream & _Wostream, oox::xlsx_conversion_context & Context){}
+    virtual void xlsx_serialize(std::wostream& _Wostream, oox::xlsx_conversion_context& Context);
+
 private:
 	virtual void add_attributes( const xml::attributes_wc_ptr & Attributes ){}
 	virtual void add_child_element( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name){}
@@ -242,7 +249,6 @@ private:
     virtual void add_text(const std::wstring & Text) {}
 
 };
-
 CP_REGISTER_OFFICE_ELEMENT2(bookmark);
 //-------------------------------------------------------------------------------------------------------------------
 // text:bookmark-start
@@ -311,12 +317,15 @@ public:
 	CPDOCCORE_DEFINE_VISITABLE();
     CPDOCCORE_OFFICE_DOCUMENT_IMPL_NAME_FUNCS_; 
 
-    std::wstring			ref_name_;
-    _CP_OPT(std::wstring)	reference_format_;
-    std::wstring			content_;
+    virtual void docx_convert(oox::docx_conversion_context& Context);
+    
+    _CP_OPT(std::wstring)	ref_name_;
+    _CP_OPT(odf_types::reference_format) reference_format_;
+
+    office_element_ptr_array content_;
 private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );
-    virtual void add_child_element( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name) {}
+    virtual void add_child_element(xml::sax* Reader, const std::wstring& Ns, const std::wstring& Name);
     virtual void add_text(const std::wstring & Text);
 };
 CP_REGISTER_OFFICE_ELEMENT2(bookmark_ref);
@@ -334,9 +343,10 @@ public:
 	CPDOCCORE_DEFINE_VISITABLE();
     CPDOCCORE_OFFICE_DOCUMENT_IMPL_NAME_FUNCS_; 
 
-    std::wstring			ref_name_;
-    _CP_OPT(std::wstring)	reference_format_;
-    std::wstring			content_;
+	_CP_OPT(std::wstring) ref_name_;
+    _CP_OPT(odf_types::reference_format) reference_format_;
+   
+    std::wstring content_;
 
 private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );
@@ -610,7 +620,9 @@ public:
     virtual void xlsx_convert(oox::xlsx_conversion_context & Context);
     virtual void pptx_convert(oox::pptx_conversion_context & Context) ;
 
-	_CP_OPT(odf_types::Bool)	text_fixed_;
+    virtual void xlsx_serialize(std::wostream& _Wostream, oox::xlsx_conversion_context& Context);
+    
+    _CP_OPT(odf_types::Bool)	text_fixed_;
 	office_element_ptr			text_;    
 private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );
@@ -696,10 +708,10 @@ public:
 
 	_CP_OPT(std::wstring)	text_description_;
 	_CP_OPT(std::wstring)	text_placeholder_type_;
-	office_element_ptr		text_;       
+    office_element_ptr_array content_;
 private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );
-	virtual void add_child_element( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name){}
+    virtual void add_child_element(xml::sax* Reader, const std::wstring& Ns, const std::wstring& Name);
     virtual void add_text(const std::wstring & Text);
 };
 
@@ -1004,7 +1016,7 @@ public:
 	_CP_OPT(std::wstring)				ref_name_;
 
 	_CP_OPT(std::wstring)		template_;
-    office_element_ptr_array	text_;
+    office_element_ptr_array	content_;
 private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );
 	virtual void add_child_element( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name);
@@ -1083,10 +1095,10 @@ public:
 
 	void docx_convert(oox::docx_conversion_context & Context);
 
-	_CP_OPT(std::wstring)	reference_format_;//caption, category-and-value, value, chapter, direction, page, text, number, number-all-superior, number-no-superior
-	_CP_OPT(std::wstring)	ref_name_;
+    _CP_OPT(odf_types::reference_format) reference_format_;
+    _CP_OPT(std::wstring) ref_name_;
    
-	office_element_ptr		text_;
+	office_element_ptr text_;
 
 private:
     virtual void add_attributes( const xml::attributes_wc_ptr & Attributes );
@@ -1469,8 +1481,7 @@ private:
 	_CP_OPT(odf_types::Bool)					text_fixed_;
 	odf_types::common_value_and_type_attlist	office_value_;
 	
-	office_element_ptr	text_;    
-
+	office_element_ptr	text_;  
 };
 CP_REGISTER_OFFICE_ELEMENT2(text_user_defined);
 //---------------------------------------------------------------------------------------------------

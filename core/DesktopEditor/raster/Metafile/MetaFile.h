@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -46,7 +46,12 @@
 #endif
 
 #ifdef METAFILE_SUPPORT_SVG
+#ifdef SVG_OLD_ENGINE
 #include "svg/SVGTransformer.h"
+typedef CSVGTransformer CSvgFile;
+#else
+#include "svg/CSvgFile.h"
+#endif
 #endif
 
 namespace MetaFile
@@ -59,6 +64,7 @@ namespace MetaFile
 
 		bool LoadFromFile(const wchar_t* wsFilePath);
 		bool LoadFromBuffer(BYTE* pBuffer, unsigned int unSize);
+		bool LoadFromString(const std::wstring& data);
 		bool DrawOnRenderer(IRenderer* pRenderer, double dX, double dY, double dWidth, double dHeight);
 		void Close();
 		void GetBounds(double* pdX, double* pdY, double* pdW, double* pdH);
@@ -69,6 +75,8 @@ namespace MetaFile
 
 		//конвертация в Svg
 		std::wstring ConvertToSvg(unsigned int unWidth = 0, unsigned int unHeight = 0);
+
+		void SetTempDirectory(const std::wstring& dir);
 
 		//Для тестов
 	#ifdef METAFILE_SUPPORT_WMF_EMF
@@ -94,7 +102,7 @@ namespace MetaFile
 	#endif
 
 	#ifdef METAFILE_SUPPORT_SVG
-		CSVGTransformer    m_oSvgFile;
+		CSvgFile           m_oSvgFile;
 	#endif
 
 		int                m_lType;

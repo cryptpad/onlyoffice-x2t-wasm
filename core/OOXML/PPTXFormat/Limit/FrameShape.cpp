@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -38,29 +38,46 @@ namespace PPTX
 	{
 		FrameShape::FrameShape()
 		{
-			m_strValue = _T("frameStyle1");
+			m_strValue = L"frameStyle1";
 		}
 		void FrameShape::set(const std::wstring& strValue)
 		{
-			if ((_T("frameStyle1") == strValue) ||
-				(_T("frameStyle2") == strValue) ||
-				(_T("frameStyle3") == strValue) ||
-				(_T("frameStyle4") == strValue) ||
-				(_T("frameStyle5") == strValue) ||
-				(_T("frameStyle6") == strValue) ||
-				(_T("frameStyle7") == strValue))
+			if ((L"frameStyle1" == strValue) ||
+				(L"frameStyle2" == strValue) ||
+				(L"frameStyle3" == strValue) ||
+				(L"frameStyle4" == strValue) ||
+				(L"frameStyle5" == strValue) ||
+				(L"frameStyle6" == strValue) ||
+				(L"frameStyle7" == strValue))
 			{
 				m_strValue = strValue;
 			}
 		}
-		BYTE FrameShape::GetBYTECode() const
+		unsigned char FrameShape::GetBYTECode() const
 		{
-			//not using yet
+			if (L"frameStyle1" == m_strValue)		return 0;
+			if (L"frameStyle2" == m_strValue)		return 1;
+			if (L"frameStyle3" == m_strValue)		return 2;
+			if (L"frameStyle4" == m_strValue)		return 3;
+			if (L"frameStyle5" == m_strValue)		return 4;
+			if (L"frameStyle6" == m_strValue)		return 5;
+			if (L"frameStyle7" == m_strValue)		return 6;
+
 			return 0;
 		}
-		void FrameShape::SetBYTECode(const BYTE& src)
+		void FrameShape::SetBYTECode(const unsigned char& src)
 		{
-			//not using yet
+			switch (src)
+			{
+			case 0:		m_strValue = L"frameStyle1";		break;
+			case 1:		m_strValue = L"frameStyle2";		break;
+			case 2:		m_strValue = L"frameStyle3";		break;
+			case 3:		m_strValue = L"frameStyle4";		break;
+			case 4:		m_strValue = L"frameStyle5";		break;
+			case 5:		m_strValue = L"frameStyle6";		break;
+			case 6:		m_strValue = L"frameStyle7";		break;
+			default:	m_strValue = L"frameStyle1";
+			}
 		}
 	} // namespace Limit
 } // namespace PPTX

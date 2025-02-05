@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -47,6 +47,7 @@
 
 #include "office_text.h"
 #include "office_annotation.h"
+#include "office_meta.h"
 
 #include "paragraph_elements.h"
 #include "text_elements.h"
@@ -62,11 +63,11 @@ namespace utils
 
 double calculate_size_font_symbols(std::wstring str_test, std::wstring font_name, double font_size, NSFonts::IApplicationFonts *appFonts)
 {
-    std::pair<float,float> appr = _graphics_utils_::calculate_size_symbol_asc(font_name, font_size, false, false, appFonts);
+    std::pair<double, double> appr = _graphics_utils_::calculate_size_symbol_asc(font_name, font_size, false, false, appFonts);
 	
 	if (appr.first < 0.01 || appr.second < 0.01)
 	{
-        appr.first = _graphics_utils_::calculate_size_symbol_win(font_name, font_size, false, false, str_test);
+        appr = _graphics_utils_::calculate_size_symbol_win(font_name, font_size, false, false, str_test);
 		//appr_px = ((int)(appr_px+0.5) + 2*(int)appr_px)/3.;
 	}
 
@@ -133,6 +134,14 @@ void odt_conversion_context::end_document()
 		}
 		root_document_->add_child_element(seq_decls);
 	}
+	if (false == mapUserDefineds.empty())
+	{
+		office_element_ptr elm;
+		for (std::map<std::wstring, std::wstring>::iterator it = mapUserDefineds.begin(); it != mapUserDefineds.end(); ++it)
+		{
+			add_meta_user_define(it->first, it->second);
+		}
+	}
 	if (controls_context()->is_exist_content())
 	{
 		office_element_ptr forms_root_elm;
@@ -177,7 +186,7 @@ odf_comment_context* odt_conversion_context::comment_context()
 	return &comment_context_;
 }
 
-odf_style_context* odt_conversion_context::styles_context()	
+odf_style_context_ptr odt_conversion_context::styles_context()	
 {
 	if (text_context_.size() > 0)
 	{
@@ -218,13 +227,13 @@ void odt_conversion_context::add_text_content(const std::wstring & text)
         int count = (int)text.length();
 		drop_cap_state_.characters += count;
 		
-		style_text_properties * props = text_context()->get_text_properties();
+		text_format_properties * props = text_context()->get_text_properties();
 		if (props)
 		{
 			if (drop_cap_state_.inline_style == false)
 			{
-				std::wstring f_name = props->content_.fo_font_family_.get_value_or(L"Arial");
-				double f_size = props->content_.fo_font_size_.get_value_or(font_size(length(12, length::pt))).get_length().get_value_unit(length::pt);
+				std::wstring f_name = props->fo_font_family_.get_value_or(L"Arial");
+				double f_size = props->fo_font_size_.get_value_or(font_size(length(12, length::pt))).get_length().get_value_unit(length::pt);
 					
 				drop_cap_state_.characters_size_pt += utils::calculate_size_font_symbols(text, f_name, f_size, applicationFonts_);
 			}
@@ -589,6 +598,15 @@ void odt_conversion_context::start_hyperlink(const std::wstring& link, const std
 	text_a* hyperlink = dynamic_cast<text_a*>(hyperlink_elm.get());
 	if (hyperlink)
 	{
+		if (location == L"_top")
+			hyperlink->office_target_frame_name_ = odf_types::target_frame_name::Top;
+		else if (location == L"_blank")
+			hyperlink->office_target_frame_name_ = odf_types::target_frame_name::Blank;
+		else if (location == L"_self")
+			hyperlink->office_target_frame_name_ = odf_types::target_frame_name::Self;
+		else if (location == L"_parent")
+			hyperlink->office_target_frame_name_ = odf_types::target_frame_name::Parent;
+
 		hyperlink->common_xlink_attlist_.href_	= link + (location.empty() ? L"" : (L"#" + location));
 		hyperlink->common_xlink_attlist_.type_	= xlink_type::Simple;
 		
@@ -610,10 +628,9 @@ void odt_conversion_context::end_hyperlink()
 }
 void odt_conversion_context::start_drop_down()
 {
-	office_element_ptr elm_drop_down;
-	create_element(L"text", L"drop-down", elm_drop_down, this);
+	create_element(L"text", L"drop-down", current_fields.back().elm, this);
 
-	text_drop_down* drop_down = dynamic_cast<text_drop_down*>(elm_drop_down.get());
+	text_drop_down* drop_down = dynamic_cast<text_drop_down*>(current_fields.back().elm.get());
 	if (drop_down)
 		drop_down->text_name_ = current_fields.back().name;
 
@@ -628,13 +645,35 @@ void odt_conversion_context::start_drop_down()
 			label->text_value_ = current_fields.back().items[i].first;
 		}
 
-		elm_drop_down->add_child_element(elm);
+		current_fields.back().elm->add_child_element(elm);
 	}
-	text_context()->start_element(elm_drop_down);
+	text_context()->start_element(current_fields.back().elm);
 }
 void odt_conversion_context::end_drop_down()
 {
 	text_context()->end_element();
+}
+void odt_conversion_context::start_user_defined()
+{
+	mapUserDefineds.insert(std::make_pair(current_fields.back().value, L""));
+
+	current_fields.back().elm = text_context()->start_field(current_fields.back().type, current_fields.back().value, current_fields.back().format);
+}
+void odt_conversion_context::end_user_defined()
+{
+	text_user_defined* user_defined = dynamic_cast<text_user_defined*>(current_fields.back().elm.get());
+
+	if (user_defined)
+	{
+		std::map<std::wstring, std::wstring>::iterator pFind = mapUserDefineds.find(current_fields.back().value);
+
+		if (pFind != mapUserDefineds.end())
+		{
+			pFind->second = user_defined->get_text_content();
+		}
+	}
+	
+	text_context()->end_field();
 }
 void odt_conversion_context::start_sequence()
 {
@@ -649,10 +688,9 @@ void odt_conversion_context::start_sequence()
 	{
 		index = ++pFind->second;
 	}
-	office_element_ptr seq_elm;
-	create_element(L"text", L"sequence", seq_elm, this);
+	create_element(L"text", L"sequence", current_fields.back().elm, this);
 
-	text_sequence* sequence = dynamic_cast<text_sequence*>(seq_elm.get());
+	text_sequence* sequence = dynamic_cast<text_sequence*>(current_fields.back().elm.get());
 	if (sequence)
 	{
 		sequence->name_	= current_fields.back().value;
@@ -660,7 +698,7 @@ void odt_conversion_context::start_sequence()
 		sequence->formula_ = L"ooow:" + current_fields.back().value + L"+1";
 		sequence->style_num_format_	= style_numformat(style_numformat::arabic);
 		
-		text_context()->start_element(seq_elm);
+		text_context()->start_element(current_fields.back().elm);
 	}
 }	
 void odt_conversion_context::end_sequence()
@@ -766,6 +804,36 @@ void odt_conversion_context::set_field_instr()
 		if (instr.length() > 9)
 			current_fields.back().value = instr.substr(9, instr.length() - 5);
 	}
+	res1 = instr.find(L"REF");
+	if (std::wstring::npos != res1 && current_fields.back().type == 0)
+	{
+		current_fields.back().type = fieldRef;
+
+		std::wstring options_str;
+		if (instr.size() > 3) options_str = instr.substr(4);
+		std::map<std::wstring, std::wstring> options = parse_instr_options(options_str);
+
+		for (std::map<std::wstring, std::wstring>::iterator it = options.begin(); it != options.end(); ++it)
+		{
+			if (it->first == L" ")//field-argument
+			{
+				current_fields.back().value = it->second;
+				boost::algorithm::trim(current_fields.back().value);
+			}
+			else if (it->first == L"h")
+			{
+				current_fields.back().bHyperlinks = true;
+			}
+			else if (it->first == L"p")
+			{
+				current_fields.back().format = L"direction";
+			}
+			else if (it->first == L"r" || it->first == L"n")
+			{
+				current_fields.back().format = L"number";
+			}
+		}
+	}
 	res1 = instr.find(L"PAGE");
 	if (std::wstring::npos != res1 && current_fields.back().type == 0)
 	{
@@ -830,6 +898,20 @@ void odt_conversion_context::set_field_instr()
 		current_fields.back().type = fieldIndex;
 		current_fields.back().in_span = false;
 	}
+	res1 = instr.find(L"DOCPROPERTY");
+	if (std::wstring::npos != res1 && current_fields.back().type == 0)
+	{
+		current_fields.back().type = fieldUserDefined;
+		current_fields.back().in_span = false;
+		
+		std::map<std::wstring, std::wstring> options = parse_instr_options(instr.substr(11));
+		
+		std::map<std::wstring, std::wstring>::iterator pFind = options.find(L" ");
+		if (pFind != options.end())
+		{
+			current_fields.back().value = pFind->second;
+		}
+	}
 	res1 = instr.find(L"TOC");
 	if (std::wstring::npos != res1 && current_fields.back().type == 0)
 	{
@@ -888,24 +970,24 @@ void odt_conversion_context::set_field_instr()
 			current_fields.back().bHidePageNumbers = true; 
 		}
 	}
-	////////////////////////////////////////// 
+
+////////////////////////////////////////// 
 	res1 = instr.find(L" ");
 	if (std::wstring::npos != res1)
 	{
+		if (current_fields.back().type == 0)
+		{
+			current_fields.back().name = instr.substr(0, res1);
+		}
+
+		std::map<std::wstring, std::wstring> options = parse_instr_options(instr.substr(res1 + 1));		
 		if (current_fields.back().format.empty())
 		{
-			std::map<std::wstring, std::wstring> options = parse_instr_options(instr.substr(res1 + 1));
-
 			std::map<std::wstring, std::wstring>::iterator pFind = options.find(L"@");
 			if (pFind != options.end())
 			{
 				current_fields.back().format = pFind->second;
 			}
-		}
-
-		if (current_fields.back().type == 0)
-		{
-			current_fields.back().name = instr.substr(0, res1);
 		}
 	}
 }
@@ -1029,9 +1111,9 @@ void odt_conversion_context::add_section_columns(int count, double space_pt, boo
 	style* style_ = dynamic_cast<style*>(sections_.back().style_elm.get());
 	if (!style_)return;
 
-	style_section_properties	* section_properties	= style_->content_.get_style_section_properties();
+	style_section_properties* section_properties = style_->content_.add_get_style_section_properties();
 	
-	create_element(L"style", L"columns",section_properties->style_columns_,this);	
+	create_element(L"style", L"columns", section_properties->style_columns_,this);	
 	
 	style_columns* columns = dynamic_cast<style_columns*>(section_properties->style_columns_.get());
 	if (!columns)return;
@@ -1061,8 +1143,8 @@ void odt_conversion_context::add_section_column(std::vector<std::pair<double, do
 	style* style_ = dynamic_cast<style*>(sections_.back().style_elm.get());
 	if (!style_)return;
 
-	style_section_properties	* section_properties		= style_->content_.get_style_section_properties();
-	//section_properties->text_dont_balance_text_columns_	= true;
+	style_section_properties* section_properties = style_->content_.add_get_style_section_properties();
+	//section_properties->text_dont_balance_text_columns_ = true;
 	
 	style_columns* columns = dynamic_cast<style_columns*>(section_properties->style_columns_.get());
 	if (!columns)return;
@@ -1121,8 +1203,9 @@ void odt_conversion_context::end_field()
 		}
 		else if (current_fields.back().type == fieldSeq)		start_sequence();
 		else if (current_fields.back().type == fieldDropDown)	start_drop_down();
+		else if (current_fields.back().type == fieldUserDefined)start_user_defined();
 		else
-			text_context()->start_field(current_fields.back().type, current_fields.back().value, current_fields.back().format);
+			current_fields.back().elm = text_context()->start_field(current_fields.back().type, current_fields.back().value, current_fields.back().format);
 	}
 	if (current_fields.back().status == 2)
 	{
@@ -1133,6 +1216,7 @@ void odt_conversion_context::end_field()
 			if (current_fields.back().type == fieldHyperlink)		end_hyperlink();
 			else if (current_fields.back().type == fieldSeq)		end_sequence();
 			else if (current_fields.back().type == fieldDropDown)	end_drop_down();
+			else if (current_fields.back().type == fieldUserDefined)end_user_defined();
 			else text_context()->end_field();
 		
 			current_fields.pop_back();
@@ -1269,8 +1353,6 @@ void odt_conversion_context::flush_section()
 }
 void odt_conversion_context::start_run(bool styled)
 {
-	if (is_hyperlink_ && text_context_.size() > 0) return;
-	
 	if (!current_fields.empty() && current_fields.back().status == 1 && false == current_fields.back().in_span && current_fields.back().type < 0xff)
 	{
 		current_fields.back().status = 2;
@@ -1282,29 +1364,28 @@ void odt_conversion_context::start_run(bool styled)
 		}
 		else if (current_fields.back().type == fieldSeq)		start_sequence();
 		else if (current_fields.back().type == fieldDropDown)	start_drop_down();
-		else												
-			text_context()->start_field(current_fields.back().type, current_fields.back().value, current_fields.back().format);
+		else if (current_fields.back().type == fieldUserDefined)start_user_defined();
+		else
+			current_fields.back().elm = text_context()->start_field(current_fields.back().type, current_fields.back().value, current_fields.back().format);
 	}	
 	
 	text_context()->start_span(styled);
 
 	if (drop_cap_state_.enabled)
 	{
-		style_text_properties *props = text_context()->get_text_properties();
-		if (props)
-			props->apply_from(dynamic_cast<style_text_properties*>(drop_cap_state_.text_properties.get()));
+		text_format_properties *props = text_context()->get_text_properties();
+		if (props && drop_cap_state_.text_properties)
+			props->apply_from(dynamic_cast<style_text_properties*>(drop_cap_state_.text_properties.get())->content_);
 
 	}
 	if (!current_fields.empty() && current_fields.back().status == 1 && current_fields.back().in_span)//поле стартуется в span - нужно для сохранения стиля
 	{
 		current_fields.back().status = 2;
-		text_context()->start_field(current_fields.back().type, current_fields.back().value, current_fields.back().format);
+		current_fields.back().elm = text_context()->start_field(current_fields.back().type, current_fields.back().value, current_fields.back().format);
 	}	
 }
 void odt_conversion_context::end_run()
 {
-	if (is_hyperlink_ && text_context_.size() > 0) return;
-
 	if (!current_fields.empty() && current_fields.back().status == 1 && current_fields.back().in_span)
 	{
 		end_field();
@@ -1547,15 +1628,15 @@ void odt_conversion_context::end_change (int id, int type)
 //	return (text_changes_state_.current_types.back() == 2);
 //}
 //--------------------------------------------------------------------------------------------------------
-style_text_properties* odt_conversion_context::get_drop_cap_properties() 
+text_format_properties* odt_conversion_context::get_drop_cap_properties()
 {
 	if (!drop_cap_state_.text_properties)
 	{
 		create_element(L"style", L"text-properties", drop_cap_state_.text_properties, this);
 	}
-	return dynamic_cast<style_text_properties *>(drop_cap_state_.text_properties.get());
+	return &(dynamic_cast<style_text_properties *>(drop_cap_state_.text_properties.get()))->content_;
 }
-void odt_conversion_context::start_drop_cap(style_paragraph_properties *paragraph_properties)
+void odt_conversion_context::start_drop_cap(paragraph_format_properties *paragraph_properties)
 {
 	if (drop_cap_state_.enabled) 
 		end_drop_cap(); // 2 подряд ваще возможны ???
@@ -1566,7 +1647,7 @@ void odt_conversion_context::start_drop_cap(style_paragraph_properties *paragrap
 	drop_cap_state_.paragraph_properties = paragraph_properties;
 
 	office_element_ptr comm_elm;
-	create_element(L"style", L"drop-cap", drop_cap_state_.paragraph_properties->content_.style_drop_cap_, this);
+	create_element(L"style", L"drop-cap", drop_cap_state_.paragraph_properties->style_drop_cap_, this);
 }
 
 void odt_conversion_context::set_drop_cap_lines(int lines)
@@ -1574,7 +1655,7 @@ void odt_conversion_context::set_drop_cap_lines(int lines)
 	if (!drop_cap_state_.enabled) return;
 	if (!drop_cap_state_.paragraph_properties) return;
 
-	style_drop_cap *drop_cap = dynamic_cast<style_drop_cap*>(drop_cap_state_.paragraph_properties->content_.style_drop_cap_.get());
+	style_drop_cap *drop_cap = dynamic_cast<style_drop_cap*>(drop_cap_state_.paragraph_properties->style_drop_cap_.get());
 	if (drop_cap)drop_cap->style_lines_ = lines;
 
 	drop_cap_state_.lines = lines;
@@ -1590,7 +1671,7 @@ void odt_conversion_context::end_drop_cap()
 
 	if (drop_cap_state_.characters > 0 && drop_cap_state_.paragraph_properties)
 	{
-		style_drop_cap *drop_cap = dynamic_cast<style_drop_cap*>(drop_cap_state_.paragraph_properties->content_.style_drop_cap_.get());
+		style_drop_cap *drop_cap = dynamic_cast<style_drop_cap*>(drop_cap_state_.paragraph_properties->style_drop_cap_.get());
 		if (drop_cap)
 		{
 			drop_cap->style_length_ = drop_cap_length(drop_cap_state_.characters);
@@ -1608,7 +1689,7 @@ void odt_conversion_context::end_drop_cap()
 			//		indent_percent = drop_cap_state_.paragraph_properties->content_.fo_text_indent_->get_percent()->get_value();
 			//}
 			
-			drop_cap_state_.paragraph_properties->content_.fo_text_indent_ = length(length(-drop_cap_state_.characters_size_pt,length::pt).get_value_unit(length::cm),length::cm);
+			drop_cap_state_.paragraph_properties->fo_text_indent_ = length(length(-drop_cap_state_.characters_size_pt,length::pt).get_value_unit(length::cm),length::cm);
 			//drop_cap_state_.characters * size_char;
 		}
 	}

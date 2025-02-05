@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -103,8 +103,10 @@ int PIVOTVIEWEX::serialize_table_view(std::wostream & strm)
 			
 			for (size_t i = 0; i < m_arPIVOTTH.size(); i++)
 			{
+				if (!m_arPIVOTTH[i]) continue;
+
 				PIVOTTH* th = dynamic_cast<PIVOTTH*>(m_arPIVOTTH[i].get());
-				SXTH* sxTH = dynamic_cast<SXTH*>(th->m_SXTH.get());
+				SXTH* sxTH = th ? dynamic_cast<SXTH*>(th->m_SXTH.get()) : NULL;
 				
 				SXAddl_SXCHierarchy_SXDId					*id			= NULL;
 				SXAddl_SXCHierarchy_SXDVerUpdInv			*verUpd		= NULL;
@@ -133,12 +135,14 @@ int PIVOTVIEWEX::serialize_table_view(std::wostream & strm)
 				}
 				CP_XML_NODE(L"pivotHierarchy")
 				{
-					CP_XML_ATTR(L"multipleItemSelectionAllowed", sxTH->fEnableMultiplePageItems);
-					
-					CP_XML_ATTR(L"dragToRow", sxTH->fDragToRow);
-					CP_XML_ATTR(L"dragToCol", sxTH->fDragToColumn);
-					CP_XML_ATTR(L"dragToPage", sxTH->fDragToPage);
-					CP_XML_ATTR(L"dragToData", sxTH->fDragToData);
+					if (sxTH)
+					{
+						CP_XML_ATTR(L"multipleItemSelectionAllowed", sxTH->fEnableMultiplePageItems);
+						CP_XML_ATTR(L"dragToRow", sxTH->fDragToRow);
+						CP_XML_ATTR(L"dragToCol", sxTH->fDragToColumn);
+						CP_XML_ATTR(L"dragToPage", sxTH->fDragToPage);
+						CP_XML_ATTR(L"dragToData", sxTH->fDragToData);
+					}
 
 					if (caption)
 					{
@@ -204,7 +208,7 @@ int PIVOTVIEWEX::serialize(std::wostream & strm)
 			for (size_t i = 0; i < m_arPIVOTTH.size(); i++)
 			{
 				PIVOTTH* th = dynamic_cast<PIVOTTH*>(m_arPIVOTTH[i].get());
-				SXTH* sxTH = dynamic_cast<SXTH*>(th->m_SXTH.get());
+				SXTH* sxTH = th ? dynamic_cast<SXTH*>(th->m_SXTH.get()) : NULL;
 				
 				SXAddl_SXCHierarchy_SXDId			*id				= NULL;
 				SXAddl_SXCHierarchy_SXDInfo12		*info12			= NULL;
@@ -221,7 +225,10 @@ int PIVOTVIEWEX::serialize(std::wostream & strm)
 					if (!user_caption)	user_caption	= dynamic_cast<SXAddl_SXCHierarchy_SXDUserCaption*>	(addl->content.get());
 					if (!measure_grp)	measure_grp		= dynamic_cast<SXAddl_SXCHierarchy_SXDMeasureGrp*>	(addl->content.get());
 				}
-				if (sxTH->fKPI)	
+				if (!sxTH)
+					continue;
+
+				if (sxTH->fKPI)
 				{
 					std::unordered_map<std::wstring, int>::iterator pFind = mapKpis.find(sxTH->stUnique.value());
 					if (pFind == mapKpis.end())
@@ -449,7 +456,7 @@ int PIVOTVIEWEX::serialize(std::wostream & strm)
 						CP_XML_ATTR(L"measureGroup", i);
 						
 						PIVOTTH* th = dynamic_cast<PIVOTTH*>(m_arPIVOTTH[it->second[j]].get());
-						SXTH* sxTH = dynamic_cast<SXTH*>(th->m_SXTH.get());
+						SXTH* sxTH = th ? dynamic_cast<SXTH*>(th->m_SXTH.get()) : NULL;
 						
 						CP_XML_ATTR(L"dimension", j + 1/*it->first*/);
 					}

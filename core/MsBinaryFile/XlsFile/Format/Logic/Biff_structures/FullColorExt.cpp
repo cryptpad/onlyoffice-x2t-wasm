@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -62,8 +62,14 @@ int FullColorExt::serialize(std::wostream & stream, const std::wstring &node_nam
 			case 0: CP_XML_ATTR(L"auto", 1);		break;
 			case 1: CP_XML_ATTR(L"indexed", xclrValue);	break;
 			case 3: CP_XML_ATTR(L"theme", xclrValue);	break;
-			default:
-				CP_XML_ATTR(L"rgb", xclrValue);	break;
+			default:			
+				{
+					BYTE r = GETBITS(xclrValue, 0, 7);
+					BYTE g = GETBITS(xclrValue, 8, 15);
+					BYTE b = GETBITS(xclrValue, 16, 23);
+					BYTE a = GETBITS(xclrValue, 24, 31);
+					CP_XML_ATTR(L"rgb", STR::toARGB(r, g, b, a));	
+				}break;
 			}
 			if (nTintShade != 0)
 			{

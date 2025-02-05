@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -106,68 +106,68 @@ void OfficeArtBStoreContainerFileBlock::load(XLS::CFRecord& record)
 		switch (rc_header.recType)
 		{
 			case OfficeArtRecord::BlipEMF:
+			{
+				pict_type = L".emf";
+				if (rc_header.recInstance == 0x3D4)
+					rgbUid1 = ReadMD4Digest(record);
+				else
 				{
-					pict_type = L".emf";
-					if (rc_header.recInstance == 0x3D4)
-						rgbUid1 = ReadMD4Digest(record);
-					else
-					{
-						rgbUid1 = ReadMD4Digest(record);
-						rgbUid2 = ReadMD4Digest(record);
-					}
-
-					OfficeArtMetafileHeader metafileHeader;	
-					record >> metafileHeader;
-
-					if (metafileHeader.compression == 0)
-					{
-						isCompressed = true;
-						readCompressedData(record, metafileHeader);
-					}
+					rgbUid1 = ReadMD4Digest(record);
+					rgbUid2 = ReadMD4Digest(record);
 				}
-				break;
+
+				OfficeArtMetafileHeader metafileHeader;
+				record >> metafileHeader;
+
+				if (metafileHeader.compression == 0)
+				{
+					isCompressed = true;
+					readCompressedData(record, metafileHeader);
+				}
+			}
+			break;
 			case OfficeArtRecord::BlipWMF:
+			{
+				pict_type = L".wmf";
+				if (rc_header.recInstance == 0x216)
+					rgbUid1 = ReadMD4Digest(record);
+				else
 				{
-					pict_type = L".wmf";
-					if (rc_header.recInstance == 0x216)
-						rgbUid1 = ReadMD4Digest(record);
-					else
-					{
-						rgbUid1 = ReadMD4Digest(record);
-						rgbUid2 = ReadMD4Digest(record);
-					}
-
-					OfficeArtMetafileHeader metafileHeader;	
-					record >> metafileHeader;
-
-					if (metafileHeader.compression == 0)
-					{
-						isCompressed = true;
-						readCompressedData(record, metafileHeader);
-					}
+					rgbUid1 = ReadMD4Digest(record);
+					rgbUid2 = ReadMD4Digest(record);
 				}
-				break;				
+
+				OfficeArtMetafileHeader metafileHeader;
+				record >> metafileHeader;
+
+				if (metafileHeader.compression == 0)
+				{
+					isCompressed = true;
+					readCompressedData(record, metafileHeader);
+				}
+			}
+			break;
 			case OfficeArtRecord::BlipPICT:
+			{
+				pict_type = L".pcz";
+				if (rc_header.recInstance == 0x542)
+					rgbUid1 = ReadMD4Digest(record);
+				else
 				{
-					pict_type = L".pcz";
-					if (rc_header.recInstance == 0x542)
-						rgbUid1 = ReadMD4Digest(record);
-					else
-					{
-						rgbUid1 = ReadMD4Digest(record);
-						rgbUid2 = ReadMD4Digest(record);
-					}
-
-					OfficeArtMetafileHeader metafileHeader;	
-					record >> metafileHeader;
-
-					if (metafileHeader.compression == 0)
-					{
-						isCompressed = true;
-						readCompressedData(record, metafileHeader);
-					}
+					rgbUid1 = ReadMD4Digest(record);
+					rgbUid2 = ReadMD4Digest(record);
 				}
-				break;				
+
+				OfficeArtMetafileHeader metafileHeader;
+				record >> metafileHeader;
+
+				if (metafileHeader.compression == 0)
+				{
+					isCompressed = true;
+					readCompressedData(record, metafileHeader);
+				}
+			}
+			break;
 			case OfficeArtRecord::BlipJPEG:
 				pict_type = L".jpeg";
 				if ((rc_header.recInstance == 0x46A) || (rc_header.recInstance == 0x6E2))
@@ -232,7 +232,12 @@ void OfficeArtBStoreContainerFileBlock::load(XLS::CFRecord& record)
 					record.RollRdPtrBack(32);
 				}
 				break;
-			default:
+			case 0xf018:
+			{
+				record.skipNunBytes(rc_header.recLen);
+				return;
+			}break;
+			default: //0xf007 
 				record.RollRdPtrBack(rc_header.size());
 				return;
 		}

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -30,17 +30,40 @@
  *
  */
 #pragma once
-#include "../CommonInclude.h"
 
+#include "../WritingElement.h"
+#include "../../Base/Nullable.h"
+
+namespace XLS
+{
+	class BiffStructure;
+}
+
+namespace SimpleTypes
+{
+	class CRelationshipId;
+
+	namespace Spreadsheet
+	{
+		class CTabularSlicerCacheSortOrder;
+		class CSlicerCacheCrossFilter;
+		class CSlicerStyleType;
+	}
+}
 
 namespace OOX
 {
+	namespace Drawing
+	{
+		class COfficeArtExtensionList;
+	}
+
 	namespace Spreadsheet
 	{
 		class CSlicerCacheOlapLevelName : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSlicerCacheOlapLevelName)
+			WritingElement_AdditionMethods(CSlicerCacheOlapLevelName)
 			CSlicerCacheOlapLevelName(){}
 			virtual ~CSlicerCacheOlapLevelName(){}
 			virtual void fromXML(XmlUtils::CXmlNode& node){}
@@ -49,6 +72,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer, const std::wstring& sName) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BiffStructure& obj);
+			void toBin(XLS::BiffStructure* obj);
             void ReadAttributes(XLS::BiffStructure& obj);
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 			virtual void toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const;
@@ -65,7 +89,7 @@ namespace OOX
 		class CSlicerCacheHideNoData : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSlicerCacheHideNoData)
+			WritingElement_AdditionMethods(CSlicerCacheHideNoData)
             WritingElement_XlsbConstructors(CSlicerCacheHideNoData)
 			CSlicerCacheHideNoData(){}
 			virtual ~CSlicerCacheHideNoData(){}
@@ -75,6 +99,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer, const std::wstring& sName) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 			virtual void toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const;
 			virtual void fromPPTY(NSBinPptxRW::CBinaryFileReader* pReader);
@@ -91,7 +116,7 @@ namespace OOX
 		class CTableSlicerCache : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CTableSlicerCache)
+			WritingElement_AdditionMethods(CTableSlicerCache)
             WritingElement_XlsbConstructors(CTableSlicerCache)
 			CTableSlicerCache(){}
 			virtual ~CTableSlicerCache(){}
@@ -101,6 +126,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer, const std::wstring& sName) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
             void ReadAttributes(XLS::BaseObjectPtr& obj);
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 			virtual void toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const;
@@ -122,7 +148,7 @@ namespace OOX
 		class CSlicerStyleElement : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSlicerStyleElement)
+			WritingElement_AdditionMethods(CSlicerStyleElement)
             WritingElement_XlsbConstructors(CSlicerStyleElement)
 			CSlicerStyleElement(){}
 			virtual ~CSlicerStyleElement(){}
@@ -136,6 +162,7 @@ namespace OOX
             virtual void toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const;
             virtual void fromPPTY(NSBinPptxRW::CBinaryFileReader* pReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType() const
 			{
 				return et_x_SlicerStyleElement;
@@ -148,7 +175,7 @@ namespace OOX
 		class CSlicerCache : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSlicerCache)
+			WritingElement_AdditionMethods(CSlicerCache)
             WritingElement_XlsbConstructors(CSlicerCache)
 			CSlicerCache(){}
 			virtual ~CSlicerCache(){}
@@ -158,6 +185,8 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer, const std::wstring& sName) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toBinTable();
             void ReadAttributes(XLS::BaseObjectPtr& obj);
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 			virtual void toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const;
@@ -173,7 +202,7 @@ namespace OOX
 		class CSlicerRef : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSlicerRef)
+			WritingElement_AdditionMethods(CSlicerRef)
             WritingElement_XlsbConstructors(CSlicerRef)
 			CSlicerRef(){}
 			virtual ~CSlicerRef(){}
@@ -183,6 +212,8 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer, const std::wstring& sName) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toBinTable();
             void ReadAttributes(XLS::BaseObjectPtr& obj);
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 			virtual void toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const;
@@ -198,7 +229,7 @@ namespace OOX
 		class CSlicerStyle : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSlicerStyle)
+			WritingElement_AdditionMethods(CSlicerStyle)
             WritingElement_XlsbConstructors(CSlicerStyle)
 			CSlicerStyle(){}
 			virtual ~CSlicerStyle(){}
@@ -212,6 +243,7 @@ namespace OOX
             virtual void toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const;
             virtual void fromPPTY(NSBinPptxRW::CBinaryFileReader* pReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType() const
 			{
 				return et_x_SlicerStyle;
@@ -225,7 +257,7 @@ namespace OOX
 		class CSlicerCaches : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSlicerCaches)
+			WritingElement_AdditionMethods(CSlicerCaches)
             WritingElement_XlsbConstructors(CSlicerCaches)
 			CSlicerCaches(){}
 			virtual ~CSlicerCaches(){}
@@ -234,7 +266,10 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const{}
 			virtual void toXML(NSStringUtils::CStringBuilder& writer, const std::wstring& sName, const std::wstring& sPrefix) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
+			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toBinTable();
             void fromBin(XLS::BaseObjectPtr& obj);
+
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 			virtual EElementType getType() const
 			{
@@ -247,7 +282,7 @@ namespace OOX
 		class CSlicerRefs : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSlicerRefs)
+			WritingElement_AdditionMethods(CSlicerRefs)
             WritingElement_XlsbConstructors(CSlicerRefs)
 			CSlicerRefs(){}
 			virtual ~CSlicerRefs(){}
@@ -257,6 +292,8 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer, const std::wstring& sName) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toBinTable();
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 			virtual EElementType getType() const
 			{
@@ -269,7 +306,7 @@ namespace OOX
 		class CSlicerStyles : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CSlicerStyles)
+			WritingElement_AdditionMethods(CSlicerStyles)
             WritingElement_XlsbConstructors(CSlicerStyles)
 			CSlicerStyles(){}
 			virtual ~CSlicerStyles(){}
@@ -283,6 +320,7 @@ namespace OOX
 			virtual void toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const;
 			virtual void fromPPTY(NSBinPptxRW::CBinaryFileReader* pReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType() const
 			{
 				return et_x_SlicerStyles;
@@ -296,7 +334,7 @@ namespace OOX
 		class CDrawingSlicer : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDrawingSlicer)
+			WritingElement_AdditionMethods(CDrawingSlicer)
 			CDrawingSlicer(){}
 			virtual ~CDrawingSlicer(){}
 			virtual void fromXML(XmlUtils::CXmlNode& node){}

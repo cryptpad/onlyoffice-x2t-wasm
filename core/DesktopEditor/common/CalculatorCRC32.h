@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,24 +34,25 @@
 
 #include <string>
 
-const int g_clFilePartSize	= 20*1024;
+const int g_clFilePartSize = 20 * 1024;
 class CCalculatorCRC32
-{	
+{
 public:
 	CCalculatorCRC32()
 	{
-        m_dwMagicWord   = 0xEDB88320;
-        m_dwInitCrc     = 0xFFFFFFFF;
-        m_bInitTable    = false;
+		m_dwMagicWord = 0xEDB88320;
+		m_dwInitCrc = 0xFFFFFFFF;
+		m_bInitTable = false;
 	}
+
 public:
 	unsigned int Calc(const unsigned char* pStream, unsigned int nSize)
 	{
 		InitCRCTable();
-        unsigned int dwRes = m_dwInitCrc;
-        for (unsigned int i=0;i<nSize;i++)
+		unsigned int dwRes = m_dwInitCrc;
+		for (unsigned int i = 0; i < nSize; i++)
 		{
-			dwRes = m_arCRCTable[(dwRes ^ pStream[i])& 0xFF] ^ (dwRes >> 8);
+			dwRes = m_arCRCTable[(dwRes ^ pStream[i]) & 0xFF] ^ (dwRes >> 8);
 		}
 
 		dwRes = dwRes ^ 0xFFFFFFFF;
@@ -64,13 +65,13 @@ private:
 		if (m_bInitTable)
 			return;
 
-        unsigned int dwTemp;
-		for (int i=0;i<256;i++)
+		unsigned int dwTemp;
+		for (int i = 0; i < 256; i++)
 		{
 			dwTemp = i;
-			for (int j=0;j<8;j++)
+			for (int j = 0; j < 8; j++)
 			{
-				if (0x1==(dwTemp & 0x1))
+				if (0x1 == (dwTemp & 0x1))
 					dwTemp = (dwTemp >> 1) ^ m_dwMagicWord;
 				else
 					dwTemp = dwTemp >> 1;
@@ -80,10 +81,10 @@ private:
 		m_bInitTable = true;
 	}
 
-    unsigned int m_dwMagicWord;
-    unsigned int m_dwInitCrc;
-    unsigned int m_arCRCTable[255];
-    bool m_bInitTable;
+	unsigned int m_dwMagicWord;
+	unsigned int m_dwInitCrc;
+	unsigned int m_arCRCTable[255];
+	bool m_bInitTable;
 };
 
 #endif // _ASC_COMMON_CALCULATOR_CRC32_

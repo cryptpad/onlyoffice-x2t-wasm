@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -174,6 +174,7 @@ void xml_serialize_image(std::wostream & strm, _xlsx_drawing & val, const std::w
                     CP_XML_NODE(L"a:avLst");
                 }
 				oox_serialize_ln(CP_XML_STREAM(), val.additional);
+				oox_serialize_effects(CP_XML_STREAM(), val.additional);
             } 			
 			xml_serialize_text(CP_XML_STREAM(), val, ns);
         } 
@@ -209,6 +210,7 @@ void xml_serialize_shape(std::wostream & strm, _xlsx_drawing & val, const std::w
 				val.serialize_shape(CP_XML_STREAM());
 				
 				oox_serialize_ln(CP_XML_STREAM(),val.additional, val.lined);
+				oox_serialize_effects(CP_XML_STREAM(), val.additional);
             } // xdr:spPr
 			
 			xml_serialize_text(CP_XML_STREAM(), val, ns);

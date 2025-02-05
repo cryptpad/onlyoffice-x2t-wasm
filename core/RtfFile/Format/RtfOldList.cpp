@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -40,6 +40,10 @@ std::wstring RtfOldList::RenderToRtf(RenderParameter oRenderParameter)
 		sResult += m_oText->RenderToRtf( oRenderParameter );
 	return sResult;
 }
+static inline bool IsControlSymbol(unsigned short c)
+{
+	return (c <= 31) ? (true) : (false);
+}
 std::wstring RtfOldList::RenderToOOX(RenderParameter oRenderParameter)
 {
     std::wstring sResult;
@@ -61,12 +65,15 @@ std::wstring RtfOldList::RenderToOOX(RenderParameter oRenderParameter)
 			
 			if(!sText.empty() )
 			{
-				// В символьном шрифте обрезать надо, в других случаях - нет
-				if (/*bIsSymbol && */(sText[0] & 0xF000) != 0)
+				wchar_t xchBullet = sText[0];
+				if ((xchBullet & 0xF000) != 0)
 				{
-					sText[0] &= 0x00FF;
+					xchBullet &= 0x00FF;
 				}
-				sResult += L"<w:lvlText w:val=\"" + XmlUtils::EncodeXmlString( sText ) + L"\"/>";
+				if (!IsControlSymbol(xchBullet))
+				{
+					sResult += L"<w:lvlText w:val=\"" + XmlUtils::EncodeXmlString(sText) + L"\"/>";
+				}
 			}
 			else
 			{

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -52,8 +52,7 @@ public:
 		void set_protection(bool val, const std::wstring &key, const std::wstring &algorithm);
     void end_table();
 
-    void start_cell(const std::wstring & formula,
-                    size_t columnsSpanned,
+    void start_cell(size_t columnsSpanned,
                     size_t rowsSpanned);
 
     void end_cell();
@@ -88,7 +87,8 @@ public:
 	void serialize_autofilter			(std::wostream & _Wostream);
     void serialize_merge_cells			(std::wostream & _Wostream);
 	void serialize_table_format			(std::wostream & _Wostream);
-	void serialize_conditionalFormatting(std::wostream & _Wostream);
+	void serialize_condFormatting		(std::wostream & _Wostream);
+	void serialize_condFormattingEx		(std::wostream& _Wostream);
 	void serialize_hyperlinks			(std::wostream & _Wostream);
 	void serialize_ole_objects			(std::wostream & _Wostream);
 	void serialize_controls				(std::wostream & _Wostream);
@@ -118,10 +118,16 @@ public:
 	void dump_rels_ole_objects	(rels & Rels);
 
 	bool start_database_range(const std::wstring &table_name, const std::wstring &ref, bool bNamedRangeOnly);
-		void set_database_orientation	(bool val);
-		void set_database_header		(bool val);
-		void set_database_filter		(bool val);
-		void add_database_sort	(int field_number, int order);
+		void set_database_source_ref(const std::wstring& ref);
+		void set_database_orientation (bool val);
+		void set_database_header (bool val);
+		void set_database_filter_button(bool val);
+		void add_database_filter_conditional(int field_number, int type, const std::wstring & value, int operator_);
+		void add_database_sort	(int field_number, int order, int type);
+		void start_filters_or();
+		void start_filters_and();
+		void end_filters_or();
+		void end_filters_and();
 	void end_database_range();
 		
 	int in_database_range();

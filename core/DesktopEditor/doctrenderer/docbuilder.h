@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -41,7 +41,7 @@ namespace NSDoctRenderer
 	 * The string class with the wchar_t* property.
 	 */
 	class CString_Private;
-	class Q_DECL_EXPORT CString
+	class BUILDER_DECL CString
 	{
 	public:
 		CString();
@@ -61,7 +61,7 @@ namespace NSDoctRenderer
 	 * It represents a wrapper for a JS object.
 	 */
 	class CDocBuilderValue_Private;
-	class Q_DECL_EXPORT CDocBuilderValue
+	class BUILDER_DECL CDocBuilderValue
 	{
 	public:
 		CDocBuilderValue();
@@ -199,6 +199,16 @@ namespace NSDoctRenderer
 		 * Creates a null value. This method returns the current context and calls its CreateNull method.
 		 */
 		static CDocBuilderValue CreateNull();
+		/**
+		 * Please use CDocBuilderContext::CreateArray
+		 * Creates an array. This method returns the current context and calls its CreateArray method.
+		 */
+		static CDocBuilderValue CreateArray(const int& length);
+		/**
+		 * Please use CDocBuilderContext::CreateObject
+		 * Creates an object. This method returns the current context and calls its CreateObject method.
+		 */
+		static CDocBuilderValue CreateObject();
 
 	public:
 		/**
@@ -238,7 +248,7 @@ namespace NSDoctRenderer
 	 * All opened scopes will be closed automatically when the builder CloseFile method is called.
 	 */
 	class CDocBuilderContextScope_Private;
-	class Q_DECL_EXPORT CDocBuilderContextScope
+	class BUILDER_DECL CDocBuilderContextScope
 	{
 	public:
 		CDocBuilderContextScope();
@@ -261,7 +271,7 @@ namespace NSDoctRenderer
 	 * Class for getting JS context for working.
 	 */
 	class CDocBuilderContext_Private;
-	class Q_DECL_EXPORT CDocBuilderContext
+	class BUILDER_DECL CDocBuilderContext
 	{
 	public:
 		CDocBuilderContext();
@@ -333,7 +343,7 @@ namespace NSDoctRenderer
 	 * Base class used by ONLYOFFICE Document Builder for the document file (text document, spreadsheet, presentation, form document, PDF) to be generated.
 	 */
 	class CDocBuilder_Private;
-	class Q_DECL_EXPORT CDocBuilder
+	class BUILDER_DECL CDocBuilder
 	{
 	public:
 		CDocBuilder();
@@ -352,9 +362,11 @@ namespace NSDoctRenderer
 		/**
 		 * Creates a new file. The type of the file which will be created needs to be set.
 		 * @param type The type of the file to be created set as a hexadecimal integer for the C++ code or docx, xlsx or pptx for the .docbuilder script file (see AVS_OFFICESTUDIO_FILE_XXX values).
+		 * Possible values for wchar_t version: "docx", "pptx", "xlsx", "pdf", "form"
 		 * @return True if the operation is successful
 		 */
 		bool CreateFile(const int& type);
+		bool CreateFile(const wchar_t* extension);
 		/**
 		 * Sets the path to the folder where the program will temporarily save files needed for the program correct work.
 		 * After the successful document file creation, all the files will be deleted from the folder. If no temporary folder is set, the system one will be used.
@@ -380,6 +392,7 @@ namespace NSDoctRenderer
 		 * @return Process x2t return code
 		 */
 		int SaveFile(const int& type, const wchar_t* path, const wchar_t* params = 0);
+		int SaveFile(const wchar_t* extension, const wchar_t* path, const wchar_t* params = 0);
 		/**
 		 * Closes the file to stop working with it. You can use a single ONLYOFFICE Document Builder instance
 		 * to work with all your files, but you need to close the previous file before you can
@@ -484,9 +497,10 @@ namespace NSDoctRenderer
 
 		/**
 		 * Returns the current JS context.
+		 * @param enterContext Whether returned context should be entered or not.
 		 * @return The current JS context
 		 */
-		CDocBuilderContext GetContext();
+		CDocBuilderContext GetContext(bool enterContext = true);
 
 	public:
 		/**
@@ -539,7 +553,7 @@ namespace NSDoctRenderer
 	 * 3) The builder object methods cannot be called with the JS variables. Wrap them with the jsValue instruction if necessary:
 	 * var jsVar = "123.docx";
 	 * builder.SaveFile("docx", jsVar); // Incorrect
-	 * builder.SaveFile("docx", jsValue(jsVar)); // Correct
+	 * builder.SaveFile("docx", "jsValue(jsVar)"); // Correct
 	 *
 	 * 4) For convenience, format types are replaced with strings.
 	 * For example, builder.CreateFile("docx"); is the same as CDocBuilder.CreateFile(AVS_OFFICESTUDIO_FILE_DOCUMENT_DOCX);

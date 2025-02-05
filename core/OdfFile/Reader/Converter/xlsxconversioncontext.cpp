@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -119,8 +119,8 @@ void xlsx_conversion_context::start_document()
 	instances.push_back(odfContext.styleContainer().style_default_by_type(odf_types::style_family::TableCell));
 	instances.push_back(odfContext.styleContainer().style_by_name(L"Default", odf_types::style_family::TableCell, false));
 
-    odf_reader::text_format_properties_content_ptr	textFormatProperties	= calc_text_properties_content(instances);
-    odf_reader::paragraph_format_properties			parFormatProperties		= calc_paragraph_properties_content(instances);
+    odf_reader::text_format_properties_ptr		textFormatProperties	= calc_text_properties_content(instances);
+    odf_reader::paragraph_format_properties		parFormatProperties		= calc_paragraph_properties_content(instances);
     odf_reader::style_table_cell_properties_attlist	cellFormatProperties	= calc_table_cell_properties(instances);
 
     oox::xlsx_cell_format cellFormat;
@@ -138,16 +138,41 @@ void xlsx_conversion_context::end_document()
 
 	if (sheets_.empty())
 	{ // owncloud new document  ... oO
-		start_table(L"Sheet1", L"");
+		start_table(L"Sheet1", L"", L"");
 		current_sheet().cols() << L"<col min=\"1\" max=\"1024\" width=\"11.6\" customWidth=\"0\"/>";
 		end_table();
 	}
 
+	std::map<std::wstring, std::vector<std::pair<std::wstring, std::wstring>>> map_external_sheets;
+
+	int sheet_id = 1;
 	for (size_t i = 0; i < sheets_.size(); i++)
     {
 		xlsx_xml_worksheet_ptr& sheet = sheets_[i];
+
+		std::wstring external_ref = sheet->external_ref();
+
+		if (false == external_ref.empty())
+		{
+			std::wstringstream external_content;
+			sheet->write_external_to(external_content);
+
+			std::map<std::wstring, std::vector<std::pair<std::wstring, std::wstring>>>::iterator pFind = map_external_sheets.find(external_ref);
+			if (pFind != map_external_sheets.end())
+			{
+
+				pFind->second.push_back(std::make_pair(sheet->name(), external_content.str()));
+			}
+			else
+			{
+				std::vector<std::pair<std::wstring, std::wstring>> ext_sheet;
+				ext_sheet.push_back(std::make_pair(sheet->name(), external_content.str()));
+				map_external_sheets.insert(std::make_pair(sheet->external_ref(), ext_sheet));
+			}
+			continue;
+		}
 		
-		const std::wstring id = std::wstring(L"sId") + std::to_wstring(i + 1);
+		const std::wstring id = std::wstring(L"sId") + std::to_wstring(sheet_id++);
 
         package::sheet_content_ptr content = package::sheet_content::create();
  ////////////////////////////////////////////////////////////////////////////////////////////       
@@ -189,7 +214,7 @@ void xlsx_conversion_context::end_document()
         {
             CP_XML_NODE(L"sheet")
             {
-                CP_XML_ATTR(L"name",	XmlUtils::EncodeXmlString(sheet->name())); // office 2010 ! ограничение на длину имени !!!
+                CP_XML_ATTR(L"name",	XmlUtils::EncodeXmlString(sheet->name())); // ms office ! ограничение на длину имени 31!!!
                 CP_XML_ATTR(L"sheetId", i + 1);
 				CP_XML_ATTR(L"state",	sheet->hidden() ? L"hidden" : L"visible");
                 CP_XML_ATTR(L"r:id",	id);            
@@ -218,7 +243,7 @@ void xlsx_conversion_context::end_document()
 
     {
         std::wstringstream strm;
-        xlsx_text_context_.serialize_shared_strings(strm);
+		get_text_context()->serialize_shared_strings(strm);
         output_document_->get_xl_files().set_sharedStrings( package::simple_element::create(L"sharedStrings.xml", strm.str()) );
     }
 
@@ -237,7 +262,40 @@ void xlsx_conversion_context::end_document()
             {
                 CP_XML_ATTR(L"xmlns", L"http://schemas.openxmlformats.org/spreadsheetml/2006/main");
                 CP_XML_ATTR(L"xmlns:r", L"http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+				CP_XML_ATTR(L"xmlns:mc", L"http://schemas.openxmlformats.org/markup-compatibility/2006");
+				CP_XML_ATTR(L"mc:Ignorable", L"x15 xr xr6 xr10 xr2");
+				CP_XML_ATTR(L"xmlns:x15", L"http://schemas.microsoft.com/office/spreadsheetml/2010/11/main");
+				CP_XML_ATTR(L"xmlns:xr", L"http://schemas.microsoft.com/office/spreadsheetml/2014/revision");
+				CP_XML_ATTR(L"xmlns:xr6", L"http://schemas.microsoft.com/office/spreadsheetml/2016/revision6");
+				CP_XML_ATTR(L"xmlns:xr10", L"http://schemas.microsoft.com/office/spreadsheetml/2016/revision10");
+				CP_XML_ATTR(L"xmlns:xr2", L"http://schemas.microsoft.com/office/spreadsheetml/2015/revision2");
+				
+				_CP_OPT(std::wstring) str = root()->odf_context().Settings().find_by_name(L"IsDocumentShared");
+				if (str)
+				{
+					CP_XML_NODE(L"fileSharing")
+					{
+						str = root()->odf_context().Settings().find_by_name(L"LoadReadonly");
+						if (str) CP_XML_ATTR(L"readOnlyRecommended", *str);
 
+						if (false == root()->odf_context().DocProps().dc_creator_.empty())
+						{
+							CP_XML_ATTR(L"userName", root()->odf_context().DocProps().dc_creator_);
+
+							str = root()->odf_context().Settings().find_by_name(L"modify:algorithm-name");
+							if (str) CP_XML_ATTR(L"algorithmName", *str);
+
+							str = root()->odf_context().Settings().find_by_name(L"modify:hash");
+							if (str) CP_XML_ATTR(L"hashValue", *str);
+
+							str = root()->odf_context().Settings().find_by_name(L"modify:salt");
+							if (str) CP_XML_ATTR(L"saltValue", *str);
+
+							str = root()->odf_context().Settings().find_by_name(L"modify:iteration-count");
+							if (str) CP_XML_ATTR(L"spinCount", *str);
+						}
+					}
+				}
 				if (table_structure_protected_)
 				{
 					CP_XML_NODE(L"workbookProtection")
@@ -266,10 +324,39 @@ void xlsx_conversion_context::end_document()
 									CP_XML_NODE(L"externalLink")
 									{
 										CP_XML_ATTR(L"xmlns", L"http://schemas.openxmlformats.org/spreadsheetml/2006/main");
+										CP_XML_ATTR(L"xmlns:mc", L"http://schemas.openxmlformats.org/markup-compatibility/2006");
+										
 										CP_XML_NODE(L"externalBook")
 										{
 											CP_XML_ATTR(L"xmlns:r", L"http://schemas.openxmlformats.org/officeDocument/2006/relationships");
 											CP_XML_ATTR(L"r:id", L"rId1");
+											
+											std::map<std::wstring, std::vector<std::pair<std::wstring, std::wstring>>>::iterator pFind = map_external_sheets.find(it->first);
+
+											if (pFind != map_external_sheets.end())
+											{
+												CP_XML_NODE(L"sheetNames")
+												{
+													for (auto ex : pFind->second)
+													{
+														CP_XML_NODE(L"sheetName")
+														{
+															CP_XML_ATTR(L"val", ex.first);
+														}
+													}
+												}
+												CP_XML_NODE(L"sheetDataSet")
+												{
+													for (size_t x = 0; x < pFind->second.size(); ++x)
+													{
+														CP_XML_NODE(L"sheetData")
+														{
+															CP_XML_ATTR(L"sheetId", x);
+															CP_XML_STREAM() << pFind->second[x].second;
+														}
+													}
+												}
+											}
 										}
 									}
 								}
@@ -376,7 +463,7 @@ void xlsx_conversion_context::serialize_bookViews(std::wostream & strm)
 					{
 						for (size_t i = 0; i < sheets_.size(); i++)
 						{
-							if (sheets_[i]->name() == *sActiveTable)
+							if (false == sheets_[i]->external_ref().empty() && sheets_[i]->name() == *sActiveTable)
 							{
 								CP_XML_ATTR(L"activeTab", i);
 							}
@@ -441,23 +528,31 @@ int xlsx_conversion_context::find_sheet_by_name(std::wstring tableName)
 	}
 	for (size_t i = 0; i < sheets_.size(); i++)
 	{
-		if (sheets_[i]->name() == tableName)
+		if (false == sheets_[i]->external_ref().empty() && sheets_[i]->name() == tableName)
 			return i;
 	}
 	return -1;
 }
 
-bool xlsx_conversion_context::start_table(std::wstring tableName, std::wstring tableStyleName)
+bool xlsx_conversion_context::start_table(const std::wstring& tableName, const std::wstring& tableStyleName, const std::wstring& externalRef)
 {
-	get_table_context().start_table(tableName, tableStyleName, sheets_.size() - 1);
+	get_table_context().start_table(tableName, tableStyleName, sheets_.size());
 
-    sheets_.push_back(xlsx_xml_worksheet::create(tableName, get_table_context().state()->get_table_hidden()));
+    sheets_.push_back(xlsx_xml_worksheet::create(tableName, get_table_context().state()->get_table_hidden(), externalRef));
 	current_sheet().cols() << L"<cols>";
-    return true;
+
+	return true;
 }
 
 void xlsx_conversion_context::end_table()
 {
+	const std::wstring external_ref = current_sheet().external_ref();
+
+	if (false == external_ref.empty())
+	{
+		return;
+	}
+
     const double lastWidht = table_column_last_width();
     if (lastWidht > 0.0)
     {
@@ -477,7 +572,7 @@ void xlsx_conversion_context::end_table()
 					CP_XML_ATTR(L"min", cMin);
 					//CP_XML_ATTR(L"style", 0);
 					CP_XML_ATTR(L"width", lastWidht);
-					CP_XML_ATTR(L"customWidth", 0);
+					CP_XML_ATTR(L"customWidth", 1);
 				}
 			}
 		}
@@ -487,7 +582,8 @@ void xlsx_conversion_context::end_table()
 	get_table_context().serialize_table_format			(current_sheet().sheetFormat());
 	get_table_context().serialize_page_properties		(current_sheet().page_properties());
 	get_table_context().serialize_header_footer			(current_sheet().header_footer());
-	get_table_context().serialize_conditionalFormatting	(current_sheet().conditionalFormatting());
+	get_table_context().serialize_condFormattingEx		(current_sheet().conditionalFormattingEx());
+	get_table_context().serialize_condFormatting		(current_sheet().conditionalFormatting());
     get_table_context().serialize_tableParts			(current_sheet().tableParts(), current_sheet().sheet_rels());
     get_table_context().serialize_autofilter			(current_sheet().autofilter());
     get_table_context().serialize_sort					(current_sheet().sort());
@@ -553,20 +649,7 @@ void xlsx_conversion_context::end_table()
     }    
     get_table_context().end_table();
 }
-//int xlsx_conversion_context::add_external_link(const std::wstring & external)
-//{
-//	std::unordered_map<std::wstring, int>::iterator pFind = mapExternalLink_.find(external);
-//	if ( pFind == mapExternalLink_.end())
-//	{
-//		int id = (int)mapExternalLink_.size() + 1;
-//		mapExternalLink_.insert(std::make_pair(external, id));
-//		return id;
-//	}
-//	else
-//	{
-//		return pFind->second;
-//	}
-//}
+
 void xlsx_conversion_context::add_control_props(const std::wstring & rid, const std::wstring & target, const std::wstring & props)
 {
 	if (rid.empty()) return;
@@ -627,12 +710,12 @@ void xlsx_conversion_context::end_office_spreadsheet()
 
 void xlsx_conversion_context::start_paragraph(const std::wstring & styleName)
 {
-    xlsx_text_context_.start_paragraph(styleName);
+	get_text_context()->start_paragraph(styleName);
 }
 
 void xlsx_conversion_context::end_paragraph()
 {
-	if (xlsx_text_context_.is_drawing_context())
+	if (get_text_context()->is_drawing_context())
 	{
 		get_drawing_context().process_objects(get_table_metrics());
 
@@ -641,25 +724,25 @@ void xlsx_conversion_context::end_paragraph()
 			std::wstringstream strm;
 			get_drawing_context().serialize(strm, L"a", true);
 
-			xlsx_text_context_.add_paragraph(strm.str());
+			get_text_context()->add_paragraph(strm.str());
 		}
 	}
-    xlsx_text_context_.end_paragraph();
+	get_text_context()->end_paragraph();
 }
 
 void xlsx_conversion_context::start_span(const std::wstring & styleName)
 {
-    xlsx_text_context_.start_span(styleName);
+	get_text_context()->start_span(styleName);
 }
 
 void xlsx_conversion_context::end_span()
 {
-    xlsx_text_context_.end_span();
+	get_text_context()->end_span();
 }
 
-void xlsx_conversion_context::start_table_cell(const std::wstring & formula, size_t columnsSpanned, size_t rowsSpanned)
+void xlsx_conversion_context::start_table_cell(size_t columnsSpanned, size_t rowsSpanned)
 {
-    get_table_context().start_cell(formula, columnsSpanned, rowsSpanned);
+    get_table_context().start_cell(columnsSpanned, rowsSpanned);
 }
 
 bool xlsx_conversion_context::in_table_cell()
@@ -691,6 +774,35 @@ int xlsx_conversion_context::get_current_cell_style_id()
 {
     return get_table_context().get_current_cell_style_id();
 }
+int xlsx_conversion_context::add_dxfId_style(const std::wstring& color, bool cellColor)
+{
+	int dxfId = -1;
+	odf_reader::style_instance* instStyle =
+		root()->odf_context().styleContainer().style_default_by_type(odf_types::style_family::TableCell);
+
+	if (instStyle)
+	{
+		odf_reader::text_format_properties_ptr textFormats = calc_text_properties_content(instStyle);
+		odf_reader::graphic_format_properties_ptr graphicFormats = calc_graphic_properties_content(instStyle);
+		odf_reader::style_table_cell_properties_attlist	cellFormats = calc_table_cell_properties(instStyle);
+
+		odf_types::color odf_color(color);
+		if (cellColor)
+		{
+			cellFormats.common_background_color_attlist_.fo_background_color_ = odf_color;
+		}
+		else
+		{
+			if (!textFormats)
+				textFormats = odf_reader::text_format_properties_ptr(new odf_reader::text_format_properties());
+
+			textFormats->fo_color_ = odf_color;
+		}
+
+		dxfId = get_style_manager().dxfId(textFormats, graphicFormats, &cellFormats);
+	}
+	return dxfId;
+}
 int xlsx_conversion_context::get_dxfId_style(const std::wstring &style_name)
 {
 	if (style_name.empty()) return -1;
@@ -704,11 +816,11 @@ int xlsx_conversion_context::get_dxfId_style(const std::wstring &style_name)
 	
 	if (instStyle)
 	{
-		odf_reader::text_format_properties_content_ptr	textFormats = calc_text_properties_content(instStyle);
-		odf_reader::graphic_format_properties			graphicFormats = calc_graphic_properties_content(instStyle);
+		odf_reader::text_format_properties_ptr textFormats = calc_text_properties_content(instStyle);
+		odf_reader::graphic_format_properties_ptr graphicFormats = calc_graphic_properties_content(instStyle);
 		odf_reader::style_table_cell_properties_attlist	cellFormats = calc_table_cell_properties(instStyle);
 
-		dxfId = get_style_manager().dxfId(textFormats, &graphicFormats, &cellFormats);
+		dxfId = get_style_manager().dxfId(textFormats, graphicFormats, &cellFormats);
 	}
 	return dxfId;
 }
@@ -734,7 +846,7 @@ std::pair<double, double> xlsx_conversion_context::getMaxDigitSize()
 			if (inst) instances.push_back(inst);
 		}
 
-		odf_reader::text_format_properties_content_ptr textFormatProperties	= calc_text_properties_content(instances);
+		odf_reader::text_format_properties_ptr textFormatProperties	= calc_text_properties_content(instances);
 
 		if (textFormatProperties)
 		{
@@ -851,6 +963,29 @@ void xlsx_conversion_context::add_jsaProject(const std::string &content)
 	
 	output_document_->get_xl_files().add_jsaProject(content);
 	output_document_->get_content_types_file().add_or_find_default(L"bin");
+}
+void xlsx_conversion_context::start_text_context()
+{
+	minor_text_contexts_.push_back(new xlsx_text_context(odf_document_->odf_context()));
+}
+void xlsx_conversion_context::end_text_context()
+{
+	if (false == minor_text_contexts_.empty())
+	{
+		delete minor_text_contexts_.back();
+		minor_text_contexts_.pop_back();
+	}
+}
+xlsx_text_context* xlsx_conversion_context::get_text_context()
+{
+	if (false == minor_text_contexts_.empty())
+	{
+		return minor_text_contexts_.back();
+	}
+	else
+	{
+		return &xlsx_text_context_;
+	}
 }
 
 }

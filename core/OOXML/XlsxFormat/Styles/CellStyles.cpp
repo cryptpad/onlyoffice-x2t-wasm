@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,7 +31,12 @@
  */
 
 #include "CellStyles.h"
+
+#include "../../Common/SimpleTypes_Shared.h"
 #include "../../XlsbFormat/Biff12_records/Style.h"
+#include "../../XlsbFormat/Biff12_records/BeginStyles.h"
+
+#include "../../XlsbFormat/Biff12_unions/STYLES.h"
 
 namespace OOX
 {
@@ -69,6 +74,39 @@ namespace OOX
 		 {
 			 ReadAttributes(obj);
 		 }
+		XLS::BaseObjectPtr CCellStyle::toBin()
+		{
+			auto ptr(new XLSB::Style);
+			XLS::BaseObjectPtr objectPtr(ptr);
+			if(m_oBuiltinId.IsInit())
+            {
+                ptr->fBuiltIn = true;
+                ptr->iStyBuiltIn = m_oBuiltinId->GetValue();
+            }
+            else
+                ptr->fBuiltIn = false;
+			if (m_oCustomBuiltin.IsInit())
+				ptr->fCustom = m_oCustomBuiltin->GetValue();
+            else
+                ptr->fCustom = false;
+			if (m_oHidden.IsInit())
+				ptr->fHidden = m_oHidden->GetValue();
+            else
+                ptr->fHidden = false;
+			if (m_oILevel.IsInit())
+				ptr->iLevel = m_oILevel->GetValue();
+            else
+                ptr->iLevel = 0;
+			if (m_oName.IsInit())
+				ptr->stName = m_oName.get();
+			else
+				ptr->stName = L"";
+			if (m_oXfId.IsInit())
+				ptr->ixf = m_oXfId->GetValue();
+			else
+				ptr->ixf = 0;
+			return objectPtr;
+		}
 		EElementType CCellStyle::getType () const
 		{
 			return et_x_CellStyle;
@@ -140,7 +178,11 @@ namespace OOX
 				std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
 
 				if ( _T("cellStyle") == sName )
-					m_arrItems.push_back( new CCellStyle( oReader ));
+				{
+					CCellStyle* pCellStyle = new CCellStyle();
+					*pCellStyle = oReader;
+					m_arrItems.push_back(pCellStyle);
+				}
 			}
 		}
 		void CCellStyles::fromBin(std::vector<XLS::BaseObjectPtr>& obj)
@@ -153,6 +195,18 @@ namespace OOX
 				 m_arrItems.push_back(pXfs);
 			 }
 		 }
+		XLS::BaseObjectPtr CCellStyles::toBin()
+		{
+			auto ptr(new XLSB::STYLES);
+			auto ptr1(new XLSB::BeginStyles);
+			ptr->m_BrtBeginStyles = XLS::BaseObjectPtr{ptr1};
+			XLS::BaseObjectPtr objectPtr(ptr);
+
+			for(auto i:m_arrItems)
+				ptr->m_arBrtStyle.push_back(i->toBin());
+			ptr1->cstyles = ptr->m_arBrtStyle.size();
+			return objectPtr;
+		}
 		EElementType CCellStyles::getType () const
 		{
 			return et_x_CellStyles;

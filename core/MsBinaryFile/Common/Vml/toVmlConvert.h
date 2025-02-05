@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -111,10 +111,9 @@ private:
 		}
 	};
 
-
 public:
 	COOXToVMLGeometry();
-	~COOXToVMLGeometry();
+	virtual ~COOXToVMLGeometry();
 // тип рендерера-----------------------------------------------------------------------------
 	virtual HRESULT get_Type(LONG* lType){ return S_OK; }
 //-------- Функции для работы со страницей --------------------------------------------------
@@ -188,6 +187,11 @@ public:
 	virtual HRESULT BrushBounds(const double& left, const double& top, const double& width, const double& height){ return S_OK; }
 
 	virtual HRESULT put_BrushGradientColors(LONG* lColors, double* pPositions, LONG nCount){ return S_OK; }
+
+	virtual HRESULT get_BrushTextureImage(Aggplus::CImage** pImage) { return S_OK; }
+	virtual HRESULT put_BrushTextureImage(Aggplus::CImage* pImage) { return S_OK; }
+	virtual HRESULT get_BrushTransform(Aggplus::CMatrix& oMatrix) { return S_OK; }
+	virtual HRESULT put_BrushTransform(const Aggplus::CMatrix& oMatrix) { return S_OK; }
 
 // font -------------------------------------------------------------------------------------
 	virtual HRESULT get_FontName(std::wstring* bsName){ return S_OK; }

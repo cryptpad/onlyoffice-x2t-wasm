@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -198,9 +198,10 @@ void draw_custom_shape::serialize(std::wostream & _Wostream)
 		CP_XML_NODE_SIMPLE()
         {
 			draw_shape::serialize_attlist(CP_GET_XML_NODE());
-
-			if (draw_enhanced_geometry_)draw_enhanced_geometry_->serialize(CP_XML_STREAM());
 			draw_shape::serialize(CP_XML_STREAM());
+
+			if (draw_enhanced_geometry_)
+				draw_enhanced_geometry_->serialize(CP_XML_STREAM());
 		}
 	}
 }
@@ -427,6 +428,7 @@ void draw_enhanced_geometry_attlist::serialize(CP_ATTR_NODE)
 	//CP_XML_ATTR_OPT(L"drawooo:enhanced-path",	draw_enhanced_path_);	
     CP_XML_ATTR_OPT(L"draw:enhanced-path",		draw_enhanced_path_);	
 	CP_XML_ATTR_OPT(L"draw:glue-points",		draw_glue_points_);
+	CP_XML_ATTR_OPT(L"draw:glue-point-leaving-directions", glue_points_leaving_directions_);
 	CP_XML_ATTR_OPT(L"draw:mirror-vertical",	draw_mirror_vertical_);
 	CP_XML_ATTR_OPT(L"draw:mirror-horizontal",	draw_mirror_horizontal_);
 
@@ -434,6 +436,9 @@ void draw_enhanced_geometry_attlist::serialize(CP_ATTR_NODE)
 	CP_XML_ATTR_OPT(L"draw:text-path-mode",					draw_text_path_mode_);
 	CP_XML_ATTR_OPT(L"draw:text-path-scale",				draw_text_path_scale_);
 	CP_XML_ATTR_OPT(L"draw:text-path-same-letter-heights",	draw_text_path_same_letter_heights_);
+
+	CP_XML_ATTR_OPT(L"draw:path-stretchpoint-x",			draw_path_stretchpoint_x_);
+	CP_XML_ATTR_OPT(L"draw:path-stretchpoint-y",			draw_path_stretchpoint_y_);
 }
 //-------------------------------------------------------------------------------------------
 // draw:enhanced_geometry

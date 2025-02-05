@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -33,10 +33,10 @@
 
 #include "../../Base/Nullable.h"
 #include "../WritingElement.h"
-#include "../RId.h"
 
 namespace OOX
 {
+	class RId;
 	class CPresenceInfo;
 
 	namespace Spreadsheet
@@ -54,6 +54,15 @@ namespace OOX
 		class CSlicerCacheHideNoData;
 		class CConnection;
         class CPivotCacheDefinitionExt;
+		class CT_DLbl;
+		class CSeriesFiltering;
+		class CUserProtectedRanges;
+		class CTimelineRefs;
+		class CTimelineCacheRefs;
+		class CTimelineStyles;
+		class CDynamicArrayProperties;
+		class CRichValueBlock;
+        class CWorkbookPivotCaches;
 	}
 
 	namespace Drawing
@@ -61,7 +70,7 @@ namespace OOX
 		class CCompatExt : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CCompatExt)
+			WritingElement_AdditionMethods(CCompatExt)
 
 			CCompatExt();
 			virtual ~CCompatExt();
@@ -76,13 +85,13 @@ namespace OOX
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 
 		public:
-            nullable<std::wstring> m_sSpId;
+            nullable_string m_sSpId;
 		};
 
 		class CDataModelExt : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDataModelExt)
+			WritingElement_AdditionMethods(CDataModelExt)
 
 			CDataModelExt();
 			virtual ~CDataModelExt();
@@ -102,12 +111,12 @@ namespace OOX
 
 		//--------------------------------------------------------------------------------
 		// COfficeArtExtension 20.1.2.2.14 (Part 1)
-		//--------------------------------------------------------------------------------	
+		//--------------------------------------------------------------------------------
 
 		class COfficeArtExtension : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(COfficeArtExtension)
+			WritingElement_AdditionMethods(COfficeArtExtension)
 
 			COfficeArtExtension();
 			~COfficeArtExtension();
@@ -123,14 +132,14 @@ namespace OOX
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 
 		public:
-            nullable<std::wstring>                                  m_sUri;
+            nullable_string											m_sUri;
             std::wstring                                            m_sAdditionalNamespace;
 
             nullable<CCompatExt>                                    m_oCompatExt;
             nullable<OOX::Spreadsheet::CSparklineGroups>            m_oSparklineGroups;
             nullable<CDataModelExt>                                 m_oDataModelExt;
             nullable<OOX::Spreadsheet::CAltTextTable>               m_oAltTextTable;
-            nullable<std::wstring>                                  m_oId;
+            nullable_string											m_oId;
             nullable<OOX::Spreadsheet::CDataValidations>            m_oDataValidations;
 
             nullable<OOX::Spreadsheet::CConnection>                 m_oConnection;
@@ -142,28 +151,44 @@ namespace OOX
             nullable<OOX::Spreadsheet::CSlicerCaches>               m_oSlicerCachesExt;
             nullable<OOX::Spreadsheet::CSlicerStyles>               m_oSlicerStyles;
 
+			nullable<OOX::Spreadsheet::CTimelineRefs>				m_oTimelineRefs;
+			nullable<OOX::Spreadsheet::CTimelineCacheRefs>			m_oTimelineCacheRefs;
+			nullable<OOX::Spreadsheet::CTimelineStyles>				m_oTimelineStyles;
+
             nullable<OOX::Spreadsheet::CPivotCacheDefinitionExt>    m_oPivotCacheDefinitionExt;
+            nullable<OOX::Spreadsheet::CWorkbookPivotCaches>        m_oWorkbookPivotCaches;
 
 			std::vector<OOX::Spreadsheet::CSlicerCachePivotTable*>	m_oSlicerCachePivotTables;
             nullable<OOX::Spreadsheet::CTableSlicerCache>           m_oTableSlicerCache;
             nullable<OOX::Spreadsheet::CSlicerCacheHideNoData>      m_oSlicerCacheHideItemsWithNoData;
-			
+
 			std::vector<OOX::Spreadsheet::CConditionalFormatting*>	m_arrConditionalFormatting;
+
+			nullable < OOX::Spreadsheet::CDynamicArrayProperties>	m_oDynamicArrayProperties;
+			nullable < OOX::Spreadsheet::CRichValueBlock>			m_oRichValueBlock;
 
 			nullable<OOX::CPresenceInfo> m_oPresenceInfo;
 
 			nullable_string m_oFileKey;
 			nullable_string m_oInstanceId;
+
+			nullable<OOX::Spreadsheet::CT_DLbl> m_oChartDataLabel;
+			nullable<OOX::Spreadsheet::CSeriesFiltering> m_oChartFiltering;
+			nullable_bool m_oDataDisplayNaAsBlank;
+
+			nullable<OOX::Spreadsheet::CUserProtectedRanges> m_oUserProtectedRanges;
+
+			nullable_bool m_oExternalLinksAutoRefresh;
 		};
 
 		//--------------------------------------------------------------------------------
 		// COfficeArtExtensionList 20.1.2.2.15 (Part 1)
-		//--------------------------------------------------------------------------------	
+		//--------------------------------------------------------------------------------
 
 		class COfficeArtExtensionList : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(COfficeArtExtensionList)
+			WritingElement_AdditionMethods(COfficeArtExtensionList)
 			WritingElement_XlsbConstructors(COfficeArtExtensionList)
 
 			COfficeArtExtensionList();
@@ -176,6 +201,14 @@ namespace OOX
 			virtual std::wstring toXML() const;
 			std::wstring toXMLWithNS(const std::wstring& sNamespace) const;
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBinWorksheet();
+			XLS::BaseObjectPtr toBinWorkBook();
+			XLS::BaseObjectPtr toBinStyles();
+			XLS::BaseObjectPtr toBinTable();
+			XLS::BaseObjectPtr toBinSlicerCache();
+			XLS::BaseObjectPtr toBinPivotCache();
+			XLS::BaseObjectPtr toBinConnections();
+			XLS::BaseObjectPtr toBinMetadata();
 			virtual EElementType getType() const;
 
             std::vector<OOX::Drawing::COfficeArtExtension*> m_arrExt;

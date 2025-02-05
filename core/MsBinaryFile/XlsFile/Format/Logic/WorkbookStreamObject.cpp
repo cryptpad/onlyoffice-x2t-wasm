@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -92,16 +92,20 @@ const bool WorkbookStreamObject::loadContent(BinProcessor& proc)
 			{
 				if(GlobalsSubstream_found)
 				{
-					Log::error("Multiple GLOBALS substreams found in intermediate XML.");
-					return false;
+					Log::error("Multiple GLOBALS substreams found");
+					return true;
 				}
-				Log::event("Globals substream detected");
+				else
+				{
+					Log::event("Globals substream detected");
+				}
                 GlobalsSubstream global_substream(code_page_);
                 if((proc.mandatory(global_substream)) && (elements_.size() > 0))
 				{
 					GlobalsSubstream_found = true;
-					
-					m_GlobalsSubstream = elements_.back(); elements_.pop_back();
+					m_GlobalsSubstream = elements_.back();
+
+					elements_.pop_back();
 				}
 				if (!GlobalsSubstream_found) return false;
 			}
@@ -110,7 +114,7 @@ const bool WorkbookStreamObject::loadContent(BinProcessor& proc)
 			{
 				if(!GlobalsSubstream_found)
 				{
-					Log::error("GLOBALS substream is not the first substream in intermediate XML.");
+					Log::error("GLOBALS substream is not the first substream");
 					return false;
 				}
 				Log::event("Worksheet or Dialog substream detected");

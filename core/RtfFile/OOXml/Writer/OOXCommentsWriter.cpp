@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -153,7 +153,7 @@ mc:Ignorable=\"w14 w15 wp14\">";
 		for (std::map<std::wstring, _comment>::iterator it = m_mapComments.begin(); it != m_mapComments.end(); ++it)
 		{
 			sResult += L"<w:comment w:id=\"" + std::to_wstring(it->second.nID) + L"\" w:author=\"" + 
-				it->second.author + L"\" w:date=\"" + it->second.date + L"\" w:initials=\"" + it->second.authorId + L"\">";
+				XmlUtils::EncodeXmlString(it->second.author) + L"\" w:date=\"" + it->second.date + L"\" w:initials=\"" + it->second.authorId + L"\">";
 			sResult += it->second.content;
 
 			sResult += L"</w:comment>";

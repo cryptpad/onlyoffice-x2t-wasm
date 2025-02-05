@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,18 +31,32 @@
  */
 #pragma once
 
-#include "../CommonInclude.h"
-
 #include "Autofilter.h"
+#include "../../DocxFormat/IFileContainer.h"
+#include "../FileTypes_Spreadsheet.h"
+
+namespace SimpleTypes
+{
+	namespace Spreadsheet
+	{
+		class CTableType;
+		class CTotalsRowFunction;
+	}
+}
 
 namespace OOX
 {
+	namespace Drawing
+	{
+		class COfficeArtExtensionList;
+	}
+
 	namespace Spreadsheet
 	{
 		class CAltTextTable : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CAltTextTable)
+			WritingElement_AdditionMethods(CAltTextTable)
             WritingElement_XlsbConstructors(CAltTextTable)
 			CAltTextTable()
 			{
@@ -60,6 +74,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const
 			{
@@ -78,7 +93,7 @@ namespace OOX
 		class CTableStyleInfo : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CTableStyleInfo)
+			WritingElement_AdditionMethods(CTableStyleInfo)
             WritingElement_XlsbConstructors(CTableStyleInfo)
 			CTableStyleInfo()
 			{
@@ -97,6 +112,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const
 			{
 				return et_x_TableStyleInfo;
@@ -117,7 +133,7 @@ namespace OOX
 		class CTableColumn : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CTableColumn)
+			WritingElement_AdditionMethods(CTableColumn)
             WritingElement_XlsbConstructors(CTableColumn)
 			CTableColumn()
 			{
@@ -135,6 +151,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const
 			{
 				return et_x_TableColumn;
@@ -168,7 +185,7 @@ namespace OOX
 		class CTableColumns : public WritingElementWithChilds<CTableColumn>
 		{
 		public:
-			WritingElement_AdditionConstructors(CTableColumns)
+			WritingElement_AdditionMethods(CTableColumns)
             WritingElement_XlsbConstructors(CTableColumns)
 			CTableColumns()
 			{
@@ -187,6 +204,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const
 			{
@@ -204,7 +222,7 @@ namespace OOX
 		class CTable : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CTable)
+			WritingElement_AdditionMethods(CTable)
             WritingElement_XlsbConstructors(CTable)
 			CTable()
 			{
@@ -224,6 +242,7 @@ namespace OOX
 			virtual void toXML2(NSStringUtils::CStringBuilder& writer, int nIndex);
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const
 			{
 				return et_x_Table;
@@ -268,7 +287,7 @@ namespace OOX
 		class CTablePart : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CTablePart)
+			WritingElement_AdditionMethods(CTablePart)
             WritingElement_XlsbConstructors(CTablePart)
 			CTablePart()
 			{
@@ -286,6 +305,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const
 			{
 				return et_x_TablePart;
@@ -302,7 +322,7 @@ namespace OOX
 		class CTableParts : public WritingElementWithChilds<CTablePart>
 		{
 		public:
-			WritingElement_AdditionConstructors(CTableParts)
+			WritingElement_AdditionMethods(CTableParts)
             WritingElement_XlsbConstructors(CTableParts)
 			CTableParts()
 			{
@@ -320,6 +340,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 
 			virtual EElementType getType () const
 			{
@@ -352,6 +373,7 @@ namespace OOX
 			{
 			}
             void readBin(const CPath& oPath);
+			XLS::BaseObjectPtr WriteBin() const;
 			virtual void read(const CPath& oPath)
 			{
 				//don't use this. use read(const CPath& oRootPath, const CPath& oFilePath)
@@ -360,10 +382,7 @@ namespace OOX
 			}
 			virtual void read(const CPath& oRootPath, const CPath& oPath);
 			virtual void write(const CPath& oPath, const CPath& oDirectory, CContentTypes& oContent) const;
-			virtual const OOX::FileType type() const
-			{
-				return OOX::Spreadsheet::FileTypes::Table;
-			}
+			virtual const OOX::FileType type() const;
 			virtual const CPath DefaultDirectory() const
 			{
 				return type().DefaultDirectory();

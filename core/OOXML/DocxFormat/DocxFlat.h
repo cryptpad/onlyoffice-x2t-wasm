@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,9 +31,7 @@
  */
 #pragma once
 
-
 #include "IFileContainer.h"
-#include "FileTypes.h"
 #include "../Common/SimpleTypes_Word.h"
 #include "../../DesktopEditor/common/File.h"
 
@@ -54,12 +52,12 @@ namespace OOX
 	namespace Logic
 	{
 		class CBgPict;
+		class CDocSuppData;
 	}
 
 	class CDocxFlat : public Document, public File, public WritingElement
 	{
 	public:
-
 		CDocxFlat();
 		CDocxFlat(const CPath& oFilePath);
 		virtual ~CDocxFlat();
@@ -91,6 +89,8 @@ namespace OOX
 		nullable<CNumbering>			m_pNumbering;
 		nullable<CSettings>				m_pSettings;
 		nullable<Logic::CBgPict>		m_pBgPict;
+		nullable<Logic::CDocSuppData>	m_oDocSuppData;
+		nullable<Logic::CDocSuppData>	m_oDocOleData;
 
 		nullable<CComments>				m_pComments;
 		nullable<CFootnotes>			m_pFootnotes;
@@ -98,9 +98,15 @@ namespace OOX
 		nullable<CApp>					m_pApp;
 		nullable<CCore>					m_pCore;
 //-----------------------------------------------------------
+		nullable_string					m_sCompatibilityMode;
+
 		std::map<std::wstring, NSCommon::smart_ptr<OOX::File>> m_mapImages;
+		std::map<std::wstring, NSCommon::smart_ptr<OOX::File>> m_mapOleData;
 
 		OOX::IFileContainer *m_currentContainer = NULL;
+	private:
+		void ParsingOleData();
+		void ParsingSuppData();
 	};
 
 

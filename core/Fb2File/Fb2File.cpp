@@ -1589,8 +1589,8 @@ HRESULT CFb2File::Open(const std::wstring& sPath, const std::wstring& sDirectory
     return S_OK;
 }
 
-// CryptPad: Prevent duplicate symbol error by renaming this function
-void Fb2replace_all(std::wstring& s, const std::wstring& s1, const std::wstring& s2)
+// sHtmlFile - путь к файлу html, sDst - путь к результирующему файлу fb2, sInpTitle - входящий заголовок файла
+HRESULT CFb2File::FromHtml(const std::wstring& sHtmlFile, const std::wstring& sDst, const std::wstring& sInpTitle)
 {
     size_t pos = s.find(s1);
     size_t l = s2.length();
@@ -1635,13 +1635,14 @@ void readStream(NSStringUtils::CStringBuilder& oXml, NSStringUtils::CStringBuild
             }
             oIndexHtml.MoveToElement();
 
-            if (!sAtrName.empty())
-            {
-                Fb2replace_all(sAtrContent, L"&", L"&amp;");
-                Fb2replace_all(sAtrContent, L"<", L"&lt;");
-                Fb2replace_all(sAtrContent, L">", L"&gt;");
-                Fb2replace_all(sAtrContent, L"\"", L"&quot;");
-                Fb2replace_all(sAtrContent, L"\'", L"&#39;");
+	std::string sContent = XmlUtils::GetUtf8FromFileContent(pData, nLength);
+	bool bNeedConvert = true;
+	if (nLength > 4)
+	{
+		if (pData[0] == 0xFF && pData[1] == 0xFE && !(pData[2] == 0x00 && pData[3] == 0x00))
+			bNeedConvert = false;
+		if (pData[0] == 0xFE && pData[1] == 0xFF)
+			bNeedConvert = false;
 
                 if (sAtrName == L"creator")
                     oTitleInfo.WriteString(L"<author><nickname>" + sAtrContent + L"</nickname></author>");
@@ -1849,168 +1850,48 @@ std::wstring ToUpperRoman(int number)
     return L"";
 }
 
-std::wstring ToLowerRoman(int number)
-{
-    if (number < 0 || number > 3999) return L"";
-    if (number < 1) return L"";
-    if (number >= 1000) return L"m" + ToLowerRoman(number - 1000);
-    if (number >= 900) return L"cm" + ToLowerRoman(number - 900);
-    if (number >= 500) return L"d"  + ToLowerRoman(number - 500);
-    if (number >= 400) return L"cd" + ToLowerRoman(number - 400);
-    if (number >= 100) return L"c"  + ToLowerRoman(number - 100);
-    if (number >= 90) return L"xc"  + ToLowerRoman(number - 90);
-    if (number >= 50) return L"l"   + ToLowerRoman(number - 50);
-    if (number >= 40) return L"xl"  + ToLowerRoman(number - 40);
-    if (number >= 10) return L"x"   + ToLowerRoman(number - 10);
-    if (number >= 9) return L"ix"   + ToLowerRoman(number - 9);
-    if (number >= 5) return L"v"    + ToLowerRoman(number - 5);
-    if (number >= 4) return L"iv"   + ToLowerRoman(number - 4);
-    if (number >= 1) return L"i"    + ToLowerRoman(number - 1);
-    return L"";
-}
-
-void readLi(NSStringUtils::CStringBuilder& oXml, NSStringUtils::CStringBuilder& oTitleInfo, XmlUtils::CXmlLiteReader& oIndexHtml, std::vector<std::wstring>& arrBinary, bool bUl, bool bWasP, bool bWasTable)
-{
-    int nNum = 1;
-    while (oIndexHtml.MoveToNextAttribute())
-        if (oIndexHtml.GetName() == L"start")
-            nNum = std::stoi(oIndexHtml.GetText());
-    oIndexHtml.MoveToElement();
-    int nDeath = oIndexHtml.GetDepth();
-    if (oIndexHtml.IsEmptyNode() || !oIndexHtml.ReadNextSiblingNode2(nDeath))
-        return;
-    do
-    {
-        if (oIndexHtml.GetName() == L"li")
-        {
-            if (!bWasP)
-                oXml.WriteString(L"<p>");
-            if (bUl)
-                oXml.AddCharSafe(183);
-            else
-            {
-                std::wstring sPoint = std::to_wstring(nNum) + L'.';
-                while (oIndexHtml.MoveToNextAttribute())
-                {
-                    if (oIndexHtml.GetName() == L"style")
-                    {
-                        std::wstring sText = oIndexHtml.GetText();
-                        size_t nListType = sText.find(L"list-style-type: ");
-                        if (nListType != std::wstring::npos)
-                        {
-                            nListType += 17;
-                            size_t nListTypeEnd = sText.find(L';', nListType);
-                            std::wstring sListType = sText.substr(nListType, nListTypeEnd - nListType);
-                            if (sListType == L"decimal")
-                                break;
-                            else if (sListType == L"upper-alpha")
-                                sPoint = std::wstring((nNum - 1) / 26 + 1, L'A' + (nNum - 1) % 26);
-                            else if (sListType == L"lower-alpha")
-                                sPoint = std::wstring((nNum - 1) / 26 + 1, L'a' + (nNum - 1) % 26);
-                            else if (sListType == L"lower-roman")
-                                sPoint = ToLowerRoman(nNum);
-                            else if (sListType == L"upper-roman")
-                                sPoint = ToUpperRoman(nNum);
-                            sPoint += L'.';
-                        }
-                    }
-                }
-                oIndexHtml.MoveToElement();
-
-                nNum++;
-                oXml.WriteString(sPoint);
-            }
-            oXml.WriteString(L" ");
-            readStream(oXml, oTitleInfo, oIndexHtml, arrBinary, true, bWasTable);
-            if (!bWasP)
-                oXml.WriteString(L"</p>");
-        }
-    } while (oIndexHtml.ReadNextSiblingNode2(nDeath));
-}
-
-// CryptPad: Prevent duplicate symbol error by renaming this function
-std::wstring Fb2GenerateUUID()
-{
-    std::mt19937 oRand(time(0));
-    std::wstringstream sstream;
-    sstream << std::setfill(L'0') << std::hex << std::setw(8) << (oRand() & 0xffffffff);
-    sstream << L'-';
-    sstream << std::setfill(L'0') << std::hex << std::setw(4) << (oRand() & 0xffff);
-    sstream << L'-';
-    sstream << std::setfill(L'0') << std::hex << std::setw(4) << (oRand() & 0xffff);
-    sstream << L'-';
-    sstream << std::setfill(L'0') << std::hex << std::setw(4) << (oRand() & 0xffff);
-    sstream << L'-';
-    sstream << std::setfill(L'0') << std::hex << std::setw(8) << (oRand() & 0xffffffff);
-    return sstream.str();
-}
-
-HRESULT CFb2File::FromHtml(const std::wstring& sHtmlFile, const std::wstring& sDst, const std::wstring& sInpTitle)
-{
-    BYTE* pData;
-    DWORD nLength;
-    if (!NSFile::CFileBinary::ReadAllBytes(sHtmlFile, &pData, nLength))
-        return S_FALSE;
-
-    std::string sContent = XmlUtils::GetUtf8FromFileContent(pData, nLength);
-    bool bNeedConvert = true;
-    if (nLength > 4)
-    {
-        if (pData[0] == 0xFF && pData[1] == 0xFE && !(pData[2] == 0x00 && pData[3] == 0x00))
-            bNeedConvert = false;
-        if (pData[0] == 0xFE && pData[1] == 0xFF)
-            bNeedConvert = false;
-
-        if (pData[0] == 0xFF && pData[1] == 0xFE && pData[2] == 0x00 && pData[3] == 0x00)
-            bNeedConvert = false;
-        if (pData[0] == 0 && pData[1] == 0 && pData[2] == 0xFE && pData[3] == 0xFF)
-            bNeedConvert = false;
-    }
-    RELEASEARRAYOBJECTS(pData);
-
-    XmlUtils::CXmlLiteReader oIndexHtml;
-    std::wstring xhtml = htmlToXhtml(sContent, bNeedConvert);
-    if (!oIndexHtml.FromString(xhtml))
-        return S_FALSE;
-
-    oIndexHtml.ReadNextNode(); // html
-    int nDepth = oIndexHtml.GetDepth();
-    oIndexHtml.ReadNextSiblingNode(nDepth); // head
-    oIndexHtml.ReadNextSiblingNode(nDepth); // body
-
-    std::vector<std::wstring> arrBinary;
-    NSStringUtils::CStringBuilder oDocument;
-    NSStringUtils::CStringBuilder oTitleInfo;
-    readStream(oDocument, oTitleInfo, oIndexHtml, arrBinary, false, false);
-
-    NSStringUtils::CStringBuilder oRes;
-    oRes.WriteString(L"<?xml version=\"1.0\" encoding=\"UTF-8\"?><FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:l=\"http://www.w3.org/1999/xlink\">");
-    // description title-info
-    oRes.WriteString(L"<description><title-info>");
-    std::wstring sTitleInfo = oTitleInfo.GetData();
-    if (sTitleInfo.find(L"<book-title>") == std::wstring::npos)
-		oRes.WriteString(L"<book-title>" + (sInpTitle.empty() ? NSFile::GetFileName(sDst) : sInpTitle) + L"</book-title>");
-    oRes.WriteString(sTitleInfo);
-    oRes.WriteString(L"</title-info></description>");
-    // body
-    oRes.WriteString(L"<body><section>");
-    oRes.WriteString(oDocument.GetData());
-    oRes.WriteString(L"</section></body>");
-    // binary
-    for (size_t i = 0; i < arrBinary.size(); i++)
-    {
-        oRes.WriteString(L"<binary id=\"img" + std::to_wstring(i + 1) + L".png\" content-type=\"image/png\">");
-        oRes.WriteString(arrBinary[i]);
-        oRes.WriteString(L"</binary>");
-    }
-    oRes.WriteString(L"</FictionBook>");
-    // Запись в файл
-    NSFile::CFileBinary oWriter;
-    if (oWriter.CreateFileW(sDst))
-    {
-        oWriter.WriteStringUTF8(oRes.GetData());
-        oWriter.CloseFile();
-    }
-    return S_OK;
+	NSStringUtils::CStringBuilder oRes;
+	oRes.WriteString(L"<?xml version=\"1.0\" encoding=\"UTF-8\"?><FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:l=\"http://www.w3.org/1999/xlink\">");
+	// description title-info
+	oRes.WriteString(L"<description><title-info>");
+	if (m_internal->m_oTitleInfo.m_sBookTitle.empty())
+		m_internal->m_oTitleInfo.m_sBookTitle = EncodeXmlString(sTitle);
+	NSStringUtils::CStringBuilder oTitleInfo;
+	m_internal->readTitleInfo(oTitleInfo);
+	oRes.WriteString(oTitleInfo.GetData());
+	oRes.WriteString(L"</title-info></description>");
+	// body
+	oRes.WriteString(L"<body><section>");
+	oRes.WriteString(oDocument.GetData());
+	oRes.WriteString(L"</section></body>");
+	// notes
+	if (!m_internal->m_mFootnotes.empty())
+	{
+		oRes.WriteString(L"<body name=\"notes\">");
+		for (std::map<std::wstring, std::wstring>::iterator i = m_internal->m_mFootnotes.begin(); i != m_internal->m_mFootnotes.end(); i++)
+		{
+			oRes.WriteString(L"<section id=\"" + i->first + L"\">");
+			oRes.WriteString(i->second);
+			oRes.WriteString(L"</section>");
+		}
+		oRes.WriteString(L"</body>");
+	}
+	// binary
+	for (std::map<std::wstring, std::vector<std::wstring>>::iterator i = m_internal->m_mImages.begin(); i != m_internal->m_mImages.end(); i++)
+	{
+		oRes.WriteString(L"<binary id=\"img" + i->first + L".png\" content-type=\"image/png\">");
+		oRes.WriteString(i->second[0]);
+		oRes.WriteString(L"</binary>");
+	}
+	oRes.WriteString(L"</FictionBook>");
+	// Запись в файл
+	NSFile::CFileBinary oWriter;
+	if (oWriter.CreateFileW(sDst))
+	{
+		oWriter.WriteStringUTF8(oRes.GetData());
+		oWriter.CloseFile();
+		return S_OK;
+	}
+	return S_FALSE;
 
 }

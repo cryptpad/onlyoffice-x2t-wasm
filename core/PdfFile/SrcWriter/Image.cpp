@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -52,38 +52,48 @@ namespace NSImageReSaver
         if (!oFile.OpenFile(wsFileName))
             return;
 
-        if (20 > oFile.GetFileSize())
-            return;
+        int nSize = oFile.GetFileSize();
+        if (nSize > 10000)
+            nSize = 10000;
 
-        BYTE data[20];
+        BYTE* data = new BYTE[nSize];
         DWORD dwRead = 0;
-        if (!oFile.ReadFile(data, 20, dwRead))
+        if (!oFile.ReadFile(data, nSize, dwRead))
+        {
+            RELEASEARRAYOBJECTS(data);
             return;
+        }
 
-        std::string sFind((char*)data, 20);
+        std::string sFind((char*)data, nSize);
         oFile.CloseFile();
+        RELEASEARRAYOBJECTS(data);
 
-        if (std::string::npos == sFind.find("Photoshop") && std::string::npos == sFind.find("photoshop"))
-            return;
+        if (std::string::npos != sFind.find("Adobe") || std::string::npos != sFind.find("Photoshop") || std::string::npos != sFind.find("photoshop"))
+        {
+            CBgraFrame oFrame;
+            if (!oFrame.OpenFile(wsFileName))
+                return;
 
-        CBgraFrame oFrame;
-        if (!oFrame.OpenFile(wsFileName))
-            return;
+            oFrame.SetJpegQuality(85.0);
+            if (!oFrame.Encode(pBuffer, nBufferSize, _CXIMAGE_FORMAT_JPG))
+                return;
 
-        oFrame.SetJpegQuality(85.0);
-        if (!oFrame.Encode(pBuffer, nBufferSize, _CXIMAGE_FORMAT_JPG))
-            return;
+            if (!pBuffer || !nBufferSize)
+                return;
 
-        if (!pBuffer || !nBufferSize)
-            return;
-
-        unWidth = (unsigned int)oFrame.get_Width();
-        unHeight = (unsigned int)oFrame.get_Height();
+            unWidth = (unsigned int)oFrame.get_Width();
+            unHeight = (unsigned int)oFrame.get_Height();
+        }
     }
 }
 
 namespace PdfWriter
 {
+	CXObject::CXObject()
+	{
+		m_dOriginW = 0;
+		m_dOriginH = 0;
+	}
 	//----------------------------------------------------------------------------------------
 	// CImageDict
 	//----------------------------------------------------------------------------------------
@@ -279,9 +289,6 @@ namespace PdfWriter
 	}
 	void CImageDict::LoadSMask(const BYTE* pBgra, unsigned int unWidth, unsigned int unHeight, unsigned char unAlpha, bool bVerFlip)
 	{
-		if (m_pDocument->IsPDFA())
-			return;
-
 		CMemoryStream* pStream = new CMemoryStream(unWidth * unHeight);
 		if (!pStream)
 			return;

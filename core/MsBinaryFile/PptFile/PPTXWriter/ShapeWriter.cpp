@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -36,7 +36,6 @@
 #include "../Drawing/Theme.h"
 
 #include "../../XlsFile/Converter/ShapeType.h"
-#include "../../../Common/MS-LCID.h"
 #include "../../../OOXML/Base/Unit.h"
 
 #include "../../../OOXML/PPTXFormat/Logic/SpTreeElem.h"
@@ -49,7 +48,6 @@ using namespace PPT;
 
 static UINT nRTCounter = 1;
 
-
 CStylesWriter::CStylesWriter() : m_pTheme(NULL) {}
 CStylesWriter::CStylesWriter(PPT::CTheme* pTheme) : m_pTheme(pTheme) {}
 
@@ -57,14 +55,13 @@ void CStylesWriter::ConvertStyleLevel(PPT::CTextStyleLevel& oLevel, PPT::CString
 {//дублирование CTextPFRun и  CTextCFRun с ShapeWriter - todooo  - вынести отдельно
     std::wstring str1;
     if (nLevel == 9)
-        str1 = _T("<a:defPPr");
+        str1 = L"<a:defPPr";
     else
     {
         str1 = L"<a:lvl" + std::to_wstring(nLevel + 1) + L"pPr";
     }
 
     oWriter.WriteString(str1);
-
 
     // <a:pPr>
     auto pPPr = new PPTX::Logic::TextParagraphPr;
@@ -74,8 +71,8 @@ void CStylesWriter::ConvertStyleLevel(PPT::CTextStyleLevel& oLevel, PPT::CString
     std::wstring strPPr = pPPr->toXML().substr(6); // remove <a:pPr
     strPPr = strPPr.substr(0, strPPr.size() - 8);  // remove </a:pPr>
     delete pPPr;
+  
     oWriter.WriteString(strPPr);
-
 
     oWriter.WriteString(L"<a:defRPr");
 
@@ -83,10 +80,10 @@ void CStylesWriter::ConvertStyleLevel(PPT::CTextStyleLevel& oLevel, PPT::CString
 
     if (pCF->Language.is_init())
     {
-        std::wstring str_lang = msLCID2wstring(pCF->Language.get());
+        std::wstring str_lang = m_lcidConverter.get_wstring(pCF->Language.get());
 
         if (str_lang.length() > 0)
-            oWriter.WriteString(std::wstring(L" lang=\"") + str_lang + _T("\""));
+            oWriter.WriteString(std::wstring(L" lang=\"") + str_lang + L"\"");
     }
     if (pCF->Size.is_init())
     {
@@ -390,7 +387,7 @@ std::wstring PPT::CShapeWriter::ConvertShadow(CShadow	& shadow)
     std::wstring	Preset;
     bool			Inner = false;
 
-    if (shadow.Visible == false)		return _T("");
+    if (shadow.Visible == false) return L"";
 
     double dist = sqrt(shadow.DistanceY * shadow.DistanceY  + shadow.DistanceX * shadow.DistanceX);
     double dir	= 0;
@@ -439,8 +436,6 @@ std::wstring PPT::CShapeWriter::ConvertShadow(CShadow	& shadow)
     std::wstring strSY;
     if (shadow.ScaleYToY < 1 || shadow.ScaleYToY > 1)
     {
-        if (shadow.ScaleYToX < 1)shadow.ScaleYToY = -shadow.ScaleYToY;
-
         strSY = L" sy=\"" + std::to_wstring((int)(shadow.ScaleYToY * 100000)) + L"\"";
     }
     std::wstring strSX;
@@ -557,7 +552,8 @@ void PPT::CShapeWriter::WriteImageInfo()
     if (pImageElement->m_lID < 0)
         pImageElement->m_lID = m_lNextShapeID;
 
-    std::wstring strShapeID = std::to_wstring(pImageElement->m_lID);
+    COleObjectElement* pOleObjectElement = dynamic_cast<COleObjectElement*>(m_pElement.get());
+    std::wstring strShapeID = std::to_wstring(pOleObjectElement ? 0 : pImageElement->m_lID);
 
     m_oWriter.WriteString(std::wstring(L"<p:cNvPr id=\"") + strShapeID + L"\"" );
 
@@ -581,7 +577,6 @@ void PPT::CShapeWriter::WriteImageInfo()
         m_oWriter.WriteString(std::wstring(L"\""));
     }
     m_oWriter.WriteString(std::wstring(L">"));
-
 
     WriteHyperlink(m_pElement->m_arrActions);
 
@@ -652,7 +647,7 @@ void PPT::CShapeWriter::WriteImageInfo()
 
     m_oWriter.WriteString(std::wstring(L"</p:nvPr>"));
 
-    std::wstring str2 = _T("</p:nvPicPr>");
+    std::wstring str2 = L"</p:nvPicPr>";
     m_oWriter.WriteString(str2);
 }
 void PPT::CShapeWriter::WriteGroupInfo()
@@ -704,10 +699,89 @@ void PPT::CShapeWriter::WriteGroupInfo()
 
     m_oWriter.WriteString(std::wstring(L"<p:nvPr/>"));
 
-    std::wstring str2 = _T("</p:nvGrpSpPr>");
+    std::wstring str2 = L"</p:nvGrpSpPr>";
     m_oWriter.WriteString(str2);
 }
+void PPT::CShapeWriter::WriteOleObjectInfo(const std::wstring& strRid, const std::wstring& xfrm)
+{
+    COleObjectElement* pOleObjectElement = dynamic_cast<COleObjectElement*>(m_pElement.get());
+    if (!pOleObjectElement) return;
 
+    m_oWriter.WriteString(std::wstring(L"<p:graphicFrame>"));
+
+    m_oWriter.WriteString(std::wstring(L"<p:nvGraphicFramePr>"));
+
+    if (pOleObjectElement->m_lID < 0)
+        pOleObjectElement->m_lID = m_lNextShapeID;
+
+    std::wstring strTableID = std::to_wstring(pOleObjectElement->m_lID);
+
+    m_oWriter.WriteString(std::wstring(L"<p:cNvPr id=\"") + strTableID + L"\"");
+
+    if (pOleObjectElement->m_sName.empty()) pOleObjectElement->m_sName = std::wstring(L"Group ") + strTableID;
+
+    if (pOleObjectElement->m_bHidden)	m_oWriter.WriteString(std::wstring(L" hidden=\"1\""));
+
+    m_oWriter.WriteString(std::wstring(L" name=\""));
+    m_oWriter.WriteStringXML(pOleObjectElement->m_sName);
+    m_oWriter.WriteString(std::wstring(L"\""));
+
+    if (!pOleObjectElement->m_sDescription.empty())
+    {
+        m_oWriter.WriteString(std::wstring(L" descr=\""));
+        m_oWriter.WriteStringXML(XmlUtils::EncodeXmlStringExtend(pOleObjectElement->m_sDescription));
+        m_oWriter.WriteString(std::wstring(L"\""));
+    }
+    m_oWriter.WriteString(std::wstring(L">"));
+    if (!pOleObjectElement->m_sHyperlink.empty())
+    {
+        std::wstring rId = m_pRels->WriteHyperlink(pOleObjectElement->m_sHyperlink);
+
+        if (false == rId.empty())
+        {
+            m_oWriter.WriteString(std::wstring(L"<a:hlinkClick"));
+            m_oWriter.WriteString(std::wstring(L" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\""));
+            m_oWriter.WriteString(std::wstring(L" r:id=\"" + rId));
+            m_oWriter.WriteString(std::wstring(L"\"></a:hlinkClick>"));
+        }
+    }
+    m_oWriter.WriteString(std::wstring(L"</p:cNvPr>"));
+
+    m_oWriter.WriteString(std::wstring(L"<p:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect=\"1\"/></p:cNvGraphicFramePr>"));
+
+    ++m_lNextShapeID;
+
+    m_oWriter.WriteString(std::wstring(L"<p:nvPr/>"));
+
+    m_oWriter.WriteString(std::wstring(L"</p:nvGraphicFramePr>"));
+
+    if (pOleObjectElement->m_bChildAnchorEnabled || pOleObjectElement->m_bAnchorEnabled)
+    {
+        m_oWriter.WriteString(std::wstring(L"<p:xfrm") + xfrm + std::wstring(L"</p:xfrm>"));
+    }
+
+    m_oWriter.WriteString(std::wstring(L"<a:graphic>"));
+    m_oWriter.WriteString(std::wstring(L"<a:graphicData uri=\"http://schemas.openxmlformats.org/presentationml/2006/ole\">"));
+    m_oWriter.WriteString(std::wstring(L"<p:oleObj"));
+
+    if (false == pOleObjectElement->m_strOleName.empty())
+    {
+        m_oWriter.WriteString(std::wstring(L" name=\"") + pOleObjectElement->m_strOleName + L"\"");
+    }
+    m_oWriter.WriteString(std::wstring(L" r:id=\"") + strRid + L"\"");
+
+    _INT64 width = (_INT64)(pOleObjectElement->m_bChildAnchorEnabled ? pOleObjectElement->m_rcChildAnchor.GetWidth() : pOleObjectElement->m_rcAnchor.GetWidth()) / 1.78;
+    _INT64 height = (_INT64)(pOleObjectElement->m_bChildAnchorEnabled ? pOleObjectElement->m_rcChildAnchor.GetHeight() : pOleObjectElement->m_rcAnchor.GetHeight()) / 1.78;
+    
+    m_oWriter.WriteString(std::wstring(L" imgW=\"") + std::to_wstring(width) + L"\"");
+    m_oWriter.WriteString(std::wstring(L" imgH=\"") + std::to_wstring(height) + L"\"");
+
+    if (false == pOleObjectElement->m_strProgId.empty())
+    {
+        m_oWriter.WriteString(std::wstring(L" progId=\"") + pOleObjectElement->m_strProgId + L"\"");
+    }
+    m_oWriter.WriteString(std::wstring(L"><p:embed/>"));
+}
 void PPT::CShapeWriter::WriteTableInfo()
 {
     CGroupElement* pGroupElement = dynamic_cast<CGroupElement*>(m_pElement.get());
@@ -757,7 +831,7 @@ void PPT::CShapeWriter::WriteTableInfo()
 
     m_oWriter.WriteString(std::wstring(L"<p:nvPr/>"));
 
-    std::wstring str2 = _T("</p:nvGraphicFramePr>");
+    std::wstring str2 = L"</p:nvGraphicFramePr>";
     m_oWriter.WriteString(str2);
 }
 
@@ -825,7 +899,7 @@ void PPT::CShapeWriter::WriteShapeInfo()
         m_oWriter.WriteString(std::wstring(L"<p:nvPr><p:ph"));
 
         if (pShapeElement->m_lPlaceholderType > 0 && pShapeElement->m_lPlaceholderType != PT_Body_Empty)
-            m_oWriter.WriteString(std::wstring(L" type=\"") + GetPhType(pShapeElement->m_lPlaceholderType) + _T("\""));
+            m_oWriter.WriteString(std::wstring(L" type=\"") + GetPhType(pShapeElement->m_lPlaceholderType) + L"\"");
         else if (pShapeElement->m_lPlaceholderID == -1)
             m_oWriter.WriteString(std::wstring(L" type=\"obj\""));
 
@@ -856,7 +930,7 @@ void PPT::CShapeWriter::WriteShapeInfo()
         m_oWriter.WriteString(std::wstring(L"<p:nvPr/>"));
     }
 
-    std::wstring str2 = _T("</p:nvSpPr>");
+    std::wstring str2 = L"</p:nvSpPr>";
     m_oWriter.WriteString(str2);
 }
 void PPT::CShapeWriter::Write3dShape()
@@ -1121,7 +1195,7 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
     {
         std::wstring prstTxWarp = oox::Spt2WordArtShapeType((oox::MSOSPT)pShapeElement->m_lShapeType);
         m_oWriter.WriteString(std::wstring(L"<a:prstTxWarp"));
-        m_oWriter.WriteString(std::wstring(L" prst=\"") + prstTxWarp + _T("\">"));
+        m_oWriter.WriteString(std::wstring(L" prst=\"") + prstTxWarp + L"\">");
         m_oWriter.WriteString(std::wstring(L"<a:avLst>"));//модификаторы
 
         CPPTShape *pPPTShape = dynamic_cast<CPPTShape *>(pShapeElement->m_pShape->getBaseShape().get());
@@ -1201,7 +1275,7 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
         {
             if (true)
             {
-                if ((nSpan == (nCountSpans - 1)) && (_T("\n") == pParagraph->m_arSpans[nSpan].m_strText || pParagraph->m_arSpans[nSpan].m_strText.empty()) )
+                if ((nSpan == (nCountSpans - 1)) && (L"\n" == pParagraph->m_arSpans[nSpan].m_strText || pParagraph->m_arSpans[nSpan].m_strText.empty()))
                 {
                     PPT::CTextCFRun* pCF = &pParagraph->m_arSpans[nSpan].m_oRun;
                     if ((pCF->Size.is_init()) && (pCF->Size.get() > 0) && (pCF->Size.get() < 4001))
@@ -1250,10 +1324,10 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
             }
             if (pCF->Language.is_init())
             {
-                std::wstring str_lang = msLCID2wstring(pCF->Language.get());
+                std::wstring str_lang = m_lcidConverter.get_wstring(pCF->Language.get());
 
                 if (str_lang.length() > 0)
-                    m_oWriter.WriteString(std::wstring(L" lang=\"") + str_lang + _T("\""));
+                    m_oWriter.WriteString(std::wstring(L" lang=\"") + str_lang + L"\"");
             }
             if ((pCF->Size.is_init()) && (pCF->Size.get() > 0) && (pCF->Size.get() < 4001))
             {
@@ -1303,7 +1377,7 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
                 {
                     if (pCF->Color->m_lSchemeIndex != -1)
                     {
-                        std::wstring strProp = _T("<a:solidFill><a:schemeClr val=\"") + CStylesWriter::GetColorInScheme(pCF->Color->m_lSchemeIndex) + _T("\"/></a:solidFill>");
+                        std::wstring strProp = L"<a:solidFill><a:schemeClr val=\"" + CStylesWriter::GetColorInScheme(pCF->Color->m_lSchemeIndex) + L"\"/></a:solidFill>";
                         m_oWriter.WriteString(strProp);
                     }
                     else
@@ -1368,7 +1442,7 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
             }
             else
             {
-                std::wstring strT1 = _T("<a:t>");
+                std::wstring strT1 = L"<a:t>";
                 m_oWriter.WriteString(strT1);
 
                 std::wstring strT = pParagraph->m_arSpans[nSpan].m_strText;
@@ -1377,7 +1451,7 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
 
                 m_oWriter.WriteString(strT);
 
-                std::wstring strT2 = _T("</a:t>");
+                std::wstring strT2 = L"</a:t>";
                 m_oWriter.WriteString(strT2);
 
                 if ((pShapeElement->m_lPlaceholderType == PT_MasterSlideNumber ||
@@ -1390,11 +1464,11 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
             }
         }
 
-        std::wstring strEndPar = _T("</a:p>");
+        std::wstring strEndPar = L"</a:p>";
         m_oWriter.WriteString(strEndPar);
     }
 
-    std::wstring str5 = _T("</p:txBody>");
+    std::wstring str5 = L"</p:txBody>";
     m_oWriter.WriteString(str5);
 }
 
@@ -1430,7 +1504,7 @@ std::wstring CShapeWriter::WriteBullets(CTextPFRun *pPF, CRelsGenerator* pRels)
 
                 if ( pPF->bulletFontProperties->PitchFamily > 0)
                 {
-                    buWrt.WriteString(std::wstring(L" pitchFamily=\"") + std::to_wstring(pPF->bulletFontProperties->PitchFamily) + L"\"");
+                    buWrt.WriteString(std::wstring(L" pitchFamily=\"") + std::to_wstring((char)pPF->bulletFontProperties->PitchFamily) + L"\"");
                 }
                 if ( pPF->bulletFontProperties->Charset > 0)
                 {
@@ -1531,7 +1605,7 @@ std::wstring PPT::CShapeWriter::ConvertGroup()
         double width	= bChildAnchorEnabled ? pGroupElement->m_rcChildAnchor.GetWidth() : pGroupElement->m_rcAnchor.GetWidth();
         double height	= bChildAnchorEnabled ? pGroupElement->m_rcChildAnchor.GetHeight() : pGroupElement->m_rcAnchor.GetHeight();
 
-        if ( width > 0 || height > 0 )
+        if ( width > 0 && height > 0 )
         {
             m_oWriter.WriteString(L"<a:ext cx=\"" + std::to_wstring((int)width) + L"\" cy=\"" + std::to_wstring((int)height) + L"\"/>");
         }
@@ -1730,7 +1804,7 @@ std::vector<CInteractiveInfo> CShapeWriter::getActionsByNum(const int num)
 }
 
 // TODO! Not work correct
-std::wstring	PPT::CShapeWriter::ConvertTable	()
+std::wstring PPT::CShapeWriter::ConvertTable()
 {
     CGroupElement* pGroupElement = dynamic_cast<CGroupElement*>(m_pElement.get());
     if (!pGroupElement) return L"";
@@ -1773,7 +1847,7 @@ std::wstring	PPT::CShapeWriter::ConvertTable	()
         double width	= pGroupElement->m_bChildAnchorEnabled ? pGroupElement->m_rcChildAnchor.GetWidth() : pGroupElement->m_rcAnchor.GetWidth();
         double height	= pGroupElement->m_bChildAnchorEnabled ? pGroupElement->m_rcChildAnchor.GetHeight() : pGroupElement->m_rcAnchor.GetHeight();
 
-        if ( width > 0 || height > 0 )
+        if ( width > 0 && height > 0 )
         {
             m_oWriter.WriteString(L"<a:ext cx=\"" + std::to_wstring((int)width) + L"\" cy=\"" + std::to_wstring((int)height) + L"\"/>");
         }
@@ -1808,7 +1882,7 @@ std::wstring PPT::CShapeWriter::ConvertShape()
     if (pImageElement) return ConvertImage();
     if (pGroupElement) return ConvertGroup();
 
-    if (pShapeElement == NULL) return _T("");
+    if (pShapeElement == NULL) return L"";
 
     std::wstring prstTxWarp;
     std::wstring prstGeom	= oox::Spt2ShapeType_mini((oox::MSOSPT)pShapeElement->m_lShapeType);
@@ -1886,7 +1960,7 @@ std::wstring PPT::CShapeWriter::ConvertShape()
         double width	= pShapeElement->m_bChildAnchorEnabled ? pShapeElement->m_rcChildAnchor.GetWidth() : pShapeElement->m_rcAnchor.GetWidth();
         double height	= pShapeElement->m_bChildAnchorEnabled ? pShapeElement->m_rcChildAnchor.GetHeight() : pShapeElement->m_rcAnchor.GetHeight();
 
-        if ( width > 0 || height > 0 )
+        if (( width > 0 && height > 0 ) || (pShapeElement->m_lShapeType == oox::msosptLine))
         {
             m_oWriter.WriteString(L"<a:ext cx=\"" + std::to_wstring((int)width) + L"\" cy=\"" + std::to_wstring((int)height) + L"\"/>");
         }
@@ -2006,15 +2080,14 @@ void PPT::CShapeWriter::ParseXmlAlternative(const std::wstring & xml)
     }
 }
 
-
 std::wstring PPT::CShapeWriter::ConvertImage()
-{
+{    
     CImageElement* pImageElement = dynamic_cast<CImageElement*>(m_pElement.get());
     if (!pImageElement) return L"";
-
+    
     if (pImageElement->m_bImagePresent == false)
     {
-        if (pImageElement->m_sName.empty()) return _T("");
+        if (pImageElement->m_sName.empty()) return L"";
         //ppt_presentation.ppt - ссылка на файл на диске
 
         pImageElement->m_strImageFileName.clear();
@@ -2030,27 +2103,75 @@ std::wstring PPT::CShapeWriter::ConvertImage()
         strRid = m_pRels->WriteHyperlinkImage(CorrectXmlString3(pImageElement->m_sImageName));
     }
 
-    if (strRid.empty()) return _T("");
+    if (strRid.empty()) return L"";
 
-    m_oWriter.WriteString(std::wstring(L"<p:pic>"));
-
-    WriteImageInfo();
+    std::wstring strAnchor;
 
     CGeomShapeInfo oInfo;
 
-    oInfo.m_lOriginalWidth	= m_pElement->m_bChildAnchorEnabled ? (LONG)m_pElement->m_rcChildAnchor.GetWidth() : (LONG)m_pElement->m_rcAnchor.GetWidth();
-    oInfo.m_lOriginalHeight	= m_pElement->m_bChildAnchorEnabled ? (LONG)m_pElement->m_rcChildAnchor.GetHeight() : (LONG)m_pElement->m_rcAnchor.GetHeight();
+    oInfo.m_lOriginalWidth = m_pElement->m_bChildAnchorEnabled ? (LONG)m_pElement->m_rcChildAnchor.GetWidth() : (LONG)m_pElement->m_rcAnchor.GetWidth();
+    oInfo.m_lOriginalHeight = m_pElement->m_bChildAnchorEnabled ? (LONG)m_pElement->m_rcChildAnchor.GetHeight() : (LONG)m_pElement->m_rcAnchor.GetHeight();
 
     m_pElement->NormalizeCoordsByMetric();
     oInfo.SetBounds(m_pElement->m_bChildAnchorEnabled ? m_pElement->m_rcChildAnchor : m_pElement->m_rcAnchor);
 
     oInfo.m_dRotate = pImageElement->m_dRotate;
-    oInfo.m_bFlipH	= pImageElement->m_bFlipH;
-    oInfo.m_bFlipV	= pImageElement->m_bFlipV;
+    oInfo.m_bFlipH = pImageElement->m_bFlipH;
+    oInfo.m_bFlipV = pImageElement->m_bFlipV;
+
+    if (pImageElement->m_bChildAnchorEnabled || pImageElement->m_bAnchorEnabled)
+    {
+        if (0 != pImageElement->m_dRotate)
+        {
+            strAnchor += L" rot=\"" + std::to_wstring((int)(pImageElement->m_dRotate * 60000)) + L"\"";
+        }
+        if (pImageElement->m_bFlipH)
+        {
+            strAnchor += L" flipH=\"1\"";
+        }
+        if (pImageElement->m_bFlipV)
+        {
+            strAnchor += L" flipV=\"1\"";
+        }
+        strAnchor += L">";
+
+        strAnchor += L"<a:off x=\"" +
+            std::to_wstring(pImageElement->m_bChildAnchorEnabled ? (int)pImageElement->m_rcChildAnchor.left : (int)pImageElement->m_rcAnchor.left)
+            + L"\" y=\"" +
+            std::to_wstring(pImageElement->m_bChildAnchorEnabled ? (int)pImageElement->m_rcChildAnchor.top : (int)pImageElement->m_rcAnchor.top) +
+            L"\"/>";
+
+        _INT64 width = (_INT64)(pImageElement->m_bChildAnchorEnabled ? pImageElement->m_rcChildAnchor.GetWidth() : pImageElement->m_rcAnchor.GetWidth());
+        _INT64 height = (_INT64)(pImageElement->m_bChildAnchorEnabled ? pImageElement->m_rcChildAnchor.GetHeight() : pImageElement->m_rcAnchor.GetHeight());
+
+        if ((width > 0 && height > 0) && ((_UINT64)width) < 0xffffffffffff && ((_UINT64)height) < 0xffffffffffff)
+        {
+            strAnchor += L"<a:ext cx=\"" + std::to_wstring(width) + L"\" cy=\"" + std::to_wstring(height) + L"\"/>";
+        }
+        else
+        {
+            strAnchor += L"<a:ext cx=\"0\" cy=\"0\"/>";
+        }
+    }
+
+    COleObjectElement* pOleObjectElement = dynamic_cast<COleObjectElement*>(m_pElement.get());
+    if (pOleObjectElement)
+    {
+        std::wstring strRidOleObject = m_pRels->WriteOleObject(pOleObjectElement->m_strBinFileName);
+        if (false == strRidOleObject.empty())
+        {
+            WriteOleObjectInfo(strRidOleObject, strAnchor);
+         }
+        else pOleObjectElement = NULL;
+    }
+    
+    m_oWriter.WriteString(std::wstring(L"<p:pic>"));
+
+    WriteImageInfo();
 
     m_oWriter.WriteString(std::wstring(L"<p:blipFill>"));
 
-    std::wstring strWrite = _T("<a:blip r:embed=\"") + strRid + _T("\"");
+    std::wstring strWrite = L"<a:blip r:embed=\"" + strRid + L"\"";
     m_oWriter.WriteString(strWrite);
     if (pImageElement->m_lpictureBrightness != 0 || pImageElement->m_lpictureContrast != 0x10000)
     {
@@ -2069,11 +2190,14 @@ std::wstring PPT::CShapeWriter::ConvertImage()
             if (pImageElement->m_lpictureContrast < 0x10000)
             {
                 contrast = (0x10000 - pImageElement->m_lpictureContrast) * -1.5259;
-            } else
+            } 
+			else
             {
                 //                contrast = (pImageElement->m_lpictureContrast - 0x10000) * 0.76294; // 0.76294 - not correct, * - not correct
                 contrast = 0;
             }
+			if (contrast < -100000) 
+				contrast = -100000;
             m_oWriter.WriteString(L" contrast=\"" + std::to_wstring(contrast) + L"\"");
         }
 
@@ -2109,41 +2233,7 @@ std::wstring PPT::CShapeWriter::ConvertImage()
 
     if (pImageElement->m_bChildAnchorEnabled || pImageElement->m_bAnchorEnabled)
     {
-        std::wstring str;
-
-        m_oWriter.WriteString(std::wstring(L"<a:xfrm"));
-        if (0 != pImageElement->m_dRotate)
-        {
-            m_oWriter.WriteString(L" rot=\"" + std::to_wstring((int)(pImageElement->m_dRotate * 60000)) + L"\"");
-        }
-        if (pImageElement->m_bFlipH)
-        {
-            m_oWriter.WriteString(std::wstring(L" flipH=\"1\""));
-        }
-        if (pImageElement->m_bFlipV)
-        {
-            m_oWriter.WriteString(std::wstring(L" flipV=\"1\""));
-        }
-        m_oWriter.WriteString(std::wstring(L">"));
-
-        m_oWriter.WriteString(L"<a:off x=\"" +
-                              std::to_wstring(pImageElement->m_bChildAnchorEnabled ? (int)pImageElement->m_rcChildAnchor.left : (int)pImageElement->m_rcAnchor.left)
-                              + L"\" y=\"" +
-                              std::to_wstring(pImageElement->m_bChildAnchorEnabled ? (int)pImageElement->m_rcChildAnchor.top : (int)pImageElement->m_rcAnchor.top) +
-                              L"\"/>");
-
-		_INT64 width	= (_INT64)(pImageElement->m_bChildAnchorEnabled ? pImageElement->m_rcChildAnchor.GetWidth() : pImageElement->m_rcAnchor.GetWidth());
-		_INT64 height	= (_INT64)(pImageElement->m_bChildAnchorEnabled ? pImageElement->m_rcChildAnchor.GetHeight() : pImageElement->m_rcAnchor.GetHeight());
-
-        if (( width > 0 || height > 0 ) && ((_UINT64)width) < 0xffffffffffff && ((_UINT64)height) < 0xffffffffffff)
-        {
-            m_oWriter.WriteString(L"<a:ext cx=\"" + std::to_wstring(width) + L"\" cy=\"" + std::to_wstring(height) + L"\"/>");
-        }
-		else
-		{
-			m_oWriter.WriteString(L"<a:ext cx=\"0\" cy=\"0\"/>");
-		}
-        m_oWriter.WriteString(std::wstring(L"</a:xfrm>"));
+        m_oWriter.WriteString(std::wstring(L"<a:xfrm") + strAnchor + std::wstring(L"</a:xfrm>"));        
     }
     m_oWriter.WriteString(std::wstring(L"<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom>"));
 
@@ -2157,6 +2247,14 @@ std::wstring PPT::CShapeWriter::ConvertImage()
     m_oWriter.WriteString(std::wstring(L"</p:spPr>"));
 
     m_oWriter.WriteString(std::wstring(L"</p:pic>"));
+  
+    if (pOleObjectElement)
+    {
+        m_oWriter.WriteString(std::wstring(L"</p:oleObj>"));
+        m_oWriter.WriteString(std::wstring(L"</a:graphicData>"));
+        m_oWriter.WriteString(std::wstring(L"</a:graphic>"));
+        m_oWriter.WriteString(std::wstring(L"</p:graphicFrame>"));
+   }
 
     pImageElement = NULL;
     return m_oWriter.GetData();

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -53,19 +53,23 @@ BaseObjectPtr Window1::clone()
 
 void Window1::readFields(CFRecord& record)
 {
-	unsigned short flags;
-
     if (record.getGlobalWorkbookInfo()->Version < 0x0800)
     {
-        _INT16 xWn_2b;
-        _INT16 yWn_2b;
-        _INT16 dxWn_2b;
-        _INT16 dyWn_2b;
-        _UINT16 itabCur_2b;
-        _UINT16 itabFirst_2b;
-        _UINT16 wTabRatio_2b;
+        BYTE flags = 0, reserved;
+        _INT16 xWn_2b = 0;
+        _INT16 yWn_2b = 0;
+        _INT16 dxWn_2b = 0;
+        _INT16 dyWn_2b = 0;
+        _UINT16 itabCur_2b = 0;
+        _UINT16 itabFirst_2b = 0;
+        _UINT16 wTabRatio_2b = 0;
 
-        record >> xWn_2b >> yWn_2b >> dxWn_2b >> dyWn_2b >> flags >> itabCur_2b >> itabFirst_2b >> ctabSel >> wTabRatio_2b;
+        record >> xWn_2b >> yWn_2b >> dxWn_2b >> dyWn_2b >> flags;
+
+        if (record.getGlobalWorkbookInfo()->Version > 0x0400)
+        {
+            record >> reserved >> itabCur_2b >> itabFirst_2b >> ctabSel >> wTabRatio_2b;
+        }
 
         fHidden			= GETBIT(flags, 0);
         fIconic			= GETBIT(flags, 1);
@@ -97,6 +101,31 @@ void Window1::readFields(CFRecord& record)
         fBotAdornment	= GETBIT(flags1, 5);
         fNoAFDateGroup	= GETBIT(flags1, 6);
     }
+}
+
+void Window1::writeFields(CFRecord& record)
+{
+	unsigned short flags;
+
+	if (record.getGlobalWorkbookInfo()->Version < 0x0800)
+	{
+		//stub
+	}
+
+	else
+	{
+		BYTE flags1 = 0;
+
+		SETBIT(flags1, 0, fHidden)
+		SETBIT(flags1, 1, fVeryHidden)
+		SETBIT(flags1, 2, fIconic)
+		SETBIT(flags1, 3, fDspHScroll)
+		SETBIT(flags1, 4, fDspVScroll)
+		SETBIT(flags1, 5, fBotAdornment)
+		SETBIT(flags1, 6, fNoAFDateGroup)
+
+		record << xWn << yWn << dxWn << dyWn << wTabRatio << itabFirst << itabCur << flags1;
+	}
 }
 
 int Window1::serialize(std::wostream & stream)

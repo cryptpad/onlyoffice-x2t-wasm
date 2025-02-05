@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -60,9 +60,9 @@ public:
 
 enum EGlyphState
 {
-    glyphstateNormal = 0,  // символ отрисовался в нужном шрифте
-    glyphstateDefault,     // символ отрисовался в дефолтовом шрифте
-    glyphstateMiss         // символ не отрисовался
+	glyphstateNormal = 0,  // символ отрисовался в нужном шрифте
+	glyphstateDefault,     // символ отрисовался в дефолтовом шрифте
+	glyphstateMiss         // символ не отрисовался
 };
 
 struct TMetrics
@@ -82,7 +82,7 @@ struct TMetrics
 class TGlyph
 {
 public:
-    unsigned int lUnicode; // Юникод
+	unsigned int lUnicode; // Юникод
 	float        fX;       // Позиция глифа
 	float        fY;       // на BaseLine
 
@@ -160,8 +160,8 @@ public:
 	CGlyphString(const std::wstring& wsString, float fX = 0, float fY = 0);
 	~CGlyphString();
 	void SetString(const std::wstring& wsString, float fX = 0, float fY = 0);
-    void SetString(const unsigned int* pGids, const unsigned int& nGidsCount, float fX = 0, float fY = 0);
-    void SetStringGID(const unsigned int& gid, float fX = 0, float fY = 0);
+	void SetString(const unsigned int* pGids, const unsigned int& nGidsCount, float fX = 0, float fY = 0);
+	void SetStringGID(const unsigned int& gid, float fX = 0, float fY = 0);
 	void Reset();
 	int  GetLength();
 	void SetBBox(int nIndex, float fLeft, float fTop, float fRight, float fBottom);

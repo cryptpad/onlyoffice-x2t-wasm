@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -67,6 +67,11 @@ const bool COLUMNS::loadContent(BinProcessor& proc)
 		elements_.pop_back();
 	}
 	int count = (global_info_->Version == 0x0200) ? proc.repeated<ColWidth>(0, 255) : proc.repeated<ColInfo>(0, 255);
+
+	if (count < 1)
+	{//version 0x0400 ???? ColWidth 
+		count = (global_info_->Version == 0x0200) ? proc.repeated<ColInfo>(0, 255) : proc.repeated<ColWidth>(0, 255);
+	}
 
 	int last_add = 0;
 

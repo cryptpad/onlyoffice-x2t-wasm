@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -33,7 +33,7 @@
 
 using namespace PPT;
 
-CPPTDocumentInfo::CPPTDocumentInfo() : m_oCurrentUser(), m_bMacros(true)
+CPPTDocumentInfo::CPPTDocumentInfo() : m_oCurrentUser(), m_bMacroEnabled(true), m_pStream(NULL)
 {
 }
 
@@ -57,6 +57,7 @@ void CPPTDocumentInfo::Clear()
 
 bool CPPTDocumentInfo::ReadFromStream(CRecordCurrentUserAtom *pCurrentUser, POLE::Stream *pStream)
 {
+    m_pStream = pStream;
     m_oCurrentUser.FromAtom(pCurrentUser);
 
     _UINT32 offsetToEdit = m_oCurrentUser.m_nOffsetToCurrentEdit;
@@ -74,17 +75,17 @@ bool CPPTDocumentInfo::ReadFromStream(CRecordCurrentUserAtom *pCurrentUser, POLE
         oHeader.ReadFromStream(pStream);
         oUserAtom.ReadFromStream(oHeader, pStream);
 
-        CPPTUserInfo* pInfo			= new CPPTUserInfo();
+        CPPTUserInfo* pInfo = new CPPTUserInfo();
 
-        pInfo->m_strTmpDirectory	= m_strTmpDirectory;
-        pInfo->m_bEncrypt			= m_oCurrentUser.m_bIsEncrypt;
-        pInfo->m_strPassword		= m_strPassword;
-        pInfo->m_bMacros			= m_bMacros;
+        pInfo->m_pDocumentInfo      = this;
+
+        pInfo->m_bEncrypt = m_oCurrentUser.m_bIsEncrypt;
+        pInfo->m_strPassword = m_strPassword;
+        pInfo->m_bMacroEnabled = m_bMacroEnabled;
 
         bool bResult = pInfo->ReadFromStream(&oUserAtom, pStream);
 
-        m_bMacros					= pInfo->m_bMacros;
-        offsetToEdit				= pInfo->m_oUser.m_nOffsetLastEdit;
+        offsetToEdit = pInfo->m_oUser.m_nOffsetLastEdit;
         m_oCurrentUser.m_bIsEncrypt = pInfo->m_bEncrypt;
 
         if (bResult == false)
@@ -100,23 +101,51 @@ bool CPPTDocumentInfo::ReadFromStream(CRecordCurrentUserAtom *pCurrentUser, POLE
 
         m_arUsers.push_back(pInfo);
         // теперь нужно выставить у него параметры для других юзеров
-        pInfo->m_pDocumentInfo = this;
         pInfo->m_lIndexThisUser = m_arUsers.size() - 1;
 
         pInfo = NULL;
     }
-
     return true;
 }
+std::wstring CPPTDocumentInfo::GetBinFromStg(const std::wstring& name, _UINT32 nRef)
+{
+    for (size_t i = 0; i < m_arUsers.size(); ++i)
+    {
+        std::map<_UINT32, _UINT32>::iterator nIndexPsrRef = m_arUsers[i]->m_mapOffsetInPIDs.find(nRef);
+        if (m_arUsers[i]->m_mapOffsetInPIDs.end() != nIndexPsrRef)
+        {
+            std::wstring result;
+            _UINT32 offset_stream = nIndexPsrRef->second;
+            StreamUtils::StreamSeek(offset_stream, m_pStream);
 
-bool CPPTDocumentInfo::LoadDocument(std::wstring strFolderMem)
+            SRecordHeader oHeader;
+            oHeader.ReadFromStream(m_pStream);
+
+            CRecordExObjStg* pExObjStg = new CRecordExObjStg(name, m_pCommonInfo->tempPath);
+
+            if (pExObjStg)
+            {
+                pExObjStg->ReadFromStream(oHeader, m_pStream);
+                result = pExObjStg->m_sFileName;
+
+                RELEASEOBJECT(pExObjStg);
+            }
+            return result;
+        }
+    }
+    return L"";
+}
+
+bool CPPTDocumentInfo::LoadDocument()
 {
     if (m_arUsers.empty()) return false;
 
     try
     {
-        m_arUsers[0]->ReadExtenalObjects(strFolderMem);
+        m_arUsers[0]->ReadExtenalObjects(); // todooo ???? прочитать по всем (см 66864)
         m_arUsers[0]->FromDocument();
+
+        m_bMacroEnabled = m_arUsers[0]->m_bMacroEnabled;
     }
     catch(int) //error code
     {

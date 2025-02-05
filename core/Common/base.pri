@@ -199,12 +199,25 @@ core_windows {
 }
 
 core_linux {
-    equals(TEMPLATE, app) {
-        QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
-        QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN/system\'"
-        # CryptPad: --disable-new-dtags does not exist in emscripten linker
-        # QMAKE_LFLAGS += -Wl,--disable-new-dtags
-    }
+	equals(TEMPLATE, app) {
+		QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
+		QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN/system\'"
+	        # CryptPad: --disable-new-dtags does not exist in emscripten linker
+                # QMAKE_LFLAGS += -Wl,--disable-new-dtags
+
+		!disable_rpath_addon {
+			RUN_PATH_ADDON = $$(RUN_PATH_ADDON)
+			!isEmpty(RUN_PATH_ADDON){
+				RUN_PATH_ADDON_ARRAY = $$split(RUN_PATH_ADDON, ";;")
+				for(rpath_item, RUN_PATH_ADDON_ARRAY):QMAKE_LFLAGS += "-Wl,-rpath,\'$$rpath_item\'"
+			}
+		}
+	}
+}
+
+core_linux {
+	equals(TEMPLATE, app):CONFIG += core_static_link_libstd
+	plugin:CONFIG += core_static_link_libstd
 }
 
 core_win_32 {

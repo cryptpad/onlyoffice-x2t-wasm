@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -64,6 +64,11 @@ const long c_nComplexFigureType = 0x0800;
 const long c_nPDFGradientType   = 0x1000;
 const long c_nTableCell			= 0x2000;
 
+const long c_nMaskType          = 0x3000;
+const long c_nResetMaskType     = 0x4000;
+
+const long c_nLayerType         = 0x5000;
+
 const long c_nPDFTilingFill				= 0x2001;
 const long c_nPDFTilingFillIteration	= 0x2002;
 
@@ -91,6 +96,9 @@ const long c_nBaselineShift		= 0xa041;
 // типы клипа
 const long c_nClipRegionTypeWinding		= 0x0000;
 const long c_nClipRegionTypeEvenOdd		= 0x0001;
+// тип преобразования пути для клипов
+const long c_nClipToPath				= 0x0000;
+const long c_nClipToStrokePath			= 0x0010;
 // тип объединения клипов
 const long c_nClipRegionIntersect		= 0x0000;
 const long c_nClipRegionUnion			= 0x0100;
@@ -108,6 +116,7 @@ const long c_nFlipNextRotate	= 0x0004;
 const long c_nDarkMode          = 0x0008;
 const long c_nUseDictionaryFonts = 0x0010;
 const long c_nPenWidth0As1px	= 0x0020;
+const long c_nSupportPathTextAsText = 0x0040;
 
 // типы рендерера
 const long c_nUnknownRenderer   = 0x0000;
@@ -125,15 +134,40 @@ const long c_nHtmlRendrerer3    = 0x0011;
 const long c_nHtmlRendrererText = 0x0012;
 const long c_nQRenderer         = 0x0013;
 
+const int c_nAdditionalParamBreak = 0x00;
+
 // типы команд
 const long c_nCommandLongTypeOnlyText = 0x1000;
 
-class IFormField
+class IAdvancedCommand
 {
 public:
-	IFormField() {}
-	virtual ~IFormField() {}
+	enum class AdvancedCommandType
+	{
+		Hyperlink   = 0,
+		Link        = 1,
+		DocInfo     = 2,
+		FormField   = 3, // Обратная совместимость для docxf
+		Annotaion   = 4,
+		DeleteAnnot = 5,
+		WidgetsInfo = 6,
+		ShapeStart  = 7,
+		ShapeEnd    = 8,
+		PageClear   = 9,
+		PageRotate  = 10,
+		Headings    = 11,
+
+		Undefined   = 255
+	};
+private:
+	AdvancedCommandType m_nCommandType;
+public:
+	IAdvancedCommand(const AdvancedCommandType& type) { m_nCommandType = type; }
+	virtual ~IAdvancedCommand() {}
+	AdvancedCommandType GetCommandType() { return m_nCommandType; }
 };
+
+namespace Aggplus { class CImage; }
 
 // IRenderer
 class IRenderer : public IGrObject
@@ -195,10 +229,14 @@ public:
 	virtual HRESULT put_BrushAlpha2(const LONG& lAlpha)					= 0;
 	virtual HRESULT get_BrushTexturePath(std::wstring* bsPath)			= 0;
 	virtual HRESULT put_BrushTexturePath(const std::wstring& bsPath)	= 0;
+	virtual HRESULT get_BrushTextureImage(Aggplus::CImage** pImage)		= 0;
+	virtual HRESULT put_BrushTextureImage(Aggplus::CImage* pImage)		= 0;
 	virtual HRESULT get_BrushTextureMode(LONG* lMode)					= 0;
 	virtual HRESULT put_BrushTextureMode(const LONG& lMode)				= 0;
 	virtual HRESULT get_BrushTextureAlpha(LONG* lTxAlpha)				= 0;
 	virtual HRESULT put_BrushTextureAlpha(const LONG& lTxAlpha)			= 0;
+	virtual HRESULT get_BrushTransform(Aggplus::CMatrix& oMatrix)		= 0;
+	virtual HRESULT put_BrushTransform(const Aggplus::CMatrix& oMatrix) = 0;
 	virtual HRESULT get_BrushLinearAngle(double* dAngle)				= 0;
 	virtual HRESULT put_BrushLinearAngle(const double& dAngle)			= 0;
 	virtual HRESULT BrushRect(const INT& val, const double& left, const double& top, const double& width, const double& height) = 0;
@@ -232,6 +270,7 @@ public:
 
 	virtual HRESULT CommandDrawTextCHAR2(unsigned int* codepoints, const unsigned int& codepointscount, const unsigned int& gid, const double& x, const double& y, const double& w, const double& h)
 	{
+		UNUSED_VARIABLE(codepointscount);
 		LONG c = (NULL == codepoints) ? 32 : codepoints[0];
 		return CommandDrawTextExCHAR(c, (LONG)gid, x, y, w, h);
 	}
@@ -266,6 +305,12 @@ public:
 	// transform --------------------------------------------------------------------------------
 	virtual HRESULT GetCommandParams(double* dAngle, double* dLeft, double* dTop, double* dWidth, double* dHeight, DWORD* lFlags)
 	{
+		UNUSED_VARIABLE(dAngle);
+		UNUSED_VARIABLE(dLeft);
+		UNUSED_VARIABLE(dTop);
+		UNUSED_VARIABLE(dWidth);
+		UNUSED_VARIABLE(dHeight);
+		UNUSED_VARIABLE(lFlags);
 		return S_OK;
 	}
 	virtual HRESULT SetCommandParams(double dAngle, double dLeft, double dTop, double dWidth, double dHeight, DWORD lFlags)
@@ -298,7 +343,16 @@ public:
 		SetTransform(mass[0], mass[1], mass[2], mass[3], mass[4], mass[5]);
 		return S_OK;
 	}
-	virtual HRESULT SetBaseTransform(const double& m1, const double& m2, const double& m3, const double& m4, const double& m5, const double& m6) { return S_OK; }
+	virtual HRESULT SetBaseTransform(const double& m1, const double& m2, const double& m3, const double& m4, const double& m5, const double& m6)
+	{
+		UNUSED_VARIABLE(m1);
+		UNUSED_VARIABLE(m2);
+		UNUSED_VARIABLE(m3);
+		UNUSED_VARIABLE(m4);
+		UNUSED_VARIABLE(m5);
+		UNUSED_VARIABLE(m6);
+		return S_OK;
+	};
 	virtual HRESULT SetTransform(const double& m1, const double& m2, const double& m3, const double& m4, const double& m5, const double& m6) = 0;
 	virtual HRESULT GetTransform(double *pdA, double *pdB, double *pdC, double *pdD, double *pdE, double *pdF)	= 0;
 	virtual HRESULT ResetTransform() = 0;
@@ -322,24 +376,59 @@ public:
 		m_bUseTransformCoordsToIdentity = false;
 		return S_OK;
 	}
-	virtual HRESULT AddHyperlink(const double& dX, const double& dY, const double& dW, const double& dH, const std::wstring& wsUrl, const std::wstring& wsTooltip) {return S_OK;}
-	virtual HRESULT AddLink(const double& dX, const double& dY, const double& dW, const double& dH, const double& dDestX, const double& dDestY, const int& nPage) {return S_OK;}
-	virtual HRESULT AddFormField(IFormField* pField) {return S_OK;}
-	virtual HRESULT DocInfo(const std::wstring& wsTitle, const std::wstring& wsCreator, const std::wstring& wsSubject, const std::wstring& wsKeywords) {return S_OK;}
+
+	virtual HRESULT IsExistAdditionalParam(const int& type)
+	{
+		UNUSED_VARIABLE(type);
+		return S_FALSE;
+	}
+	virtual HRESULT GetAdditionalParam(const int& type, std::string& result)
+	{
+		UNUSED_VARIABLE(type);
+		UNUSED_VARIABLE(result);
+		return S_FALSE;
+	}
+
+	virtual HRESULT IsSupportAdvancedCommand(const IAdvancedCommand::AdvancedCommandType& type)
+	{
+		UNUSED_VARIABLE(type);
+		return S_FALSE;
+	}
+	virtual HRESULT AdvancedCommand(IAdvancedCommand* command)
+	{
+		UNUSED_VARIABLE(command);
+		return S_FALSE;
+	}
+
+	// graphics layer settings
+	virtual HRESULT put_LayerOpacity(double dValue)
+	{
+		UNUSED_VARIABLE(dValue);
+		return S_FALSE;
+	}
+
+	virtual void put_BrushGradInfo(void* pGradInfo)
+	{
+		UNUSED_VARIABLE(pGradInfo);
+	}
+	virtual void put_BlendMode(const unsigned int& nBlendMode)
+	{
+		UNUSED_VARIABLE(nBlendMode);
+	}
 };
 
-#define PROPERTY_RENDERER(NameBase, Name, Type)			\
-	STDMETHOD(get_##NameBase##Name)(Type* pVal)			\
-{													\
-	if (NULL == pVal)								\
-	return S_FALSE;								\
-	*pVal =	m_o##NameBase.##Name;					\
-	return S_OK;									\
-	}													\
-	STDMETHOD(put_##NameBase##Name)(Type Val)			\
-{													\
-	m_o##NameBase.##Name = Val;						\
-	return S_OK;									\
+#define PROPERTY_RENDERER(NameBase, Name, Type)    \
+	STDMETHOD(get_##NameBase##Name)(Type* pVal)    \
+	{                                              \
+		if (NULL == pVal)                          \
+			return S_FALSE;                        \
+		*pVal = m_o##NameBase.##Name;              \
+		return S_OK;                               \
+	}                                              \
+	STDMETHOD(put_##NameBase##Name)(Type Val)      \
+	{                                              \
+		m_o##NameBase.##Name = Val;                \
+		return S_OK;                               \
 	}
 
 // exapmle:

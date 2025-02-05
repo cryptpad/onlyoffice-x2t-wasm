@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,7 +32,7 @@
 
 #include "EXTERNVALUEDATA.h"
 #include "../Biff12_records/ExternCell.h"
-#include "../Biff12_structures/CellRef.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/BIFF12/CellRef.h"
 
 using namespace XLS;
 
@@ -86,11 +86,21 @@ namespace XLSB
             return false;
         }
 
-        m_Ref = XLSB::RgceLoc(m_Row - 1, m_Col, true, true).toString();
+        m_Ref = XLSB::RgceLoc(m_Row, m_Col, true, true).toString();
 
         m_source = elements_.back();
         elements_.pop_back();
         return true;
     }
+
+	const bool EXTERNVALUEDATA::saveContent(BinProcessor& proc)
+	{
+		if (m_source != nullptr)
+			proc.mandatory(*m_source);
+		else
+			return false;
+
+		return true;
+	}
 
 } // namespace XLSB

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -145,13 +145,38 @@ namespace OOX
 												L"http://schemas.microsoft.com/office/2006/relationships/xlBinaryIndex",
 												L"worksheets/binaryIndex", true);
 
+			const FileType Timeline			(L"../timelines", L"timeline.xml",
+												L"application/vnd.ms-excel.timeline+xml",
+												L"http://schemas.microsoft.com/office/2011/relationships/timeline",
+												L"timelines/timeline", true, true);
+
+			const FileType TimelineCache	(L"timelineCaches", L"timelineCache.xml",
+												L"application/vnd.ms-excel.timelineCache+xml",
+												L"http://schemas.microsoft.com/office/2011/relationships/timelineCache",
+												L"timelineCaches/timelineCache", true, true);
 			//onlyoffice workbook comments
-			const FileType WorkbookComments(L"", L"workbookComments.bin",
+			const FileType WorkbookComments	(L"", L"workbookComments.bin",
 												L"",
 												L"http://schemas.onlyoffice.com/workbookComments");
+			
+			const FileType Metadata			(L"", L"metadata.xml",
+												L"application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml",
+												L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sheetMetadata");
 
 
-			const FileType SpreadsheetFlat(L"", L"", L"", L"");		
+			const FileType RdRichValue		(L"richData", L"rdrichvalue.xml",
+												L"application/vnd.ms-excel.rdrichvalue+xml",
+												L"http://schemas.microsoft.com/office/2017/06/relationships/rdRichValue");
+
+			const FileType RdRichValueStructure(L"richData", L"rdrichvaluestructure.xml",
+												L"application/vnd.ms-excel.rdrichvaluestructure+xml",
+												L"http://schemas.microsoft.com/office/2017/06/relationships/rdRichValueStructure");
+
+			const FileType RdRichValueTypes	(L"richData", L"rdRichValueTypes..xml",
+												L"application/vnd.ms-excel.rdrichvaluetypes+xml",
+												L"http://schemas.microsoft.com/office/2017/06/relationships/rdRichValueTypes");
+
+			const FileType SpreadsheetFlat	(L"", L"", L"", L"");
 
 		} // namespace FileTypes
 	}

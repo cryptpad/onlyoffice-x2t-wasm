@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -88,9 +88,9 @@ void draw_page::pptx_convert_placeHolder(oox::pptx_conversion_context & Context,
 	office_element_ptr elm = Context.root()->odf_context().drawStyles().find_by_style_name(styleName);
 	//todooo если это элемент datatime -нужно вытащить формат поля
 
-	if (!elm)return;
+	if (!elm) return;
 
-	int index=-1;
+	int index = -1;
 
     const std::wstring masterName = attlist_.master_page_name_.get_value_or(L"");
 	style_master_page * master = Context.root()->odf_context().pageLayoutContainer().master_page_by_name(masterName);
@@ -98,9 +98,13 @@ void draw_page::pptx_convert_placeHolder(oox::pptx_conversion_context & Context,
 	if (master)
 		index = master->find_placeHolderIndex(PresentationClass, Context.last_idx_placeHolder);
 
-
 	Context.get_slide_context().start_shape(1);
-	Context.get_slide_context().set_placeHolder_type(presentation_class(PresentationClass).get_type_ms());
+	
+	std::wstring placeholder_type = presentation_class(PresentationClass).get_type_ms();
+	if (Context.get_slide_context().processing_notes() && placeholder_type == L"pic")
+		placeholder_type = L"sldImg";
+	Context.get_slide_context().set_placeHolder_type(placeholder_type);
+	
 	Context.get_slide_context().set_placeHolder_idx(index);
 	
 	Context.get_text_context().start_object();
@@ -114,11 +118,11 @@ void draw_page::pptx_convert_placeHolder(oox::pptx_conversion_context & Context,
 	
 	std::wstring text_content_ = Context.get_text_context().end_object();
 
-	if (text_content_.length()>0)
+	if (false == text_content_.empty())
 	{
-		Context.get_slide_context().set_property(_property(L"text-content",text_content_));
+		Context.get_slide_context().set_property(_property(L"text-content", text_content_));
 	}
-	Context.get_slide_context().set_property(_property(L"no_rect",true));
+	Context.get_slide_context().set_property(_property(L"no_rect", true));
 	Context.get_slide_context().end_shape();
 
 }
@@ -132,22 +136,24 @@ void draw_page::pptx_convert(oox::pptx_conversion_context & Context)
 
     _CP_LOG << L"[info][pptx] process page(slide) \"" << pageName /*L"" */<< L"\"" << std::endl;
 
-    Context.start_page(pageName, pageStyleName, layoutName,masterName);
+    Context.start_page(pageName, pageStyleName, layoutName, masterName);
 
 	if (attlist_.draw_style_name_)
 	{
-		style_instance * style_inst = Context.root()->odf_context().styleContainer().style_by_name(pageStyleName,style_family::DrawingPage,false);
+		style_instance * style_inst = Context.root()->odf_context().styleContainer().style_by_name(pageStyleName,style_family::DrawingPage, false);
 
 		if ((style_inst) && (style_inst->content()))
 		{
-			const style_drawing_page_properties * properties = style_inst->content()->get_style_drawing_page_properties();
+			style_drawing_page_properties * properties = style_inst->content()->get_style_drawing_page_properties();
 
 			if (properties)
 			{				
 				oox::_oox_fill fill;
-				Compute_GraphicFill(properties->content().common_draw_fill_attlist_, office_element_ptr(), 
-																	Context.root()->odf_context().drawStyles() ,fill);
+				Compute_GraphicFill(properties->content().common_draw_fill_attlist_, office_element_ptr(), Context.root(), fill);
 				Context.get_slide_context().add_background(fill);
+
+				bool is_page_visible = properties->content().presentation_visibility_.get_value_or(presentation_visibility::visible).get_type() == presentation_visibility::visible;
+				Context.current_slide().set_show(is_page_visible);
 			
 				//часть свойств переходов между слайдами тута
 				
@@ -180,12 +186,7 @@ void draw_page::pptx_convert(oox::pptx_conversion_context & Context)
 			}
 		}
 	}
-	//сначала анимашки .. потому что объекты используют анимацию не нанапрямую (как бы ) а с общей кучи
-	//animation_context на slide_context завести
-	if (animation_)
-	{
-		animation_->pptx_convert(Context);
-	}
+	
 /////////////////////////
 	for (size_t i = 0; i < content_.size(); i++)
     {
@@ -202,16 +203,30 @@ void draw_page::pptx_convert(oox::pptx_conversion_context & Context)
 		std::wstring name = L"datetime:" + *attlist_.use_date_time_name_;
 		pptx_convert_placeHolder(Context, name, presentation_class::date_time);
 	}
-	
+
+	Context.get_slide_context().process_drawings();
+
+	if (animation_)
+	{
+		animation_->pptx_convert(Context);
+	}
+
 	Context.end_page();
 
  	if (presentation_notes_)
 	{
 		Context.start_page_notes();
 		presentation_notes_->pptx_convert(Context);
+		Context.get_slide_context().process_drawings();
 		Context.end_page_notes();
 	}  
 }
+
+std::wstring draw_page::get_draw_name() const
+{
+	return attlist_.draw_name_.get_value_or(L"");
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 const wchar_t * presentation_footer_decl::ns = L"presentation";
 const wchar_t * presentation_footer_decl::name = L"footer-decl";
@@ -283,9 +298,12 @@ void presentation_notes::pptx_convert_placeHolder(oox::pptx_conversion_context &
 	//if (master)
 	//	index = master->find_placeHolderIndex(PresentationClass, Context.last_idx_placeHolder);
 
+	std::wstring placeholder_type = presentation_class(PresentationClass).get_type_ms();
+	if (Context.get_slide_context().processing_notes() && placeholder_type == L"pic")
+		placeholder_type = L"sldImg";
 
 	Context.get_slide_context().start_shape(1);
-	Context.get_slide_context().set_placeHolder_type(presentation_class(PresentationClass).get_type_ms());
+	Context.get_slide_context().set_placeHolder_type(placeholder_type);
 	Context.get_slide_context().set_placeHolder_idx(index);
 	
 	Context.get_text_context().start_object();
@@ -299,17 +317,19 @@ void presentation_notes::pptx_convert_placeHolder(oox::pptx_conversion_context &
 	
 	std::wstring text_content_ = Context.get_text_context().end_object();
 
-	if (text_content_.length()>0)
+	if (false == text_content_.empty())
 	{
-		Context.get_slide_context().set_property(_property(L"text-content",text_content_));
+		Context.get_slide_context().set_property(_property(L"text-content", text_content_));
 	}
-	Context.get_slide_context().set_property(_property(L"no_rect",true));
+	Context.get_slide_context().set_property(_property(L"no_rect", true));
 	Context.get_slide_context().end_shape();
 
 }
 
 void presentation_notes::pptx_convert(oox::pptx_conversion_context & Context)
 {
+	Context.get_slide_context().processing_notes(true);
+
 	const std::wstring pageStyleName	= attlist_.draw_style_name_.get_value_or(L"");
     const std::wstring layoutName		= attlist_.page_layout_name_.get_value_or(L"");
     const std::wstring masterName		= attlist_.master_page_name_.get_value_or(L"");
@@ -322,13 +342,12 @@ void presentation_notes::pptx_convert(oox::pptx_conversion_context & Context)
 
 		if ((style_inst) && (style_inst->content()))
 		{
-			const style_drawing_page_properties * properties = style_inst->content()->get_style_drawing_page_properties();
+			style_drawing_page_properties * properties = style_inst->content()->get_style_drawing_page_properties();
 
 			if (properties)
 			{				
 				oox::_oox_fill fill;
-				Compute_GraphicFill(properties->content().common_draw_fill_attlist_, office_element_ptr(), 
-																	Context.root()->odf_context().drawStyles() ,fill);
+				Compute_GraphicFill(properties->content().common_draw_fill_attlist_, office_element_ptr(), Context.root(), fill);
 				Context.get_slide_context().add_background(fill);
 			
 	////////////////////////////////////////////////
@@ -363,6 +382,8 @@ void presentation_notes::pptx_convert(oox::pptx_conversion_context & Context)
 		std::wstring name = L"datetime:" + *attlist_.use_date_time_name_;
 		pptx_convert_placeHolder(Context, name, presentation_class::date_time);
 	}
+
+	Context.get_slide_context().processing_notes(false);
 
 }
 

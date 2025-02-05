@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -126,11 +126,7 @@ void draw_shape::common_xlsx_convert(oox::xlsx_conversion_context & Context)
 
 		instances.push_back(styleInst);
 	}
-	graphic_format_properties properties = calc_graphic_properties_content(instances);
 
-////////////////////////////////////////////////////////////////////////////////////
-	properties.apply_to(Context.get_drawing_context().get_properties());
-	
  	for (size_t i = 0; i < additional_.size(); i++)
 	{
 		Context.get_drawing_context().set_property(additional_[i]);
@@ -139,12 +135,17 @@ void draw_shape::common_xlsx_convert(oox::xlsx_conversion_context & Context)
 	Context.get_drawing_context().set_is_connector_shape(connector_);
 	
 	oox::_oox_fill fill;
-	Compute_GraphicFill(properties.common_draw_fill_attlist_, properties.style_background_image_,
-																	Context.root()->odf_context().drawStyles(), fill);	
+	graphic_format_properties_ptr properties = calc_graphic_properties_content(instances);
+	if (properties)
+	{
+		properties->apply_to(Context.get_drawing_context().get_properties());
+	
+		Compute_GraphicFill(properties->common_draw_fill_attlist_, properties->style_background_image_, Context.root(), fill);	
+	}
 	Context.get_drawing_context().set_fill(fill);
 
 //////////////////////////////////////////////////////////////////////////////////////	
-	Context.get_text_context().start_drawing_content();
+	Context.get_text_context()->start_drawing_content();
 	Context.start_drawing_context();
 
 	if (word_art_)
@@ -156,7 +157,7 @@ void draw_shape::common_xlsx_convert(oox::xlsx_conversion_context & Context)
     {
         content_[i]->xlsx_convert(Context);
     }
-	std::wstring text_content_ = Context.get_text_context().end_drawing_content();
+	std::wstring text_content_ = Context.get_text_context()->end_drawing_content();
 	Context.end_drawing_context();
 
 	if (!text_content_.empty())
@@ -272,108 +273,7 @@ void draw_caption::xlsx_convert(oox::xlsx_conversion_context & Context)
 }
 void draw_enhanced_geometry::xlsx_convert(oox::xlsx_conversion_context & Context) 
 {
-	find_draw_type_oox();
-
-	if (attlist_.draw_mirror_horizontal_)
-	{
-		Context.get_drawing_context().set_property(_property(L"flipH", *attlist_.draw_mirror_horizontal_));
-	}
-	if (attlist_.draw_mirror_vertical_)
-	{
-		Context.get_drawing_context().set_property(_property(L"flipV", *attlist_.draw_mirror_vertical_));
-	}
-	if (draw_type_oox_index_)
-	{
-		Context.get_drawing_context().set_property(_property(L"oox-geom-index", draw_type_oox_index_.get()));	
-		Context.get_drawing_context().set_property(_property(L"oox-geom", bOoxType_));	
-
-		if (word_art_ == true)
-			Context.get_drawing_context().set_property(_property(L"wordArt", true));	
-
-	}
-	if (sub_type_)
-	{
-		Context.get_drawing_context().start_shape(sub_type_.get());
-	}
-	
-	if (!odf_path_.empty())
-	{
-		std::vector<::svg_path::_polyline> o_Polyline;
-	
-		bool res = false;
-		bool bClosed = false, bStroked = true;
-		
-		try
-		{
-			res = ::svg_path::parseSvgD(o_Polyline, odf_path_, true, bClosed, bStroked);
-		}
-		catch(...)
-		{
-			res = false; 
-		}
-		//if (!bClosed) lined_shape_ = true;
-		
-		if (o_Polyline.size() > 1 && res )
-		{
-			//сформируем xml-oox сдесь ... а то придется плодить массивы в drawing .. хоть и не красиво..
-			std::wstringstream output_;   
-            ::svg_path::oox_serialize(output_, o_Polyline);
-			Context.get_drawing_context().set_property(odf_reader::_property(L"custom_path", output_.str()));
-
-			if (false == bStroked)
-			{
-				Context.get_drawing_context().set_property(odf_reader::_property(L"custom_path_s", false));
-			}
-			if (attlist_.drawooo_sub_view_size_)
-			{
-				std::vector< std::wstring > splitted;			    
-				boost::algorithm::split(splitted, *attlist_.drawooo_sub_view_size_, boost::algorithm::is_any_of(L" "), boost::algorithm::token_compress_on);
-				
-				if (splitted.size() == 2)
-				{
-					int w = boost::lexical_cast<int>(splitted[0]);
-					int h = boost::lexical_cast<int>(splitted[1]);
-					
-					Context.get_drawing_context().set_property(odf_reader::_property(L"custom_path_w", w));
-					Context.get_drawing_context().set_property(odf_reader::_property(L"custom_path_h", h));
-				}
-				else if (splitted.size() == 4)
-				{///???? rect ???
-					int l = boost::lexical_cast<int>(splitted[0]);
-					int t = boost::lexical_cast<int>(splitted[1]);
-					int r = boost::lexical_cast<int>(splitted[2]);
-					int b = boost::lexical_cast<int>(splitted[3]);
-
-				}
-			}
-			else if (svg_viewbox_)
-			{
-				std::vector< std::wstring > splitted;			    
-				boost::algorithm::split(splitted, *svg_viewbox_, boost::algorithm::is_any_of(L" "), boost::algorithm::token_compress_on);
-				
-				if (splitted.size() == 4)
-				{
-					int w = boost::lexical_cast<int>(splitted[2]);
-					int h = boost::lexical_cast<int>(splitted[3]);
-					
-					Context.get_drawing_context().set_property(odf_reader::_property(L"custom_path_w", w));
-					Context.get_drawing_context().set_property(odf_reader::_property(L"custom_path_h", h));
-				}
-			}
-		}
-		else if (!draw_type_oox_index_)
-		{
-			draw_type_oox_index_ = 0;
-		}
-	}
-	if (attlist_.draw_modifiers_)
-	{
-		if (bOoxType_)
-			Context.get_drawing_context().set_property(_property(L"oox-draw-modifiers", attlist_.draw_modifiers_.get()));	
-		else
-		{
-		}
-	}
+	bool set_shape = oox_convert(Context.get_drawing_context().get_properties());
 }
 void dr3d_scene::xlsx_convert(oox::xlsx_conversion_context & Context)
 {

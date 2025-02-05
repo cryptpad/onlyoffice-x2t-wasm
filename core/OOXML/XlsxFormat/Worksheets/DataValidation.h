@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,10 +31,23 @@
  */
 #pragma once
 
-#include "../ComplexTypes_Spreadsheet.h"
 #include "../WritingElement.h"
-#include "../../Common/SimpleTypes_Spreadsheet.h"
-#include "../../Common/SimpleTypes_Shared.h"
+#include "../../Base/Nullable.h"
+
+namespace SimpleTypes
+{
+	class COnOff;
+	class CDecimalNumber;
+	class CUnsignedDecimalNumber;
+
+	namespace Spreadsheet
+	{
+		class CDataValidationType;
+		class CDataValidationErrorStyle;
+		class CDataValidationImeMode;
+		class CDataValidationOperator;
+	}
+}
 
 namespace OOX
 {
@@ -43,17 +56,17 @@ namespace OOX
 		class CDataValidationFormula : public WritingElement //тоже что и CFormulaCF
 		{
 		public:
-			WritingElement_AdditionConstructors(CDataValidationFormula)
+			WritingElement_AdditionMethods(CDataValidationFormula)
 			CDataValidationFormula(OOX::Document *pMain = NULL);
 			virtual ~CDataValidationFormula();
 
 			virtual void fromXML(XmlUtils::CXmlNode& node);
 			virtual std::wstring toXML() const;
 
-			void toXML2(NSStringUtils::CStringBuilder& writer, bool bExtendedWrite) const;			
+			void toXML2(NSStringUtils::CStringBuilder& writer, bool bExtendedWrite) const;
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 
-			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);				
+			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 			virtual EElementType getType () const;
 
 			std::wstring m_sNodeName;
@@ -63,7 +76,7 @@ namespace OOX
 		class CDataValidation : public WritingElement
 		{
 		public:
-			WritingElement_AdditionConstructors(CDataValidation)
+			WritingElement_AdditionMethods(CDataValidation)
             WritingElement_XlsbConstructors(CDataValidation)
 			CDataValidation(OOX::Document *pMain = NULL);
 			virtual ~CDataValidation();
@@ -71,12 +84,15 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlNode& node);
 			virtual std::wstring toXML() const;
 
+			void CreateElements(XmlUtils::CXmlLiteReader& oReader, int Depth);
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
+
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			void toXML2(NSStringUtils::CStringBuilder& writer, bool bExtendedWrite) const;
 
 			bool IsExtended();
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
@@ -98,7 +114,7 @@ namespace OOX
 			nullable<SimpleTypes::COnOff>									m_oShowInputMessage;
 
 			nullable_string									m_oSqRef; // ToDo переделать на тип "sqref" (18.18.76) - последовательность "ref", разделенные пробелом
-
+			nullable_string									m_oList;
 			mutable nullable_string							m_oUuid;
 			nullable<CDataValidationFormula>				m_oFormula1;
 			nullable<CDataValidationFormula>				m_oFormula2;
@@ -107,7 +123,7 @@ namespace OOX
 		class CDataValidations : public WritingElementWithChilds<CDataValidation>
 		{
 		public:
-			WritingElement_AdditionConstructors(CDataValidations)
+			WritingElement_AdditionMethods(CDataValidations)
             WritingElement_XlsbConstructors(CDataValidations)
 			CDataValidations(OOX::Document *pMain = NULL);
 			virtual ~CDataValidations();
@@ -120,6 +136,7 @@ namespace OOX
 					void toXML2(NSStringUtils::CStringBuilder& writer, bool bExtendedWrite) const;
 
             void fromBin(XLS::BaseObjectPtr& obj);
+			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
 		private:

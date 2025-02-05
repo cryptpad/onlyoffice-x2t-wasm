@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -58,6 +58,7 @@ public:
 	int serialize_format(std::wostream & _stream);
 	int serialize_protection(std::wostream & _stream);
 	
+	BaseObjectPtr					m_FileSharing;
 	BaseObjectPtr					m_THEME;
 	BaseObjectPtr					m_Formating;
 	BaseObjectPtr					m_Template;
@@ -87,7 +88,7 @@ public:
 	//std::vector<BaseObjectPtr>	m_arPIVOTCACHEDEFINITION; -> GlobalWorkbookInfo
 	std::vector<BaseObjectPtr>		m_arDConn;
 
-	std::vector<BiffStructurePtr>	m_arHFPictureDrawing;
+	std::vector<BiffStructurePtr>	m_arHFPictureDrawing; // тут OfficeArtDggContainer - картинки ...
 	
 	unsigned short					code_page_;
 	GlobalWorkbookInfoPtr			global_info_;

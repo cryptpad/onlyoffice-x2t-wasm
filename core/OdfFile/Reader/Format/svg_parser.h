@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -36,30 +36,38 @@
 #include <string>
 #include <vector>
 
-#include <boost/regex.hpp>
-
 #include "../../Common/CPOptional.h"
 
 namespace svg_path
 {
 	struct _point
 	{
-		_point(double _x,double _y){x=_x; y=_y;}
-		
+		_point(double _x, double _y) { x = _x; y = _y; }
+
 		_CP_OPT(double) x;
 		_CP_OPT(double) y;
-		
 	};
 	struct _polyline
 	{
 		std::wstring command;
-		std::vector<_point> points; //будем бить строку пути по количеству точек в буковках
+		std::vector<_point> points;
+	};
+	struct _pointS
+	{
+		_pointS(const std::wstring& _x, const std::wstring& _y) { x = _x; y = _y; }
 
+		_CP_OPT(std::wstring) x;
+		_CP_OPT(std::wstring) y;
+	};
+	struct _polylineS
+	{
+		std::wstring command;
+		std::vector<_pointS> points;
 	};
 
-	bool parseVml(std::vector<_polyline> & Polyline, const std::wstring &  path);
-	bool parseSvgD(std::vector<_polyline> & Polyline, const std::wstring &  path, bool bWrongPositionAfterZ, bool & bIsClosed, bool & bIsStroked);
-	bool parsePolygon(std::vector<_polyline> & Polyline, const std::wstring &  path, bool bWrongPositionAfterZ, bool closed);
+	bool parseVml(std::vector<_polyline>& Polyline, const std::wstring& path);
+	bool parseSvgD(std::vector<_polyline>& Polyline, const std::wstring& path, bool bWrongPositionAfterZ, bool& bIsClosed, bool& bIsStroked);
+	bool parsePolygon(std::vector<_polyline>& Polyline, const std::wstring& path, bool bWrongPositionAfterZ, bool closed);
+
+	bool parseSvgS(std::vector<_polylineS>& Polyline, const std::wstring& path, bool bWrongPositionAfterZ, bool& bIsClosed, bool& bIsStroked);
 }
-
-

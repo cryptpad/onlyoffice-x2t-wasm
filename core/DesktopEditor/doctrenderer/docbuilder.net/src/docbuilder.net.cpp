@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -49,7 +49,9 @@ namespace docbuilder_net
 			RTF = MASK + 0x0004,
 			TXT = MASK + 0x0005,
 			DOTX = MASK + 0x000c,
-			OTT = MASK + 0x000f
+			OTT = MASK + 0x000f,
+			HTML = MASK + 0x0012,
+			OFORM_PDF = MASK + 0x0017
 		};
 
 		public enum class Spreadsheet : int
@@ -135,6 +137,10 @@ namespace docbuilder_net
 	bool CDocBuilderValue::IsUndefined()
 	{
 		return m_internal->IsUndefined();
+	}
+	bool CDocBuilderValue::IsBool()
+	{
+		return m_internal->IsBool();
 	}
 	bool CDocBuilderValue::IsInt()
 	{
@@ -243,6 +249,16 @@ namespace docbuilder_net
 		m_internal = new NSDoctRenderer::CDocBuilderValue(StringToStdString(value));
 	}
 
+	CDocBuilderValue::CDocBuilderValue(array<CDocBuilderValue^>^ values)
+	{
+		int length = values->Length;
+		m_internal = new NSDoctRenderer::CDocBuilderValue(NSDoctRenderer::CDocBuilderValue::CreateArray(length));
+		for (int i = 0; i < length; i++)
+		{
+			Set(i, values[i]);
+		}
+	}
+
 	CDocBuilderValue::operator CDocBuilderValue ^ (bool value)
 	{
 		return gcnew CDocBuilderValue(value);
@@ -262,6 +278,11 @@ namespace docbuilder_net
 	CDocBuilderValue::operator CDocBuilderValue ^ (String^ value)
 	{
 		return gcnew CDocBuilderValue(value);
+	}
+
+	CDocBuilderValue::operator CDocBuilderValue ^ (array<CDocBuilderValue^>^ values)
+	{
+		return gcnew CDocBuilderValue(values);
 	}
 
 	CDocBuilderValue^ CDocBuilderValue::CreateUndefined()
@@ -521,4 +542,3 @@ namespace docbuilder_net
 		return m_internal->IsError();
 	}
 }
-

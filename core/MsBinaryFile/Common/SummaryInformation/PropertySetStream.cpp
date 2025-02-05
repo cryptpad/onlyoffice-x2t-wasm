@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -64,6 +64,15 @@ namespace OLEPS
 
 		*stream >> NumPropertySets;
 
+		if (SystemIdentifier == NumPropertySets)
+		{//oops 
+			_GUID_ Clsid2 = {};
+			_UINT32 reserved1 = 0, reserved2 = 0;
+			
+			*stream >> Clsid2 >> reserved1 >> reserved2; // ??? ReportBuilder
+			*stream >> NumPropertySets;
+		}
+
 		if (NumPropertySets != 0x01 && NumPropertySets != 0x02)
 		{
 			NumPropertySets = 0x01;
@@ -82,7 +91,7 @@ namespace OLEPS
 				property_sets_offsets.push_back(Offset);
 		}
 
-		for (_UINT32 i = 0; i < NumPropertySets; ++i)
+		for (_UINT32 i = 0; i < property_sets_offsets.size(); ++i)
 		{
 			PropertySetPtr set = PropertySetPtr(new PropertySet(stream, property_sets_offsets[i], ext));
 

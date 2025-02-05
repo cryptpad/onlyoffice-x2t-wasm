@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -193,6 +193,9 @@ namespace BinXlsxRW
 		int ReadTableCustomStyle(BYTE type, long length, void* poResult);
 		int ReadTableCustomStyleElements(BYTE type, long length, void* poResult);
 		int ReadTableCustomStyleElement(BYTE type, long length, void* poResult);
+		int ReadTimelineStyles(BYTE type, long length, void* poResult);
+		int ReadTimelineStyle(BYTE type, long length, void* poResult);
+		int ReadTimelineStyleElement(BYTE type, long length, void* poResult);
 	};
 	class BinaryWorkbookTableReader : public Binary_CommonReader
 	{
@@ -208,6 +211,7 @@ namespace BinXlsxRW
 		int ReadWorkbookTableContent(BYTE type, long length, void* poResult);
 		int ReadWorkbookPr(BYTE type, long length, void* poResult);
 		int ReadProtection(BYTE type, long length, void* poResult);
+		int ReadFileSharing(BYTE type, long length, void* poResult);
 		int ReadBookViews(BYTE type, long length, void* poResult);
 		int ReadWorkbookView(BYTE type, long length, void* poResult);
 		int ReadExternalReferences(BYTE type, long length, void* poResult);
@@ -215,6 +219,7 @@ namespace BinXlsxRW
 		int ReadDefinedNames(BYTE type, long length, void* poResult);
 		int ReadDefinedName(BYTE type, long length, void* poResult);
 		int ReadCalcPr(BYTE type, long length, void* poResult);
+		
 		int ReadExternalBook(BYTE type, long length, void* poResult);
 		int ReadExternalSheetNames(BYTE type, long length, void* poResult);
 		int ReadExternalDefinedNames(BYTE type, long length, void* poResult);
@@ -223,6 +228,8 @@ namespace BinXlsxRW
 		int ReadExternalSheetData(BYTE type, long length, void* poResult);
 		int ReadExternalRow(BYTE type, long length, void* poResult);
 		int ReadExternalCell(BYTE type, long length, void* poResult);
+		int ReadExternalAlternateUrls(BYTE type, long length, void* poResult);
+		
 		int ReadOleLink(BYTE type, long length, void* poResult);
 		int ReadOleItem(BYTE type, long length, void* poResult);
 		int ReadDdeLink(BYTE type, long length, void* poResult);
@@ -231,6 +238,7 @@ namespace BinXlsxRW
 		int ReadDdeValue(BYTE type, long length, void* poResult);
 		int ReadPivotCaches(BYTE type, long length, void* poResult);
 		int ReadPivotCache(BYTE type, long length, void* poResult);
+		
 		int ReadConnections(BYTE type, long length, void* poResult);
 		int ReadConnection(BYTE type, long length, void* poResult);
 		int ReadConnectionDbPr(BYTE type, long length, void* poResult);
@@ -240,7 +248,34 @@ namespace BinXlsxRW
 		int ReadConnectionRangePr(BYTE type, long length, void* poResult);
 		int ReadConnectionTextFields(BYTE type, long length, void* poResult);
 		int ReadConnectionTextField(BYTE type, long length, void* poResult);
+		
 		int ReadSlicerCaches(BYTE type, long length, void* poResult);
+		
+		int ReadTimelineCaches(BYTE type, long length, void* poResult);
+		int ReadTimelineCache(BYTE type, long length, void* poResult);
+		int ReadTimelineState(BYTE type, long length, void* poResult);
+		int ReadTimelinePivotFilter(BYTE type, long length, void* poResult);
+		int ReadTimelineCachePivotTables(BYTE type, long length, void* poResult);
+		int ReadTimelineCachePivotTable(BYTE type, long length, void* poResult);
+		int ReadTimelineRange(BYTE type, long length, void* poResult);
+		
+		int ReadMetadata(BYTE type, long length, void* poResult);
+		int ReadMetadataTypes(BYTE type, long length, void* poResult);
+		int ReadMetadataType(BYTE type, long length, void* poResult);
+		int ReadMetadataStrings(BYTE type, long length, void* poResult);
+		int ReadMdxMetadata(BYTE type, long length, void* poResult);
+		int ReadMdx(BYTE type, long length, void* poResult);
+		int ReadMetadataBlocks(BYTE type, long length, void* poResult);
+		int ReadMetadataBlock(BYTE type, long length, void* poResult);
+		int ReadMetadataRecord(BYTE type, long length, void* poResult);
+		int ReadFutureMetadata(BYTE type, long length, void* poResult);
+		int ReadFutureMetadataBlock(BYTE type, long length, void* poResult);
+		int ReadMdxTuple(BYTE type, long length, void* poResult);
+		int ReadMdxSet(BYTE type, long length, void* poResult);
+		int ReadMdxKPI(BYTE type, long length, void* poResult);
+		int ReadMdxMemeberProp(BYTE type, long length, void* poResult);
+		int ReadMetadataStringIndex(BYTE type, long length, void* poResult);
+		int ReadDynamicArrayProperties(BYTE type, long length, void* poResult);
 	};
 	class BinaryCommentReader : public Binary_CommonReader
 	{
@@ -358,7 +393,13 @@ namespace BinXlsxRW
 		int ReadDataValidationsContent(BYTE type, long length, void* poResult);
         int ReadDataValidation(BYTE type, long length, void* poResult);
 		int ReadSlicers(BYTE type, long length, void* poResult);
-		
+		int ReadUserProtectedRanges(BYTE type, long length, void* poResult);
+		int ReadUserProtectedRange(BYTE type, long length, void* poResult);
+		int ReadUserProtectedRangeDesc(BYTE type, long length, void* poResult);
+		int ReadTimelinesList(BYTE type, long length, void* poResult);
+		int ReadTimelines(BYTE type, long length, void* poResult);
+		int ReadTimeline(BYTE type, long length, void* poResult);		
+
 		void WriteComments();
 		void AddLineBreak(OOX::Spreadsheet::CSi& oSi);
 		std::wstring GetControlVmlShape(void* pControl);
@@ -407,7 +448,7 @@ namespace BinXlsxRW
 	{
 	public: 
 		BinaryFileReader();
-        int ReadFile(const std::wstring& sSrcFileName, std::wstring sDstPath, NSBinPptxRW::CDrawingConverter* pOfficeDrawingConverter, const std::wstring& sXMLOptions, bool bMacro = false);
+        int ReadFile(const std::wstring& sSrcFileName, std::wstring sDstPath, NSBinPptxRW::CDrawingConverter* pOfficeDrawingConverter, const std::wstring& sXMLOptions, bool &bMacro);
         int ReadMainTable(OOX::Spreadsheet::CXlsx& oXlsx, NSBinPptxRW::CBinaryFileReader& oBufferedStream, const std::wstring& sFileInDir, const std::wstring& sOutDir, SaveParams& oSaveParams, NSBinPptxRW::CDrawingConverter* pOfficeDrawingConverter);
 		void initWorkbook(OOX::Spreadsheet::CWorkbook* pWorkbook);
 		

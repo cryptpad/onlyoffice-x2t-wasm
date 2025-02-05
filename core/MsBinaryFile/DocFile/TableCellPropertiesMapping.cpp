@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -78,7 +78,7 @@ namespace DocFileFormat
 
 		unsigned int iTap_current = 1;
 
-		for ( std::list<SinglePropertyModifier>::iterator iter = tapx->grpprl->begin(); iter != tapx->grpprl->end(); iter++ )
+		for ( std::vector<SinglePropertyModifier>::iterator iter = tapx->grpprl->begin(); iter != tapx->grpprl->end(); iter++ )
 		{
 			DWORD code = iter->OpCode;
 
@@ -94,7 +94,7 @@ namespace DocFileFormat
 		}
 
 		bool bPresentDefTable = false;
-		for (std::list<SinglePropertyModifier>::reverse_iterator iter = tapx->grpprl->rbegin(); iter != tapx->grpprl->rend(); ++iter)
+		for (std::vector<SinglePropertyModifier>::iterator iter = tapx->grpprl->begin(); iter != tapx->grpprl->end(); ++iter)
 		{
 			switch (iter->OpCode)
 			{				
@@ -114,7 +114,7 @@ namespace DocFileFormat
 						  // Технические_Требования_1_287_ДИТ.DOC
 							if (tdef.rgTc80[j].horzMerge == 0 && tdef.rgTc80[j].wWidth < 1)
 							{
-								bUseWidth = false; 
+								//bUseWidth = false; 
 								break;
 							}
 						}
@@ -289,6 +289,61 @@ namespace DocFileFormat
 					}
 				}
 				break;
+				case sprmTTableBorders80:
+				{
+					const int size = 4;
+					unsigned char brc80[size];
+
+					memcpy(brc80, iter->Arguments, size);
+					if (!_brcTop)
+						_brcTop = std::shared_ptr<BorderCode>(new BorderCode(brc80, size));
+
+					memcpy(brc80, (iter->Arguments + 4), size);
+					if (!_brcLeft)
+						_brcLeft = std::shared_ptr<BorderCode>(new BorderCode(brc80, size));
+
+					memcpy(brc80, (iter->Arguments + 8), size);
+					if (!_brcBottom)
+						_brcBottom = std::shared_ptr<BorderCode>(new BorderCode(brc80, size));
+
+					memcpy(brc80, (iter->Arguments + 12), size);
+					if (!_brcRight)
+						_brcRight = std::shared_ptr<BorderCode>(new BorderCode(brc80, size));
+
+					//memcpy(brc80, (iter->Arguments + 16), size);
+					//_brcHorz = std::shared_ptr<BorderCode>(new BorderCode(brc80, size));
+
+					//memcpy(brc80, (iter->Arguments + 20), size);
+					//_brcVert = std::shared_ptr<BorderCode>(new BorderCode(brc80, size));
+				}break;
+				case sprmOldTTableBorders:
+				case sprmTTableBorders:
+				{
+					const int size = 8;
+					unsigned char brc[size];
+
+					memcpy(brc, iter->Arguments, size);
+					if (!_brcTop)
+						_brcTop = std::shared_ptr<BorderCode>(new BorderCode(brc, size));
+
+					memcpy(brc, (iter->Arguments + 8), size);
+					if (!_brcLeft)
+						_brcLeft = std::shared_ptr<BorderCode>(new BorderCode(brc, size));
+
+					memcpy(brc, (iter->Arguments + 16), size);
+					if (!_brcBottom)
+						_brcBottom = std::shared_ptr<BorderCode>(new BorderCode(brc, size));
+
+					memcpy(brc, (iter->Arguments + 24), size);
+					if (!_brcRight)
+						_brcRight = std::shared_ptr<BorderCode>(new BorderCode(brc, size));
+
+					//memcpy(brc, (iter->Arguments + 32), size);
+					//_brcHorz = std::shared_ptr<BorderCode>(new BorderCode(brc, size));
+
+					//memcpy(brc, (iter->Arguments + 40), size);
+					//_brcVert = std::shared_ptr<BorderCode>(new BorderCode(brc, size));
+				}break;
 				case sprmOldTSetBrc:
 				case sprmTSetBrc:
 				{ //borders (cell definition)
@@ -453,12 +508,12 @@ namespace DocFileFormat
 		}
 	}
 
-	bool TableCellPropertiesMapping::IsTableBordersDefined (const std::list<SinglePropertyModifier>* grpprl) const
+	bool TableCellPropertiesMapping::IsTableBordersDefined (const std::vector<SinglePropertyModifier>* grpprl) const
 	{
 		if (grpprl)
 		{
-			std::list<SinglePropertyModifier>::const_iterator end = grpprl->end();
-			for (std::list<SinglePropertyModifier>::const_iterator iter = grpprl->begin(); iter != end; ++iter)
+			std::vector<SinglePropertyModifier>::const_iterator end = grpprl->end();
+			for (std::vector<SinglePropertyModifier>::const_iterator iter = grpprl->begin(); iter != end; ++iter)
 			{
 				if ((iter->OpCode == sprmTTableBorders) || (iter->OpCode == sprmTTableBorders80) || (iter->OpCode == sprmTSetBrc))
 					return true;
@@ -468,12 +523,12 @@ namespace DocFileFormat
 		return false;
 	}
 
-	bool TableCellPropertiesMapping::IsTableCellWidthDefined (const std::list<SinglePropertyModifier>* grpprl) const
+	bool TableCellPropertiesMapping::IsTableCellWidthDefined (const std::vector<SinglePropertyModifier>* grpprl) const
 	{
 		if (grpprl)
 		{
-			std::list<SinglePropertyModifier>::const_iterator end = grpprl->end();
-			for (std::list<SinglePropertyModifier>::const_iterator iter = grpprl->begin(); iter != end; ++iter)
+			std::vector<SinglePropertyModifier>::const_iterator end = grpprl->end();
+			for (std::vector<SinglePropertyModifier>::const_iterator iter = grpprl->begin(); iter != end; ++iter)
 			{
 				if ( iter->OpCode == sprmTCellWidth )
 				{

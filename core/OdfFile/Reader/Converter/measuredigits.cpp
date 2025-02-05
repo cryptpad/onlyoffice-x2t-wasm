@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -64,7 +64,7 @@ std::pair<double, double> GetMaxDigitSizePixelsImpl(const std::wstring & fontNam
 		//if (FALSE == (hr = pFontManager->LoadString2( std::to_wstring(i), 0, 0)))
 		//	return std::pair<float, float>(7,8);
 
-		if (FALSE == (hr = pFontManager->LoadString2( L"0123456789abcdefghijklmnopqrstuvwxyz" , 0, 0)))//
+		if (FALSE == (hr = pFontManager->LoadString2( L"0123456789" , 0, 0)))//
 			return std::pair<double, double>(7., 8.);
 
 		TBBox box;
@@ -87,7 +87,7 @@ std::pair<double, double> GetMaxDigitSizePixelsImpl(const std::wstring & fontNam
         if (box.fMaxY - box.fMinY < minHeight)  minHeight = box.fMaxY - box.fMinY;
     }
 
-    double width = (minWidth + 2 * maxWidth) /36. /3.;
+    double width = (minWidth + 2 * maxWidth) /10. /3.;
 	//double width = (minWidth + 2 * maxWidth) / 5./*/36.*/ /3.;
 
 	if (width > 0.01 && maxHeight > 0.01)

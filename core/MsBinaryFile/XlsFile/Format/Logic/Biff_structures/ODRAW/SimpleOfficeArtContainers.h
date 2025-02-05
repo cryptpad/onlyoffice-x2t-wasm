@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -43,14 +43,18 @@ public:
 	OfficeArtDggContainer(const OfficeArtClientAnchorType anchor_type) : OfficeArtContainer(0x0F, DggContainer, anchor_type) {}
 	XLS::BiffStructurePtr clone() { return XLS::BiffStructurePtr(new OfficeArtDggContainer(*this)); }
 
+	static const XLS::ElementType type = XLS::typeOfficeArtDggContainer;
+
 	void loadFields(XLS::CFRecord& record);
 
 	OfficeArtRecordPtr		m_OfficeArtBStoreContainer;
 	OfficeArtRecordPtr		m_OfficeArtColorMRUContainer;
 	OfficeArtRecordPtr		m_OfficeArtSplitMenuColorContainer;
 	OfficeArtRecordPtr		m_OfficeArtFDGGBlock;
+
 	//+ OfficeArtFOPT + OfficeArtTertiaryFOPT
 };
+typedef boost::shared_ptr<OfficeArtDggContainer> OfficeArtDggContainerPtr;
 
 class OfficeArtSpgrContainer : public OfficeArtContainer
 {
@@ -61,9 +65,9 @@ public:
 
 	void loadFields(XLS::CFRecord& record);
 
-	static const XLS::ElementType	type = XLS::typeOfficeArtSpgrContainer;
+	static const XLS::ElementType type = XLS::typeOfficeArtSpgrContainer;
 
-	std::vector<OfficeArtContainerPtr>		m_OfficeArtSpgrContainerFileBlock;
+	std::vector<OfficeArtContainerPtr> m_OfficeArtSpgrContainerFileBlock;
 };
 
 class OfficeArtSolverContainer : public OfficeArtRecord

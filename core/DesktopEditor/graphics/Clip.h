@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -67,7 +67,7 @@ public:
 
 	agg::rendering_buffer	m_alpha_rbuf;
 
-	agg::rasterizer_scanline_aa<> m_rasterizer;
+	agg::rasterizer_scanline_aa<agg::rasterizer_sl_clip_dbl> m_rasterizer;
 
 	agg::pixfmt_gray8		m_pixf;
 	ren_base				m_base_renderer;
@@ -108,7 +108,7 @@ public:
 
 	agg::rendering_buffer	m_alpha_rbuf;
 
-	agg::rasterizer_scanline_aa<> m_rasterizer;
+	agg::rasterizer_scanline_aa<agg::rasterizer_sl_clip_dbl> m_rasterizer;
 
 	agg::pixfmt_gray8		m_pixf;
 	ren_base				m_base_renderer;
@@ -138,10 +138,11 @@ public:
 
 class CClipMulti
 {
-	typedef agg::scanline_p8 scanline_type;
-
 public:
-	agg::rasterizer_scanline_aa<> m_rasterizer;
+	typedef agg::scanline_p8 scanline_type;
+	typedef agg::rasterizer_scanline_aa<agg::rasterizer_sl_clip_dbl> clip_rasterizer;
+
+	clip_rasterizer m_rasterizer;
 	
 	agg::scanline_storage_aa8 m_storage1;
 	agg::scanline_storage_aa8 m_storage2;
@@ -158,10 +159,13 @@ public:
 	CClipMulti();
 	~CClipMulti();
 
+	clip_rasterizer* GetRasterizer();
+
 	void Create(LONG width, LONG height);
 	void GenerateClip(CGraphicsPath* pPath, CMatrix* pMatrix);
+	void GenerateClip2(bool bEvenOdd);
 	
-	void Combine(CGraphicsPath* pPath, CMatrix* pMatrix, agg::sbool_op_e op);
+	void Combine(bool bEvenOdd, agg::sbool_op_e op, clip_rasterizer* pRasterizer);
 
 	bool IsClip();
 	bool IsClip2();

@@ -30,7 +30,7 @@
  *
  */
 #pragma once
-// CryptPad: Fix #include which has to many ../
+
 #include "../../../../DesktopEditor/common/Types.h"
 
 namespace ODRAW

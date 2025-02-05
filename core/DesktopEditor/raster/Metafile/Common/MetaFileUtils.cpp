@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -38,16 +38,22 @@
 #include <math.h>
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 #ifndef DIB_RGB_COLORS
     #define DIB_RGB_COLORS  0x00
 #endif
 
-#define MINACCURACY 2
+#define MINACCURACY 5
 #define MAXACCURACY 10
 
 namespace MetaFile
 {
+	bool Equals(double dFirst, double dSecond, double dEpsilon)
+	{
+		return std::abs(dFirst - dSecond) <= dEpsilon;
+	}
+
 	unsigned char GetLowestBit(unsigned int ulValue)
 	{
 		if (0 == ulValue)
@@ -140,6 +146,10 @@ namespace MetaFile
 		{
 			if (BI_JPEG != unCompression || BI_PNG != unCompression)
 				return false;
+
+#ifdef METAFILE_DISABLE_FILESYSTEM
+			return false;
+#endif
 
 			std::wstring wsTempFileName = GetTempFilename();
 			if (wsTempFileName.empty())
@@ -1015,10 +1025,10 @@ namespace MetaFile
 		return sTmpFile;
 	}
 
-	std::wstring StringNormalization(std::wstring wsString)
+	std::wstring StringNormalization(const std::wstring& wsString)
 	{
 		std::wstring wsText;
-		for (wchar_t wChar : wsString)
+		for (const wchar_t& wChar : wsString)
 		    if (wChar == L'<')
 			   wsText += L"&lt;";
 		    else if (wChar == L'>')
@@ -1029,63 +1039,136 @@ namespace MetaFile
 			   wsText += L"&apos;";
 		    else if (wChar == L'"')
 			   wsText += L"&quot;";
-			else if (wChar == L'\r')
+			else if (wChar == L'\r' || (wChar >= 0x00 && wChar <=0x1F))
 				continue;
-		    else if (wChar == 0x00)
-			   return wsText;
 
 		    else wsText += wChar;
 		return wsText;
 	}
 
-	static int GetMinAccuracy(double dValue)
+	bool StringEquals(const std::wstring& wsFirst, const std::wstring& wsSecond)
 	{
-		if (dValue == (int)dValue)
-			return 0;
+#if 0
+		// since c++14!
+		return std::equal(wsFirst.begin(), wsFirst.end(),
+						  wsSecond.begin(), wsSecond.end(),
+						   [](wchar_t wchFirst, wchar_t wchSecond) {
+							   return tolower(wchFirst) == tolower(wchSecond);
+						   });
+#else
+		size_t sizeFirst = wsFirst.length();
+		size_t sizeSecond = wsSecond.length();
+		if (sizeFirst != sizeSecond)
+			return false;
 
-		if (dValue < 0.)
-			dValue = -dValue;
-
-		if (dValue > 1.)
-			return MINACCURACY;
-
-		unsigned int unAccuracy = 0;
-
-		while (unAccuracy < MAXACCURACY)
+		for (size_t i = 0; i < sizeFirst; ++i)
 		{
-			dValue *= 10;
-
-			if (dValue >= 1.)
-				break;
-
-			++unAccuracy;
+			if (tolower(wsFirst[i]) != tolower(wsSecond[i]))
+				return false;
 		}
-
-		if (MAXACCURACY == unAccuracy)
-			return 0;
-		else
-			return unAccuracy + 3;
+		return true;
+#endif
 	}
 
 	std::wstring ConvertToWString(double dValue, int nAccuracy)
 	{
-		int nNewAccuracy = (-1 != nAccuracy) ? nAccuracy : GetMinAccuracy(dValue);
+		const double dAbsValue {std::abs(dValue)};
+		const double dRemainder{dAbsValue - std::floor(dAbsValue)};
+
+		if (Equals(0., dRemainder))
+			return std::to_wstring(static_cast<int>(dValue));
+
+		if (nAccuracy < 0)
+		{
+			if (dAbsValue < 1.)
+				nAccuracy = MAXACCURACY;
+			else
+				nAccuracy = MINACCURACY;
+		}
 
 		std::wstringstream owsStream;
-		owsStream << std::fixed << std::setprecision(nNewAccuracy) << dValue;
+		owsStream << std::fixed << std::setprecision(nAccuracy) << dValue;
 
-		return owsStream.str();
+		std::wstring wsValue{owsStream.str()};
+
+		const size_t unDotPosition{wsValue.find_first_of(L'.')};
+
+		if (std::wstring::npos == unDotPosition)
+			return wsValue;
+
+		const size_t unFirstPosition{wsValue.find_first_not_of(L'0', unDotPosition + 1)};
+
+		if (std::wstring::npos == unFirstPosition)
+			return wsValue.substr(0, unDotPosition);
+
+		const size_t unLastPosition = wsValue.find_last_not_of(L'0', unFirstPosition + MINACCURACY - 1);
+
+		return wsValue.substr(0, unLastPosition + 1);
 	}
 
 	std::wstring ConvertToWString(const std::vector<double>& arValues, int nAccuracy)
 	{
-		std::wstringstream owsStream;
+		std::wstring wsValue;
 
 		for (double dValue : arValues)
-			owsStream << std::fixed << std::setprecision((-1 != nAccuracy) ? nAccuracy : GetMinAccuracy(dValue)) << dValue << L" ";
+			wsValue += ConvertToWString(dValue, nAccuracy) + L' ';
 
-		owsStream.seekp(-1, std::ios_base::end);
+		wsValue.pop_back();
 
-		return owsStream.str();
+		return wsValue;
 	}
+
+	std::wstring ConvertToUnicode(const unsigned char* pText, unsigned long unLength, unsigned short uchCharSet)
+	{
+		NSStringExt::CConverter::ESingleByteEncoding eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_DEFAULT;;
+
+		// Соответствие Charset -> Codepage: http://support.microsoft.com/kb/165478
+		// http://msdn.microsoft.com/en-us/library/cc194829.aspx
+		//  Charset Name       Charset Value(hex)  Codepage number
+		//  ------------------------------------------------------
+		//
+		//  DEFAULT_CHARSET           1 (x01)
+		//  SYMBOL_CHARSET            2 (x02)
+		//  OEM_CHARSET             255 (xFF)
+		//  ANSI_CHARSET              0 (x00)            1252
+		//  RUSSIAN_CHARSET         204 (xCC)            1251
+		//  EASTEUROPE_CHARSET      238 (xEE)            1250
+		//  GREEK_CHARSET           161 (xA1)            1253
+		//  TURKISH_CHARSET         162 (xA2)            1254
+		//  BALTIC_CHARSET          186 (xBA)            1257
+		//  HEBREW_CHARSET          177 (xB1)            1255
+		//  ARABIC _CHARSET         178 (xB2)            1256
+		//  SHIFTJIS_CHARSET        128 (x80)             932
+		//  HANGEUL_CHARSET         129 (x81)             949
+		//  GB2313_CHARSET          134 (x86)             936
+		//  CHINESEBIG5_CHARSET     136 (x88)             950
+		//  THAI_CHARSET            222 (xDE)             874
+		//  JOHAB_CHARSET	        130 (x82)            1361
+		//  VIETNAMESE_CHARSET      163 (xA3)            1258
+
+		switch (uchCharSet)
+		{
+		default:
+		case DEFAULT_CHARSET:       eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_DEFAULT; break;
+		case SYMBOL_CHARSET:        eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_DEFAULT; break;
+		case ANSI_CHARSET:          eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1252; break;
+		case RUSSIAN_CHARSET:       eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1251; break;
+		case EASTEUROPE_CHARSET:    eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1250; break;
+		case GREEK_CHARSET:         eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1253; break;
+		case TURKISH_CHARSET:       eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1254; break;
+		case BALTIC_CHARSET:        eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1257; break;
+		case HEBREW_CHARSET:        eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1255; break;
+		case ARABIC_CHARSET:        eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1256; break;
+		case SHIFTJIS_CHARSET:      eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP932; break;
+		case HANGEUL_CHARSET:       eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP949; break;
+		case 134/*GB2313_CHARSET*/: eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP936; break;
+		case CHINESEBIG5_CHARSET:   eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP950; break;
+		case THAI_CHARSET:          eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP874; break;
+		case JOHAB_CHARSET:         eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1361; break;
+		case VIETNAMESE_CHARSET:    eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_CP1258; break;
+		}
+
+		return NSStringExt::CConverter::GetUnicodeFromSingleByteString(pText, unLength, eCharSet);
+	}
+
 }

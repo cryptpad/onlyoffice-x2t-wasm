@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -86,7 +86,11 @@ const bool DVAXIS::loadContent(BinProcessor& proc)
 	m_Axis = elements_.back();
 	elements_.pop_back();
 
-	proc.mandatory<Begin>();				elements_.pop_back();
+	if (!proc.mandatory<Begin>())
+	{
+		return true;
+	}
+	elements_.pop_back();
 	
 	if (proc.optional<ValueRange>())
 	{
@@ -123,7 +127,7 @@ int DVAXIS::serialize(std::wostream & _stream)
 	Axis		*axis			= dynamic_cast<Axis*>		(m_Axis.get());
 	CRTMLFRT	*crtMltFrt		= dynamic_cast<CRTMLFRT*>	(m_CRTMLFRT.get());
 	
-	int axes_type = axis->wType + 1;
+	int axes_type = axis ? axis->wType + 1 : 1;
 
 	bool bLogarithScale = false;
 
@@ -186,7 +190,10 @@ int DVAXIS::serialize(std::wostream & _stream)
 			}
 		}
 //----------------------------------------------------------------------------------------------
-		m_AXS->serialize(_stream);
+		if (m_AXS)
+		{
+			m_AXS->serialize(_stream);
+		}
 
 		if (value_range)
 		{

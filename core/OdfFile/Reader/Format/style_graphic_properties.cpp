@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -60,6 +60,8 @@ void graphic_format_properties::add_attributes( const xml::attributes_wc_ptr & A
 	CP_APPLY_ATTR(L"draw:stroke-dash",					draw_stroke_dash_); 
 	CP_APPLY_ATTR(L"draw:marker-start",					draw_marker_start_); 
 	CP_APPLY_ATTR(L"draw:marker-end",					draw_marker_end_); 
+
+	CP_APPLY_ATTR(L"draw:stroke-gradient-name",			draw_stroke_gradient_name_);
 
 	CP_APPLY_ATTR(L"svg:stroke-color",					svg_stroke_color_); 
 	CP_APPLY_ATTR(L"svg:stroke-width",					svg_stroke_width_);	
@@ -118,6 +120,7 @@ void graphic_format_properties::apply_to(std::vector<_property> & properties)
 		if (!draw_stroke_dash_->empty())
 			properties.push_back(_property(L"stroke-dash",	draw_stroke_dash_.get()));
 	}
+	if (draw_stroke_gradient_name_) properties.push_back(_property(L"stroke-gradient-name", draw_stroke_gradient_name_.get()));
 	if (svg_stroke_width_)	properties.push_back(_property(L"stroke-width",	svg_stroke_width_->get_length().get_value_unit(odf_types::length::pt) ));
 	if (svg_stroke_opacity_)properties.push_back(_property(L"stroke-opacity",svg_stroke_opacity_->get_percent().get_value()));	
 	if (draw_marker_start_)
@@ -189,6 +192,8 @@ void graphic_format_properties::apply_from(const graphic_format_properties * Oth
 {
 	if (Other == NULL) return;
 
+	_CP_APPLY_PROP3(draw_stroke_gradient_name_);
+
 	_CP_APPLY_PROP3(draw_stroke_); 
 	_CP_APPLY_PROP3(draw_stroke_dash_); 
 	_CP_APPLY_PROP3(draw_marker_start_); 
@@ -244,6 +249,7 @@ void graphic_format_properties::apply_from(const graphic_format_properties * Oth
      
 
     _CP_APPLY_PROP(style_background_image_,	Other->style_background_image_);
+	_CP_APPLY_PROP(style_columns_, Other->style_columns_);
 }
 
 
@@ -258,10 +264,10 @@ void style_graphic_properties::add_attributes( const xml::attributes_wc_ptr & At
 
 void style_graphic_properties::add_child_element( xml::sax * Reader, const std::wstring & Ns, const std::wstring & Name)
 {
-     if (L"style" == Ns && L"background-image" == Name)
-    {
+    if (L"style" == Ns && L"background-image" == Name)
         CP_CREATE_ELEMENT(content_.style_background_image_);
-    }
+	else if(L"style" == Ns && L"columns" == Name)
+		CP_CREATE_ELEMENT(content_.style_columns_);
 
 	//if (CP_CHECK_NAME(L"text", L"list-style") 	
 	//	styles_.add_child_element(Reader, Ns, Name, getContext()); он тут и не нужен по сути... описание есть и в другом сместе

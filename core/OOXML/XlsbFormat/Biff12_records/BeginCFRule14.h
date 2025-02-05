@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,15 +31,15 @@
  */
 #pragma once
 
-#include  "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/BiffRecord.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/BiffRecord.h"
 #include "../../XlsxFormat/WritingElement.h"
 
 #include "../Biff12_structures/CFType.h"
 #include "../Biff12_structures/CFTemp.h"
-#include  "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/DXFId.h"
-#include "../Biff12_structures/XLWideString.h"
-#include  "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/CFParsedFormula.h"
-#include "../Biff12_structures/FRTHeader.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/DXFId.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/CFParsedFormula.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/BIFF12/FRTHeader.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/BIFF12/XLWideString.h"
 
 namespace XLSB
 {
@@ -54,26 +54,27 @@ namespace XLSB
 
             XLS::BaseObjectPtr clone();
 
-            void readFields(XLS::CFRecord& record);
+            void readFields(XLS::CFRecord& record) override;
+			void writeFields(XLS::CFRecord& record) override;
 
              static const XLS::ElementType	type = XLS::typeBeginCFRule14;
 
 			FRTHeader               FRTheader;
             CFType                  iType;
             CFTemp                  iTemplate;
-            _UINT32                 dxfId;
-            _INT32                  iPri;
-            _UINT32                 iParam;
+            _UINT32                 dxfId = 0;
+            _INT32                  iPri = 0xFFFFFFFF;
+            _UINT32                 iParam = 0;
             std::string             sTypeiParam;
-            bool                    fStopTrue;
-            bool                    fAbove;
-            bool                    fBottom;
-            bool                    fPercent;
-            _UINT32                 cbFmla1;
-            _UINT32                 cbFmla2;
-            _UINT32                 cbFmla3;
+            bool                    fStopTrue = false;
+            bool                    fAbove = false;
+            bool                    fBottom = false;
+            bool                    fPercent = false;
+            _UINT32                 cbFmla1 = 0;
+            _UINT32                 cbFmla2 = 0;
+            _UINT32                 cbFmla3 = 0;
             std::wstring            guid;
-            XLS::Boolean<unsigned int>  fGuid;
+            XLS::Boolean<unsigned int>  fGuid = false;
             XLNullableWideString    strParam;
 
     };

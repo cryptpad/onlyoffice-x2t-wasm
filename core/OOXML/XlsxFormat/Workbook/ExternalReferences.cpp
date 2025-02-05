@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,10 +34,12 @@
 #include "../../XlsbFormat/Biff12_unions/SUP.h"
 #include "../../XlsbFormat/Biff12_records/SupBookSrc.h"
 
+#include "../../Common/SimpleTypes_Shared.h"
+
 namespace OOX
 {
 	namespace Spreadsheet
-	{	
+	{
 		CExternalReference::CExternalReference()
 		{
 		}
@@ -64,6 +66,20 @@ namespace OOX
 			if ( !oReader.IsEmptyNode() )
 				oReader.ReadTillEnd();
 		}
+		XLS::BaseObjectPtr CExternalReference::toBin()
+		{
+			auto ptr(new XLSB::SUP);
+			XLS::BaseObjectPtr objectPtr(ptr);
+			auto ptr1(new XLSB::SupBookSrc);
+			ptr->m_source = XLS::BaseObjectPtr{ptr1};
+			if(m_oRid.IsInit())
+				ptr1->strRelID.value = m_oRid->GetValue();
+			else
+				ptr1->strRelID.value.setSize(0xFFFFFFFF);
+
+			return objectPtr;
+		}
+
 		void CExternalReference::fromBin(XLS::BaseObjectPtr& obj)
 		{
 			ReadAttributes(obj);
@@ -133,8 +149,11 @@ namespace OOX
 				std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
 
 				if ( (L"externalReference") == sName )
-					m_arrItems.push_back( new CExternalReference( oReader ));
-
+				{
+					CExternalReference* pExternalReference = new CExternalReference();
+					*pExternalReference = oReader;
+					m_arrItems.push_back(pExternalReference);
+				}
 			}
 		}
 		void CExternalReferences::fromBin(std::vector<XLS::BaseObjectPtr>& obj)
@@ -146,8 +165,17 @@ namespace OOX
 
 			for (auto &externalReference : obj)
 			{
-				m_arrItems.push_back(new CExternalReference(externalReference));
+                auto reference = new CExternalReference(externalReference);
+                if(reference->m_oRid.IsInit())
+                    m_arrItems.push_back(reference);
 			}
+		}
+		std::vector<XLS::BaseObjectPtr> CExternalReferences::toBin()
+		{
+			std::vector<XLS::BaseObjectPtr> objectVector;
+			for(auto i:m_arrItems)
+				objectVector.push_back(i->toBin());
+			return objectVector;
 		}
 		EElementType CExternalReferences::getType () const
 		{

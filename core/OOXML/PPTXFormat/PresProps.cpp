@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,6 +31,14 @@
  */
 
 #include "PresProps.h"
+
+#include "ShowPr/PresentationPr.h"
+#include "ShowPr/Browse.h"
+#include "ShowPr/CustShow.h"
+#include "ShowPr/Kiosk.h"
+#include "ShowPr/Present.h"
+#include "ShowPr/SldAll.h"
+#include "ShowPr/SldRg.h"
 
 namespace PPTX
 {
@@ -51,12 +59,17 @@ namespace PPTX
 
 		ClrMru.clear();
 		XmlUtils::CXmlNode oNodeClr;
-		if (oNode.GetNode(_T("p:clrMru"), oNodeClr))
-			XmlMacroLoadArray(oNodeClr, _T("*"), ClrMru, Logic::UniColor);
+		if (oNode.GetNode(L"p:clrMru", oNodeClr))
+			XmlMacroLoadArray(oNodeClr, L"*", ClrMru, Logic::UniColor);
 
-		showPr = oNode.ReadNode(_T("p:showPr"));
+		showPr = oNode.ReadNode(L"p:showPr");
+		printPr = oNode.ReadNode(L"p:printPr");
+		
 		if(showPr.is_init())
 			showPr->SetParentFilePointer(this);
+		
+		if (printPr.is_init())
+			printPr->SetParentFilePointer(this);
 	}
 	void PresProps::write(const OOX::CPath& filename, const OOX::CPath& directory, OOX::CContentTypes& content)const
 	{
@@ -69,25 +82,27 @@ namespace PPTX
 
 		pWriter->WriteRecordArray(0, 0, ClrMru);
 		pWriter->WriteRecord2(1, showPr);
+		pWriter->WriteRecord2(2, printPr);
 
 		pWriter->EndRecord();
 	}
 	void PresProps::toXmlWriter(NSBinPptxRW::CXmlWriter* pWriter) const
 	{
-		pWriter->StartNode(_T("p:presentationPr"));
+		pWriter->StartNode(L"p:presentationPr");
 
 		pWriter->StartAttributes();
 
-		pWriter->WriteAttribute(_T("xmlns:a"), PPTX::g_Namespaces.a.m_strLink);
-		pWriter->WriteAttribute(_T("xmlns:r"), PPTX::g_Namespaces.r.m_strLink);
-		pWriter->WriteAttribute(_T("xmlns:p"), PPTX::g_Namespaces.p.m_strLink);
+		pWriter->WriteAttribute(L"xmlns:a", PPTX::g_Namespaces.a.m_strLink);
+		pWriter->WriteAttribute(L"xmlns:r", PPTX::g_Namespaces.r.m_strLink);
+		pWriter->WriteAttribute(L"xmlns:p", PPTX::g_Namespaces.p.m_strLink);
 
 		pWriter->EndAttributes();
 
-		pWriter->WriteArray(_T("p:clrMru"), ClrMru);
+		pWriter->WriteArray(L"p:clrMru", ClrMru);
 		pWriter->Write(showPr);
+		pWriter->Write(printPr);
 
-		pWriter->EndNode(_T("p:presentationPr"));
+		pWriter->EndNode(L"p:presentationPr");
 	}
 	void PresProps::fromPPTY(NSBinPptxRW::CBinaryFileReader* pReader)
 	{
@@ -122,15 +137,18 @@ namespace PPTX
 								ClrMru.pop_back();
 							}
 						}
-					}
-					break;
-				}
+					}					
+				}break;
 				case 1:
 				{
-					showPr = new nsShowPr::ShowPr();
-					showPr->fromPPTY(pReader);
-					break;
-				}
+					showPr = new nsPresentationPr::ShowPr();
+					showPr->fromPPTY(pReader);					
+				}break;
+				case 2:
+				{
+					printPr = new nsPresentationPr::PrintPr();
+					printPr->fromPPTY(pReader);
+				}break;
 				default:
 				{
 					pReader->SkipRecord();

@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -570,7 +570,26 @@ namespace XmlUtils
 	}
 	unsigned int GetUInteger(const std::wstring& string)
 	{
-        return (unsigned int)GetInteger(string);
+        if (string.empty()) return 0;
+
+        unsigned int iVal = 0;
+        try
+        {
+            iVal = std::stod(string);
+        }
+        catch(...)
+        {
+            try
+            {
+                iVal = std::wcstoll(string.c_str(), NULL, 10);
+            }
+            catch(...)
+            {
+                return 0;
+            }
+        }
+
+        return iVal;
 	}
 	double GetDouble(const std::wstring& string)
 	{
@@ -607,15 +626,15 @@ namespace XmlUtils
 	}
 	std::wstring ToString(const int& value)
 	{
-		return boost::lexical_cast<std::wstring>(value);
+		return std::to_wstring(value);
 	}
 	std::wstring ToString(const long& value)
 	{
-		return boost::lexical_cast<std::wstring>(value);
+		return std::to_wstring(value);
 	}
 	std::wstring ToString(const unsigned long& value)
 	{
-		return boost::lexical_cast<std::wstring>(value);
+		return std::to_wstring(value);
 	}
 	std::wstring ToString(const double& value)
 	{

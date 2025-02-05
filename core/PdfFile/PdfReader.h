@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -33,7 +33,8 @@
 #define _PDF_READER_H
 
 #include "../../DesktopEditor/graphics/pro/Fonts.h"
-#include "../../DesktopEditor/graphics/IRenderer.h"
+#include "../../DesktopEditor/graphics/pro/officedrawingfile.h"
+#include "../../DesktopEditor/xmlsec/src/include/Certificate.h"
 #include "SrcReader/RendererOutputDev.h"
 
 class PDFDoc;
@@ -41,42 +42,58 @@ class CPdfReader
 {
 public:
 
-    CPdfReader(NSFonts::IApplicationFonts* pAppFonts);
-    ~CPdfReader();
+	CPdfReader(NSFonts::IApplicationFonts* pAppFonts);
+	~CPdfReader();
 
-    bool LoadFromFile  (NSFonts::IApplicationFonts* pAppFonts, const std::wstring& file, const std::wstring& owner_password = L"", const std::wstring& user_password = L"");
-    bool LoadFromMemory(NSFonts::IApplicationFonts* pAppFonts, BYTE* data, DWORD length, const std::wstring& owner_password = L"", const std::wstring& user_password = L"");
+	bool LoadFromFile  (NSFonts::IApplicationFonts* pAppFonts, const std::wstring& file, const std::wstring& owner_password = L"", const std::wstring& user_password = L"");
+	bool LoadFromMemory(NSFonts::IApplicationFonts* pAppFonts, BYTE* data, DWORD length, const std::wstring& owner_password = L"", const std::wstring& user_password = L"");
 
-    void Close();
+	void Close();
 
-    std::wstring GetTempDirectory();
-    void SetTempDirectory(const std::wstring& directory);
+	void SetParams(COfficeDrawingPageParams* pParams);
+	std::wstring GetTempDirectory();
+	void SetTempDirectory(const std::wstring& directory);
 
-    bool IsNeedCMap();
-    void SetCMapMemory(BYTE* pData, DWORD nSizeData);
-    void SetCMapFolder(const std::wstring& sFolder);
-    void SetCMapFile(const std::wstring& sFile);
+	bool IsNeedCMap();
+	void SetCMapMemory(BYTE* pData, DWORD nSizeData);
+	void SetCMapFolder(const std::wstring& sFolder);
+	void SetCMapFile(const std::wstring& sFile);
 
-    void GetPageInfo(int nPageIndex, double* pdWidth, double* pdHeight, double* pdDpiX, double* pdDpiY);
-    void DrawPageOnRenderer(IRenderer* pRenderer, int nPageIndex, bool* pBreak);
-    std::wstring GetInfo();
+	int GetError();
+	int GetRotate(int nPageIndex);
+	int GetMaxRefID();
+	bool ValidMetaData();
+	void GetPageInfo(int nPageIndex, double* pdWidth, double* pdHeight, double* pdDpiX, double* pdDpiY);
+	void DrawPageOnRenderer(IRenderer* pRenderer, int nPageIndex, bool* pBreak);
+	std::wstring GetInfo();
+	std::wstring GetFontPath(const std::wstring& wsFontName, bool bSave = true);
 
-    int          GetError();
+	std::wstring ToXml(const std::wstring& wsXmlPath, bool isPrintStreams = false);
+	void ChangeLength(DWORD nLength);
+	NSFonts::IFontManager* GetFontManager() { return m_pFontManager; }
+	PDFDoc* GetPDFDocument() { return m_pPDFDocument; }
 
-    NSFonts::IFontManager* GetFontManager() { return m_pFontManager; }
-    PDFDoc* GetPDFDocument() { return m_pPDFDocument; }
-    void ChangeLength(DWORD nLength);
-
-    BYTE* GetStructure();
-    BYTE* GetLinks(int nPageIndex);
+	BYTE* GetStructure();
+	BYTE* GetLinks(int nPageIndex);
+	BYTE* GetWidgets();
+	BYTE* GetFonts(bool bStandart);
+	BYTE* GetAnnots(int nPageIndex = -1);
+	BYTE* GetShapes(int nPageIndex);
+	BYTE* VerifySign(const std::wstring& sFile, ICertificate* pCertificate, int nWidget = -1);
+	BYTE* GetAPWidget  (int nRasterW, int nRasterH, int nBackgroundColor, int nPageIndex, int nWidget  = -1, const char* sView  = NULL, const char* sBView = NULL);
+	BYTE* GetAPAnnots  (int nRasterW, int nRasterH, int nBackgroundColor, int nPageIndex, int nAnnot   = -1, const char* sView  = NULL);
+	BYTE* GetButtonIcon(int nBackgroundColor, int nPageIndex, bool bBase64 = false, int nBWidget = -1, const char* sIView = NULL);
+	std::map<std::wstring, std::wstring> GetAnnotFonts(Object* pRefAnnot);
+	std::map<std::wstring, std::wstring> GetFonts() { return m_mFonts; }
 
 private:
-    PDFDoc*            m_pPDFDocument;
-    std::wstring       m_wsTempFolder;
-    NSFonts::IFontManager* m_pFontManager;
-    PdfReader::CFontList*  m_pFontList;
-    DWORD              m_nFileLength;
-    int                m_eError;
+	PDFDoc*                m_pPDFDocument;
+	std::wstring           m_wsTempFolder;
+	NSFonts::IFontManager* m_pFontManager;
+	PdfReader::CPdfFontList*  m_pFontList;
+	DWORD                  m_nFileLength;
+	int                    m_eError;
+	std::map<std::wstring, std::wstring> m_mFonts;
 };
 
 #endif // _PDF_READER_H

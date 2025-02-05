@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -60,20 +60,61 @@ namespace XLSB
     // PCDIDT = BrtPCDIMissing / BrtPCDINumber / BrtPCDIBoolean / BrtPCDIError / BrtPCDIString / BrtPCDIDatetime / BrtPCDIIndex
     const bool PCDIDT::loadContent(BinProcessor& proc)
     {
-        if (!proc.optional<PCDIMissing>())
-            if (!proc.optional<PCDINumber>())
-                if (!proc.optional<PCDIBoolean>())
-                    if (!proc.optional<PCDIError>())
-                        if (!proc.optional<PCDIString>())
-                            if (!proc.optional<PCDIDatetime>())
-                                if (!proc.optional<PCDIIndex>())
-                    return false;
+        auto recordType = proc.getNextRecordType();
+        switch (recordType)
+        {
+            case XLSB::rt_PCDIMissing:
+            {
+                proc.optional<PCDIMissing>();
+                break;
+            }
+            case XLSB::rt_PCDINumber:
+            {
+                proc.optional<PCDINumber>();
+                break;
+            }
+            case XLSB::rt_PCDIBoolean:
+            {
+                proc.optional<PCDIBoolean>();
+                break;
+            }
+            case XLSB::rt_PCDIError:
+            {
+                proc.optional<PCDIError>();
+                break;
+            }
+            case XLSB::rt_PCDIString:
+            {
+                proc.optional<PCDIString>();
+                break;
+            }
+            case XLSB::rt_PCDIDatetime:
+            {
+                proc.optional<PCDIDatetime>();
+                break;
+            }
+            case XLSB::rt_PCDIIndex:
+            {
+                proc.optional<PCDIIndex>();
+                break;
+            }
+            default:
+                return false;
+        }
 
         m_source = elements_.back();
         elements_.pop_back();
 
         return m_source != nullptr;
     }
+
+	const bool PCDIDT::saveContent(BinProcessor& proc)
+	{
+		if (m_source != nullptr)
+			proc.mandatory(*m_source);
+
+		return true;
+	}
 
 } // namespace XLSB
 

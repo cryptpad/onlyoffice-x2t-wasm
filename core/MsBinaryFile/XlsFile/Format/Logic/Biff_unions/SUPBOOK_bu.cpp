@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -198,7 +198,7 @@ int SUPBOOK::serialize(std::wostream & strm)
 		return 0;
 	}
 
-	if (book->bOleLink)
+	if (book->bOleLink && book->ctab == 0)
 	{
 		serialize_dde(strm);
 	}
@@ -387,7 +387,8 @@ int SUPBOOK::serialize_dde(std::wostream & strm)
 		{
 			CP_XML_ATTR(L"xmlns:r", L"http://schemas.openxmlformats.org/officeDocument/2006/relationships"); 
 			CP_XML_ATTR(L"ddeService", book->virtPath[0]); 
-			CP_XML_ATTR(L"ddeTopic", book->virtPath[1]); 
+			if (book->virtPath.size() > 1)
+				CP_XML_ATTR(L"ddeTopic", book->virtPath[1]); 
 
 			CP_XML_NODE(L"ddeItems")
 			{ 	
@@ -409,6 +410,15 @@ int SUPBOOK::serialize_dde(std::wostream & strm)
 						}
 					}
 					//ole items in oleLink
+					ExternDocName* oleDocName = dynamic_cast<ExternDocName*>(external_name->body.get());
+					if (oleDocName)
+					{
+						CP_XML_NODE(L"ddeItem")
+						{
+							CP_XML_ATTR(L"name", oleDocName->extName.value());
+							CP_XML_ATTR(L"advise", external_name->fWantAdvise);
+						}
+					}
 				}
 			}
 		}

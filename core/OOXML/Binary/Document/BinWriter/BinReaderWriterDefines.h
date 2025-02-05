@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -35,18 +35,6 @@ namespace BinDocxRW
 {
 const double eps     = 0.001;
 
-const int g_tabtype_left = 0;
-const int g_tabtype_right = 1;
-const int g_tabtype_center = 2;
-const int g_tabtype_clear = 3;
-
-const int border_None   = 0x0000;
-const int border_Single = 0x0001;
-
-const int heightrule_AtLeast = 0x00;
-const int heightrule_Auto    = 0x01;
-const int heightrule_Exact   = 0x02;
-
 const int align_Right   = 0;
 const int align_Left    = 1;
 const int align_Center  = 2;
@@ -66,37 +54,15 @@ const int linerule_Exact   = 2;
 const int orientation_Portrait  = 0x00;
 const int orientation_Landscape = 0x01;
 
-const int numbering_numfmt_None        = 0x0000;
-const int numbering_numfmt_Bullet      = 0x1001;
-const int numbering_numfmt_Decimal     = 0x2002;
-const int numbering_numfmt_LowerRoman  = 0x2003;
-const int numbering_numfmt_UpperRoman  = 0x2004;
-const int numbering_numfmt_LowerLetter = 0x2005;
-const int numbering_numfmt_UpperLetter = 0x2006;
-const int numbering_numfmt_DecimalZero = 0x2007;
-
-const int numbering_suff_Tab     = 1;
-const int numbering_suff_Space   = 2;
-const int numbering_suff_Nothing = 3;
-
 const int tblwidth_Auto = 0x00;
 const int tblwidth_Mm   = 0x01;
 const int tblwidth_Nil  = 0x02;
 const int tblwidth_Pct  = 0x03;
 
-const int fontstyle_mask_regular = 1;
-const int fontstyle_mask_italic = 2;
-const int fontstyle_mask_bold = 4;
-const int fontstyle_mask_bolditalic = 8;
-
 const int styletype_Character = 0x01;
 const int styletype_Numbering = 0x02;
 const int styletype_Paragraph = 0x03;
 const int styletype_Table = 0x04;
-
-const int fieldstruct_none = 0;
-const int fieldstruct_toc = 1;
-const int fieldstruct_hyperlink = 2;
 
 const double g_dKoef_mm_to_pt = 72 / (2.54 * 10);
 const double g_dKoef_mm_to_twips = 20 * g_dKoef_mm_to_pt;
@@ -105,9 +71,12 @@ const double g_dKoef_mm_to_eightpoint = 8 * g_dKoef_mm_to_pt;
 const double g_dKoef_mm_to_hps = 2 * g_dKoef_mm_to_pt;
 
 const static wchar_t* g_sFormatSignature = L"DOCY";
+
 const int g_nFormatVersion = 5;
 const int g_nFormatVersionNoBase64 = 10; 
+
 extern int g_nCurFormatVersion;
+
 	namespace c_oAscWrapStyle{enum c_oSerFormat
 	{
 		Inline = 0,
@@ -159,6 +128,22 @@ extern int g_nCurFormatVersion;
 		HdrFtr_Content = 5,
 		HdrFtr_Y2 = 6,//устарел
 		HdrFtr_Y = 7//устарел
+	};}
+	namespace c_oSerCnf {enum c_oSerCnf
+	{
+		Val = 0,
+		EvenHBand = 1,
+		EvenVBand = 2,
+		FirstColumn = 3,
+		FirstRow = 4,
+		FirstRowFirstColumn = 5,
+		FirstRowLastColumn = 6,
+		LastColumn = 7,
+		LastRow = 8,
+		LastRowFirstColumn = 9,
+		LastRowLastColumn = 10,
+		OddHBand = 11,
+		OddVBand = 12
 	};}
 	namespace c_oSerNumTypes{enum c_oSerNumTypes
 	{
@@ -367,7 +352,12 @@ extern int g_nCurFormatVersion;
 		Spacing_AfterTwips = 41,
 		Tab_Item_PosTwips = 42,
 		Tab_Item_Val = 43,
-		SuppressLineNumbers = 44
+		SuppressLineNumbers = 44,
+		CnfStyle = 45,
+		SnapToGrid = 46,
+		Bidi = 47,
+		Spacing_AfterLines = 48,
+		Spacing_BeforeLines = 49
 	};}
 	namespace c_oSerProp_rPrType{enum c_oSerProp_rPrType
 	{
@@ -426,7 +416,8 @@ extern int g_nCurFormatVersion;
 		Reflection = 52,
 		Glow = 53,
 		Props3d = 54,
-		Scene3d = 55
+		Scene3d = 55,
+		Kern = 56
 	};}
 	namespace c_oSerProp_rowPrType{enum c_oSerProp_rowPrType
 	{
@@ -449,7 +440,8 @@ extern int g_nCurFormatVersion;
 		Ins = 16,
 		trPrChange = 17,
 		TableCellSpacingTwips = 18,
-		Height_ValueTwips = 19
+		Height_ValueTwips = 19,
+		CnfStyle = 20
 	};}
 	namespace c_oSerProp_cellPrType{enum c_oSerProp_cellPrType
 	{
@@ -468,7 +460,8 @@ extern int g_nCurFormatVersion;
 		hideMark = 12,
 		noWrap = 13,
 		tcFitText = 14,
-		HMerge = 15
+		HMerge = 15,
+		CnfStyle = 16
 	};}
 	namespace c_oSerProp_secPrType{enum c_oSerProp_secPrType
 	{
@@ -485,7 +478,8 @@ extern int g_nCurFormatVersion;
 		footnotePr = 10,
 		endnotePr = 11,
 		rtlGutter = 12,
-		lnNumType = 13
+		lnNumType = 13,
+		docGrid = 14
 	};}
 	namespace c_oSerProp_secPrSettingsType{enum c_oSerProp_secPrSettingsType
 	{
@@ -495,7 +489,10 @@ extern int g_nCurFormatVersion;
 	};}
 	namespace c_oSerProp_secPrPageNumType{enum c_oSerProp_secPrPageNumType
 	{
-		start = 0
+		start = 0,
+		fmt = 1,
+		chapStyle = 2,
+		chapSep = 3
 	};}
 	namespace c_oSerProp_secPrLineNumType{enum c_oSerProp_secPrLineNumType
 	{
@@ -535,7 +532,8 @@ extern int g_nCurFormatVersion;
 		AltChunk = 26,
 		DocParts = 27,
 		PermStart = 28,
-		PermEnd = 29
+		PermEnd = 29,
+		JsaProjectExternal = 30
 	};}
 	namespace c_oSerGlossary {
 		enum c_oSerGlossary
@@ -574,7 +572,9 @@ extern int g_nCurFormatVersion;
 		MoveFromRangeStart = 14,
 		MoveFromRangeEnd = 15,
 		MoveToRangeStart = 16,
-		MoveToRangeEnd = 17
+		MoveToRangeEnd = 17,
+		PermStart = 18,
+		PermEnd = 19
 	};}
 	namespace c_oSerRunType{enum c_oSerRunType
 	{
@@ -611,7 +611,8 @@ extern int g_nCurFormatVersion;
 		delInstrText = 31,
 		linebreakClearAll = 32,
 		linebreakClearLeft = 33,
-		linebreakClearRight = 34
+		linebreakClearRight = 34,
+		pptxDrawingAlternative = 0x99
 	};}
 	namespace c_oSerVbaProjectTypes{enum c_oSerVbaProjectType
 	{
@@ -762,7 +763,8 @@ extern int g_nCurFormatVersion;
 		Value = 3,
 		ColorTheme = 4,
 		SpacePoint = 5,
-		Size8Point = 6
+		Size8Point = 6,
+		ValueType = 7
 	};}
 	namespace c_oSerShdType{enum c_oSerShdType
 	{
@@ -881,8 +883,17 @@ extern int g_nCurFormatVersion;
 		BookFoldRevPrinting = 17,
 		SpecialFormsHighlight = 18,
 		DocumentProtection = 19,
-		WriteProtection = 20
-
+		WriteProtection = 20,
+		AutoHyphenation = 21,
+		HyphenationZone = 22,
+		DoNotHyphenateCaps = 23,
+		ConsecutiveHyphenLimit = 24,
+		DrawingGridHorizontalOrigin = 25,
+		DrawingGridHorizontalSpacing = 26,
+		DrawingGridVerticalOrigin = 27,
+		DrawingGridVerticalSpacing = 28,
+		DisplayHorizontalDrawingGridEvery = 29,
+		DisplayVerticalDrawingGridEvery = 30
 	};}
 	namespace c_oSer_MathPrType{enum c_oSer_SettingsType
 	{
@@ -1053,7 +1064,22 @@ extern int g_nCurFormatVersion;
 		MoveFromRangeStart = 68,
 		MoveFromRangeEnd = 69,
 		MoveToRangeStart = 70,
-		MoveToRangeEnd = 71
+		MoveToRangeEnd = 71,
+		AnnotationRef = 72,
+		CommentReference = 73,
+		ContentPart = 74,
+		Cr = 75,
+		EndnoteRef = 76,
+		EndnoteReference = 77,
+		FootnoteRef = 78,
+		FootnoteReference = 79,
+		LastRenderedPageBreak = 80,
+		NoBreakHyphen = 81,
+		SoftHyphen = 82,
+		Sym = 83,
+		Tab = 84,
+		PermStart =85,
+		PermEnd = 86
 	};}
 	namespace c_oSer_FramePrType{ enum c_oSer_FramePrType
 	{		
@@ -1087,7 +1113,8 @@ extern int g_nCurFormatVersion;
 		Content = 0,
 		Instr = 1,
 		FFData = 2,
-		CharType = 3
+		CharType = 3,
+		PrivateData = 4
 	};}
 	namespace c_oSer_ColorThemeType{ enum c_oSer_ColorThemeType
 	{
@@ -1124,6 +1151,12 @@ extern int g_nCurFormatVersion;
 		ColumnSpace = 5,
 		ColumnW = 6
 	};}
+	namespace c_oSerProp_DocGrid {enum c_oSerProp_DocGrid
+	{
+		Type = 0,
+		CharSpace = 1,
+		LinePitch = 2
+	};}	
 	namespace c_oSerPageBorders{enum c_oSerPageBorders
 	{
 		Display = 0,
@@ -1245,7 +1278,7 @@ extern int g_nCurFormatVersion;
 		FormPrLabel = 46,
 		FormPrHelpText = 47,
 		FormPrRequired = 48,
-		CheckboxGroupKey = 59,
+		CheckboxGroupKey = 49,
 		TextFormPr = 50,
 		TextFormPrComb = 51,
 		TextFormPrCombWidth = 52,
@@ -1262,12 +1295,14 @@ extern int g_nCurFormatVersion;
 		PictureFormPrRespectBorders = 63,
 		PictureFormPrShiftX = 64,
 		PictureFormPrShiftY = 65,
+		PictureFormPrSignature = 66,
 		FormPrBorder = 70,
 		FormPrShd = 71,
 		TextFormPrCombWRule = 72,
 		TextFormPrFormatType    = 80,
 		TextFormPrFormatVal     = 81,
 		TextFormPrFormatSymbols = 82,	
+		StoreItemChecksum = 85,
 		ComplexFormPr     = 90,
 		ComplexFormPrType = 91,
 		OformMaster = 92

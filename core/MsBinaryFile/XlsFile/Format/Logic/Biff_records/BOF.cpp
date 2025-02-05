@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,8 +31,6 @@
  */
 
 #include "BOF.h"
-
-#include "../../../../../Common/MS-LCID.h"
 
 namespace XLS
 {
@@ -68,12 +66,16 @@ BaseObjectPtr BOF::clone()
 
 void BOF::readFields(CFRecord& record)
 {
+	GlobalWorkbookInfoPtr global_info = record.getGlobalWorkbookInfo();
+
 	type_id_ = record.getTypeId();
 
 	record >> vers >> dt;
 	
 	if (type_id_ == rt_BOF_BIFF8)
 	{
+		if (vers > 0x0700) vers = 0x0600;
+
 		record >> rupBuild >> rupYear;  // biff 5 - 8
 		
 		if ( record.checkFitReadSafe(8)) // biff 8
@@ -104,17 +106,17 @@ void BOF::readFields(CFRecord& record)
 		}
 		else
 		{ //ts_2500_06_gruzi 05 06 вып.xls
-			if (record.getGlobalWorkbookInfo()->CodePage == 0 && record.getGlobalWorkbookInfo()->lcid_user > 0)
+			if (global_info->CodePage == 0 && global_info->lcid_user > 0)
 			{
-				record.getGlobalWorkbookInfo()->CodePage = msLCID2DefCodePage(record.getGlobalWorkbookInfo()->lcid_user);
+				record.getGlobalWorkbookInfo()->CodePage = global_info->lcid_converter.get_codepage(record.getGlobalWorkbookInfo()->lcid_user);
 			}
 		}
 	}
 	else
 	{
+		short not_used = 0;
 		if (type_id_ == rt_BOF_BIFF3 || type_id_ == rt_BOF_BIFF4)
 		{
-			short not_used;
 			record >> not_used;
 		}
 

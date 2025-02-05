@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -76,12 +76,12 @@ namespace codegen
         //string gc_sTargetNamespace = "http://schemas.microsoft.com/office/spreadsheetml/2019/namedsheetviews";
 
         //string gc_sXsd = "xlsx-ext/sml.xsd";
-        //string[] gc_aTargetTypes = new string[] { "CT_Stylesheet" };
+        //string[] gc_aTargetTypes = new string[] { "CT_Workbook", "CT_Worksheet", "CT_PivotCacheDefinition", "CT_PivotCacheRecords", "CT_pivotTableDefinition", "CT_Stylesheet" };
         //string gc_sTargetNamespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 
-        string gc_sXsd = "wml.xsd";
-        string[] gc_aTargetTypes = new string[] { "CT_Comments" };
-        string gc_sTargetNamespace = "http://purl.oclc.org/ooxml/wordprocessingml/main";
+        //string gc_sXsd = "wml.xsd";
+        //string[] gc_aTargetTypes = new string[] { "CT_Document", "CT_GlossaryDocument", "CT_Styles", "CT_Numbering", "CT_Settings", "CT_HdrFtr", "CT_Footnotes", "CT_Endnotes", "CT_Comments" };
+        //string gc_sTargetNamespace = "http://purl.oclc.org/ooxml/wordprocessingml/main";
 
         //string gc_sXsd = "dml-chart.xsd";
         //string[] gc_aTargetTypes = new string[] { "CT_ChartSpace" };
@@ -107,6 +107,10 @@ namespace codegen
         //string[] gc_aTargetTypes = new string[] { "CT_CommentsExtensible" };
         //string gc_sTargetNamespace = "http://schemas.microsoft.com/office/word/2018/wordml/cex";
 
+        string gc_sXsd = "vsdx/visio.xsd";
+        string[] gc_aTargetTypes = new string[] { "VisioDocument_Type", "Masters_Type", "PageContents_Type", "Pages_Type", "PageContents_Type",
+            "DataConnections_Type", "DataRecordSets_Type", "Comments_Type", "Extensions_Type"};
+        string gc_sTargetNamespace = "http://schemas.microsoft.com/office/visio/2012/main";
 
         public void Start(string sDirIn, string sDirCppXmlOut, string sDirCppBinOut, string sDirJsBinOut, ValidationEventHandler oValidationEventHandler)
         {

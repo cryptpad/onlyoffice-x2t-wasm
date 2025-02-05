@@ -22,7 +22,6 @@ DEFINES +=  UNICODE _UNICODE \
 #BOOST
 include($$PWD/../../../../Common/3dParty/boost/boost.pri)
 
-!disable_precompiled_header:CONFIG += precompile_header
 precompile_header {
     PRECOMPILED_HEADER = precompiled.h
     HEADERS += precompiled.h
@@ -60,10 +59,10 @@ SOURCES += \
 	../../../DocxFormat/Logic/Shape.cpp \
 	../../../DocxFormat/External/ExternalHyperLink.cpp \
 	../../../DocxFormat/External/External.cpp \
+	../../../DocxFormat/Media/ActiveX.cpp \
 	../../../DocxFormat/Media/Media.cpp \
 	../../../DocxFormat/Media/VbaProject.cpp \
 	../../../DocxFormat/Media/JsaProject.cpp \
-	../../../DocxFormat/Media/ActiveX.cpp \
 	../../../DocxFormat/Media/Audio.cpp \
 	../../../DocxFormat/Media/Video.cpp \
 	../../../DocxFormat/Media/Image.cpp \
@@ -77,7 +76,6 @@ SOURCES += \
 	../../../DocxFormat/Comments.cpp \
 	../../../DocxFormat/Document.cpp \
 	../../../DocxFormat/VmlDrawing.cpp \
-	../../../DocxFormat/Namespaces.cpp \
 	../../../XlsxFormat/CalcChain/CalcChain.cpp \
 	../../../XlsxFormat/Chart/Chart.cpp \
 	../../../XlsxFormat/Chart/ChartColors.cpp \
@@ -123,7 +121,6 @@ SOURCES += \
 	../../../DocxFormat/Styles.cpp \
 	../../../DocxFormat/UnknowTypeFile.cpp \
 	../../../DocxFormat/IFileContainer.cpp \
-	../../../DocxFormat/Document.cpp \
 	../../../XlsxFormat/FileFactory_Spreadsheet.cpp \
 	../../../XlsxFormat/ComplexTypes_Spreadsheet.cpp \
 	../../../DocxFormat/Drawing/Drawing.cpp \
@@ -165,11 +162,13 @@ SOURCES += \
 	../../../XlsxFormat/SharedStrings/XlsxRun.cpp \
 	../../../XlsxFormat/SharedStrings/SharedStrings.cpp \
 	../../../XlsxFormat/Pivot/Pivots.cpp \
-	../../../XlsxFormat/Slicer/SlicerCache.cpp \
+        ../../../XlsxFormat/Pivot/PivotCacheChildOther.cpp \
+        ../../../XlsxFormat/Pivot/PivotHierarchies.cpp \
+        ../../../XlsxFormat/Slicer/SlicerCache.cpp \
 	../../../XlsxFormat/Slicer/SlicerCacheExt.cpp \
 	../../../XlsxFormat/Slicer/Slicer.cpp \
-	../../../XlsxFormat/ExternalLinks/ExternalLinks.cpp \
-	../../../XlsxFormat/NamedSheetViews/NamedSheetViews.cpp \
+        ../../../XlsxFormat/Timelines/Timeline.cpp \
+        ../../../XlsxFormat/NamedSheetViews/NamedSheetViews.cpp \
 	../../../XlsxFormat/Pivot/PivotCacheDefinitionExt.cpp \
 	../../../XlsxFormat/Workbook/Workbook.cpp \
 	../../../XlsxFormat/Workbook/BookViews.cpp \
@@ -186,7 +185,9 @@ SOURCES += \
 	../../../XlsxFormat/Drawing/Pos.cpp \
 	../../../XlsxFormat/ExternalLinks/ExternalLinkPath.cpp \
 	../../../XlsxFormat/ExternalLinks/ExternalLinks.cpp \
-	../../../XlsxFormat/Ole/OleObjects.cpp
+        ../../../XlsxFormat/Workbook/Metadata.cpp \
+        ../../../XlsxFormat/RichData/RdRichValue.cpp \
+        ../../../XlsxFormat/Ole/OleObjects.cpp
 }
 
 
@@ -221,7 +222,6 @@ HEADERS += \
 	../../../DocxFormat/External/HyperLink.h \
 	../../../DocxFormat/Logic/AlternateContent.h \
 	../../../DocxFormat/Logic/Annotations.h \
-	../../../DocxFormat/Logic/BaseLogicSettings.h \
 	../../../DocxFormat/Logic/Bdo.h \
 	../../../DocxFormat/Logic/Dir.h \
 	../../../DocxFormat/Logic/FldChar.h \
@@ -247,12 +247,14 @@ HEADERS += \
 	../../../DocxFormat/Math/oMathBottomNodes.h \
 	../../../DocxFormat/Math/oMathContent.h \
 	../../../DocxFormat/Math/oMathPara.h \
+	../../../DocxFormat/Media/ActiveX.h \
 	../../../DocxFormat/Media/Audio.h \
 	../../../DocxFormat/Media/Image.h \
 	../../../DocxFormat/Media/Media.h \
 	../../../DocxFormat/Media/OleObject.h \
 	../../../DocxFormat/Media/Video.h \
 	../../../DocxFormat/Media/JsaProject.h \
+	../../../DocxFormat/Media/VbaProject.h \
 	../../../DocxFormat/Settings/Settings.h \
 	../../../DocxFormat/Settings/WebSettings.h \
 	../../../DocxFormat/App.h \
@@ -276,14 +278,13 @@ HEADERS += \
 	../../../DocxFormat/HeaderFooter.h \
 	../../../DocxFormat/IFileBuilder.h \
 	../../../DocxFormat/IFileContainer.h \
-	../../../DocxFormat/NamespaceOwn.h \
-	../../../DocxFormat/Namespaces.h \
 	../../../DocxFormat/Numbering.h \
 	../../../DocxFormat/Rels.h \
 	../../../DocxFormat/RId.h \
 	../../../DocxFormat/Styles.h \
 	../../../DocxFormat/Unit.h \
 	../../../DocxFormat/UnknowTypeFile.h \
+	../../../DocxFormat/VmlDrawing.h \
 	../../../DocxFormat/WritingElement.h \
 	../../../SystemUtility/SystemUtility.h \
 	../../../Base/codecvt.h \
@@ -304,6 +305,7 @@ HEADERS += \
 	../../../XlsxFormat/Drawing/Drawing.h \
 	../../../XlsxFormat/Drawing/FromTo.h \
 	../../../XlsxFormat/Drawing/Pos.h \
+        ../../../XlsxFormat/Pivot/PivotCacheChildOther.h \
 	../../../XlsxFormat/SharedStrings/PhoneticPr.h \
 	../../../XlsxFormat/SharedStrings/Run.h \
 	../../../XlsxFormat/SharedStrings/SharedStrings.h \
@@ -341,7 +343,8 @@ HEADERS += \
 	../../../XlsxFormat/Worksheets/Worksheet.h \
 	../../../XlsxFormat/Worksheets/WorksheetChildOther.h \
 	../../../XlsxFormat/Controls/Controls.h \
-	../../../XlsxFormat/Common.h \
+        ../../../XlsxFormat/Timelines/Timeline.h \
+        ../../../XlsxFormat/Common.h \
 	../../../XlsxFormat/CommonInclude.h \
 	../../../XlsxFormat/ComplexTypes_Spreadsheet.h \
 	../../../XlsxFormat/FileFactory_Spreadsheet.h \
@@ -364,7 +367,7 @@ HEADERS += \
 	../../../XlsxFormat/ExternalLinks/ExternalLinks.h \
 	../../../XlsxFormat/Worksheets/Sparkline.h \
 	../../../XlsxFormat/Ole/OleObjects.h \
-	../../../DocxFormat/ Diagram/DiagramColors.h \
+	../../../DocxFormat/Diagram/DiagramColors.h \
 	../../../DocxFormat/Diagram/DiagramData.h \
 	../../../DocxFormat/Diagram/DiagramDrawing.h \
 	../../../DocxFormat/Diagram/DiagramLayout.h \
@@ -373,8 +376,11 @@ HEADERS += \
 	../../../XlsxFormat/Pivot/PivotCacheDefinition.h \
 	../../../XlsxFormat/Pivot/PivotCacheDefinitionExt.h \
 	../../../XlsxFormat/Pivot/PivotCacheRecords.h \
+        ../../../XlsxFormat/Pivot/PivotHierarchies.h \
 	../../../XlsxFormat/Slicer/SlicerCache.h \
 	../../../XlsxFormat/Slicer/SlicerCacheExt.h \
 	../../../XlsxFormat/Slicer/Slicer.h \
 	../../../XlsxFormat/NamedSheetViews/NamedSheetViews.h \
-	docx_format.h
+        ../../../XlsxFormat/Workbook/Metadata.h \
+        ../../../XlsxFormat/RichData/RdRichValue.h \
+        docx_format.h

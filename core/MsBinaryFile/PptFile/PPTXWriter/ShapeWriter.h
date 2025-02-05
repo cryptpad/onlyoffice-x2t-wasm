@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,6 +34,7 @@
 #include "../Drawing/Document.h"
 
 #include "ImageManager.h"
+#include "../../../Common/MS-LCID.h"
 
 namespace PPT
 {
@@ -109,50 +110,52 @@ namespace PPT
 		
 		switch (TypePPTX)
 		{
-			case 0: return _T("body");
-			case 100: return _T("body"); // для master pages  
-			case 1: return _T("chart");
-			case 2: return _T("clipArt");
-			case 3: return _T("ctrTitle");
-			case 4: return _T("dgm");
-			case 5: return _T("dt");
-			case 6: return _T("ftr");
-			case 7: return _T("hdr");
-			case 8: return _T("media");
-			case 9: return _T("obj");
-			case 10: return _T("pic");
-			case 11: return _T("sldImg");
-			case 12: return _T("sldNum");
-			case 13: return _T("subTitle");
-			case 14: return _T("tbl");
-			case 15: return _T("title");
+			case 0: return L"body";
+			case 100: return L"body"; // для master pages  
+			case 1: return L"chart";
+			case 2: return L"clipArt";
+			case 3: return L"ctrTitle";
+			case 4: return L"dgm";
+			case 5: return L"dt";
+			case 6: return L"ftr";
+			case 7: return L"hdr";
+			case 8: return L"media";
+			case 9: return L"obj";
+			case 10: return L"pic";
+			case 11: return L"sldImg";
+			case 12: return L"sldNum";
+			case 13: return L"subTitle";
+			case 14: return L"tbl";
+			case 15: return L"title";
 			default: break;
 		}
-		return _T("body");
+		return L"body";
 	}
 
 	class CShapeWriter
 	{
 	private:
-        PPT::CStringWriter		m_oWriterPath;
-        PPT::CStringWriter		m_oWriterVML;
-        PPT::CStringWriter		m_oWriter;
+        PPT::CStringWriter m_oWriterPath;
+        PPT::CStringWriter m_oWriterVML;
+        PPT::CStringWriter m_oWriter;
 
-        PPT::CElementPtr		m_pElement;
+        PPT::CElementPtr m_pElement;
 		
 		CRelsGenerator*	m_pRels;
 
-        PPT::CTheme*			m_pTheme;
+        PPT::CTheme* m_pTheme;
 
-        LONG									m_lNextShapeID;
+        LONG m_lNextShapeID;
 
-		bool									m_bWordArt;
-		bool									m_bTextBox;
+		bool m_bWordArt;
+		bool m_bTextBox;
 		
-		std::wstring							m_xmlGeomAlternative;
-		std::wstring							m_xmlTxBodyAlternative;
-		std::wstring							m_xmlAlternative;
-	public:	
+		std::wstring m_xmlGeomAlternative;
+		std::wstring m_xmlTxBodyAlternative;
+		std::wstring m_xmlAlternative;
+
+		MS_LCID_converter m_lcidConverter;
+	public:
 
 		CShapeWriter();
 		~CShapeWriter()
@@ -357,7 +360,7 @@ namespace PPT
 
 			m_pFontManager->SetStringGID(m_oFont.StringGID);
 
-			if (_T("") == m_oFont.Path)
+			if (L"" == m_oFont.Path)
 			{
 				m_pFontManager->LoadFontByName(m_oFont.Name, m_oFont.Size, m_oFont.GetStyle(), m_dDpiX, m_dDpiY);
 			}
@@ -441,7 +444,7 @@ namespace PPT
 		}
 		void Close()
 		{
-            std::wstring str = _T("<a:close/>");
+            std::wstring str = L"<a:close/>";
 			m_oWriterPath.WriteString(str);
 		}
 
@@ -454,7 +457,8 @@ namespace PPT
         std::wstring ConvertTableCell();
 		void WriteShapeInfo();
 		void WriteImageInfo();
-        void WriteTextInfo(CTextCFRun *pLastCF = nullptr);
+		void WriteOleObjectInfo(const std::wstring& strRid, const std::wstring& xfrm);
+		void WriteTextInfo(CTextCFRun *pLastCF = nullptr);
         static std::wstring WriteBullets(CTextPFRun* pPF, CRelsGenerator *pRels);
 		void Write3dShape();
         std::wstring getOWriterStr() const;

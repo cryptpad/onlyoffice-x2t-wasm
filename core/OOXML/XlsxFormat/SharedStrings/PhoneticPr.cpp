@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,13 +31,16 @@
  */
 
 #include "PhoneticPr.h"
+
+#include "../../Common/SimpleTypes_Shared.h"
 #include "../../XlsbFormat/Biff12_structures/PhRun.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/BiffStructure.h"
 
 namespace OOX
 {
 	namespace Spreadsheet
 	{
-		CPhonetic::CPhonetic()
+		CPhonetic::CPhonetic(OOX::Document *pMain) : WritingElement(pMain)
 		{
 		}
 		CPhonetic::~CPhonetic()
@@ -63,6 +66,53 @@ namespace OOX
 		void CPhonetic::fromBin(XLS::BiffStructure& obj)
 		{
 			ReadAttributes(obj);
+		}
+		void CPhonetic::toBin(XLS::BiffStructure* obj)
+		{
+			auto ptr = static_cast<XLSB::PhRun*>(obj);
+			if(m_oAlignment.IsInit())
+			{
+				if(m_oAlignment == SimpleTypes::Spreadsheet::phoneticalignmentNoControl)
+				{
+					ptr->alcH = 0;
+				}
+				else if(m_oAlignment == SimpleTypes::Spreadsheet::phoneticalignmentLeft)
+				{
+					ptr->alcH = 1;
+				}
+				else if(m_oAlignment == SimpleTypes::Spreadsheet::phoneticalignmentCenter)
+				{
+					ptr->alcH = 2;
+				}
+				else if(m_oAlignment == SimpleTypes::Spreadsheet::phoneticalignmentDistributed)
+				{
+					ptr->alcH = 3;
+				}
+			}
+			if(m_oType.IsInit())
+			{
+				if(m_oType == SimpleTypes::Spreadsheet::phonetictypeHalfwidthKatakana)
+				{
+					ptr->phType = 0;
+				}
+				else if(m_oType == SimpleTypes::Spreadsheet::phonetictypeFullwidthKatakana)
+				{
+					ptr->phType = 1;
+				}
+				else if(m_oType == SimpleTypes::Spreadsheet::phonetictypeHiragana)
+				{
+					ptr->phType = 2;
+				}
+				else if(m_oType == SimpleTypes::Spreadsheet::phonetictypeNoConversion)
+				{
+					ptr->phType = 3;
+				}
+			}
+
+			if(m_oFontId.IsInit())
+			{
+				ptr->ifnt = m_oFontId->GetValue();
+			}
 		}
 		EElementType CPhonetic::getType () const
 		{
@@ -122,9 +172,8 @@ namespace OOX
 			}
 		}
 
-		CRPh::CRPh()
-		{
-		}
+		CRPh::CRPh(OOX::Document *pMain) : WritingElementWithChilds<CText>(pMain) {}
+
 		CRPh::~CRPh()
 		{
 		}
@@ -151,7 +200,11 @@ namespace OOX
 				std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
 
 				if ( _T("t") == sName )
-					m_arrItems.push_back( new CText( oReader ));
+				{
+					CText* pText = new CText();
+					*pText = oReader;
+					m_arrItems.push_back(pText);
+				}
 			}
 		}
 		void CRPh::fromBin(XLS::BiffStructure& obj, std::wstring& str)
@@ -160,6 +213,20 @@ namespace OOX
 			ptr->fromBin(str);
 			m_arrItems.push_back(ptr);
 			ReadAttributes(obj);
+		}
+		std::wstring CRPh::toBin(XLS::BiffStructure* obj)
+		{
+			auto ptr = static_cast<XLSB::PhRun*>(obj);
+			std::wstring result;
+			if(!m_arrItems.empty())
+			{
+				result = m_arrItems.back()->ToString();
+			}
+			if(m_oEb.IsInit())
+				ptr->ichMom = m_oEb->GetValue();
+			if(m_oSb.IsInit())
+				ptr->ichFirst = m_oSb->GetValue();
+			return result;
 		}
 		EElementType CRPh::getType () const
 		{

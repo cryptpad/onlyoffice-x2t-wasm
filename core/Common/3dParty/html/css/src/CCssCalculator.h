@@ -10,38 +10,37 @@
 
 namespace NSCSS
 {
-    class CCssCalculator_Private;
-    class CSSCALCULATOR_EXPORT CCssCalculator
-    {
-    protected:
-        CCssCalculator_Private* m_pInternal;
-    public:
-        CCssCalculator();
-        ~CCssCalculator();
+	class CCssCalculator_Private;
+	class CSSCALCULATOR_EXPORT CCssCalculator
+	{
+	protected:
+		CCssCalculator_Private* m_pInternal;
+	public:
+		CCssCalculator();
+		~CCssCalculator();
 
-        CCompiledStyle GetCompiledStyle(const std::vector<CNode> &arSelectors, const bool& bIsSettings = false, const UnitMeasure& unitMeasure = Default) const;
+		CCompiledStyle GetCompiledStyle(const std::vector<CNode> &arSelectors) const;
+		bool GetCompiledStyle(CCompiledStyle& oStyle, const std::vector<CNode> &arSelectors) const;
 
-        // void AddStyle(const std::vector<std::string>& sSelectors, const std::string& sStyle);
-        void AddStyles        (const std::string&  sStyle);
-        void AddStyles        (const std::wstring& sStyle);
-        void AddStylesFromFile(const std::wstring& sFileName);
+		std::wstring CalculateStyleId(const CNode& oNode);
+		bool CalculatePageStyle(NSProperties::CPage& oPageData, const std::vector<CNode> &arSelectors);
 
-        void SetUnitMeasure(const UnitMeasure& nType);
-        void SetDpi(const unsigned short int& nValue);
-        void SetBodyTree(const CTree &oTree);
+		// void AddStyle(const std::vector<std::string>& sSelectors, const std::string& sStyle);
+		void AddStyles        (const std::string&  sStyle);
+		void AddStyles        (const std::wstring& wsStyle);
+		void AddStylesFromFile(const std::wstring& wsFileName);
 
-        void SetSizeSourceWindow(const CSizeWindow& oSizeWindow);
-        void SetSizeDeviceWindow(const CSizeWindow& oSizeWindow);
+		void SetDpi(const unsigned short int& nValue);
 
-        CSizeWindow GetSizeSourceWindow() const;
-        CSizeWindow GetSizeDeviceWindow() const;
+		std::wstring GetEncoding()   const;
+		unsigned short int GetDpi()  const;
 
-        UnitMeasure GetUnitMeasure() const;
-        std::wstring GetEncoding()   const;
-        unsigned short int GetDpi()  const;
-
-        void Clear();
-    };
+		void ClearPageData();
+		void ClearEmbeddedStyles();
+		void ClearAllowedStyleFiles();
+		void ClearStylesFromFile(const std::wstring& wsFilePath);
+		void Clear();
+	};
 }
 
 #endif // CCSSCALCULATOR_H

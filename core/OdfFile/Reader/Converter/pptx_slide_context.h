@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,6 +32,7 @@
 #pragma once
 
 #include "pptx_drawings.h"
+#include "pptx_animation_context.h"
 #include <string>
 
 namespace cpdoccore {
@@ -65,18 +66,29 @@ public:
 	void set_scale		(double cx_pt, double cy_pt);
 	void set_rotate		(double angle, bool translate = false);
 
-	void set_name		(std::wstring const & name);
+	void set_name		(std::wstring name);
+	void set_id			(std::wstring const & id);
 	void set_anchor		(std::wstring anchor, double x_pt, double y_pt);
 	void set_property	(odf_reader::_property p);
 	std::vector<odf_reader::_property> & get_properties();
     void set_clipping	(const std::wstring & str );
 	void set_fill		(_oox_fill & fill);
+	void set_hidden		(bool val);
 	
 	void set_is_line_shape(bool val);
 	void set_is_connector_shape(bool val);
 
+	void set_connector_start_shape			(const std::wstring& startShape);
+	void set_connector_end_shape			(const std::wstring& endShape);
+	void set_connector_start_glue_point		(int gluePoint);
+	void set_connector_end_glue_point		(int gluePoint);
+	void set_connector_draw_type			(const std::wstring& drawType);
+
+	void set_is_placeHolder(bool is_placeholder);
 	void set_placeHolder_type	(std::wstring typeHolder);
 	void set_placeHolder_idx	(int idx);
+	void processing_notes		(bool processing_notes);
+	bool processing_notes();
 
 	std::wstring add_hyperlink(std::wstring const & ref);
 
@@ -131,10 +143,17 @@ public:
 	
 	void set_page_number();
 	void set_date_time();
+
+	pptx_animation_context &	get_animation_context() { return pptx_animation_context_; }
+	void						generate_id(const std::wstring& id);
+	size_t						get_id(const std::wstring& id);
 private:
 	void default_set();
+	bool is_slide_filepath(const std::wstring& filename);
 
 	int hlinks_size_;
+
+	pptx_animation_context		pptx_animation_context_;
 	
     class Impl;
     _CP_PTR(Impl) impl_;

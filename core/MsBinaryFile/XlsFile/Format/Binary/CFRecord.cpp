@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -37,7 +37,7 @@
 namespace XLS
 {
 
-char CFRecord::intData[MAX_RECORD_SIZE];
+char CFRecord::intData[MAX_RECORD_SIZE_XLSB];
 
 // Create a record and read its data from the stream
 CFRecord::CFRecord(CFStreamPtr stream, GlobalWorkbookInfoPtr global_info)
@@ -90,11 +90,12 @@ CFRecord::CFRecord(NSFile::CFileBinary &file, GlobalWorkbookInfoPtr global_info)
 :	rdPtr(0),
 	size_(0),
 	data_(NULL),
+	type_id_(rt_EOF),
 	global_info_(global_info)
 {
 	file_ptr = file.GetFilePosition();
 	
-	if (file.GetFilePosition() + 4 < file.GetFileSize())
+	if (file.GetFilePosition() + 4 <= file.GetFileSize())
 	{
 		unsigned short size_short;
 		DWORD size_read = 0;
@@ -133,7 +134,8 @@ CFRecord::CFRecord(NSBinPptxRW::CBinaryFileReader &reader, GlobalWorkbookInfoPtr
 :	rdPtr(0),
     size_(0),
     data_(NULL),
-    global_info_(global_info)
+	type_id_(rt_EOF),
+	global_info_(global_info)
 {
     file_ptr = reinterpret_cast<std::uintptr_t>(reader.GetPointer(0)) ;
     BYTE lenght = 0;
@@ -260,6 +262,10 @@ const BYTE CFRecord::getSizeOfRecordTypeRecordLength() const
 
 const size_t CFRecord::getMaxRecordSize() const
 {
+	if(global_info_ && (global_info_.get()->Version == 0x0800))
+	{
+		return MAX_RECORD_SIZE_XLSB;
+	}
 	return MAX_RECORD_SIZE;
 }
 
@@ -293,6 +299,35 @@ void CFRecord::appendRawData(const char* raw_data, const size_t size)
 
 }
 
+void CFRecord::appendRawDataToStatic(const unsigned char *raw_data, const size_t size)
+{
+    if(MAX_RECORD_SIZE - rdPtr > size)
+    {
+        memcpy(&intData[rdPtr], raw_data, size);
+        rdPtr += size;
+    }
+	else if(global_info_ && (global_info_.get()->Version == 0x0800) && (MAX_RECORD_SIZE_XLSB - rdPtr > size))
+	{
+		memcpy(&intData[rdPtr], raw_data, size);
+		rdPtr += size;
+	}
+
+}
+void CFRecord::appendRawDataToStatic(const wchar_t *raw_data, const size_t size)
+{
+    if(MAX_RECORD_SIZE - rdPtr > size)
+    {
+        for(int i = 0; i < size; ++i)
+            storeAnyData(raw_data[i]);
+    }
+	else if(global_info_ && (global_info_.get()->Version == 0x0800) && (MAX_RECORD_SIZE_XLSB - rdPtr > size))
+	{
+		for(int i = 0; i < size; ++i)
+		storeAnyData(raw_data[i]);
+	}
+
+}
+
 bool CFRecord::loadAnyData(wchar_t & val)
 {
     if (checkFitRead(2))
@@ -309,6 +344,22 @@ bool CFRecord::loadAnyData(wchar_t & val)
 		return true;
 	}
 	return false;
+}
+
+bool CFRecord::storeAnyData(const wchar_t & val)
+{
+    if (checkFitWrite(2))
+    {
+    #if defined(_WIN32) || defined(_WIN64)
+        *reinterpret_cast<wchar_t*>(&intData[rdPtr]) = val;
+        rdPtr += 2;
+    #else
+        unsigned short temp = val;
+        storeAnyData(temp);
+    #endif
+        return true;
+    }
+    return false;
 }
 
 void CFRecord::insertDataFromRecordToBeginning(CFRecordPtr where_from)
@@ -348,6 +399,13 @@ const bool CFRecord::checkFitReadSafe(const size_t size) const
 	return (rdPtr + size <= size_);
 }
 
+const bool CFRecord::checkFitWriteSafe(const size_t size) const
+{
+	if(global_info_ && (global_info_.get()->Version == 0x0800))
+		return (rdPtr + size <= MAX_RECORD_SIZE_XLSB);
+    return (rdPtr + size <= MAX_RECORD_SIZE);
+}
+
 
 // Checks whether the specified number of unsigned chars present in the non-read part of the buffer
 // Generates an exception
@@ -360,13 +418,42 @@ bool CFRecord::checkFitRead(const size_t size) const
 	return true;
 }
 
+bool CFRecord::checkFitWrite(const size_t size) const
+{
+    if(!checkFitWriteSafe(size))
+    {
+        return false;// EXCEPT::RT::WrongBiffRecord("Wrong record size.", getTypeString());
+    }
+    return true;
+}
+
 void CFRecord::skipNunBytes(const size_t n)
 {
 	//ASSERT(data_); // This throws if we use skipNunBytes instead of reserveNunBytes
-	if (checkFitRead(n))
+	if (size_ == 0 && data_ == NULL)
+	{
+		if (checkFitWrite(n))
+		{
+			rdPtr += n;
+		}
+	}
+	else if (checkFitRead(n))
 	{
 		rdPtr += n;
 	}
+}
+
+void CFRecord::reserveNunBytes(const size_t n)
+{
+	if (rdPtr + n < MAX_RECORD_SIZE)
+		for (size_t i = 0; i < n; ++i)
+			intData[rdPtr++] = 0;
+	else if(global_info_ && (global_info_.get()->Version == 0x0800) && (rdPtr + n < MAX_RECORD_SIZE_XLSB))
+	{
+		for (size_t i = 0; i < n; ++i)
+			intData[rdPtr++] = 0;
+	}
+
 }
 
 
@@ -385,11 +472,22 @@ void CFRecord::resetPointerToBegin()
 	rdPtr = 0;
 }
 
+void CFRecord::save(NSBinPptxRW::CXlsbBinaryWriter& writer)
+{
+	writer.XlsbStartRecord(type_id_, rdPtr);
+	writer.WriteBYTEArray((BYTE*)&intData[0], rdPtr);
+}
 
-CFRecord& CFRecord::operator>>(bool& val)
+CFRecord& CFRecord::operator >> (bool& val)
 {
 	throw;// EXCEPT::LE::WrongAPIUsage("This function may only be called by mistake.", __FUNCTION__);
 }
+
+CFRecord& CFRecord::operator << (bool& val)
+{
+	throw;// EXCEPT::LE::WrongAPIUsage("This function may only be called by mistake.", __FUNCTION__);
+}
+
 
 #if !defined(_WIN32) && !defined(_WIN64)
 CFRecord& operator>>(CFRecord & record, std::string & str)
