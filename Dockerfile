@@ -1,7 +1,9 @@
-FROM ubuntu:22.04 AS build
+FROM ubuntu:22.04 AS base
 SHELL ["/bin/bash", "-c"]
 
-RUN apt update \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt update \
     && apt install -y \
        git \
        python-is-python3 \
@@ -14,7 +16,8 @@ RUN apt update \
        qt6-base-dev \
        build-essential \
        cmake \
-       zip
+       zip \
+       pkg-config
 
 WORKDIR /
 RUN git clone https://github.com/emscripten-core/emsdk.git
@@ -26,7 +29,43 @@ RUN ./emsdk activate 3.1.56
 
 RUN . /emsdk/emsdk_env.sh && qtchooser -install qt6 $(which qmake6)
 ENV QT_SELECT=qt6
+COPY embuild.sh /bin/embuild.sh
 
+
+
+FROM base AS freetype
+COPY core/DesktopEditor/freetype-2.10.4 /freetype
+WORKDIR /freetype
+# TODO do I need this somwhere below?
+# Do not include zlib in the build, but link it later
+#RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
+#    DesktopEditor/graphics/pro/freetype.pri
+RUN bash ./autogen.sh
+RUN . /emsdk/emsdk_env.sh \
+ && emconfigure ./configure
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make install
+
+
+FROM base AS harfbuzz
+WORKDIR /
+RUN git clone https://github.com/harfbuzz/harfbuzz.git
+WORKDIR /harfbuzz
+RUN git checkout 894a1f72ee93a1fd8dc1d9218cb3fd8f048be29a  # see core/Common/3dParty/harfbuzz/make.py
+COPY patches/harfbuzz.patch /harfbuzz/harfbuzz.patch
+RUN git apply harfbuzz.patch  # Patch Makefile.am to not build main.cc and tests
+RUN ./autogen.sh
+RUN . /emsdk/emsdk_env.sh \
+ && emconfigure ./configure --with-freetype
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make install
+
+
+FROM base AS build
 WORKDIR /
 RUN git clone https://github.com/google/gumbo-parser.git
 WORKDIR /gumbo-parser
@@ -69,8 +108,6 @@ WORKDIR /core
 
 # ENV DEV_MODE=on
 
-COPY embuild.sh /bin/embuild.sh
-
 RUN embuild.sh UnicodeConverter
 RUN embuild.sh Common
 
@@ -86,11 +123,13 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
     DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh DesktopEditor/graphics/pro
+COPY --from=harfbuzz /usr/local/include/harfbuzz /usr/local/include/harfbuzz
+RUN embuild.sh -s -q "INCLUDEPATH+=/usr/local/include/harfbuzz/" DesktopEditor/graphics/pro
 
+# TODO
 # Do not include freetype in the build, but link it later
-RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
-    DesktopEditor/graphics/pro/freetype.pri
+#RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
+#    DesktopEditor/graphics/pro/freetype.pri
 
 RUN embuild.sh TxtFile/Projects/Linux
 RUN embuild.sh OOXML/Projects/Linux/BinDocument
