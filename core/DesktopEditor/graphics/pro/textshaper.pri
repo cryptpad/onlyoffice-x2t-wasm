@@ -9,7 +9,8 @@ core_windows {
 }
 
 core_linux {
-    build_gcc_less_5:CONFIG -= enable_support_shaper
+    # CryptPad: We want this to be enabled (TODO do we need this change?)
+    # build_gcc_less_5:CONFIG -= enable_support_shaper
 }
 
 enable_support_shaper {

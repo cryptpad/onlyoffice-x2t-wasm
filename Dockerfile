@@ -29,11 +29,11 @@ RUN ./emsdk activate 3.1.56
 
 RUN . /emsdk/emsdk_env.sh && qtchooser -install qt6 $(which qmake6)
 ENV QT_SELECT=qt6
+WORKDIR /
 COPY embuild.sh /bin/embuild.sh
 
 
-
-FROM base AS freetype
+FROM base AS freetype #  TODO remove?
 COPY core/DesktopEditor/freetype-2.10.4 /freetype
 WORKDIR /freetype
 # TODO do I need this somwhere below?
@@ -49,24 +49,22 @@ RUN . /emsdk/emsdk_env.sh \
  && emmake make install
 
 
+FROM base AS build-tools
+RUN git clone https://github.com/ONLYOFFICE/build_tools.git
+WORKDIR /build_tools
+# TODO RUN git checkout pin some version
+
+
 FROM base AS harfbuzz
-WORKDIR /
-RUN git clone https://github.com/harfbuzz/harfbuzz.git
-WORKDIR /harfbuzz
-RUN git checkout 894a1f72ee93a1fd8dc1d9218cb3fd8f048be29a  # see core/Common/3dParty/harfbuzz/make.py
-COPY patches/harfbuzz.patch /harfbuzz/harfbuzz.patch
-RUN git apply harfbuzz.patch  # Patch Makefile.am to not build main.cc and tests
-RUN ./autogen.sh
-RUN . /emsdk/emsdk_env.sh \
- && emconfigure ./configure --with-freetype
-RUN . /emsdk/emsdk_env.sh \
- && emmake make
-RUN . /emsdk/emsdk_env.sh \
- && emmake make install
+COPY core/Common/3dParty/harfbuzz /core/Common/3dParty/harfbuzz
+COPY --from=build-tools /build_tools/scripts/base.py /core/Common/3dParty/harfbuzz/base.py
+COPY --from=build-tools /build_tools/scripts/config.py /core/Common/3dParty/harfbuzz/config.py
+WORKDIR /core/Common/3dParty/harfbuzz
+RUN python make.py
 
 
-FROM base AS build
-WORKDIR /
+
+FROM base AS gumbo
 RUN git clone https://github.com/google/gumbo-parser.git
 WORKDIR /gumbo-parser
 RUN git checkout aa91b2
@@ -78,6 +76,9 @@ RUN . /emsdk/emsdk_env.sh \
 RUN . /emsdk/emsdk_env.sh \
  && emmake make install
 
+
+
+FROM base AS katana
 WORKDIR /
 RUN git clone https://github.com/jasenhuang/katana-parser.git
 WORKDIR /katana-parser
@@ -90,6 +91,9 @@ RUN . /emsdk/emsdk_env.sh \
 RUN . /emsdk/emsdk_env.sh \
  && emmake make install
 
+
+
+FROM base AS boost
 # emscriptens boost does not work because of missing symbols
 WORKDIR /
 RUN git clone https://github.com/boostorg/boost.git
@@ -103,13 +107,37 @@ RUN . /emsdk/emsdk_env.sh \
 RUN . /emsdk/emsdk_env.sh \
  && emmake make install
 
+
+
+FROM base AS UnicodeConverter
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/DesktopEditor/common /core/DesktopEditor/common
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh UnicodeConverter
+# Outputs /core/UnicodeConverter.o
+
+
+
+FROM base AS Common
+COPY core/Common /core/Common
+COPY core/DesktopEditor/common /core/DesktopEditor/common
+COPY core/DesktopEditor/graphics /core/DesktopEditor/graphics
+COPY core/DesktopEditor/xml /core/DesktopEditor/xml
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY --from=UnicodeConverter /core/UnicodeConverter.o /core/build/lib/linux_64/UnicodeConverter.so
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh -s Common
+
+
+
+FROM base AS build
 COPY core /core
 WORKDIR /core
 
 # ENV DEV_MODE=on
 
-RUN embuild.sh UnicodeConverter
-RUN embuild.sh Common
 
 # Link zlib into Common instead of including it in the build
 RUN sed -i -e 's/build_all_zlib//' \
@@ -123,8 +151,9 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
     DesktopEditor/graphics/pro/freetype.pri
 
-COPY --from=harfbuzz /usr/local/include/harfbuzz /usr/local/include/harfbuzz
-RUN embuild.sh -s -q "INCLUDEPATH+=/usr/local/include/harfbuzz/" DesktopEditor/graphics/pro
+# TODO do I need this?
+COPY --from=harfbuzz /core/Common/3dParty/harfbuzz/harfbuzz.pri /core/Common/3dParty/harfbuzz/harfbuzz.pri
+RUN embuild.sh -s DesktopEditor/graphics/pro
 
 # TODO
 # Do not include freetype in the build, but link it later
