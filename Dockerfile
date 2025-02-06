@@ -115,7 +115,8 @@ COPY core/DesktopEditor/common /core/DesktopEditor/common
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh UnicodeConverter
-# Outputs /core/UnicodeConverter.o
+RUN mkdir -p /core/build/lib/linux_64
+RUN mv /core/UnicodeConverter.o /core/build/lib/linux_64/libUnicodeConverter.a
 
 
 
@@ -125,10 +126,12 @@ COPY core/DesktopEditor/common /core/DesktopEditor/common
 COPY core/DesktopEditor/graphics /core/DesktopEditor/graphics
 COPY core/DesktopEditor/xml /core/DesktopEditor/xml
 COPY core/UnicodeConverter /core/UnicodeConverter
-COPY --from=UnicodeConverter /core/UnicodeConverter.o /core/build/lib/linux_64/UnicodeConverter.so
+COPY core/OfficeUtils /core/OfficeUtils
+COPY --from=UnicodeConverter /core/build/lib/linux_64/ /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s Common
+    embuild.sh Common
+# outputs ./build/lib/linux_64/libkernel.so
 
 
 
