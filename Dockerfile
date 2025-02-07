@@ -63,6 +63,26 @@ WORKDIR /core/Common/3dParty/harfbuzz
 RUN python make.py
 
 
+
+FROM base as hyphen
+COPY core/Common/3dParty/hyphen /core/Common/3dParty/hyphen
+COPY --from=build-tools /build_tools /build_tools
+WORKDIR /build_tools/scripts/core_common/modules
+RUN python -c "import hyphen; hyphen.make()"
+WORKDIR /core/Common/3dParty/hyphen/hyphen
+RUN autoreconf -fvi
+RUN . /emsdk/emsdk_env.sh \
+ && emconfigure ./configure
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make install
+# outputs
+# - /usr/local/lib/libhyphen.a
+# - /usr/local/include/hyphen.h
+# - /core/Common/3dParty/hyphen/hyphen/hnjalloc.h
+
+
 # TODO remove?
 # FROM base AS hunspell
 # COPY core/Common/3dParty/hunspell /core/Common/3dParty/hunspell
@@ -112,10 +132,15 @@ RUN git checkout boost-1.84.0
 RUN git submodule update --init --recursive
 RUN . /emsdk/emsdk_env.sh \
  && CXXFLAGS=-fms-extensions emcmake cmake '-DBOOST_EXCLUDE_LIBRARIES=context;cobalt;coroutine;fiber;log;thread;wave;type_erasure;serialization;locale;contract;graph'
-RUN . /emsdk/emsdk_env.sh \
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+ . /emsdk/emsdk_env.sh \
  && emmake make
-RUN . /emsdk/emsdk_env.sh \
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+ . /emsdk/emsdk_env.sh \
  && emmake make install
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    cp -r /emsdk/upstream/emscripten/cache/sysroot/include/boost /usr/local/include/
+# Outputs /usr/local/include/boost
 
 
 
@@ -151,14 +176,46 @@ COPY core/DesktopEditor/ /core/DesktopEditor/
 COPY core/OfficeUtils/ /core/OfficeUtils/
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/Common/3dParty/harfbuzz /core/Common/3dParty/harfbuzz
-# TODO do I need this?
 COPY --from=harfbuzz /core/Common/3dParty/harfbuzz/ /core/Common/3dParty/harfbuzz/
 COPY --from=Common /core/build/lib/linux_64/ /core/build/lib/linux_64/
 COPY --from=katana /katana-parser /katana-parser
+COPY --from=hyphen /core/Common/3dParty/hyphen/hyphen /core/Common/3dParty/hyphen/hyphen
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s -c "-Wno-register" DesktopEditor/graphics/pro
+    embuild.sh -c "-Wno-register" DesktopEditor/graphics/pro
+# Outputs build/lib/linux_64/libkernel.so
 
+
+FROM base AS txtfile
+COPY core/Common /core/Common
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/TxtFile /core/TxtFile
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/OOXML /core/OOXML
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY --from=boost /usr/local/include/boost /usr/local/include/boost
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh TxtFile/Projects/Linux
+# Outputs /core/build/lib/linux_64/libTxtXmlFormatLib.a
+
+
+
+FROM base AS bindocument
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/Common /core/Common
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/OfficeCryptReader /core/OfficeCryptReader
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/HtmlFile /core/HtmlFile
+COPY core/HtmlFile2 /core/HtmlFile2
+COPY core/RtfFile /core/RtfFile
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh -s OOXML/Projects/Linux/BinDocument
+# Outputs /core/build/lib/linux_64/libBinDocument.a
 
 
 FROM base AS build
@@ -186,8 +243,6 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh TxtFile/Projects/Linux
-RUN embuild.sh OOXML/Projects/Linux/BinDocument
 RUN embuild.sh OOXML/Projects/Linux/DocxFormatLib
 RUN embuild.sh OOXML/Projects/Linux/PPTXFormatLib
 RUN embuild.sh OOXML/Projects/Linux/XlsbFormatLib
