@@ -197,7 +197,7 @@ SOURCES += \
 	../../../Base/unicode_util.cpp \
 	../../../Base/Unit.cpp \
 	../../../Base/WinColor.cpp \
-	../../../../Common/3dParty/pole/pole.cpp \
+	#../../../../Common/3dParty/pole/pole.cpp \  TODOCP Do we need this?
 	docx_format.cpp
 
 

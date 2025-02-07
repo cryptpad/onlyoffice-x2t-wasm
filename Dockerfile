@@ -214,8 +214,18 @@ COPY core/HtmlFile2 /core/HtmlFile2
 COPY core/RtfFile /core/RtfFile
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s OOXML/Projects/Linux/BinDocument
+    embuild.sh OOXML/Projects/Linux/BinDocument
 # Outputs /core/build/lib/linux_64/libBinDocument.a
+
+
+FROM base AS docxformatlib
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh -s OOXML/Projects/Linux/DocxFormatLib
+# Outputs /core/libDocxFormatLib.a
+
 
 
 FROM base AS build
@@ -243,7 +253,6 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh OOXML/Projects/Linux/DocxFormatLib
 RUN embuild.sh OOXML/Projects/Linux/PPTXFormatLib
 RUN embuild.sh OOXML/Projects/Linux/XlsbFormatLib
 RUN embuild.sh MsBinaryFile/Projects/VbaFormatLib/Linux
