@@ -63,6 +63,16 @@ WORKDIR /core/Common/3dParty/harfbuzz
 RUN python make.py
 
 
+# TODO remove?
+# FROM base AS hunspell
+# COPY core/Common/3dParty/hunspell /core/Common/3dParty/hunspell
+# COPY --from=build-tools /build_tools/scripts/base.py /core/Common/3dParty/hunspell/base.py
+# COPY --from=build-tools /build_tools/scripts/config.py /core/Common/3dParty/hunspell/config.py
+# WORKDIR /core/Common/3dParty/hunspell
+# RUN python before.py
+# RUN find . -name "*.h"
+# RUN exit 1
+
 
 FROM base AS gumbo
 RUN git clone https://github.com/google/gumbo-parser.git
@@ -135,6 +145,22 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 
 
 
+FROM base as graphics
+COPY core/Common /core/Common
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/OfficeUtils/ /core/OfficeUtils/
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/Common/3dParty/harfbuzz /core/Common/3dParty/harfbuzz
+# TODO do I need this?
+COPY --from=harfbuzz /core/Common/3dParty/harfbuzz/ /core/Common/3dParty/harfbuzz/
+COPY --from=Common /core/build/lib/linux_64/ /core/build/lib/linux_64/
+COPY --from=katana /katana-parser /katana-parser
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh -s -c "-Wno-register" DesktopEditor/graphics/pro
+
+
+
 FROM base AS build
 COPY core /core
 WORKDIR /core
@@ -154,9 +180,6 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
     DesktopEditor/graphics/pro/freetype.pri
 
-# TODO do I need this?
-COPY --from=harfbuzz /core/Common/3dParty/harfbuzz/harfbuzz.pri /core/Common/3dParty/harfbuzz/harfbuzz.pri
-RUN embuild.sh -s DesktopEditor/graphics/pro
 
 # TODO
 # Do not include freetype in the build, but link it later
