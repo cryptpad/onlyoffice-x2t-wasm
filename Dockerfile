@@ -239,8 +239,21 @@ COPY core/UnicodeConverter /core/UnicodeConverter
 COPY --from=boost /usr/local/include/boost /usr/local/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s OOXML/Projects/Linux/PPTXFormatLib
+    embuild.sh OOXML/Projects/Linux/PPTXFormatLib
 # Outputs /core/build/lib/linux_64/libPPTXFormatLib.a
+
+
+FROM base AS xlsbformatlib
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/Common /core/Common
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY core/OfficeCryptReader /core/OfficeCryptReader
+COPY core/UnicodeConverter /core/UnicodeConverter
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh OOXML/Projects/Linux/XlsbFormatLib
+# Outputs build/lib/linux_64/libXlsbFormatLib.a
 
 
 FROM base AS build
@@ -268,7 +281,6 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh OOXML/Projects/Linux/XlsbFormatLib
 RUN embuild.sh MsBinaryFile/Projects/VbaFormatLib/Linux
 RUN embuild.sh MsBinaryFile/Projects/DocFormatLib/Linux
 RUN embuild.sh MsBinaryFile/Projects/PPTFormatLib/Linux
