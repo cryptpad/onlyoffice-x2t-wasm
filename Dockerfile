@@ -70,14 +70,15 @@ COPY core/Common/3dParty/hyphen /core/Common/3dParty/hyphen
 COPY --from=build-tools /build_tools /build_tools
 WORKDIR /build_tools/scripts/core_common/modules
 RUN python -c "import hyphen; hyphen.make()"
-WORKDIR /core/Common/3dParty/hyphen/hyphen
-RUN autoreconf -fvi
-RUN . /emsdk/emsdk_env.sh \
- && emconfigure ./configure
-RUN . /emsdk/emsdk_env.sh \
- && emmake make
-RUN . /emsdk/emsdk_env.sh \
- && emmake make install
+# TODO remove?
+# WORKDIR /core/Common/3dParty/hyphen/hyphen
+# RUN autoreconf -fvi
+# RUN . /emsdk/emsdk_env.sh \
+#  && emconfigure ./configure
+# RUN . /emsdk/emsdk_env.sh \
+#  && emmake make
+# RUN . /emsdk/emsdk_env.sh \
+#  && emmake make install
 # outputs
 # - /usr/local/lib/libhyphen.a
 # - /usr/local/include/hyphen.h
@@ -115,12 +116,14 @@ RUN git clone https://github.com/jasenhuang/katana-parser.git
 WORKDIR /katana-parser
 RUN git checkout be6df4
 RUN ./autogen.sh
+# For some reason ./configure wants to add `-lc` to the linker args. Use the config.cache to tell ./configure we do not want this.
+RUN echo 'lt_cv_archive_cmds_need_lc=${lt_cv_archive_cmds_need_lc=no}' > config.cache
 RUN . /emsdk/emsdk_env.sh \
- && emconfigure ./configure
+ && emconfigure ./configure --config-cache
 RUN . /emsdk/emsdk_env.sh \
- && emmake make
+&& emmake make
 RUN . /emsdk/emsdk_env.sh \
- && emmake make install
+&& emmake make install
 
 
 
@@ -145,7 +148,7 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 
 
 
-FROM base AS UnicodeConverter
+FROM base AS unicodeconverter
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/DesktopEditor/common /core/DesktopEditor/common
 WORKDIR /core
@@ -163,7 +166,7 @@ COPY core/DesktopEditor/graphics /core/DesktopEditor/graphics
 COPY core/DesktopEditor/xml /core/DesktopEditor/xml
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
-COPY --from=UnicodeConverter /core/build/lib/linux_64/ /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/ /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Common
@@ -184,7 +187,8 @@ COPY --from=hyphen /core/Common/3dParty/hyphen/hyphen /core/Common/3dParty/hyphe
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh -c "-Wno-register" DesktopEditor/graphics/pro
-# Outputs build/lib/linux_64/libkernel.so
+RUN ls -la /core/build/lib/linux_64/libgraphics.so
+# Outputs /core/build/lib/linux_64/libgraphics.so
 
 
 FROM base AS txtfile
@@ -385,6 +389,42 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Common/Network
 # Outputs /core/build/lib/linux_64/libkernel_network.so
 
+
+
+FROM base AS pdffile
+COPY core/Common /core/Common
+COPY core/PdfFile /core/PdfFile
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/OOXML /core/OOXML
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh PdfFile
+# Outputs /core/build/lib/linux_64/libPdfFile.so
+
+
+FROM base AS doctrenderer
+COPY core/DesktopEditor/ /core/DesktopEditor/
+# COPY core/Common /core/Common
+# COPY core/PdfFile /core/PdfFile
+# COPY core/OfficeUtils /core/OfficeUtils
+# COPY core/UnicodeConverter /core/UnicodeConverter
+# COPY core/OOXML /core/OOXML
+# COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+# COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
+# COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+# COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh -q "CONFIG+=doct_renderer_empty" DesktopEditor/doctrenderer
+    # embuild.sh -q "CONFIG+=doct_renderer_empty" DesktopEditor/doctrenderer
+# Outputs /core/build/lib/linux_64/
+
 FROM base AS build
 COPY core /core
 WORKDIR /core
@@ -411,13 +451,11 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
 # RUN embuild.sh Fb2File
-RUN embuild.sh --no-sanitize PdfFile
 # RUN embuild.sh HtmlFile2
 # RUN embuild.sh EpubFile
 # RUN embuild.sh XpsFile
 # RUN embuild.sh DjVuFile
 # RUN embuild.sh HtmlRenderer
-RUN embuild.sh -q "CONFIG+=doct_renderer_empty" DesktopEditor/doctrenderer
 RUN embuild.sh DocxRenderer
 
 COPY pre-js.js /pre-js.js
