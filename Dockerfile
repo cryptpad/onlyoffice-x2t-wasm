@@ -22,10 +22,11 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 WORKDIR /
 RUN git clone https://github.com/emscripten-core/emsdk.git
 WORKDIR /emsdk
+ARG emversion=4.0.2
 RUN git fetch -a \
- && git checkout 3.1.56
-RUN ./emsdk install 3.1.56
-RUN ./emsdk activate 3.1.56
+ && git checkout $emversion
+RUN ./emsdk install $emversion
+RUN ./emsdk activate $emversion
 
 RUN . /emsdk/emsdk_env.sh && qtchooser -install qt6 $(which qmake6)
 ENV QT_SELECT=qt6
@@ -223,9 +224,23 @@ COPY core/OOXML /core/OOXML
 COPY core/DesktopEditor/ /core/DesktopEditor/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s OOXML/Projects/Linux/DocxFormatLib
+    embuild.sh OOXML/Projects/Linux/DocxFormatLib
 # Outputs /core/libDocxFormatLib.a
 
+
+FROM base AS pptxformatlib
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/Common /core/Common
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/OfficeCryptReader /core/OfficeCryptReader
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY --from=boost /usr/local/include/boost /usr/local/include/boost
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh -s OOXML/Projects/Linux/PPTXFormatLib
+# Outputs /core/build/lib/linux_64/libPPTXFormatLib.a
 
 
 FROM base AS build
@@ -253,7 +268,6 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh OOXML/Projects/Linux/PPTXFormatLib
 RUN embuild.sh OOXML/Projects/Linux/XlsbFormatLib
 RUN embuild.sh MsBinaryFile/Projects/VbaFormatLib/Linux
 RUN embuild.sh MsBinaryFile/Projects/DocFormatLib/Linux

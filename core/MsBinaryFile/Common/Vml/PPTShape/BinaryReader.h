@@ -32,6 +32,7 @@
 #pragma once
 
 #include "../../../../DesktopEditor/common/Types.h"
+#include <cstdint>
 
 namespace ODRAW
 {
@@ -71,7 +72,8 @@ namespace ODRAW
 
 			BINARY_READER_CHECK_OUT_RANGE(m_lOrigin, m_lCount)
 
-			return *(_INT32*)(m_pBuffer + lOldOrigin);
+			// CryptPad: use int32_t instead of _INT32
+			return *(int32_t*)(m_pBuffer + lOldOrigin);
 		}
 		DWORD ReadDWORD()
 		{
