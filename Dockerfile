@@ -301,6 +301,21 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 # Outputs build/lib/linux_64/libPptFormatLib.a
 
 
+
+FROM base AS xlsformatlib
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY core/Common /core/Common
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/OfficeCryptReader /core/OfficeCryptReader
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/OdfFile /core/OdfFile
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh MsBinaryFile/Projects/XlsFormatLib/Linux
+# Outputs build/lib/linux_64/libXlsFormatLib.a
+
 FROM base AS build
 COPY core /core
 WORKDIR /core
@@ -326,7 +341,6 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh MsBinaryFile/Projects/XlsFormatLib/Linux
 RUN embuild.sh OdfFile/Projects/Linux
 RUN embuild.sh RtfFile/Projects/Linux
 RUN embuild.sh Common/cfcpp
