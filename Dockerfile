@@ -271,6 +271,18 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 # Outputs build/lib/linux_64/libVbaFormatLib.a
 
 
+FROM base AS docformatlib
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY core/Common /core/Common
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/OfficeCryptReader /core/OfficeCryptReader
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/OfficeUtils /core/OfficeUtils
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh MsBinaryFile/Projects/DocFormatLib/Linux
+# Outputs build/lib/linux_64/libDocFormatLib.a
 
 FROM base AS build
 COPY core /core
@@ -297,7 +309,6 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh MsBinaryFile/Projects/DocFormatLib/Linux
 RUN embuild.sh MsBinaryFile/Projects/PPTFormatLib/Linux
 RUN embuild.sh MsBinaryFile/Projects/XlsFormatLib/Linux
 RUN embuild.sh OdfFile/Projects/Linux
