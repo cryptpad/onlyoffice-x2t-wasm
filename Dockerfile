@@ -156,7 +156,7 @@ RUN mv /core/UnicodeConverter.o /core/build/lib/linux_64/libUnicodeConverter.a
 
 
 
-FROM base AS Common
+FROM base AS common
 COPY core/Common /core/Common
 COPY core/DesktopEditor/common /core/DesktopEditor/common
 COPY core/DesktopEditor/graphics /core/DesktopEditor/graphics
@@ -178,7 +178,7 @@ COPY core/OfficeUtils/ /core/OfficeUtils/
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/Common/3dParty/harfbuzz /core/Common/3dParty/harfbuzz
 COPY --from=harfbuzz /core/Common/3dParty/harfbuzz/ /core/Common/3dParty/harfbuzz/
-COPY --from=Common /core/build/lib/linux_64/ /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/ /core/build/lib/linux_64/
 COPY --from=katana /katana-parser /katana-parser
 COPY --from=hyphen /core/Common/3dParty/hyphen/hyphen /core/Common/3dParty/hyphen/hyphen
 WORKDIR /core
@@ -352,6 +352,39 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 
 
 
+FROM base AS cfcpp
+COPY core/Common /core/Common
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh Common/cfcpp
+# Outputs build/lib/linux_64/libCompoundFileLib.a
+
+
+
+FROM base AS cryptopp
+COPY core/Common /core/Common
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/OfficeCryptReader/ /core/OfficeCryptReader/
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY core/UnicodeConverter /core/UnicodeConverter
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh Common/3dParty/cryptopp/project
+# Outputs build/lib/linux_64/libCryptoPPLib.a
+
+
+FROM base AS network
+COPY core/Common /core/Common
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/libkernel.so
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh Common/Network
+# Outputs /core/build/lib/linux_64/libkernel_network.so
+
 FROM base AS build
 COPY core /core
 WORKDIR /core
@@ -377,10 +410,7 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh Common/cfcpp
-RUN embuild.sh Common/3dParty/cryptopp/project
 # RUN embuild.sh Fb2File
-RUN embuild.sh Common/Network
 RUN embuild.sh --no-sanitize PdfFile
 # RUN embuild.sh HtmlFile2
 # RUN embuild.sh EpubFile
