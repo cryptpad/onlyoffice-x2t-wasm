@@ -316,6 +316,42 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh MsBinaryFile/Projects/XlsFormatLib/Linux
 # Outputs build/lib/linux_64/libXlsFormatLib.a
 
+
+
+FROM base AS odffile
+COPY core/OdfFile /core/OdfFile
+COPY core/Common /core/Common
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/OfficeCryptReader /core/OfficeCryptReader
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY core/PdfFile /core/PdfFile
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh OdfFile/Projects/Linux
+# Outputs build/lib/linux_64/libOdfFormatLib.a
+
+
+
+FROM base AS rtffile
+COPY core/RtfFile /core/RtfFile
+COPY core/Common /core/Common
+COPY core/OdfFile /core/OdfFile
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/OfficeCryptReader /core/OfficeCryptReader
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/MsBinaryFile /core/MsBinaryFile
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh RtfFile/Projects/Linux
+# Outputs build/lib/linux_64/libRtfFormatLib.a
+
+
+
 FROM base AS build
 COPY core /core
 WORKDIR /core
@@ -341,8 +377,6 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh OdfFile/Projects/Linux
-RUN embuild.sh RtfFile/Projects/Linux
 RUN embuild.sh Common/cfcpp
 RUN embuild.sh Common/3dParty/cryptopp/project
 # RUN embuild.sh Fb2File
