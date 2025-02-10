@@ -225,7 +225,8 @@ COPY core/DesktopEditor/ /core/DesktopEditor/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OOXML/Projects/Linux/DocxFormatLib
-# Outputs /core/libDocxFormatLib.a
+RUN cp /core/libDocxFormatLib.a /core/build/lib/linux_64/
+# Outputs /core/build/lib/linux_64/libDocxFormatLib.a
 
 
 FROM base AS pptxformatlib
@@ -256,6 +257,21 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 # Outputs build/lib/linux_64/libXlsbFormatLib.a
 
 
+
+FROM base AS vbaformatlib
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY core/Common /core/Common
+COPY core/OOXML /core/OOXML
+COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/OfficeCryptReader /core/OfficeCryptReader
+COPY core/UnicodeConverter /core/UnicodeConverter
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh MsBinaryFile/Projects/VbaFormatLib/Linux
+# Outputs build/lib/linux_64/libVbaFormatLib.a
+
+
+
 FROM base AS build
 COPY core /core
 WORKDIR /core
@@ -281,7 +297,6 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 #RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
 #    DesktopEditor/graphics/pro/freetype.pri
 
-RUN embuild.sh MsBinaryFile/Projects/VbaFormatLib/Linux
 RUN embuild.sh MsBinaryFile/Projects/DocFormatLib/Linux
 RUN embuild.sh MsBinaryFile/Projects/PPTFormatLib/Linux
 RUN embuild.sh MsBinaryFile/Projects/XlsFormatLib/Linux
