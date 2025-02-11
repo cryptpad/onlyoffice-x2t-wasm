@@ -85,6 +85,18 @@ RUN python -c "import hyphen; hyphen.make()"
 # - /core/Common/3dParty/hyphen/hyphen/hnjalloc.h
 
 
+
+FROM base as openssl
+COPY core/Common/3dParty/openssl /core/Common/3dParty/openssl
+WORKDIR /core/Common/3dParty/openssl/
+RUN git clone --depth=1 --branch OpenSSL_1_1_1f https://github.com/openssl/openssl.git  # see build_tools/scripts/core_common/modules/openssl.py
+WORKDIR /core/Common/3dParty/openssl/openssl
+RUN ./config enable-md2 no-shared no-asm --prefix=/core/Common/3dParty/openssl/build/linux_64/ --openssldir=/core/Common/3dParty/openssl/build/linux_64/
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make
+RUN . /emsdk/emsdk_env.sh \
+ && emmake make install
+
 # TODO remove?
 # FROM base AS hunspell
 # COPY core/Common/3dParty/hunspell /core/Common/3dParty/hunspell
@@ -410,19 +422,22 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 
 FROM base AS doctrenderer
 COPY core/DesktopEditor/ /core/DesktopEditor/
-# COPY core/Common /core/Common
-# COPY core/PdfFile /core/PdfFile
-# COPY core/OfficeUtils /core/OfficeUtils
+COPY core/Common /core/Common
+COPY core/PdfFile /core/PdfFile
+COPY core/OfficeUtils /core/OfficeUtils
 # COPY core/UnicodeConverter /core/UnicodeConverter
-# COPY core/OOXML /core/OOXML
+COPY core/OOXML /core/OOXML
+COPY core/XpsFile /core/XpsFile
+COPY core/DjVuFile /core/DjVuFile
+COPY core/DocxRenderer /core/DocxRenderer
 # COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
 # COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
 # COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
 # COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -q "CONFIG+=doct_renderer_empty" DesktopEditor/doctrenderer
-    # embuild.sh -q "CONFIG+=doct_renderer_empty" DesktopEditor/doctrenderer
+    embuild.sh -s -q "CONFIG+=use_javascript_core" DesktopEditor/doctrenderer
 # Outputs /core/build/lib/linux_64/
 
 FROM base AS build
