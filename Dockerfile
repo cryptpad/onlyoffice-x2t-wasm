@@ -461,20 +461,68 @@ COPY core/DesktopEditor /core/DesktopEditor
 COPY core/HtmlFile2 /core/HtmlFile2
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/UnicodeConverter /core/UnicodeConverter
-# COPY core/OOXML /core/OOXML
-# COPY core/XpsFile /core/XpsFile
-# COPY core/DjVuFile /core/DjVuFile
-# COPY core/DocxRenderer /core/DocxRenderer
-# COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
-# COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
-# COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
-# COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-# COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 COPY --from=gumbo /gumbo-parser /gumbo-parser
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s Fb2File
-# Outputs /core/build/lib/linux_64/
+    embuild.sh Fb2File
+# Outputs /core/build/lib/linux_64/libFb2File.so
+
+
+
+FROM base AS htmlfile2
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/HtmlFile2 /core/HtmlFile2
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+COPY --from=gumbo /gumbo-parser /gumbo-parser
+COPY --from=katana /katana-parser /katana-parser
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh HtmlFile2
+# Outputs /core/build/lib/linux_64/libHtmlFile2.so
+
+
+
+FROM base AS epubfile
+COPY core/EpubFile /core/EpubFile
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/HtmlFile2 /core/HtmlFile2
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.so /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh EpubFile
+# Outputs /core/build/lib/linux_64/libEpubFile.so
+
+
+
+FROM base AS xpsfile
+COPY core/XpsFile /core/XpsFile
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/PdfFile /core/PdfFile
+# COPY core/HtmlFile2 /core/HtmlFile2
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.so /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh XpsFile
+# Outputs /core/build/lib/linux_64/libXpsFile.so
+
+
 
 FROM base AS build
 COPY core /core
@@ -534,12 +582,12 @@ COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /cor
 COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
 COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.so /core/build/lib/linux_64/
 COPY --from=boost /usr/local/lib/* /core/build/lib/linux_64/
+COPY --from=cfcpp /core/build/lib/linux_64/libCompoundFileLib.a /core/build/lib/linux_64/
+COPY --from=fb2file /core/build/lib/linux_64/libFb2File.so /core/build/lib/linux_64/
+COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.so /core/build/lib/linux_64/
+COPY --from=epubfile /core/build/lib/linux_64/libEpubFile.so /core/build/lib/linux_64/
+COPY --from=xpsfile /core/build/lib/linux_64/libXpsFile.so /core/build/lib/linux_64/
 
-# wasm-ld: error: unable to find library -lCompoundFileLib
-# wasm-ld: error: unable to find library -lFb2File
-# wasm-ld: error: unable to find library -lHtmlFile2
-# wasm-ld: error: unable to find library -lEpubFile
-# wasm-ld: error: unable to find library -lXpsFile
 # wasm-ld: error: unable to find library -lDjVuFile
 # wasm-ld: error: unable to find library -ldoctrenderer
 # wasm-ld: error: unable to find library -lDocxRenderer
