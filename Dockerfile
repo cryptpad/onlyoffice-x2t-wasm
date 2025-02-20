@@ -113,12 +113,17 @@ RUN git clone https://github.com/google/gumbo-parser.git
 WORKDIR /gumbo-parser
 RUN git checkout aa91b2
 RUN ./autogen.sh
+# For some reason ./configure wants to add `-lc` to the linker args. Use the config.cache to tell ./configure we do not want this.
+RUN echo 'lt_cv_archive_cmds_need_lc=${lt_cv_archive_cmds_need_lc=no}' > config.cache
 RUN . /emsdk/emsdk_env.sh \
- && emconfigure ./configure
+ && emconfigure ./configure --config-cache
 RUN . /emsdk/emsdk_env.sh \
  && emmake make
 RUN . /emsdk/emsdk_env.sh \
  && emmake make install
+# Outputs:
+# - /usr/local/lib/libgumbo.a
+# - /usr/local/include/gumbo.h
 
 
 
@@ -136,7 +141,9 @@ RUN . /emsdk/emsdk_env.sh \
 && emmake make
 RUN . /emsdk/emsdk_env.sh \
 && emmake make install
-
+# Outputs:
+# - /usr/local/lib/libkatana.a
+# - /usr/local/include/katana.h
 
 
 FROM base AS boost
@@ -156,7 +163,11 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
  && emmake make install
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     cp -r /emsdk/upstream/emscripten/cache/sysroot/include/boost /usr/local/include/
-# Outputs /usr/local/include/boost
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    cp -r /emsdk/upstream/emscripten/cache/sysroot/lib/libboost* /usr/local/lib/
+# Outputs
+# - /usr/local/include/boost
+# - /usr/local/lib/libboost_*.a
 
 
 
@@ -241,6 +252,7 @@ COPY core/DesktopEditor/ /core/DesktopEditor/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OOXML/Projects/Linux/DocxFormatLib
+RUN mkdir -p /core/build/lib/linux_64/
 RUN cp /core/libDocxFormatLib.a /core/build/lib/linux_64/
 # Outputs /core/build/lib/linux_64/libDocxFormatLib.a
 
@@ -440,6 +452,30 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh -s -q "CONFIG+=use_javascript_core" DesktopEditor/doctrenderer
 # Outputs /core/build/lib/linux_64/
 
+
+
+FROM base AS fb2file
+COPY core/Fb2File/ /core/Fb2File/
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/HtmlFile2 /core/HtmlFile2
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/UnicodeConverter /core/UnicodeConverter
+# COPY core/OOXML /core/OOXML
+# COPY core/XpsFile /core/XpsFile
+# COPY core/DjVuFile /core/DjVuFile
+# COPY core/DocxRenderer /core/DocxRenderer
+# COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+# COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
+# COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+# COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+# COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
+COPY --from=gumbo /gumbo-parser /gumbo-parser
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh -s Fb2File
+# Outputs /core/build/lib/linux_64/
+
 FROM base AS build
 COPY core /core
 WORKDIR /core
@@ -447,17 +483,18 @@ WORKDIR /core
 # ENV DEV_MODE=on
 
 
+# TODO remove?
 # Link zlib into Common instead of including it in the build
-RUN sed -i -e 's/build_all_zlib//' \
-    Common/kernel.pro
-RUN sed -i -e 's/build_zlib_as_sources//' \
-    Common/kernel.pro
-
-# Do not include zlib in the build, but link it later
-RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
-    DesktopEditor/graphics/pro/raster.pri
-RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
-    DesktopEditor/graphics/pro/freetype.pri
+#RUN sed -i -e 's/build_all_zlib//' \
+#    Common/kernel.pro
+#RUN sed -i -e 's/build_zlib_as_sources//' \
+#    Common/kernel.pro
+#
+## Do not include zlib in the build, but link it later
+#RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
+#    DesktopEditor/graphics/pro/raster.pri
+#RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
+#    DesktopEditor/graphics/pro/freetype.pri
 
 
 # TODO
@@ -471,13 +508,47 @@ RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
 # RUN embuild.sh XpsFile
 # RUN embuild.sh DjVuFile
 # RUN embuild.sh HtmlRenderer
-RUN embuild.sh DocxRenderer
+
+# RUN embuild.sh DocxRenderer
 
 COPY pre-js.js /pre-js.js
 COPY wrap-main.cpp /wrap-main.cpp
 
+COPY --from=gumbo /usr/local/lib/libgumbo.a /core/build/lib/linux_64/
+COPY --from=katana /usr/local/lib/libkatana.a /core/build/lib/linux_64/
+COPY --from=vbaformatlib /core/build/lib/linux_64/libVbaFormatLib.a /core/build/lib/linux_64/
+COPY --from=odffile /core/build/lib/linux_64/libOdfFormatLib.a /core/build/lib/linux_64/
+COPY --from=docformatlib /core/build/lib/linux_64/libDocFormatLib.a /core/build/lib/linux_64/
+COPY --from=pptformatlib /core/build/lib/linux_64/libPptFormatLib.a /core/build/lib/linux_64/
+COPY --from=rtffile /core/build/lib/linux_64/libRtfFormatLib.a /core/build/lib/linux_64/
+COPY --from=txtfile /core/build/lib/linux_64/libTxtXmlFormatLib.a /core/build/lib/linux_64/
+COPY --from=bindocument /core/build/lib/linux_64/libBinDocument.a /core/build/lib/linux_64/
+COPY --from=pptxformatlib /core/build/lib/linux_64/libPPTXFormatLib.a /core/build/lib/linux_64/
+COPY --from=docxformatlib /core/build/lib/linux_64/libDocxFormatLib.a /core/build/lib/linux_64/
+COPY --from=xlsbformatlib /core/build/lib/linux_64/libXlsbFormatLib.a /core/build/lib/linux_64/
+COPY --from=xlsformatlib /core/build/lib/linux_64/libXlsFormatLib.a /core/build/lib/linux_64/
+COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
+COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.so /core/build/lib/linux_64/
+COPY --from=boost /usr/local/lib/* /core/build/lib/linux_64/
+
+# wasm-ld: error: unable to find library -lCompoundFileLib
+# wasm-ld: error: unable to find library -lFb2File
+# wasm-ld: error: unable to find library -lHtmlFile2
+# wasm-ld: error: unable to find library -lEpubFile
+# wasm-ld: error: unable to find library -lXpsFile
+# wasm-ld: error: unable to find library -lDjVuFile
+# wasm-ld: error: unable to find library -ldoctrenderer
+# wasm-ld: error: unable to find library -lDocxRenderer
+# wasm-ld: error: unable to find library -lIWorkFile
+# wasm-ld: error: unable to find library -lHWPFile
+
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
-RUN embuild.sh \
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh \
     -c -g \
     -l "-lgumbo" \
     -l "-lkatana" \
