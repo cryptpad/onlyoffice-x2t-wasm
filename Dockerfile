@@ -56,6 +56,16 @@ WORKDIR /build_tools
 # TODO RUN git checkout pin some version
 
 
+FROM base AS apple3rdparty
+COPY core/Common/3dParty/apple /core/Common/3dParty/apple
+COPY --from=build-tools /build_tools/scripts/base.py /build_tools/scripts/
+COPY --from=build-tools /build_tools/scripts/config.py /build_tools/scripts/
+WORKDIR /core/Common/3dParty/apple
+RUN python fetch.py
+# Outputs: /core/Common/3dParty/apple
+
+
+
 FROM base AS harfbuzz
 COPY core/Common/3dParty/harfbuzz /core/Common/3dParty/harfbuzz
 COPY --from=build-tools /build_tools/scripts/base.py /core/Common/3dParty/harfbuzz/base.py
@@ -151,20 +161,16 @@ FROM base AS boost
 WORKDIR /
 RUN git clone https://github.com/boostorg/boost.git
 WORKDIR /boost
-RUN git checkout boost-1.84.0
+RUN git fetch && git checkout boost-1.84.0
 RUN git submodule update --init --recursive
 RUN . /emsdk/emsdk_env.sh \
  && CXXFLAGS=-fms-extensions emcmake cmake '-DBOOST_EXCLUDE_LIBRARIES=context;cobalt;coroutine;fiber;log;thread;wave;type_erasure;serialization;locale;contract;graph'
-RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
- . /emsdk/emsdk_env.sh \
+RUN . /emsdk/emsdk_env.sh \
  && emmake make
-RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
- . /emsdk/emsdk_env.sh \
+RUN . /emsdk/emsdk_env.sh \
  && emmake make install
-RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    cp -r /emsdk/upstream/emscripten/cache/sysroot/include/boost /usr/local/include/
-RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    cp -r /emsdk/upstream/emscripten/cache/sysroot/lib/libboost* /usr/local/lib/
+RUN  cp -r /emsdk/upstream/emscripten/cache/sysroot/include/boost /usr/local/include/
+RUN  cp /emsdk/upstream/emscripten/cache/sysroot/lib/libboost* /usr/local/lib/
 # Outputs
 # - /usr/local/include/boost
 # - /usr/local/lib/libboost_*.a
@@ -512,7 +518,6 @@ COPY core/Common /core/Common
 COPY core/DesktopEditor /core/DesktopEditor
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/PdfFile /core/PdfFile
-# COPY core/HtmlFile2 /core/HtmlFile2
 COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
 COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
@@ -521,6 +526,71 @@ WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh XpsFile
 # Outputs /core/build/lib/linux_64/libXpsFile.so
+
+
+
+FROM base AS djvufile
+COPY core/DjVuFile /core/DjVuFile
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/PdfFile /core/PdfFile
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.so /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh DjVuFile
+# Outputs /core/build/lib/linux_64/libDjVuFile.so
+
+
+
+FROM base AS apple
+COPY core/Apple /core/Apple
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/OfficeUtils /core/OfficeUtils
+COPY --from=apple3rdparty /core/Common/3dParty/apple /core/Common/3dParty/apple
+COPY --from=boost /boost/libs/serialization/include/boost/archive/iterators/ /boost/libs/functional/include/boost/archive/iterators/
+COPY --from=boost /boost/libs/serialization/include/boost/serialization/throw_exception.hpp /boost/libs/functional/include/boost/serialization/throw_exception.hpp
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh Apple
+# Outputs /core/build/lib/linux_64/libIWorkFile.so
+
+
+
+FROM base AS hwpfile
+COPY core/HwpFile /core/HwpFile
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/OfficeUtils /core/OfficeUtils
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh HwpFile
+# Outputs /core/build/lib/linux_64/libHWPFile.so
+
+
+
+FROM base AS docxrenderer
+COPY core/DocxRenderer /core/DocxRenderer
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/OfficeUtils /core/OfficeUtils
+COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+# COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh DocxRenderer
+# Outputs /core/build/lib/linux_64/libDocxRenderer.so
 
 
 
@@ -573,6 +643,7 @@ COPY --from=txtfile /core/build/lib/linux_64/libTxtXmlFormatLib.a /core/build/li
 COPY --from=bindocument /core/build/lib/linux_64/libBinDocument.a /core/build/lib/linux_64/
 COPY --from=pptxformatlib /core/build/lib/linux_64/libPPTXFormatLib.a /core/build/lib/linux_64/
 COPY --from=docxformatlib /core/build/lib/linux_64/libDocxFormatLib.a /core/build/lib/linux_64/
+COPY --from=boost /usr/local/include/boost /usr/local/include/boost
 COPY --from=xlsbformatlib /core/build/lib/linux_64/libXlsbFormatLib.a /core/build/lib/linux_64/
 COPY --from=xlsformatlib /core/build/lib/linux_64/libXlsFormatLib.a /core/build/lib/linux_64/
 COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
@@ -587,12 +658,12 @@ COPY --from=fb2file /core/build/lib/linux_64/libFb2File.so /core/build/lib/linux
 COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.so /core/build/lib/linux_64/
 COPY --from=epubfile /core/build/lib/linux_64/libEpubFile.so /core/build/lib/linux_64/
 COPY --from=xpsfile /core/build/lib/linux_64/libXpsFile.so /core/build/lib/linux_64/
+COPY --from=djvufile /core/build/lib/linux_64/libDjVuFile.so /core/build/lib/linux_64/
+COPY --from=apple /core/build/lib/linux_64/libIWorkFile.so /core/build/lib/linux_64/
+COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.so /core/build/lib/linux_64/
+COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.so /core/build/lib/linux_64/
 
-# wasm-ld: error: unable to find library -lDjVuFile
 # wasm-ld: error: unable to find library -ldoctrenderer
-# wasm-ld: error: unable to find library -lDocxRenderer
-# wasm-ld: error: unable to find library -lIWorkFile
-# wasm-ld: error: unable to find library -lHWPFile
 
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
