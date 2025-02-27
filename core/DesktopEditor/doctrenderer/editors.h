@@ -33,7 +33,7 @@
 #define DOC_BUILDER_EDITORS_CONFIG
 
 #include "./config.h"
-#include "../js_internal/js_base.h"
+#include "./js_internal/js_base.h"
 
 #ifdef CreateFile
 #undef CreateFile

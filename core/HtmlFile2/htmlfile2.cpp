@@ -246,7 +246,7 @@ struct CTc
 	std::wstring sGridSpan = L"1";
 	std::wstring sPr = L"";
 
-	CTc(int _i, int _j, const std::wstring& sColspan, const std::wstring& sTcPr = L"") 
+	CTc(int _i, int _j, const std::wstring& sColspan, const std::wstring& sTcPr = L"")
 		: i(_i), j(_j), sGridSpan(sColspan), sPr(sTcPr) {}
 
 	bool operator==(const CTc& c2)
@@ -600,7 +600,7 @@ class CTable;
 class CTableCell
 {
 public:
-	CTableCell() 
+	CTableCell()
 		: m_unColspan(1), m_unRowSpan(1), m_bIsMerged(false), m_bIsEmpty(false)
 	{}
 
@@ -609,7 +609,7 @@ public:
 	{}
 
 	CTableCell(CTableCell& oCell)
-		: m_unColspan(oCell.m_unColspan), m_unRowSpan(oCell.m_unRowSpan), m_bIsMerged(oCell.m_bIsMerged), 
+		: m_unColspan(oCell.m_unColspan), m_unRowSpan(oCell.m_unRowSpan), m_bIsMerged(oCell.m_bIsMerged),
 		  m_bIsEmpty(oCell.m_bIsEmpty), m_oStyles(oCell.m_oStyles)
 	{
 		WriteToStringBuilder(oCell.m_oData, m_oData);
@@ -789,12 +789,12 @@ public:
 				--m_oStyles.m_unMaxIndex;
 				delete *itFoundEmpty;
 				*itFoundEmpty = pCell;
-				
+
 				if (1 != pCell->GetColspan())
 				{
 					++itFoundEmpty;
 					UINT unColspan = pCell->GetColspan() - 1;
-	
+
 					while (m_arCells.end() != itFoundEmpty && (*itFoundEmpty)->Empty() && unColspan > 0)
 					{
 						--m_oStyles.m_unMaxIndex;
@@ -802,7 +802,7 @@ public:
 						delete (*itFoundEmpty);
 						itFoundEmpty = m_arCells.erase(itFoundEmpty);
 					}
-	
+
 					if (unColspan != 0)
 						pCell->SetColspan(pCell->GetColspan() - unColspan, MAXCOLUMNSINTABLE);
 				}
@@ -1192,7 +1192,7 @@ public:
 				if (0 != unMaxIndex && 1 == pRow->GetCount() && pRow->GetIndex() > unMaxIndex)
 				{
 					pCell = (*pRow)[unIndex];
-	
+
 					if (NULL == pCell)
 						continue;
 
@@ -1383,7 +1383,7 @@ enum class EAbstructNumType
 	UpperRoman
 };
 
-void replace_all(std::wstring& s, const std::wstring& s1, const std::wstring& s2)
+void htmlfile2replace_all(std::wstring& s, const std::wstring& s1, const std::wstring& s2)
 {
 	size_t pos = s.find(s1);
 	size_t l = s2.length();
@@ -1401,18 +1401,18 @@ void ReplaceSpaces(std::wstring& wsValue)
 	wsValue = boost::regex_replace(wsValue, oRegex, L" ");
 }
 
-std::wstring EncodeXmlString(const std::wstring& s)
+std::wstring HtmlFile2EncodeXmlString(const std::wstring& s)
 {
 	std::wstring sRes = s;
 
-	replace_all(sRes, L"&", L"&amp;");
-	replace_all(sRes, L"<", L"&lt;");
-	replace_all(sRes, L">", L"&gt;");
-	replace_all(sRes, L"\"", L"&quot;");
-	replace_all(sRes, L"\'", L"&#39;");
-	replace_all(sRes, L"\n", L"&#xA;");
-	replace_all(sRes, L"\r", L"&#xD;");
-	replace_all(sRes, L"\t", L"&#x9;");
+	htmlfile2replace_all(sRes, L"&", L"&amp;");
+	htmlfile2replace_all(sRes, L"<", L"&lt;");
+	htmlfile2replace_all(sRes, L">", L"&gt;");
+	htmlfile2replace_all(sRes, L"\"", L"&quot;");
+	htmlfile2replace_all(sRes, L"\'", L"&#39;");
+	htmlfile2replace_all(sRes, L"\n", L"&#xA;");
+	htmlfile2replace_all(sRes, L"\r", L"&#xD;");
+	htmlfile2replace_all(sRes, L"\t", L"&#x9;");
 
 	return sRes;
 }
@@ -1493,7 +1493,7 @@ private:
 	std::map<std::wstring, UINT>         m_mDivs;      // Div элементы
 public:
 
-	CHtmlFile2_Private() 
+	CHtmlFile2_Private()
 		: m_nFootnoteId(1), m_nHyperlinkId(1), m_nNumberingId(1), m_nId(1)
 	{
 		m_oPageData.SetSize  (std::to_wstring(DEFAULT_PAGE_WIDTH) + L"tw " + std::to_wstring(DEFAULT_PAGE_HEIGHT) + L"tw", 0, true);
@@ -1620,31 +1620,31 @@ public:
 			if(!oParams->m_sBookTitle.empty())
 			{
 				sCore += L"<dc:title>";
-				sCore += EncodeXmlString(oParams->m_sBookTitle);
+				sCore += HtmlFile2EncodeXmlString(oParams->m_sBookTitle);
 				sCore += L"</dc:title>";
 			}
 			if(!oParams->m_sAuthors.empty())
 			{
 				sCore += L"<dc:creator>";
-				sCore += EncodeXmlString(oParams->m_sAuthors);
+				sCore += HtmlFile2EncodeXmlString(oParams->m_sAuthors);
 				sCore += L"</dc:creator>";
 			}
 			if(!oParams->m_sGenres.empty())
 			{
 				sCore += L"<dc:subject>";
-				sCore += EncodeXmlString(oParams->m_sGenres);
+				sCore += HtmlFile2EncodeXmlString(oParams->m_sGenres);
 				sCore += L"</dc:subject>";
 			}
 			if(!oParams->m_sDate.empty())
 			{
 				sCore += L"<dcterms:created xsi:type=\"dcterms:W3CDTF\">";
-				sCore += EncodeXmlString(oParams->m_sDate);
+				sCore += HtmlFile2EncodeXmlString(oParams->m_sDate);
 				sCore += L"</dcterms:created>";
 			}
 			if(!oParams->m_sDescription.empty())
 			{
 				sCore += L"<dc:description>";
-				sCore += EncodeXmlString(oParams->m_sDescription);
+				sCore += HtmlFile2EncodeXmlString(oParams->m_sDescription);
 				sCore += L"</dc:description>";
 			}
 			if (!oParams->m_sLanguage.empty())
@@ -1775,7 +1775,7 @@ public:
 		m_oDocXml.WriteString(L"w:header=\"" + std::to_wstring(m_oPageData.GetHeader().ToInt(NSCSS::Twips)) + L"\" ");
 		m_oDocXml.WriteString(L"w:footer=\"" + std::to_wstring(m_oPageData.GetFooter().ToInt(NSCSS::Twips)) + L"\" ");
 		m_oDocXml.WriteString(L"w:gutter=\"0\"/><w:cols w:space=\"720\"/><w:docGrid w:linePitch=\"360\"/></w:sectPr></w:body></w:document>");
-		
+
 		NSFile::CFileBinary oDocumentWriter;
 		if (oDocumentWriter.CreateFileW(m_sDst + L"/word/document.xml"))
 		{
@@ -2266,10 +2266,10 @@ private:
 		{
 			std::wstring sName  = m_oLightReader.GetName();
 			if(sName == L"class")
-				oNode.m_wsClass  = EncodeXmlString(m_oLightReader.GetText());
+				oNode.m_wsClass  = HtmlFile2EncodeXmlString(m_oLightReader.GetText());
 			else if(sName == L"id")
 			{
-				oNode.m_wsId = EncodeXmlString(m_oLightReader.GetText());
+				oNode.m_wsId = HtmlFile2EncodeXmlString(m_oLightReader.GetText());
 				WriteBookmark(oXml, oNode.m_wsId);
 			}
 			else if(sName == L"style")
@@ -2316,9 +2316,9 @@ private:
 	void readBody()
 	{
 		std::vector<NSCSS::CNode> sSelectors;
-		
+
 		sSelectors.push_back(NSCSS::CNode(L"html", L"", L""));
-		
+
 		GetSubClass(&m_oDocXml, sSelectors);
 		/*
 		std::wstring sCrossId = std::to_wstring(m_nCrossId++);
@@ -3445,7 +3445,7 @@ private:
 			pColgroup->AddCol(pCol);
 		}
 	}
-	
+
 	struct TRowspanElement
 	{
 		UINT  m_unRowSpan;
@@ -3505,7 +3505,7 @@ private:
 					else if(m_oLightReader.GetName() == L"rowspan")
 					{
 						pCell->SetRowspan(NSStringFinder::ToInt(m_oLightReader.GetText(), 1));
-						
+
 						if (1 != pCell->GetRowspan())
 							arRowspanElements.push_back({pCell->GetRowspan(), unColumnIndex, pCell});
 					}
@@ -3786,7 +3786,7 @@ private:
 		//------
 
 		int nDeath = m_oLightReader.GetDepth();
-		while(m_oLightReader.ReadNextSiblingNode(nDeath)) 
+		while(m_oLightReader.ReadNextSiblingNode(nDeath))
 		{
 			const std::wstring sName = m_oLightReader.GetName();
 			GetSubClass(oXml, sSelectors);

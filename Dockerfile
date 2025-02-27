@@ -199,7 +199,7 @@ COPY --from=unicodeconverter /core/build/lib/linux_64/ /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Common
-# outputs ./build/lib/linux_64/libkernel.so
+# outputs ./build/lib/linux_64/libkernel.a
 
 
 
@@ -216,8 +216,7 @@ COPY --from=hyphen /core/Common/3dParty/hyphen/hyphen /core/Common/3dParty/hyphe
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh -c "-Wno-register" DesktopEditor/graphics/pro
-RUN ls -la /core/build/lib/linux_64/libgraphics.so
-# Outputs /core/build/lib/linux_64/libgraphics.so
+# Outputs /core/build/lib/linux_64/libgraphics.a
 
 
 FROM base AS txtfile
@@ -413,11 +412,11 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 FROM base AS network
 COPY core/Common /core/Common
 COPY core/DesktopEditor/ /core/DesktopEditor/
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/libkernel.so
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/libkernel.a
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Common/Network
-# Outputs /core/build/lib/linux_64/libkernel_network.so
+# Outputs /core/build/lib/linux_64/libkernel_network.a
 
 
 
@@ -428,36 +427,38 @@ COPY core/DesktopEditor/ /core/DesktopEditor/
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OOXML /core/OOXML
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
-COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
-COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 WORKDIR /core
+RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
+    DesktopEditor/graphics/pro/freetype.pri
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh PdfFile
-# Outputs /core/build/lib/linux_64/libPdfFile.so
+# Outputs /core/build/lib/linux_64/libPdfFile.a
 
 
 FROM base AS doctrenderer
 COPY core/DesktopEditor/ /core/DesktopEditor/
+# RUN cp /core/DesktopEditor/doctrenderer/doctrenderer_empty.cpp /core/DesktopEditor/doctrenderer/doctrenderer.cpp
 COPY core/Common /core/Common
-COPY core/PdfFile /core/PdfFile
+# COPY core/PdfFile /core/PdfFile
 COPY core/OfficeUtils /core/OfficeUtils
-# COPY core/UnicodeConverter /core/UnicodeConverter
+# # COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OOXML /core/OOXML
-COPY core/XpsFile /core/XpsFile
-COPY core/DjVuFile /core/DjVuFile
-COPY core/DocxRenderer /core/DocxRenderer
-# COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
-# COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
-# COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
-# COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
+# COPY core/XpsFile /core/XpsFile
+# COPY core/DjVuFile /core/DjVuFile
+# COPY core/DocxRenderer /core/DocxRenderer
+# # COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+# # COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
+# # COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
+# # COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+# COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s -q "CONFIG+=use_javascript_core" DesktopEditor/doctrenderer
-# Outputs /core/build/lib/linux_64/
-
+    embuild.sh DesktopEditor/doctrenderer
+# Outputs /core/build/lib/linux_64/libdoctrenderer.a
 
 
 FROM base AS fb2file
@@ -467,14 +468,20 @@ COPY core/DesktopEditor /core/DesktopEditor
 COPY core/HtmlFile2 /core/HtmlFile2
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/UnicodeConverter /core/UnicodeConverter
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
-COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 COPY --from=gumbo /gumbo-parser /gumbo-parser
 WORKDIR /core
+# RUN find /gumbo-parser -type f | xargs grep RemoveEmptyTag
+# RUN find . -type f | xargs grep RemoveEmptyTag
+# RUN exit 1
+# RUN rm HtmlFile2/src/StringFinder.h
+# RUN sed -i -e 's,./src/StringFinder.h,,' \
+#     HtmlFile2/HtmlFile2.pro
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Fb2File
-# Outputs /core/build/lib/linux_64/libFb2File.so
+# Outputs /core/build/lib/linux_64/libFb2File.a
 
 
 
@@ -483,16 +490,20 @@ COPY core/Common /core/Common
 COPY core/DesktopEditor /core/DesktopEditor
 COPY core/HtmlFile2 /core/HtmlFile2
 COPY core/UnicodeConverter /core/UnicodeConverter
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
-COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
-COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 COPY --from=gumbo /gumbo-parser /gumbo-parser
 COPY --from=katana /katana-parser /katana-parser
 WORKDIR /core
+RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
+    DesktopEditor/graphics/pro/freetype.pri
+RUN sed -i -e 's,$$PWD/src/[^ ]*\.c,,' \
+    Common/3dParty/html/css/CssCalculator.pri
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh HtmlFile2
-# Outputs /core/build/lib/linux_64/libHtmlFile2.so
+# Outputs /core/build/lib/linux_64/libHtmlFile2.a
 
 
 
@@ -502,13 +513,13 @@ COPY core/Common /core/Common
 COPY core/DesktopEditor /core/DesktopEditor
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/HtmlFile2 /core/HtmlFile2
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
-COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
-COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
+COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.a /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh EpubFile
-# Outputs /core/build/lib/linux_64/libEpubFile.so
+# Outputs /core/build/lib/linux_64/libEpubFile.a
 
 
 
@@ -518,14 +529,14 @@ COPY core/Common /core/Common
 COPY core/DesktopEditor /core/DesktopEditor
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/PdfFile /core/PdfFile
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
-COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.so /core/build/lib/linux_64/
+COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.a /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh XpsFile
-# Outputs /core/build/lib/linux_64/libXpsFile.so
+# Outputs /core/build/lib/linux_64/libXpsFile.a
 
 
 
@@ -534,14 +545,14 @@ COPY core/DjVuFile /core/DjVuFile
 COPY core/Common /core/Common
 COPY core/DesktopEditor /core/DesktopEditor
 COPY core/PdfFile /core/PdfFile
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
-COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.so /core/build/lib/linux_64/
+COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.a /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh DjVuFile
-# Outputs /core/build/lib/linux_64/libDjVuFile.so
+# Outputs /core/build/lib/linux_64/libDjVuFile.a
 
 
 
@@ -553,12 +564,12 @@ COPY core/OfficeUtils /core/OfficeUtils
 COPY --from=apple3rdparty /core/Common/3dParty/apple /core/Common/3dParty/apple
 COPY --from=boost /boost/libs/serialization/include/boost/archive/iterators/ /boost/libs/functional/include/boost/archive/iterators/
 COPY --from=boost /boost/libs/serialization/include/boost/serialization/throw_exception.hpp /boost/libs/functional/include/boost/serialization/throw_exception.hpp
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Apple
-# Outputs /core/build/lib/linux_64/libIWorkFile.so
+# Outputs /core/build/lib/linux_64/libIWorkFile.a
 
 
 
@@ -567,14 +578,14 @@ COPY core/HwpFile /core/HwpFile
 COPY core/Common /core/Common
 COPY core/DesktopEditor /core/DesktopEditor
 COPY core/OfficeUtils /core/OfficeUtils
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh HwpFile
-# Outputs /core/build/lib/linux_64/libHWPFile.so
+# Outputs /core/build/lib/linux_64/libHWPFile.a
 
 
 
@@ -583,14 +594,14 @@ COPY core/DocxRenderer /core/DocxRenderer
 COPY core/Common /core/Common
 COPY core/DesktopEditor /core/DesktopEditor
 COPY core/OfficeUtils /core/OfficeUtils
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 # COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh DocxRenderer
-# Outputs /core/build/lib/linux_64/libDocxRenderer.so
+# Outputs /core/build/lib/linux_64/libDocxRenderer.a
 
 
 
@@ -647,23 +658,22 @@ COPY --from=boost /usr/local/include/boost /usr/local/include/boost
 COPY --from=xlsbformatlib /core/build/lib/linux_64/libXlsbFormatLib.a /core/build/lib/linux_64/
 COPY --from=xlsformatlib /core/build/lib/linux_64/libXlsFormatLib.a /core/build/lib/linux_64/
 COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
-COPY --from=graphics /core/build/lib/linux_64/libgraphics.so /core/build/lib/linux_64/
-COPY --from=common /core/build/lib/linux_64/libkernel.so /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-COPY --from=network /core/build/lib/linux_64/libkernel_network.so /core/build/lib/linux_64/
-COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.so /core/build/lib/linux_64/
+COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
+COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.a /core/build/lib/linux_64/
 COPY --from=boost /usr/local/lib/* /core/build/lib/linux_64/
 COPY --from=cfcpp /core/build/lib/linux_64/libCompoundFileLib.a /core/build/lib/linux_64/
-COPY --from=fb2file /core/build/lib/linux_64/libFb2File.so /core/build/lib/linux_64/
-COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.so /core/build/lib/linux_64/
-COPY --from=epubfile /core/build/lib/linux_64/libEpubFile.so /core/build/lib/linux_64/
-COPY --from=xpsfile /core/build/lib/linux_64/libXpsFile.so /core/build/lib/linux_64/
-COPY --from=djvufile /core/build/lib/linux_64/libDjVuFile.so /core/build/lib/linux_64/
-COPY --from=apple /core/build/lib/linux_64/libIWorkFile.so /core/build/lib/linux_64/
-COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.so /core/build/lib/linux_64/
-COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.so /core/build/lib/linux_64/
-
-# wasm-ld: error: unable to find library -ldoctrenderer
+COPY --from=fb2file /core/build/lib/linux_64/libFb2File.a /core/build/lib/linux_64/
+COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.a /core/build/lib/linux_64/
+COPY --from=epubfile /core/build/lib/linux_64/libEpubFile.a /core/build/lib/linux_64/
+COPY --from=xpsfile /core/build/lib/linux_64/libXpsFile.a /core/build/lib/linux_64/
+COPY --from=djvufile /core/build/lib/linux_64/libDjVuFile.a /core/build/lib/linux_64/
+COPY --from=apple /core/build/lib/linux_64/libIWorkFile.a /core/build/lib/linux_64/
+COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.a /core/build/lib/linux_64/
+COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.a /core/build/lib/linux_64/
+COPY --from=doctrenderer /core/build/lib/linux_64/libdoctrenderer.a /core/build/lib/linux_64/
 
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \

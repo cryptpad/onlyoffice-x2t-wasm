@@ -17,13 +17,15 @@ CORE_ROOT_DIR = $$PWD/..
 PWD_ROOT_DIR = $$PWD
 include(../Common/base.pri)
 
-CONFIG += build_all_zlib build_zlib_as_sources
+# CryptPad: This causes duplicate symbols when linking x2t
+# CONFIG += build_all_zlib build_zlib_as_sources
 include(../OfficeUtils/OfficeUtils.pri)
 
 CONFIG += core_static_link_xml_full
 include(../DesktopEditor/xml/build/qt/libxml2.pri)
 
-ADD_DEPENDENCY(UnicodeConverter)
+# CryptPad: UnicodeConverter is linked in a later step. Do not link here.
+# ADD_DEPENDENCY(UnicodeConverter)
 
 # CONFIG
 HEADERS += ./kernel_config.h

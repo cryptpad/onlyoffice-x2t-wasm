@@ -14,7 +14,8 @@ include($$CORE_ROOT_DIR/Common/base.pri)
 
 DEFINES += PDFFILE_USE_DYNAMIC_LIBRARY
 
-ADD_DEPENDENCY(graphics, kernel, UnicodeConverter, kernel_network)
+# CryptPad: kernel & UnicodeConverter is linked in a later step. Do not link here.
+# ADD_DEPENDENCY(graphics, kernel, UnicodeConverter, kernel_network)
 
 #CONFIG += use_openssl_hash
 use_openssl_hash {

@@ -16,7 +16,9 @@ include($$CORE_ROOT_DIR/Common/base.pri)
 
 include($$CORE_ROOT_DIR/Common/3dParty/html/gumbo.pri)
 
-ADD_DEPENDENCY(kernel, UnicodeConverter, graphics)
+# CryptPad: UnicodeConverter is linked in a later step. Do not link here.
+# ADD_DEPENDENCY(kernel, UnicodeConverter, graphics)
+ADD_DEPENDENCY(kernel, graphics)
 
 CONFIG += core_boost_regex
 include($$CORE_ROOT_DIR/Common/3dParty/boost/boost.pri)

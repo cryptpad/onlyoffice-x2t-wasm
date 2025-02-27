@@ -60,6 +60,7 @@ qmake \
     "QMAKE_LINK=em++" \
     "QMAKE_LFLAGS+=$QMAKE_LFLAGS $SANITIZE $CFLAGS" \
     "DEFINES+=__linux__ HAVE_UNISTD_H _RWSTD_NO_SETRLIMIT" \
+    "CONFIG += staticlib" \
     $QMAKE_ARGS \
     $POSITIONAL_ARGS
 

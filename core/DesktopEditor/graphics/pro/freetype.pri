@@ -14,18 +14,19 @@ INCLUDEPATH += \
 	    $$OFFICEUTILS_PATH/src/zlib-1.2.11 \
 		$$OFFICEUTILS_PATH/src
 
-    SOURCES += \
-	    $$OFFICEUTILS_PATH/src/zlib-1.2.11/crc32.c \
-		$$OFFICEUTILS_PATH/src/zlib-1.2.11/adler32.c \
-		$$OFFICEUTILS_PATH/src/zlib-1.2.11/deflate.c \
-		$$OFFICEUTILS_PATH/src/zlib-1.2.11/inffast.c \
-		$$OFFICEUTILS_PATH/src/zlib-1.2.11/inflate.c \
-		$$OFFICEUTILS_PATH/src/zlib-1.2.11/inftrees.c \
-		$$OFFICEUTILS_PATH/src/zlib-1.2.11/trees.c \
-		$$OFFICEUTILS_PATH/src/zlib-1.2.11/zutil.c \
-		$$OFFICEUTILS_PATH/src/zlib-1.2.11/uncompr.c \
-		$$OFFICEUTILS_PATH/src/zlib-1.2.11/compress.c \
-		$$OFFICEUTILS_PATH/src/zlib_addon.c
+# CryptPad: remove here to prevent duplicate symbols while linking
+#    SOURCES += \
+#	    $$OFFICEUTILS_PATH/src/zlib-1.2.11/crc32.c \
+#		$$OFFICEUTILS_PATH/src/zlib-1.2.11/adler32.c \
+#		$$OFFICEUTILS_PATH/src/zlib-1.2.11/deflate.c \
+#		$$OFFICEUTILS_PATH/src/zlib-1.2.11/inffast.c \
+#		$$OFFICEUTILS_PATH/src/zlib-1.2.11/inflate.c \
+#		$$OFFICEUTILS_PATH/src/zlib-1.2.11/inftrees.c \
+#		$$OFFICEUTILS_PATH/src/zlib-1.2.11/trees.c \
+#		$$OFFICEUTILS_PATH/src/zlib-1.2.11/zutil.c \
+#		$$OFFICEUTILS_PATH/src/zlib-1.2.11/uncompr.c \
+#		$$OFFICEUTILS_PATH/src/zlib-1.2.11/compress.c \
+#		$$OFFICEUTILS_PATH/src/zlib_addon.c
 
     CONFIG += config_zlip_image
 }
