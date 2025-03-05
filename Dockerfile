@@ -364,6 +364,8 @@ COPY core/PdfFile /core/PdfFile
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OdfFile/Projects/Linux
+    # embuild.sh -q "CONFIG+=debug" OdfFile/Projects/Linux
+# RUN mv build/lib/linux_64/debug/* build/lib/linux_64/
 # Outputs build/lib/linux_64/libOdfFormatLib.a
 
 
@@ -605,6 +607,48 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 
 
 
+FROM base as log-symbols
+RUN mkdir -p /core/build/lib/linux_64/
+RUN mkdir -p /out
+WORKDIR /core/build/lib/linux_64/
+COPY --from=gumbo /usr/local/lib/libgumbo.a /core/build/lib/linux_64/
+COPY --from=katana /usr/local/lib/libkatana.a /core/build/lib/linux_64/
+COPY --from=vbaformatlib /core/build/lib/linux_64/libVbaFormatLib.a /core/build/lib/linux_64/
+COPY --from=odffile /core/build/lib/linux_64/libOdfFormatLib.a /core/build/lib/linux_64/
+COPY --from=docformatlib /core/build/lib/linux_64/libDocFormatLib.a /core/build/lib/linux_64/
+COPY --from=pptformatlib /core/build/lib/linux_64/libPptFormatLib.a /core/build/lib/linux_64/
+COPY --from=rtffile /core/build/lib/linux_64/libRtfFormatLib.a /core/build/lib/linux_64/
+COPY --from=txtfile /core/build/lib/linux_64/libTxtXmlFormatLib.a /core/build/lib/linux_64/
+COPY --from=bindocument /core/build/lib/linux_64/libBinDocument.a /core/build/lib/linux_64/
+COPY --from=pptxformatlib /core/build/lib/linux_64/libPPTXFormatLib.a /core/build/lib/linux_64/
+COPY --from=docxformatlib /core/build/lib/linux_64/libDocxFormatLib.a /core/build/lib/linux_64/
+COPY --from=boost /usr/local/include/boost /usr/local/include/boost
+COPY --from=xlsbformatlib /core/build/lib/linux_64/libXlsbFormatLib.a /core/build/lib/linux_64/
+COPY --from=xlsformatlib /core/build/lib/linux_64/libXlsFormatLib.a /core/build/lib/linux_64/
+COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
+COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.a /core/build/lib/linux_64/
+COPY --from=boost /usr/local/lib/* /core/build/lib/linux_64/
+COPY --from=cfcpp /core/build/lib/linux_64/libCompoundFileLib.a /core/build/lib/linux_64/
+COPY --from=fb2file /core/build/lib/linux_64/libFb2File.a /core/build/lib/linux_64/
+COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.a /core/build/lib/linux_64/
+COPY --from=epubfile /core/build/lib/linux_64/libEpubFile.a /core/build/lib/linux_64/
+COPY --from=xpsfile /core/build/lib/linux_64/libXpsFile.a /core/build/lib/linux_64/
+COPY --from=djvufile /core/build/lib/linux_64/libDjVuFile.a /core/build/lib/linux_64/
+COPY --from=apple /core/build/lib/linux_64/libIWorkFile.a /core/build/lib/linux_64/
+COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.a /core/build/lib/linux_64/
+COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.a /core/build/lib/linux_64/
+COPY --from=doctrenderer /core/build/lib/linux_64/libdoctrenderer.a /core/build/lib/linux_64/
+RUN . /emsdk/emsdk_env.sh \
+ && for i in $(ls *.a); do /emsdk/upstream/bin/llvm-nm $i > /out/$i.sym ; done
+
+FROM scratch AS log-symbols-output
+COPY --from=log-symbols /out /
+
+
 FROM base AS build
 COPY core /core
 WORKDIR /core
@@ -665,7 +709,7 @@ COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib
 COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.a /core/build/lib/linux_64/
 COPY --from=boost /usr/local/lib/* /core/build/lib/linux_64/
 COPY --from=cfcpp /core/build/lib/linux_64/libCompoundFileLib.a /core/build/lib/linux_64/
-COPY --from=fb2file /core/build/lib/linux_64/libFb2File.a /core/build/lib/linux_64/
+# COPY --from=fb2file /core/build/lib/linux_64/libFb2File.a /core/build/lib/linux_64/
 COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.a /core/build/lib/linux_64/
 COPY --from=epubfile /core/build/lib/linux_64/libEpubFile.a /core/build/lib/linux_64/
 COPY --from=xpsfile /core/build/lib/linux_64/libXpsFile.a /core/build/lib/linux_64/
@@ -674,6 +718,27 @@ COPY --from=apple /core/build/lib/linux_64/libIWorkFile.a /core/build/lib/linux_
 COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.a /core/build/lib/linux_64/
 COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.a /core/build/lib/linux_64/
 COPY --from=doctrenderer /core/build/lib/linux_64/libdoctrenderer.a /core/build/lib/linux_64/
+
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: OOX::FileTypes::CustomProperties
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::File
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::Logic::CRunProperty
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::VmlWord::CWrap
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
+# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
 
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
