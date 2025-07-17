@@ -197,6 +197,9 @@ SOURCES += \
 	../../../Base/unicode_util.cpp \
 	../../../Base/Unit.cpp \
 	../../../Base/WinColor.cpp \
+	../../../DocxFormat/FileTypes.cpp \  # CryptPad needed in the build
+	../../../DocxFormat/File.cpp \ # CryptPad needed in the build
+	../../../DocxFormat/WritingElement.cpp \ # CryptPad needed in the build
 	#../../../../Common/3dParty/pole/pole.cpp \  TODOCP Do we need this?
 	docx_format.cpp
 

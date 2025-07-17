@@ -257,12 +257,17 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 FROM base AS docxformatlib
 COPY core/OOXML /core/OOXML
 COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY core/Common /core/Common
+COPY core/MsBinaryFile /core/MsBinaryFile
+COPY core/OfficeCryptReader /core/OfficeCryptReader
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/OfficeUtils /core/OfficeUtils
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh OOXML/Projects/Linux/DocxFormatLib
+    embuild.sh  OOXML/Projects/Linux/DocxFormatLib
 RUN mkdir -p /core/build/lib/linux_64/
-RUN cp /core/libDocxFormatLib.a /core/build/lib/linux_64/
+# RUN cp /core/build/lib/linux_64/libDocxFormatLib.a /core/build/lib/linux_64/
 # Outputs /core/build/lib/linux_64/libDocxFormatLib.a
 
 
@@ -732,27 +737,6 @@ COPY --from=apple /core/build/lib/linux_64/libIWorkFile.a /core/build/lib/linux_
 COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.a /core/build/lib/linux_64/
 COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.a /core/build/lib/linux_64/
 COPY --from=doctrenderer /core/build/lib/linux_64/libdoctrenderer.a /core/build/lib/linux_64/
-
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: OOX::FileTypes::CustomProperties
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::File
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::Logic::CRunProperty
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::VmlWord::CWrap
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
-# wasm-ld: error: /core/X2tConverter/build/Qt/../../../build/lib/linux_64/libOdfFormatLib.a(Converter.o): undefined symbol: typeinfo for OOX::WritingElement
 
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
