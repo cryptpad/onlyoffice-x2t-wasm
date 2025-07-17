@@ -2,5 +2,5 @@
 
 set -euxo pipefail
 
-docker build --format docker --target test-output -o results .
-docker build --format docker --target output -o build .
+docker build --target test-output -o results .
+docker build --target output -o build .

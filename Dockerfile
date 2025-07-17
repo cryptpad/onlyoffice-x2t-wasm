@@ -34,7 +34,9 @@ WORKDIR /
 COPY embuild.sh /bin/embuild.sh
 
 
-FROM base AS freetype #  TODO remove?
+
+#  TODO remove?
+FROM base AS freetype
 COPY core/DesktopEditor/freetype-2.10.4 /freetype
 WORKDIR /freetype
 # TODO do I need this somwhere below?
@@ -226,7 +228,7 @@ COPY core/TxtFile /core/TxtFile
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OOXML /core/OOXML
 COPY core/MsBinaryFile /core/MsBinaryFile
-COPY --from=boost /usr/local/include/boost /usr/local/include/boost
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh TxtFile/Projects/Linux
@@ -245,6 +247,7 @@ COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/HtmlFile /core/HtmlFile
 COPY core/HtmlFile2 /core/HtmlFile2
 COPY core/RtfFile /core/RtfFile
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OOXML/Projects/Linux/BinDocument
@@ -254,6 +257,7 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 FROM base AS docxformatlib
 COPY core/OOXML /core/OOXML
 COPY core/DesktopEditor/ /core/DesktopEditor/
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OOXML/Projects/Linux/DocxFormatLib
@@ -270,7 +274,7 @@ COPY core/MsBinaryFile /core/MsBinaryFile
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
-COPY --from=boost /usr/local/include/boost /usr/local/include/boost
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OOXML/Projects/Linux/PPTXFormatLib
@@ -284,6 +288,7 @@ COPY core/Common /core/Common
 COPY core/MsBinaryFile /core/MsBinaryFile
 COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OOXML/Projects/Linux/XlsbFormatLib
@@ -298,6 +303,7 @@ COPY core/OOXML /core/OOXML
 COPY core/DesktopEditor/ /core/DesktopEditor/
 COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh MsBinaryFile/Projects/VbaFormatLib/Linux
@@ -313,6 +319,7 @@ COPY core/DesktopEditor/ /core/DesktopEditor/
 COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh MsBinaryFile/Projects/DocFormatLib/Linux
@@ -328,6 +335,7 @@ COPY core/DesktopEditor/ /core/DesktopEditor/
 COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh MsBinaryFile/Projects/PPTFormatLib/Linux
@@ -344,6 +352,7 @@ COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/OdfFile /core/OdfFile
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh MsBinaryFile/Projects/XlsFormatLib/Linux
@@ -361,6 +370,7 @@ COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/MsBinaryFile /core/MsBinaryFile
 COPY core/PdfFile /core/PdfFile
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OdfFile/Projects/Linux
@@ -380,6 +390,7 @@ COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/MsBinaryFile /core/MsBinaryFile
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh RtfFile/Projects/Linux
@@ -405,6 +416,7 @@ COPY core/DesktopEditor/ /core/DesktopEditor/
 COPY core/OfficeCryptReader/ /core/OfficeCryptReader/
 COPY core/MsBinaryFile /core/MsBinaryFile
 COPY core/UnicodeConverter /core/UnicodeConverter
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Common/3dParty/cryptopp/project
@@ -498,6 +510,7 @@ COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linu
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 COPY --from=gumbo /gumbo-parser /gumbo-parser
 COPY --from=katana /katana-parser /katana-parser
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
     DesktopEditor/graphics/pro/freetype.pri
@@ -566,6 +579,7 @@ COPY core/OfficeUtils /core/OfficeUtils
 COPY --from=apple3rdparty /core/Common/3dParty/apple /core/Common/3dParty/apple
 COPY --from=boost /boost/libs/serialization/include/boost/archive/iterators/ /boost/libs/functional/include/boost/archive/iterators/
 COPY --from=boost /boost/libs/serialization/include/boost/serialization/throw_exception.hpp /boost/libs/functional/include/boost/serialization/throw_exception.hpp
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 WORKDIR /core
@@ -698,7 +712,7 @@ COPY --from=txtfile /core/build/lib/linux_64/libTxtXmlFormatLib.a /core/build/li
 COPY --from=bindocument /core/build/lib/linux_64/libBinDocument.a /core/build/lib/linux_64/
 COPY --from=pptxformatlib /core/build/lib/linux_64/libPPTXFormatLib.a /core/build/lib/linux_64/
 COPY --from=docxformatlib /core/build/lib/linux_64/libDocxFormatLib.a /core/build/lib/linux_64/
-COPY --from=boost /usr/local/include/boost /usr/local/include/boost
+COPY --from=boost /usr/local/lib/ /usr/local/lib/
 COPY --from=xlsbformatlib /core/build/lib/linux_64/libXlsbFormatLib.a /core/build/lib/linux_64/
 COPY --from=xlsformatlib /core/build/lib/linux_64/libXlsFormatLib.a /core/build/lib/linux_64/
 COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
@@ -707,7 +721,7 @@ COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
 COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.a /core/build/lib/linux_64/
-COPY --from=boost /usr/local/lib/* /core/build/lib/linux_64/
+COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 COPY --from=cfcpp /core/build/lib/linux_64/libCompoundFileLib.a /core/build/lib/linux_64/
 # COPY --from=fb2file /core/build/lib/linux_64/libFb2File.a /core/build/lib/linux_64/
 COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.a /core/build/lib/linux_64/
