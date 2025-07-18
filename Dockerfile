@@ -98,6 +98,7 @@ RUN python -c "import hyphen; hyphen.make()"
 
 
 
+# TODO needed?
 FROM base as openssl
 COPY core/Common/3dParty/openssl /core/Common/3dParty/openssl
 WORKDIR /core/Common/3dParty/openssl/
@@ -108,6 +109,8 @@ RUN . /emsdk/emsdk_env.sh \
  && emmake make
 RUN . /emsdk/emsdk_env.sh \
  && emmake make install
+# outputs
+# - /core/Common/3dParty/openssl/openssl/include/openssl/
 
 # TODO remove?
 # FROM base AS hunspell
@@ -158,6 +161,29 @@ RUN . /emsdk/emsdk_env.sh \
 # - /usr/local/include/katana.h
 
 
+# TODO remove?
+FROM base AS csscalculator
+COPY core/Common /core/Common
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY core/DesktopEditor /core/DesktopEditor
+COPY --from=katana /katana-parser /katana-parser
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh -q "CONFIG+=css_calculator_without_xhtml" Common/3dParty/html/css/CssCalculator.pri
+# Outputs: /core/libCssCalculator.a
+
+
+FROM base AS ooxmlsignature
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/OfficeUtils /core/OfficeUtils
+COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh DesktopEditor/xmlsec/src/ooxmlsignature.pro
+# Outputs: 
+# - /core/build/lib/linux_64/libooxmlsignature.a
+ 
 FROM base AS boost
 # emscriptens boost does not work because of missing symbols
 WORKDIR /
@@ -216,6 +242,8 @@ COPY --from=common /core/build/lib/linux_64/ /core/build/lib/linux_64/
 COPY --from=katana /katana-parser /katana-parser
 COPY --from=hyphen /core/Common/3dParty/hyphen/hyphen /core/Common/3dParty/hyphen/hyphen
 WORKDIR /core
+RUN sed -i -e 's,$$PWD/src/[^ ]*\.cpp,,' \
+    Common/3dParty/html/css/CssCalculator.pri
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh -c "-Wno-register" DesktopEditor/graphics/pro
 # Outputs /core/build/lib/linux_64/libgraphics.a
@@ -474,9 +502,10 @@ COPY core/OOXML /core/OOXML
 # # COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 # # COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 # COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
+# COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh DesktopEditor/doctrenderer
+    embuild.sh -s DesktopEditor/doctrenderer #  TODO remove -s
 # Outputs /core/build/lib/linux_64/libdoctrenderer.a
 
 
@@ -519,8 +548,8 @@ COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
     DesktopEditor/graphics/pro/freetype.pri
-RUN sed -i -e 's,$$PWD/src/[^ ]*\.c,,' \
-    Common/3dParty/html/css/CssCalculator.pri
+# RUN sed -i -e 's,$$PWD/src/[^ ]*\.c,,' \
+#     Common/3dParty/html/css/CssCalculator.pri
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh HtmlFile2
 # Outputs /core/build/lib/linux_64/libHtmlFile2.a
@@ -737,6 +766,8 @@ COPY --from=apple /core/build/lib/linux_64/libIWorkFile.a /core/build/lib/linux_
 COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.a /core/build/lib/linux_64/
 COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.a /core/build/lib/linux_64/
 COPY --from=doctrenderer /core/build/lib/linux_64/libdoctrenderer.a /core/build/lib/linux_64/
+# COPY --from=csscalculator /core/libCssCalculator.a /core/build/lib/linux_64/
+COPY --from=ooxmlsignature /core/build/lib/linux_64/libooxmlsignature.a /core/build/lib/linux_64/
 
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
@@ -744,6 +775,7 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     -c -g \
     -l "-lgumbo" \
     -l "-lkatana" \
+    -l "-looxmlsignature" \
     -l "-L/usr/local/lib" \
     -l "--pre-js /pre-js.js" \
     -l "-sEXPORTED_RUNTIME_METHODS=ccall,FS" \

@@ -1,3 +1,5 @@
+QT       -= core gui #  CryptPad: Build this without UI
+
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 

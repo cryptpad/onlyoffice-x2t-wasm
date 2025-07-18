@@ -86,7 +86,7 @@ SOURCES += \
 #	json/json.cpp \
 #	json/json_values.cpp
 
-#include($$PWD/js_internal/js_base.pri)
+include($$PWD/js_internal/js_base.pri)
 
 #!use_javascript_core {
 #	build_xp:DESTDIR=$$DESTDIR/xp
@@ -129,4 +129,4 @@ SOURCES += \
 #
 #	ADD_FILES_FOR_EMBEDDED_CLASS_HEADER(embed/DrawingFileEmbed.h)
 #}
-#
+
