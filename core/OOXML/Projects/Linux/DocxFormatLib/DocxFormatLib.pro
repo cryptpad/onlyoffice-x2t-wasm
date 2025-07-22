@@ -200,7 +200,7 @@ SOURCES += \
 	../../../DocxFormat/FileTypes.cpp \  # CryptPad needed in the build
 	../../../DocxFormat/File.cpp \ # CryptPad needed in the build
 	../../../DocxFormat/WritingElement.cpp \ # CryptPad needed in the build
-	#../../../../Common/3dParty/pole/pole.cpp \  TODOCP Do we need this?
+	../../../../Common/3dParty/pole/pole.cpp \
 	docx_format.cpp
 
 

@@ -27,16 +27,13 @@ HEADERS += \
 	docbuilder.h
 
 SOURCES += \
- 	doctrenderer_empty.cpp
-
-# SOURCES += \
-# 	editors.cpp \
-# 	nativecontrol.cpp \
-# 	doctrenderer.cpp \
-# 	docbuilder.cpp \
-# 	docbuilder_p.cpp \
-# 	graphics.cpp \
-# 	hash.cpp
+	editors.cpp \
+	nativecontrol.cpp \
+	doctrenderer.cpp \
+	docbuilder.cpp \
+	docbuilder_p.cpp \
+	graphics.cpp \
+	hash.cpp
 
 #SOURCES += \
 #../../Common/OfficeFileFormatChecker2.cpp \

@@ -67,7 +67,6 @@ RUN python fetch.py
 # Outputs: /core/Common/3dParty/apple
 
 
-
 FROM base AS harfbuzz
 COPY core/Common/3dParty/harfbuzz /core/Common/3dParty/harfbuzz
 COPY --from=build-tools /build_tools/scripts/base.py /core/Common/3dParty/harfbuzz/base.py
@@ -488,7 +487,9 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 
 FROM base AS doctrenderer
 COPY core/DesktopEditor/ /core/DesktopEditor/
-# RUN cp /core/DesktopEditor/doctrenderer/doctrenderer_empty.cpp /core/DesktopEditor/doctrenderer/doctrenderer.cpp
+RUN cp /core/DesktopEditor/doctrenderer/doctrenderer_empty.cpp /core/DesktopEditor/doctrenderer/doctrenderer.cpp
+RUN cp /core/DesktopEditor/doctrenderer/docbuilder_empty.cpp /core/DesktopEditor/doctrenderer/docbuilder.cpp
+RUN cp /core/DesktopEditor/doctrenderer/docbuilder_p_empty.cpp /core/DesktopEditor/doctrenderer/docbuilder_p.cpp
 COPY core/Common /core/Common
 # COPY core/PdfFile /core/PdfFile
 COPY core/OfficeUtils /core/OfficeUtils
@@ -501,11 +502,12 @@ COPY core/OOXML /core/OOXML
 # # COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
 # # COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 # # COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-# COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
+COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
 # COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
+# RUN find . -name sha.h ; exit 1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s DesktopEditor/doctrenderer #  TODO remove -s
+    embuild.sh -s -c "-ICommon/3dParty/openssl/openssl/include" DesktopEditor/doctrenderer #  TODO remove -s
 # Outputs /core/build/lib/linux_64/libdoctrenderer.a
 
 
