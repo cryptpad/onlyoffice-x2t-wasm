@@ -17,12 +17,13 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        build-essential \
        cmake \
        zip \
-       pkg-config
+       pkg-config \
+       wget
 
 WORKDIR /
 RUN git clone https://github.com/emscripten-core/emsdk.git
 WORKDIR /emsdk
-ARG emversion=4.0.2
+ARG emversion=4.0.11
 RUN git fetch -a \
  && git checkout $emversion
 RUN ./emsdk install $emversion
@@ -507,7 +508,7 @@ COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
 WORKDIR /core
 # RUN find . -name sha.h ; exit 1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s -c "-ICommon/3dParty/openssl/openssl/include" DesktopEditor/doctrenderer #  TODO remove -s
+    embuild.sh -c "-ICommon/3dParty/openssl/openssl/include" DesktopEditor/doctrenderer
 # Outputs /core/build/lib/linux_64/libdoctrenderer.a
 
 
@@ -699,6 +700,21 @@ FROM scratch AS log-symbols-output
 COPY --from=log-symbols /out /
 
 
+FROM base AS testfiles
+# Collect test files from /core and download test files from the internet that
+# do not live in this repo because of license problems.
+
+RUN mkdir /tests
+WORKDIR /tests
+RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-basic-text.docx
+RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-formatted-report.docx
+
+COPY core/ /core/
+RUN find /core -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' | xargs -I {} -- cp {} /tests
+# Outputs: /tests
+
+ 
+
 FROM base AS build
 COPY core /core
 WORKDIR /core
@@ -785,6 +801,8 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     -l "-sALLOW_MEMORY_GROWTH" \
     X2tConverter/build/Qt/X2tConverter.pro
 
+    # -l "-sMAXIMUM_MEMORY=2gb" \
+
 WORKDIR /core/build/bin/linux_64/
 RUN cp x2t x2t.js
 RUN zip x2t.zip x2t.wasm x2t.js
@@ -800,9 +818,11 @@ COPY test.js /test.js
 
 FROM build AS test
 COPY tests /tests
+COPY non-public-tests /tests
+COPY --from=testfiles /tests /tests
 RUN mkdir /results
 RUN . /emsdk/emsdk_env.sh \
- && node test.js
+ && node test.js 2>&1 | tee /results/test.js.log
 
 
 FROM scratch AS test-output

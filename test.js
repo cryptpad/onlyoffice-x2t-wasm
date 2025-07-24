@@ -63,7 +63,7 @@ function convert(inputPath, outputPath) {
   const outputFormat = path.extname(outputPath).substring(1);
   const pdfData = "";
 
-  console.log({inputPath, outputPath, inputName, outputName, inputFormat, outputFormat});
+  console.log(inputPath, '->', outputPath);
   const params =  "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
     + "<TaskQueueDataConvert xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">"
     + "<m_sFontDir>/working/fonts/</m_sFontDir>"
@@ -79,15 +79,45 @@ function convert(inputPath, outputPath) {
     // + "<m_sCsvDelimiterChar>,</m_sCsvDelimiterChar>"
     + "</TaskQueueDataConvert>";
 
-  console.log(params);
+  // console.log(params);
   x2t.FS.writeFile('/working/params.xml', params);
   copyToWasm(inputPath, '/working/' + inputName);
 
-  console.log(x2t.FS.readdir('/working/'));
+  // console.log(x2t.FS.readdir('/working/'));
   const result = x2t.ccall("main1", "number", ["string"], ["/working/params.xml"]);
-  console.log(x2t.FS.readdir('/working/'));
-  console.log(result);
+  // console.log(x2t.FS.readdir('/working/'));
+  if (result !== 0) {
+    console.log({inputPath, outputPath, inputName, outputName, inputFormat, outputFormat});
+    console.log('x2t exit code:', result);
+  }
   copyFromWasm('/working/' + outputName, outputPath);
+}
+
+const TEST_CONVERSIONS = {
+  '.docx': ['.docx', '.odt'],
+  '.xlsx': ['.xlsx', '.ods'],
+  '.pptx': ['.pptx', '.odp'],
+};
+
+function testConversions(inputPath) {
+  const inputExt = path.extname(inputPath);
+  const inputName = path.basename(inputPath, inputExt);
+  const conversions = TEST_CONVERSIONS[inputExt];
+  if (!conversions) {
+    return;
+  }
+  const binPath = path.join('/results', inputName + '.bin');
+  convert(inputPath, binPath)
+  for (const ext of conversions) {
+    convert(binPath, path.join('/results', inputName + ext));
+  }
+}
+
+function testFilesInDir(dir) {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    testConversions(path.join(dir, file));
+  }
 }
 
 x2t.onRuntimeInitialized = function() {
@@ -99,10 +129,12 @@ x2t.onRuntimeInitialized = function() {
 
   copyDirToWasm('/tests/fonts', '/working/fonts');
 
+  testFilesInDir('/tests');
   // convert('/tests/test1.xlsx', '/results/out1.pdf');
-  convert('/tests/test1.xlsx', '/results/out1.bin');
+  // convert('/tests/test1.xlsx', '/results/out1.bin');
   // convert('/results/out1.bin', '/results/out1.xlsx');
   // convert('/results/out1.bin', '/results/out1.ods');
+  // convert('/tests/can not be exported as odt or pdf.docx', '/results/out1.ods');
   // convert('/tests/test1.xlsx', '/results/out1.csv');
   // convert('/results/out1.bin', '/results/out1.csv');
   // convert('/results/out1.bin', '/results/out1.pdf');

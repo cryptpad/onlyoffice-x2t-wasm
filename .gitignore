@@ -1,3 +1,5 @@
 /build/
 /results/
 /log-symbols/
+non-public-tests/*
+!non-public-tests/README.md
