@@ -1,5 +1,6 @@
 const path = require('node:path');
 const fs = require('node:fs');
+const { exit } = require('node:process');
 
 const getFormatId = function (ext) {
   // Sheets
@@ -89,6 +90,7 @@ function convert(inputPath, outputPath) {
   if (result !== 0) {
     console.log({inputPath, outputPath, inputName, outputName, inputFormat, outputFormat});
     console.log('x2t exit code:', result);
+    raise `Converting ${inputPath} -> ${outputPath} failed with exit code ${result}`;
   }
   copyFromWasm('/working/' + outputName, outputPath);
 }
@@ -121,21 +123,18 @@ function testFilesInDir(dir) {
 }
 
 x2t.onRuntimeInitialized = function() {
-  console.log("on init");
-  x2t.FS.mkdir('/working');
-  x2t.FS.mkdir('/working/media');
-  x2t.FS.mkdir('/working/fonts');
-  x2t.FS.mkdir('/working/themes');
+  try {
+    console.log("on init");
+    x2t.FS.mkdir('/working');
+    x2t.FS.mkdir('/working/media');
+    x2t.FS.mkdir('/working/fonts');
+    x2t.FS.mkdir('/working/themes');
 
-  copyDirToWasm('/tests/fonts', '/working/fonts');
+    copyDirToWasm('/tests/fonts', '/working/fonts');
 
-  testFilesInDir('/tests');
-  // convert('/tests/test1.xlsx', '/results/out1.pdf');
-  // convert('/tests/test1.xlsx', '/results/out1.bin');
-  // convert('/results/out1.bin', '/results/out1.xlsx');
-  // convert('/results/out1.bin', '/results/out1.ods');
-  // convert('/tests/can not be exported as odt or pdf.docx', '/results/out1.ods');
-  // convert('/tests/test1.xlsx', '/results/out1.csv');
-  // convert('/results/out1.bin', '/results/out1.csv');
-  // convert('/results/out1.bin', '/results/out1.pdf');
+    testFilesInDir('/tests');
+  } catch(e) {
+    console.error(e);
+    exit(1);
+  }
 };

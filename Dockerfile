@@ -77,7 +77,7 @@ RUN python make.py
 
 
 
-FROM base as hyphen
+FROM base AS hyphen
 COPY core/Common/3dParty/hyphen /core/Common/3dParty/hyphen
 COPY --from=build-tools /build_tools /build_tools
 WORKDIR /build_tools/scripts/core_common/modules
@@ -99,7 +99,7 @@ RUN python -c "import hyphen; hyphen.make()"
 
 
 # TODO needed?
-FROM base as openssl
+FROM base AS openssl
 COPY core/Common/3dParty/openssl /core/Common/3dParty/openssl
 WORKDIR /core/Common/3dParty/openssl/
 RUN git clone --depth=1 --branch OpenSSL_1_1_1f https://github.com/openssl/openssl.git  # see build_tools/scripts/core_common/modules/openssl.py
@@ -231,7 +231,7 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 
 
 
-FROM base as graphics
+FROM base AS graphics
 COPY core/Common /core/Common
 COPY core/DesktopEditor/ /core/DesktopEditor/
 COPY core/OfficeUtils/ /core/OfficeUtils/
@@ -658,7 +658,7 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 
 
 
-FROM base as log-symbols
+FROM base AS log-symbols
 RUN mkdir -p /core/build/lib/linux_64/
 RUN mkdir -p /out
 WORKDIR /core/build/lib/linux_64/
@@ -800,8 +800,6 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     -l "-sEXPORTED_FUNCTIONS=_main1" \
     -l "-sALLOW_MEMORY_GROWTH" \
     X2tConverter/build/Qt/X2tConverter.pro
-
-    # -l "-sMAXIMUM_MEMORY=2gb" \
 
 WORKDIR /core/build/bin/linux_64/
 RUN cp x2t x2t.js

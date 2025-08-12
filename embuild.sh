@@ -7,7 +7,7 @@ POSITIONAL_ARGS=()
 QMAKE_ARGS="INCLUDEPATH+=/boost/libs/functional/include/"
 J_ARG="-j 8"
 QMAKE_LFLAGS="-sUSE_ICU=1 -sALLOW_MEMORY_GROWTH -sSTACK_SIZE=128kb -sASSERTIONS=0 -sUSE_CLOSURE_COMPILER=1 -sERROR_ON_UNDEFINED_SYMBOLS=0"
-CFLAGS="-sUSE_ICU=1 -sUSE_BOOST_HEADERS=0"
+CFLAGS="-sUSE_ICU=1 -sUSE_BOOST_HEADERS=0 -Os"
 
 if [ -n "$DEV_MODE" ]; then
   SANITIZE="-fsanitize=address -fsanitize=undefined -Wcast-align -Wover-aligned -sWARN_UNALIGNED=1"
