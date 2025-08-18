@@ -806,25 +806,32 @@ RUN cp x2t x2t.js
 RUN zip x2t.zip x2t.wasm x2t.js
 RUN sha512sum x2t.zip > x2t.zip.sha512
 
-WORKDIR /
+RUN mkdir /test
+WORKDIR /test
 RUN cp /core/build/bin/linux_64/x2t* .
 
-COPY test.js /test.js
+RUN . /emsdk/emsdk_env.sh \
+ && npm install --no-save xml2json
+COPY test.js /test/test.js
 
 
 
 
 FROM build AS test
-COPY tests /tests
-COPY non-public-tests /tests
-COPY --from=testfiles /tests /tests
-RUN mkdir /results
+WORKDIR /test
+COPY tests /test/tests
+COPY non-public-tests /test/tests
+COPY --from=testfiles /tests /test/tests
+RUN mkdir results
+# RUN ls -l tests ; exit 1
 RUN . /emsdk/emsdk_env.sh \
- && node test.js 2>&1 | tee /results/test.js.log
+ && node test.js
+# RUN . /emsdk/emsdk_env.sh \
+#  && node test.js 2>&1 | tee results/test.js.log
 
 
 FROM scratch AS test-output
-COPY --from=test /results /
+COPY --from=test /test/results /
 
 
 FROM scratch AS output
