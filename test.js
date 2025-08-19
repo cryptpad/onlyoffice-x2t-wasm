@@ -67,6 +67,7 @@ function copyFromWasm(wasmPath, nodePath) {
 }
 
 function convert(inputPath, outputPath) {
+  initWorkDir();
   const inputName = path.basename(inputPath);
   const outputName = path.basename(outputPath);
   const inputFormat = path.extname(inputPath).substring(1);
@@ -93,6 +94,7 @@ function convert(inputPath, outputPath) {
   copyToWasm(inputPath, '/working/' + inputName);
 
   const result = x2t.ccall("main1", "number", ["string"], ["/working/params.xml"]);
+  // console.log('done', result);
   if (result !== 0) {
     console.log({inputPath, outputPath, inputName, outputName, inputFormat, outputFormat});
     console.log('x2t exit code:', result);
@@ -152,16 +154,36 @@ function testFilesInDir(dir) {
   }
 }
 
+function initWorkDir() {
+  rmr(x2t.FS, '/working');
+  rmr(x2t.FS, '/tmp');
+  x2t.FS.mkdir('/tmp');
+  x2t.FS.mkdir('/working');
+  x2t.FS.mkdir('/working/media');
+  x2t.FS.mkdir('/working/fonts');
+  x2t.FS.mkdir('/working/themes');
+  copyDirToWasm('tests/fonts', '/working/fonts');
+}
+
+function rmr(FS, p) {
+  if (!FS.analyzePath(p).exists) {
+    return;
+  }
+
+  if (FS.isDir(FS.stat(p).mode)) {
+    FS.readdir(p)
+      .filter(e => e !== '.' && e !== '..')
+      .forEach(e => rmr(FS, path.join(p, e)));
+    if (p !== '/') {
+      FS.rmdir(p);
+    }
+  } else {
+    FS.unlink(p);
+  }
+}
+
 x2t.onRuntimeInitialized = function() {
   try {
-    console.log("on init");
-    x2t.FS.mkdir('/working');
-    x2t.FS.mkdir('/working/media');
-    x2t.FS.mkdir('/working/fonts');
-    x2t.FS.mkdir('/working/themes');
-
-    copyDirToWasm('tests/fonts', '/working/fonts');
-
     testFilesInDir('tests');
   } catch(e) {
     console.error(e);
