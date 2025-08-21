@@ -405,6 +405,7 @@ COPY core/MsBinaryFile /core/MsBinaryFile
 COPY core/PdfFile /core/PdfFile
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
+# ENV DEV_MODE=1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OdfFile/Projects/Linux
     # embuild.sh -q "CONFIG+=debug" OdfFile/Projects/Linux
@@ -700,6 +701,10 @@ FROM scratch AS log-symbols-output
 COPY --from=log-symbols /out /
 
 
+
+FROM onlyoffice/documentserver:8.3.3 AS documentserver
+# Outputs: /var/www/onlyoffice/documentserver/server/FileConverter/bin/x2t
+
 FROM base AS testfiles
 # Collect test files from /core and download test files from the internet that
 # do not live in this repo because of license problems.
@@ -788,6 +793,7 @@ COPY --from=doctrenderer /core/build/lib/linux_64/libdoctrenderer.a /core/build/
 COPY --from=ooxmlsignature /core/build/lib/linux_64/libooxmlsignature.a /core/build/lib/linux_64/
 
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
+# ENV DEV_MODE=1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh \
     -c -g \
@@ -822,12 +828,13 @@ WORKDIR /test
 COPY tests /test/tests
 COPY non-public-tests /test/tests
 COPY --from=testfiles /tests /test/tests
+COPY --from=documentserver /var/www/onlyoffice/documentserver/server/FileConverter/bin/x2t /bin/
 RUN mkdir results
 # RUN ls -l tests ; exit 1
-RUN . /emsdk/emsdk_env.sh \
- && node test.js
 # RUN . /emsdk/emsdk_env.sh \
-#  && node test.js 2>&1 | tee results/test.js.log
+#  && node test.js
+RUN . /emsdk/emsdk_env.sh \
+ && node test.js 2>&1 | tee results/test.js.log
 
 
 FROM scratch AS test-output

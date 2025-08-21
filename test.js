@@ -3,6 +3,9 @@ const fs = require('node:fs');
 const { exit } = require('node:process');
 const xml2json = require('xml2json');
 
+const WASM = Symbol('WASM');
+const BIN = Symbol('BIN');
+
 const getFormatId = function (ext) {
   // Sheets
   if (ext === 'xlsx') { return 257; }
@@ -94,13 +97,17 @@ function convert(inputPath, outputPath) {
   copyToWasm(inputPath, '/working/' + inputName);
 
   const result = x2t.ccall("main1", "number", ["string"], ["/working/params.xml"]);
-  // console.log('done', result);
+  console.log('done', result);
   if (result !== 0) {
     console.log({inputPath, outputPath, inputName, outputName, inputFormat, outputFormat});
     console.log('x2t exit code:', result);
     raise `Converting ${inputPath} -> ${outputPath} failed with exit code ${result}`;
   }
   copyFromWasm('/working/' + outputName, outputPath);
+}
+
+function callX2T(workdir, x2tkind) {
+  
 }
 
 const TEST_CONVERSIONS = {
