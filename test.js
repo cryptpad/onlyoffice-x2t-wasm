@@ -50,16 +50,16 @@ function copyToWasm(nodePath, wasmPath) {
 }
 
 function copyDirToWasm(nodePath, wasmPath) {
-  // console.log('copyDirToWasm', nodePath, wasmPath);
+  console.log('copyDirToWasm', nodePath, wasmPath);
   if (fs.statSync(nodePath).isDirectory()) {
-    // console.log('copyDirToWasm dir', nodePath, wasmPath);
-    // x2t.FS.mkdir(wasmPath);
+    try {
+      x2t.FS.mkdir(wasmPath);
+    } catch(e) {}
     const dir = fs.readdirSync(nodePath);
     for (const f of dir) {
       copyDirToWasm(path.join(nodePath, f), path.join(wasmPath, f));
     }
   } else {
-    // console.log('copyDirToWasm file', nodePath, wasmPath);
     copyToWasm(nodePath, wasmPath);
   }
 }
@@ -117,15 +117,13 @@ const TEST_CONVERSIONS = {
 };
 
 function testConvertDir(inputPath) {
-  const baseName = path.parse(inputPath).base;
-  let outputPath; // TODO
-  const ext = path.parse(outputPath).ext;
-  copyToWasm(inputPath, '/');
-
   const paramsXml = fs.readFileSync(path.join(inputPath, 'working', 'params.xml'));
-  const paramsJson = xml2json.toJson(paramsXml);
-  console.log(paramsJson);
-  exit(1);
+  const paramsJson = JSON.parse(xml2json.toJson(paramsXml));
+  let outputPath = paramsJson["TaskQueueDataConvert"]["m_sFileTo"];
+
+  const baseName = path.parse(inputPath).base;
+  const ext = path.parse(outputPath).ext;
+  copyDirToWasm(inputPath, '/');
 
   const result = x2t.ccall("main1", "number", ["string"], ["/working/params.xml"]);
   if (result !== 0) {
@@ -133,7 +131,7 @@ function testConvertDir(inputPath) {
     console.log('x2t exit code:', result);
     raise `Converting ${inputPath} -> ${outputPath} failed with exit code ${result}`;
   }
-  copyFromWasm('/working/' + outputName, path.join('results', baseName + ext));
+  copyFromWasm(path.join('/working/', outputPath), path.join('results', baseName + ext));
 }
 
 function testConversions(inputPath) {

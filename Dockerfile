@@ -714,11 +714,8 @@ RUN mkdir /tests
 WORKDIR /tests
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-basic-text.docx
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-formatted-report.docx
-
-
-
 COPY core/ /core/
-RUN find /core -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' | xargs -I {} -- cp {} /tests
+# RUN find /core -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' | xargs -I {} -- cp {} /tests  TODO enable
 # Outputs: /tests
 
  
