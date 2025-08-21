@@ -705,14 +705,17 @@ COPY --from=log-symbols /out /
 FROM onlyoffice/documentserver:8.3.3 AS documentserver
 # Outputs: /var/www/onlyoffice/documentserver/server/FileConverter/bin/x2t
 
+
+
 FROM base AS testfiles
 # Collect test files from /core and download test files from the internet that
 # do not live in this repo because of license problems.
-
 RUN mkdir /tests
 WORKDIR /tests
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-basic-text.docx
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-formatted-report.docx
+
+
 
 COPY core/ /core/
 RUN find /core -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' | xargs -I {} -- cp {} /tests
@@ -826,7 +829,7 @@ COPY test.js /test/test.js
 FROM build AS test
 WORKDIR /test
 COPY tests /test/tests
-COPY non-public-tests /test/tests
+# COPY non-public-tests /test/tests
 COPY --from=testfiles /tests /test/tests
 COPY --from=documentserver /var/www/onlyoffice/documentserver/server/FileConverter/bin/x2t /bin/
 RUN mkdir results
