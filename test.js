@@ -50,7 +50,6 @@ function copyToWasm(nodePath, wasmPath) {
 }
 
 function copyDirToWasm(nodePath, wasmPath) {
-  console.log('copyDirToWasm', nodePath, wasmPath);
   if (fs.statSync(nodePath).isDirectory()) {
     try {
       x2t.FS.mkdir(wasmPath);
@@ -127,9 +126,9 @@ function testConvertDir(inputPath) {
 
   const result = x2t.ccall("main1", "number", ["string"], ["/working/params.xml"]);
   if (result !== 0) {
-    console.log({inputPath, outputPath, inputName, outputName, inputFormat, outputFormat});
+    console.log({inputPath, outputPath, baseName});
     console.log('x2t exit code:', result);
-    raise `Converting ${inputPath} -> ${outputPath} failed with exit code ${result}`;
+    throw `Converting ${inputPath} -> ${outputPath} failed with exit code ${result}`;
   }
   copyFromWasm(path.join('/working/', outputPath), path.join('results', baseName + ext));
 }
