@@ -130,11 +130,11 @@ function testConvertDir(inputPath) {
     console.log('x2t exit code:', result);
     throw `Converting ${inputPath} -> ${outputPath} failed with exit code ${result}`;
   }
-  copyFromWasm(path.join('/working/', outputPath), path.join('results', baseName + ext));
+  copyFromWasm(outputPath, path.join('results', baseName + ext));
 }
 
 function testConversions(inputPath) {
-  if (fs.statSync(inputPath).isDirectory()) {
+  if (fs.statSync(inputPath).isDirectory() && path.parse(inputPath).base !== 'fonts') {
     testConvertDir(inputPath);
     return;
   }

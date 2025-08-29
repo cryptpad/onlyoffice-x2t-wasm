@@ -193,7 +193,7 @@ namespace NExtractTools
 
 		std::wstring sFileDir         = NSDirectory::GetFolderPath(sFrom);
 		std::wstring sImagesDirectory = combinePath(sFileDir, L"media");
-		std::wstring sPdfBinFile      = combinePath(convertParams.m_sTempDir, L"pdf.bin");
+		std::wstring sPdfBinFile      = combinePath(sFileDir, L"pdf.bin");  // CryptPad: Load pdf.bin from from the workdir instead of tmp dir
 
 		NSDoctRenderer::CDoctrenderer oDoctRenderer(NULL != params.m_sAllFontsPath ? *params.m_sAllFontsPath : L"");
 		std::wstring sXml = getDoctXml(eFromType, eToType, sFrom, sPdfBinFile, sImagesDirectory, convertParams.m_sThemesDir, -1, L"", params);
