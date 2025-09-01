@@ -122,6 +122,8 @@ function testConvertDir(inputPath) {
 
   const baseName = path.parse(inputPath).base;
   const ext = path.parse(outputPath).ext;
+
+  initWorkDir();
   copyDirToWasm(inputPath, '/');
 
   const result = x2t.ccall("main1", "number", ["string"], ["/working/params.xml"]);
