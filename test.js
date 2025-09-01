@@ -96,7 +96,6 @@ function convert(inputPath, outputPath) {
   copyToWasm(inputPath, '/working/' + inputName);
 
   const result = x2t.ccall("main1", "number", ["string"], ["/working/params.xml"]);
-  console.log('done', result);
   if (result !== 0) {
     console.log({inputPath, outputPath, inputName, outputName, inputFormat, outputFormat});
     console.log('x2t exit code:', result);

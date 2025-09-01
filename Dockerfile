@@ -36,27 +36,10 @@ COPY embuild.sh /bin/embuild.sh
 
 
 
-#  TODO remove?
-FROM base AS freetype
-COPY core/DesktopEditor/freetype-2.10.4 /freetype
-WORKDIR /freetype
-# TODO do I need this somwhere below?
-# Do not include zlib in the build, but link it later
-#RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
-#    DesktopEditor/graphics/pro/freetype.pri
-RUN bash ./autogen.sh
-RUN . /emsdk/emsdk_env.sh \
- && emconfigure ./configure
-RUN . /emsdk/emsdk_env.sh \
- && emmake make
-RUN . /emsdk/emsdk_env.sh \
- && emmake make install
-
-
 FROM base AS build-tools
-RUN git clone https://github.com/ONLYOFFICE/build_tools.git
+RUN git clone --depth=1 --branch v8.3.0.91 https://github.com/ONLYOFFICE/build_tools.git
 WORKDIR /build_tools
-# TODO RUN git checkout pin some version
+
 
 
 FROM base AS apple3rdparty
@@ -82,15 +65,6 @@ COPY core/Common/3dParty/hyphen /core/Common/3dParty/hyphen
 COPY --from=build-tools /build_tools /build_tools
 WORKDIR /build_tools/scripts/core_common/modules
 RUN python -c "import hyphen; hyphen.make()"
-# TODO remove?
-# WORKDIR /core/Common/3dParty/hyphen/hyphen
-# RUN autoreconf -fvi
-# RUN . /emsdk/emsdk_env.sh \
-#  && emconfigure ./configure
-# RUN . /emsdk/emsdk_env.sh \
-#  && emmake make
-# RUN . /emsdk/emsdk_env.sh \
-#  && emmake make install
 # outputs
 # - /usr/local/lib/libhyphen.a
 # - /usr/local/include/hyphen.h
@@ -98,7 +72,6 @@ RUN python -c "import hyphen; hyphen.make()"
 
 
 
-# TODO needed?
 FROM base AS openssl
 COPY core/Common/3dParty/openssl /core/Common/3dParty/openssl
 WORKDIR /core/Common/3dParty/openssl/
@@ -112,15 +85,6 @@ RUN . /emsdk/emsdk_env.sh \
 # outputs
 # - /core/Common/3dParty/openssl/openssl/include/openssl/
 
-# TODO remove?
-# FROM base AS hunspell
-# COPY core/Common/3dParty/hunspell /core/Common/3dParty/hunspell
-# COPY --from=build-tools /build_tools/scripts/base.py /core/Common/3dParty/hunspell/base.py
-# COPY --from=build-tools /build_tools/scripts/config.py /core/Common/3dParty/hunspell/config.py
-# WORKDIR /core/Common/3dParty/hunspell
-# RUN python before.py
-# RUN find . -name "*.h"
-# RUN exit 1
 
 
 FROM base AS gumbo
@@ -160,17 +124,6 @@ RUN . /emsdk/emsdk_env.sh \
 # - /usr/local/lib/libkatana.a
 # - /usr/local/include/katana.h
 
-
-# TODO remove?
-FROM base AS csscalculator
-COPY core/Common /core/Common
-COPY core/UnicodeConverter /core/UnicodeConverter
-COPY core/DesktopEditor /core/DesktopEditor
-COPY --from=katana /katana-parser /katana-parser
-WORKDIR /core
-RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -q "CONFIG+=css_calculator_without_xhtml" Common/3dParty/html/css/CssCalculator.pri
-# Outputs: /core/libCssCalculator.a
 
 
 FROM base AS ooxmlsignature
@@ -715,7 +668,10 @@ WORKDIR /tests
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-basic-text.docx
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-formatted-report.docx
 COPY core/ /core/
-# RUN find /core -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' | xargs -I {} -- cp {} /tests  TODO enable
+RUN find /core -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' | xargs -I {} -- cp {} /tests
+# Remove tests, that we know are broken
+RUN rm /tests/Example.docx \
+    /tests/NumberFormat.xlsx
 # Outputs: /tests
 
  
@@ -723,37 +679,6 @@ COPY core/ /core/
 FROM base AS build
 COPY core /core
 WORKDIR /core
-
-# ENV DEV_MODE=on
-
-
-# TODO remove?
-# Link zlib into Common instead of including it in the build
-#RUN sed -i -e 's/build_all_zlib//' \
-#    Common/kernel.pro
-#RUN sed -i -e 's/build_zlib_as_sources//' \
-#    Common/kernel.pro
-#
-## Do not include zlib in the build, but link it later
-#RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
-#    DesktopEditor/graphics/pro/raster.pri
-#RUN sed -i -e 's,$$OFFICEUTILS_PATH/src/zlib[^ ]*\.c,,' \
-#    DesktopEditor/graphics/pro/freetype.pri
-
-
-# TODO
-# Do not include freetype in the build, but link it later
-#RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
-#    DesktopEditor/graphics/pro/freetype.pri
-
-# RUN embuild.sh Fb2File
-# RUN embuild.sh HtmlFile2
-# RUN embuild.sh EpubFile
-# RUN embuild.sh XpsFile
-# RUN embuild.sh DjVuFile
-# RUN embuild.sh HtmlRenderer
-
-# RUN embuild.sh DocxRenderer
 
 COPY pre-js.js /pre-js.js
 COPY wrap-main.cpp /wrap-main.cpp
@@ -780,7 +705,6 @@ COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib
 COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.a /core/build/lib/linux_64/
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 COPY --from=cfcpp /core/build/lib/linux_64/libCompoundFileLib.a /core/build/lib/linux_64/
-# COPY --from=fb2file /core/build/lib/linux_64/libFb2File.a /core/build/lib/linux_64/
 COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.a /core/build/lib/linux_64/
 COPY --from=epubfile /core/build/lib/linux_64/libEpubFile.a /core/build/lib/linux_64/
 COPY --from=xpsfile /core/build/lib/linux_64/libXpsFile.a /core/build/lib/linux_64/
@@ -789,7 +713,6 @@ COPY --from=apple /core/build/lib/linux_64/libIWorkFile.a /core/build/lib/linux_
 COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.a /core/build/lib/linux_64/
 COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.a /core/build/lib/linux_64/
 COPY --from=doctrenderer /core/build/lib/linux_64/libdoctrenderer.a /core/build/lib/linux_64/
-# COPY --from=csscalculator /core/libCssCalculator.a /core/build/lib/linux_64/
 COPY --from=ooxmlsignature /core/build/lib/linux_64/libooxmlsignature.a /core/build/lib/linux_64/
 
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
