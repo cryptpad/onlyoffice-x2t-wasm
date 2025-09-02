@@ -112,6 +112,9 @@ const TEST_CONVERSIONS = {
   '.docx': ['.docx', '.odt'],
   '.xlsx': ['.xlsx', '.ods'],
   '.pptx': ['.pptx', '.odp'],
+  '.odt': ['.docx', '.odt'],
+  '.ods': ['.xlsx', '.ods'],
+  '.odp': ['.pptx', '.odp'],
 };
 
 function testConvertDir(inputPath) {
@@ -125,13 +128,15 @@ function testConvertDir(inputPath) {
   initWorkDir();
   copyDirToWasm(inputPath, '/');
 
+  console.log(inputPath, '->', outputPath);
   const result = x2t.ccall("main1", "number", ["string"], ["/working/params.xml"]);
   if (result !== 0) {
     console.log({inputPath, outputPath, baseName});
     console.log('x2t exit code:', result);
     throw `Converting ${inputPath} -> ${outputPath} failed with exit code ${result}`;
   }
-  copyFromWasm(outputPath, path.join('results', baseName + ext));
+  const resultPath = path.join('results', baseName + ext);
+  copyFromWasm(outputPath, resultPath);
 }
 
 function testConversions(inputPath) {

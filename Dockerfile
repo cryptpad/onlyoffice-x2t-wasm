@@ -671,7 +671,8 @@ COPY core/ /core/
 RUN find /core -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' | xargs -I {} -- cp {} /tests
 # Remove tests, that we know are broken
 RUN rm /tests/Example.docx \
-    /tests/NumberFormat.xlsx
+    /tests/NumberFormat.xlsx \
+    /tests/entrance.pptx
 # Outputs: /tests
 
  
@@ -749,7 +750,7 @@ COPY test.js /test/test.js
 FROM build AS test
 WORKDIR /test
 COPY tests /test/tests
-# COPY non-public-tests /test/tests
+COPY non-public-tests /test/tests
 COPY --from=testfiles /tests /test/tests
 COPY --from=documentserver /var/www/onlyoffice/documentserver/server/FileConverter/bin/x2t /bin/
 RUN mkdir results

@@ -14,8 +14,6 @@ if [ -n "$DEV_MODE" ]; then
   SANITIZE+=" -fsanitize=address -fsanitize=undefined -Wcast-align -Wover-aligned -sWARN_UNALIGNED=1"
   QMAKE_LFLAGS+=" -sINITIAL_MEMORY=400MB"
 fi
-# SANITIZE+=" -sSAFE_HEAP=1 -sWARN_UNALIGNED=1 -sASSERTIONS"
-SANITIZE+=" -sASSERTIONS"  # TODOCP remove
 
 while [[ $# -gt 0 ]]; do
   case $1 in
