@@ -5,21 +5,22 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt update \
     && apt install -y \
-       git \
-       python-is-python3 \
-       xz-utils \
-       lbzip2 \
-       automake \
-       libtool \
        autoconf \
-       make \
-       qt6-base-dev \
+       automake \
+       brotli \
        build-essential \
        cmake \
-       zip \
+       git \
+       lbzip2 \
+       libtool \
+       make \
        pkg-config \
-       wget
-
+       python-is-python3 \
+       qt6-base-dev \
+       wget \
+       xz-utils \
+       zip
+    
 WORKDIR /
 RUN git clone https://github.com/emscripten-core/emsdk.git
 WORKDIR /emsdk
@@ -733,7 +734,8 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 
 WORKDIR /core/build/bin/linux_64/
 RUN cp x2t x2t.js
-RUN zip x2t.zip x2t.wasm x2t.js
+RUN brotli x2t.wasm x2t.js
+RUN zip x2t.zip x2t.wasm* x2t.js*
 RUN sha512sum x2t.zip > x2t.zip.sha512
 
 RUN mkdir /test
@@ -766,7 +768,9 @@ COPY --from=test /test/results /
 
 
 FROM scratch AS output
-COPY --from=build /core/build/bin/linux_64/x2t x2t.js
+COPY --from=build /core/build/bin/linux_64/x2t.js x2t.js
 COPY --from=build /core/build/bin/linux_64/x2t.wasm x2t.wasm
+COPY --from=build /core/build/bin/linux_64/x2t.js.br x2t.js.br
+COPY --from=build /core/build/bin/linux_64/x2t.wasm.br x2t.wasm.br
 COPY --from=build /core/build/bin/linux_64/x2t.zip x2t.zip
 COPY --from=build /core/build/bin/linux_64/x2t.zip.sha512 x2t.zip.sha512
