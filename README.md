@@ -26,7 +26,6 @@ Since the clone contains small changes there may be merge conflicts.
 
 ## See changes we made to https://github.com/ONLYOFFICE/core.git
 
-TODO put correct tag here
 ``` shell
 git fetch --depth=1 https://github.com/ONLYOFFICE/core.git v8.3.0.91
 git diff FETCH_HEAD HEAD:core
