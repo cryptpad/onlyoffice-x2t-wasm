@@ -1476,6 +1476,7 @@ namespace NExtractTools
 
 	_UINT32 fromInputParams(InputParams& oInputParams)
 	{
+        std::cout << "XXX fromInputParams" << std::endl;
 		TConversionDirection conversion = oInputParams.getConversionDirection();
 		
 		std::wstring sFileFrom = oInputParams.m_sFileFrom  ? *oInputParams.m_sFileFrom : L"";
@@ -1552,6 +1553,7 @@ namespace NExtractTools
 #endif
 
 		_UINT32 result = 0;
+        std::cout << "XXX fromInputParams conversion " << conversion << std::endl;
 		switch (conversion)
 		{
 		case TCD_NON_AUTO:
@@ -1977,16 +1979,19 @@ namespace NExtractTools
 		break;
 		case TCD_ODF2OOT:
 		{
+            std::cout << "XXX fromInputParams TCD_ODF2OOT" << std::endl;
 			result = odf2oot(sFileFrom, sFileTo, oInputParams, oConvertParams);
 		}
 		break;
 		case TCD_ODF2OOT_BIN:
 		{
+            std::cout << "XXX fromInputParams TCD_ODF2OOT_BIN" << std::endl;
 			result = odf2oot_bin(sFileFrom, sFileTo, oInputParams, oConvertParams);
 		}
 		break;
 		case TCD_ODF_FLAT2OOX:
 		{
+            std::cout << "XXX fromInputParams TCD_ODF_FLAT2OOX" << std::endl;
 			result = odf_flat2oox(sFileFrom, sFileTo, oInputParams, oConvertParams);
 		}
 		break;

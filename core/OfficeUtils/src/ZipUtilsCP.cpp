@@ -35,6 +35,8 @@
 #include "../../DesktopEditor/common/Directory.h"
 #include "../../DesktopEditor/common/Path.h"
 
+#include <iostream>
+
 #if !defined(_WIN32) && !defined (_WIN64)
 #include <unistd.h>
 #include <sys/stat.h>
@@ -400,6 +402,7 @@ namespace ZLibZipUtils
 
 	static int do_extract( unzFile uf, const wchar_t* unzip_dir, int opt_extract_without_path, int opt_overwrite, const char* password, const OnProgressCallback* progress )
 	{
+        std::cout << "XXX do_extract start" << std::endl;
 		uLong i, number_extract = 0;
 		unz_global_info gi;
 		int err;
@@ -414,8 +417,10 @@ namespace ZLibZipUtils
 
 		err = unzGetGlobalInfo (uf,&gi);
 
+        std::cout << "XXX do_extract gi.number_entry " << gi.number_entry << std::endl;
 		for (i = 0; i < gi.number_entry; i++)
 		{
+        std::cout << "XXX do_extract i " << i << std::endl;
 			if (do_extract_currentfile(uf, unzip_dir, &opt_extract_without_path,
 									   &opt_overwrite,
 									   password, is_office) == UNZ_OK)
@@ -446,6 +451,7 @@ namespace ZLibZipUtils
 			}
 		}
 
+        std::cout << "XXX do_extract after loop"  << std::endl;
 		if (number_extract < 1)
 		{
 			err = -1;
@@ -453,12 +459,14 @@ namespace ZLibZipUtils
 
 		if ( progress != NULL )
 		{
+        std::cout << "XXX do_extract progress"  << std::endl;
 			short cancel = 0;
 			long progressValue = 1000000;
 			if(NULL != progress)
 				(*progress)( UTILS_ONPROGRESSEVENT_ID, progressValue, &cancel );
 		}
 
+        std::cout << "XXX do_extract err " << err << std::endl;
 		return err;
 	}
 
@@ -829,6 +837,7 @@ namespace ZLibZipUtils
 
 	int UnzipToDir( const WCHAR* zipFile, const WCHAR* unzipDir, const OnProgressCallback* progress, const WCHAR* password, bool opt_extract_without_path, bool clearOutputDirectory )
 	{
+        std::cout << "XXX UnzipToDir start 1" << std::endl;
 		CunzFileWrapped ufw;
 		ufw.Open(zipFile);
 		int err = UnzipToDir(ufw.Get(), unzipDir, progress, password, opt_extract_without_path, clearOutputDirectory);
@@ -836,6 +845,7 @@ namespace ZLibZipUtils
 		// call Close() instead ~...() because of error code
 		if(err == UNZ_OK)
 			err = ufw.Close();
+        std::cout << "XXX UnzipToDir err 1 " << err << std::endl;
 		return err;
 	}
 
@@ -843,6 +853,7 @@ namespace ZLibZipUtils
 
 	int UnzipToDir(BYTE* data, size_t len, const WCHAR* unzipDir, const OnProgressCallback* progress, const WCHAR* password, bool opt_extract_without_path, bool clearOutputDirectory )
 	{
+        std::cout << "XXX UnzipToDir start 3" << std::endl;
 		CunzFileWrapped ufw;
 		ufw.Open(data, len);
 		int err = UnzipToDir(ufw.Get(), unzipDir, progress, password, opt_extract_without_path, clearOutputDirectory);
@@ -857,6 +868,7 @@ namespace ZLibZipUtils
 
 	int UnzipToDir(unzFile uf, const WCHAR* unzipDir, const OnProgressCallback* progress, const WCHAR* password, bool opt_extract_without_path, bool clearOutputDirectory )
 	{
+        std::cout << "XXX UnzipToDir start 2" << std::endl;
 		int err = -1;
 
 		if ( uf != NULL && unzipDir != NULL )
@@ -880,6 +892,7 @@ namespace ZLibZipUtils
 					err = do_extract( uf, unzipDir, opt_extract_without_path, 1, NULL, progress );
 			}
 		}
+        std::cout << "XXX UnzipToDir 2 err " << err << std::endl;
 		return err;
 	}
 

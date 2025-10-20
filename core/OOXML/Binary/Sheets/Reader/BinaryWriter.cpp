@@ -8618,6 +8618,7 @@ BinaryFileWriter::~BinaryFileWriter()
 _UINT32 BinaryFileWriter::Open(const std::wstring& sInputDir, const std::wstring& sFileDst, NSFontCutter::CEmbeddedFontsManager* pEmbeddedFontsManager,
     NSBinPptxRW::CDrawingConverter* pOfficeDrawingConverter, const std::wstring& sXMLOptions, bool bIsNoBase64)
 {
+    std::cout << "XXX BinaryFileWriter" << std::endl;
 	_UINT32 result = 0;
 
 	OOX::CPath pathDst(sFileDst);
@@ -8743,6 +8744,7 @@ _UINT32 BinaryFileWriter::Open(const std::wstring& sInputDir, const std::wstring
 		}
 		int nHeaderLen = oBufferedStream.GetPosition();
 		
+        std::cout << "XXX WriteMainTableStart" << std::endl;
 		WriteMainTableStart(oBufferedStream);
 		WriteContent(pXlsx ? dynamic_cast<OOX::Document*>(pXlsx) : dynamic_cast<OOX::Document*>(pXlsxFlat), pEmbeddedFontsManager, pOfficeDrawingConverter);
 		WriteMainTableEnd();

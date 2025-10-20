@@ -58,6 +58,7 @@ bool odf_document::docx_convert(oox::docx_conversion_context & Context)
 
 bool odf_document::xlsx_convert(oox::xlsx_conversion_context & Context)
 {
+    std::cout << "XXX odf_document::xlsx_convert" << std::endl;
     return impl_->xlsx_convert(Context);
 }
 bool odf_document::pptx_convert(oox::pptx_conversion_context & Context)

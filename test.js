@@ -195,6 +195,7 @@ function rmr(FS, p) {
 x2t.onRuntimeInitialized = function() {
   try {
     testFilesInDir('tests');
+    console.log('success');
   } catch(e) {
     console.error(e);
     exit(1);

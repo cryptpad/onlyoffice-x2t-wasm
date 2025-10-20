@@ -45,15 +45,23 @@
 
 _UINT32 ConvertOds2Xlsx(cpdoccore::odf_reader::odf_document & inputOdf, const std::wstring & dstPath, const std::wstring & fontsPath)
 {
+        std::cout << "XXX ConvertOds2Xlsx start" << std::endl;
     cpdoccore::oox::package::xlsx_document outputXlsx;
 	cpdoccore::oox::xlsx_conversion_context conversionContext( &inputOdf);
-   
+
+        std::cout << "XXX ConvertOds2Xlsx 1" << std::endl;
 	conversionContext.set_output_document	(&outputXlsx);
 	conversionContext.set_font_directory	(fontsPath);
 	
-	if (inputOdf.xlsx_convert(conversionContext) == false) return AVS_ERROR_FILEFORMAT;
+        std::cout << "XXX ConvertOds2Xlsx 2" << std::endl;
+    if (inputOdf.xlsx_convert(conversionContext) == false) {
+        std::cout << "XXX ConvertOds2Xlsx err" << std::endl;
+        return AVS_ERROR_FILEFORMAT;
+    }
+
     
 	outputXlsx.write(dstPath);
+    std::cout << "XXX ConvertOds2Xlsx end" << std::endl;
     return 0;
 }
 _UINT32 ConvertOdt2Docx(cpdoccore::odf_reader::odf_document & inputOdf, const std::wstring & dstPath, const std::wstring & fontsPath)
@@ -85,11 +93,13 @@ _UINT32 ConvertOdp2Pptx(cpdoccore::odf_reader::odf_document & inputOdf, const st
 }
 _UINT32 ConvertODF2OOXml(const std::wstring & srcPath, const std::wstring & dstPath, const std::wstring & fontsPath, const std::wstring & tempPath, const std::wstring & password)
 {
+        std::cout << "XXX ConvertODF2OOXml start" << std::endl;
 	_UINT32 nResult = 0;
 
 	try 
     {
         cpdoccore::odf_reader::odf_document inputOdf(srcPath, tempPath, password);
+        std::cout << "XXX ConvertODF2OOXml 1" << std::endl;
 		
 		int type		= inputOdf.get_office_mime_type();
 		bool bEncrypted	= inputOdf.get_encrypted();
@@ -108,6 +118,7 @@ _UINT32 ConvertODF2OOXml(const std::wstring & srcPath, const std::wstring & dstP
 			}
 		}
 
+        std::cout << "XXX ConvertODF2OOXml type " << type << std::endl;
 		switch (type)
 		{
 		case 1:

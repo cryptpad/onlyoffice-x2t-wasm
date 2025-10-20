@@ -84,19 +84,25 @@ namespace NExtractTools
 	}
 	_UINT32 odf2oot_bin(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{
+        std::cout << "XXX odf2oot_bin start" << std::endl;
 		std::wstring sTempUnpackedOdf = combinePath(convertParams.m_sTempDir, L"odf_unpacked");
 		std::wstring sTempUnpackedOox = combinePath(convertParams.m_sTempDir, L"oox_unpacked");
 
 		NSDirectory::CreateDirectory(sTempUnpackedOdf);
+        std::cout << "XXX odf2oot_bin 1" << std::endl;
 
 		_UINT32 nRes = 0;
 
 		COfficeUtils oCOfficeUtils(NULL);
+        std::cout << "XXX odf2oot_bin 2" << std::endl;
 		if (S_OK == oCOfficeUtils.ExtractToDirectory(sFrom, sTempUnpackedOdf, NULL, 0))
 		{
+        std::cout << "XXX odf2oot_bin 2a" << std::endl;
 			NSDirectory::CreateDirectory(sTempUnpackedOox);
 
+        std::cout << "XXX odf2oot_bin 2b" << std::endl;
 			nRes = ConvertODF2OOXml(sTempUnpackedOdf, sTempUnpackedOox, params.getFontPath(), convertParams.m_sTempDir, params.getPassword());
+        std::cout << "XXX odf2oot_bin 3" << std::endl;
 			
 			params.m_bMacro = false; // todooo ������� ��������� �������� odf
 			
@@ -107,6 +113,7 @@ namespace NExtractTools
 
 				if (OfficeFileFormatChecker.isOOXFormatFile(sTempUnpackedOox, true))
 				{
+        std::cout << "XXX odf2oot_bin OfficeFileFormatChecker.nFileType" << OfficeFileFormatChecker.nFileType  << nRes << std::endl;
 					switch (OfficeFileFormatChecker.nFileType)
 					{
 					case AVS_OFFICESTUDIO_FILE_DOCUMENT_DOCX:
@@ -151,10 +158,12 @@ namespace NExtractTools
 		}
 		else
 		{
+            std::cout << "XXX odf2oot_bin else" << std::endl;
 			nRes = AVS_FILEUTILS_ERROR_CONVERT;
 			if (create_if_empty(sFrom, sTo, L"DOCY;v10;0;"))
 				nRes = 0;
 		}
+        std::cout << "XXX odf2oot_bin end " << nRes << std::endl;
 		return nRes;
 	}
 

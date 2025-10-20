@@ -34,6 +34,8 @@
 #include "../../DesktopEditor/common/File.h"
 #include "../../DesktopEditor/common/Directory.h"
 
+#include <iostream>
+
 COfficeUtils::COfficeUtils(OnProgressCallback* fCallback)
 {
 	m_fCallback = fCallback;
@@ -41,6 +43,7 @@ COfficeUtils::COfficeUtils(OnProgressCallback* fCallback)
 
 HRESULT COfficeUtils::ExtractToDirectory(const std::wstring& _zipFile, const std::wstring& _unzipDir,  wchar_t* password, SHORT extract_without_path)
 {
+            std::cout << "XXX COfficeUtils::ExtractToDirectory start" << std::endl;
 #if defined(_WIN32) || defined(_WIN32_WCE) || defined(_WIN64)
 	std::wstring zipFile = CorrectPathW(_zipFile);
 	std::wstring unzipDir = CorrectPathW(_unzipDir);
@@ -49,12 +52,15 @@ HRESULT COfficeUtils::ExtractToDirectory(const std::wstring& _zipFile, const std
 	std::wstring unzipDir = _unzipDir;
 #endif
 
+            std::cout << "XXX COfficeUtils::ExtractToDirectory 1" << std::endl;
 	if( ZLibZipUtils::UnzipToDir( zipFile.c_str(), unzipDir.c_str(), m_fCallback, password, ( extract_without_path > 0 ) ? (true) : (false) ) == 0 )
 	{
+            std::cout << "XXX COfficeUtils::ExtractToDirectory end OK" << std::endl;
 		return S_OK;
 	}
 	else
 	{
+            std::cout << "XXX COfficeUtils::ExtractToDirectory end FALSE" << std::endl;
 		return S_FALSE;
 	}
 }
