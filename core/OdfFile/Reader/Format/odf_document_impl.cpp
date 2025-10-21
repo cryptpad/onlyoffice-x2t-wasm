@@ -159,7 +159,7 @@ odf_document::Impl::Impl(xml::sax * Reader, const std::wstring & tempPath) : con
 		_CP_LOG << L"[info] parse manifest" << std::endl;
 		parse_manifests(content_xml_->get_content());
 
-		_CP_LOG << L"[info] parse meta" << std::endl;
+		_CP_LOG << L"[info] parse meta XXX" << std::endl;
 		parse_meta(content_xml_->get_content());
 
 		_CP_LOG << L"[info] parse settings" << std::endl;
@@ -245,8 +245,9 @@ odf_document::Impl::Impl(const std::wstring & srcPath, const std::wstring & temp
         _CP_LOG << L"[info] parse settings" << std::endl;
         parse_settings(settings_xml_ ? settings_xml_->get_content() : NULL);
 
-        _CP_LOG << L"[info] parse meta" << std::endl;
+        _CP_LOG << L"[info] parse meta YYY" << std::endl;
         parse_meta(meta_xml_ ? meta_xml_->get_content() : NULL);
+        _CP_LOG << L"[info] parse meta YYY after" << std::endl;
     }
     else
     {
@@ -270,6 +271,7 @@ odf_document::Impl::Impl(const std::wstring & srcPath, const std::wstring & temp
             tmp_folder_ = NSDirectory::CreateDirectoryWithUniqueName(tempPath);
         }
     }
+    std::cout << "XXX odf_document::Impl::Impl end" << std::endl;
 }
 odf_document::Impl::~Impl()
 {
@@ -1208,16 +1210,21 @@ bool odf_document::Impl::docx_convert(oox::docx_conversion_context & Context)
 }
 bool odf_document::Impl::xlsx_convert(oox::xlsx_conversion_context & Context) 
 {
+    std::cout << "XXX odf_document::Impl::xlsx_convert" << std::endl;
 	try
     {
 		_CP_LOG << L"[info] convert content" << std::endl;
        
+    std::cout << "XXX odf_document::Impl::xlsx_convert 1" << std::endl;
 		Context.start_document();
-     
+
+    std::cout << "XXX odf_document::Impl::xlsx_convert 2" << std::endl;
 		if (content_xml_)
             content_xml_->xlsx_convert(Context);
 
+    std::cout << "XXX odf_document::Impl::xlsx_convert 3" << std::endl;
         Context.end_document();
+    std::cout << "XXX odf_document::Impl::xlsx_convert 4" << std::endl;
 
         _CP_LOG << L"[info] process styles" << std::endl;
         Context.process_styles();
@@ -1242,6 +1249,7 @@ bool odf_document::Impl::xlsx_convert(oox::xlsx_conversion_context & Context)
         throw;
     }
 
+    std::cout << "XXX odf_document::Impl::xlsx_convert end" << std::endl;
 	return true;
 }
 

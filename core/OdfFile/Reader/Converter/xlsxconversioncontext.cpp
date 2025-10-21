@@ -134,6 +134,7 @@ void xlsx_conversion_context::start_document()
 
 void xlsx_conversion_context::end_document()
 {
+    std::cout << "XXX xlsx_conversion_context::end_document start" << std::endl;
 	std::wstringstream workbook_content;
 
 	if (sheets_.empty())

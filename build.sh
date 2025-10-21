@@ -5,3 +5,5 @@ set -euxo pipefail
 rm -rf results build
 docker build --target test-output -o results .
 docker build --target output -o build .
+# podman build --target test-output -o results .
+# podman build --target output -o build .

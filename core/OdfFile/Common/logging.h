@@ -58,8 +58,9 @@ namespace cpdoccore
     extern logging< std::wstringstream >logging_log;
 }
 
-#ifdef _DEBUG
-    #define _CP_LOG     cpdoccore::logging_cout
-#else
-    #define _CP_LOG     cpdoccore::logging_log
-#endif
+#define _CP_LOG     cpdoccore::logging_cout
+// #ifdef _DEBUG
+//     #define _CP_LOG     cpdoccore::logging_cout
+// #else
+//     #define _CP_LOG     cpdoccore::logging_log
+// #endif
