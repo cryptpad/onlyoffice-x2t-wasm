@@ -1,8 +1,13 @@
 FROM ubuntu:22.04
 SHELL ["/bin/bash", "-c"]
 
-# TODO remove libc++-dev
-RUN apt update \
+# The default sources in ubuntu:22.04 are very slow, so we switch to a mirror
+RUN sed -i 's|http://security.ubuntu.com/ubuntu/|http://de.archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list && \
+    sed -i 's|http://archive.ubuntu.com/ubuntu/|http://de.archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list
+
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt update \
     && apt install -y \
        git \
        python-is-python3 \
@@ -13,6 +18,7 @@ RUN apt update \
        autoconf \
        make \
        qt6-base-dev \
+       qtchooser \
        build-essential \
        cmake \
        libc++-dev
@@ -58,7 +64,7 @@ RUN git clone --recurse-submodules https://github.com/boostorg/boost.git
 WORKDIR /boost
 RUN git checkout boost-1.82.0
 RUN . /emsdk/emsdk_env.sh \
- && CXXFLAGS=-fms-extensions emcmake cmake '-DBOOST_EXCLUDE_LIBRARIES=wave;type_erasure;thread;serialization;program_options;log;locale;json;graph;contract;context;coroutine;fiber'
+ && CXXFLAGS=-fms-extensions emcmake cmake '-DBOOST_EXCLUDE_LIBRARIES=wave;type_erasure;thread;serialization;program_options;log;locale;json;graph;contract;context;coroutine;fiber;cobalt;process'
 RUN . /emsdk/emsdk_env.sh \
  && emmake make
 RUN . /emsdk/emsdk_env.sh \
@@ -121,7 +127,6 @@ COPY wrap-main.cpp /wrap-main.cpp
 
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 RUN embuild.sh \
-    -c -g \
     -l "-lgumbo" \
     -l "-lkatana" \
     -l "-L/usr/local/lib" \

@@ -1,17 +1,17 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -euxo pipefail
 
 DOCKER_LOG=$(mktemp)
 
-docker build . | tee $DOCKER_LOG
+docker build . 2>&1 | tee $DOCKER_LOG
 
-IMAGE_ID=$(tail -1 $DOCKER_LOG | sed -e 's/Successfully built //')
+IMAGE_ID=$(grep --max-count=1 "writing image" $DOCKER_LOG | sed -e 's/^.*\(sha256:[0-9a-f]*\) .*$/\1/')
 
 rm -rf results
 mkdir results
 
-docker run -it -p 9229:9229 -v $PWD/tests/:/tests/ -v $PWD/results/:/results/ $IMAGE_ID
+# docker run -it -p 9229:9229 -v $PWD/tests/:/tests/ -v $PWD/results/:/results/ $IMAGE_ID
 
 rm -rf build
 mkdir build
