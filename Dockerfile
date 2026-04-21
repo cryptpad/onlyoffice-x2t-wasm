@@ -721,7 +721,6 @@ RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 # ENV DEV_MODE=1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh \
-    -c -g \
     -l "-lgumbo" \
     -l "-lkatana" \
     -l "-looxmlsignature" \
