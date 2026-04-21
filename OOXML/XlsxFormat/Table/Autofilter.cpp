@@ -1,4 +1,4 @@
-/*
+﻿/*
  * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
@@ -58,6 +58,16 @@
 
 #include "../../Common/SimpleTypes_Shared.h"
 #include "../../Common/SimpleTypes_Spreadsheet.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Binary/CFStreamCacheWriter.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_unions/SORTANDFILTER.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_unions/SORTDATA12.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_unions/AUTOFILTER.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/SortData.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/FilterMode.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/AutoFilterInfo.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/AutoFilter12.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/DXFN12.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/AF12Criteria.h"
 
 namespace OOX
 {
@@ -142,10 +152,77 @@ namespace OOX
                 }
                 else
                     ptr->sortOn = 0;
-
-
                 ptr->stSslist = L"";
 				return objectPtr;
+			}
+            void CSortCondition::toBin(XLS::StreamCacheWriterPtr& writer)
+            {
+                {
+                    auto begin = writer->getNextRecord(XLSB::rt_BeginSortCond);
+                    XLS::CondDataValue condDataValue;
+                    {
+                        _UINT16 flags = 0;
+                        if(m_oDescending.IsInit())
+                            SETBIT(flags, 0, m_oDescending->GetValue())
+                        if(m_oSortBy.IsInit())
+                        {
+                            if(m_oSortBy == SimpleTypes::Spreadsheet::ESortBy::sortbyValue)
+                                SETBITS(flags, 1, 4, 0)
+                            else if(m_oSortBy ==  SimpleTypes::Spreadsheet::ESortBy::sortbyCellColor)
+                            {
+                                SETBITS(flags, 1, 4, 1)
+                                condDataValue.condDataValue = m_oDxfId->GetValue();
+                            }
+                            else if(m_oSortBy == SimpleTypes::Spreadsheet::ESortBy::sortbyFontColor)
+                            {
+                                SETBITS(flags, 1, 4, 2)
+                                condDataValue.condDataValue = m_oDxfId->GetValue();
+                            }
+                            else if(m_oSortBy == SimpleTypes::Spreadsheet::ESortBy::sortbyIcon)
+                            {
+                                SETBITS(flags, 1, 4, 3)
+                            }
+
+                        }
+                        *begin << flags;
+                    }
+                    {
+                        XLSB::UncheckedRfX ref;
+                        if(m_oRef.IsInit())
+                            ref = m_oRef->GetValue();
+                        XLSB::XLNullableWideString stSslist;
+                        stSslist.setSize(0xFFFFFFFF);
+                        *begin << ref << condDataValue << stSslist;
+                    }
+                    writer->storeNextRecord(begin);
+                }
+                {
+                    auto end = writer->getNextRecord(XLSB::rt_EndSortCond);
+                    writer->storeNextRecord(end);
+                }
+            }
+			XLS::BiffStructurePtr CSortCondition::toXLS()
+			{
+				auto ptr = new XLS::SortCond12;
+				if(m_oDescending.IsInit())
+					ptr->fSortDes = m_oDescending->GetValue();
+				if(m_oRef.IsInit())
+					ptr->rfx = m_oRef->GetValue();
+				if(m_oSortBy.IsInit())
+				{
+					if(m_oSortBy->GetValue() == SimpleTypes::Spreadsheet::ESortBy::sortbyCellColor
+						|| m_oSortBy->GetValue() == SimpleTypes::Spreadsheet::ESortBy::sortbyFontColor)
+					{
+						ptr->sortOn = 1;
+						if(m_oDxfId.IsInit())
+							ptr->condDataValue.condDataValue = m_oDxfId->GetValue();
+					}
+					else if(m_oSortBy->GetValue() == SimpleTypes::Spreadsheet::ESortBy::sortbyIcon)
+					{
+						ptr->sortOn = 3;
+					}
+				}
+				return XLS::BiffStructurePtr(ptr);
 			}
 			EElementType CSortCondition::getType () const
 			{
@@ -329,6 +406,53 @@ namespace OOX
                 beginSortState->cconditions = sortConds->m_arSORTCOND.size();
 
 				return objectPtr;
+			}
+            void CSortState::toBin(XLS::StreamCacheWriterPtr& writer)
+            {
+                {
+                    auto begin = writer->getNextRecord(XLSB::rt_BeginSortState);
+                    _UINT16 flags = 0;
+                    if(m_oColumnSort.IsInit())
+                        SETBIT(flags, 0, m_oColumnSort->GetValue())
+                    if(m_oCaseSensitive.IsInit())
+                        SETBIT(flags, 1, m_oCaseSensitive->GetValue())
+                    if(m_oSortMethod.IsInit() && m_oSortMethod == SimpleTypes::Spreadsheet::ESortMethod::sortmethodStroke)
+                        SETBIT(flags, 2, true)
+                    *begin << flags;
+                    XLSB::UncheckedRfX rfx;
+                    if(m_oRef.IsInit())
+                        rfx = m_oRef->GetValue();
+                    *begin << rfx;
+                    writer->storeNextRecord(begin);
+                }
+                for(auto i:m_arrItems)
+                {
+                    i->toBin(writer);
+                }
+                {
+                    auto end = writer->getNextRecord(XLSB::rt_EndSortState);
+                    writer->storeNextRecord(end);
+                }
+            }
+			void CSortState::toXLS(XLS::BaseObjectPtr sortPtr)
+			{
+				auto CastedPtr = static_cast<XLS::SORTANDFILTER*>(sortPtr.get());
+				auto sortadaPtr = new XLS::SORTDATA12;
+				auto ptr = new XLS::SortData;
+				sortadaPtr->m_SortData = XLS::BaseObjectPtr(ptr);
+				CastedPtr->m_SORTDATA12 = XLS::BaseObjectPtr(sortadaPtr);
+				if(m_oColumnSort.IsInit())
+					ptr->fCol = m_oColumnSort->GetValue();
+				if(m_oCaseSensitive.IsInit())
+					ptr->fCaseSensitive = m_oCaseSensitive->GetValue();
+				if(m_oSortMethod.IsInit() && m_oSortMethod->GetValue() != 1)
+					ptr->fAltMethod = true;
+
+				if(m_oRef.IsInit())
+					ptr->rfx = m_oRef->GetValue();
+				for(auto i : m_arrItems)
+					ptr->sortCond12Array.push_back(i->toXLS());
+
 			}
 			EElementType CSortState::getType () const
 			{
@@ -746,6 +870,43 @@ namespace OOX
 
 				return objectPtr;
 			}
+			XLS::BiffStructurePtr CCustomFilter::toXLS()
+			{
+				auto ptr = new XLS::AF12Criteria;
+				if (m_oOperator == SimpleTypes::Spreadsheet::ECustomFilter::customfilterLessThan)
+				{
+					ptr->doper.grbitSign = 0x01;
+				}
+				else if (m_oOperator == SimpleTypes::Spreadsheet::ECustomFilter::customfilterEqual)
+				{
+					ptr->doper.grbitSign = 0x02;
+				}
+				else if (m_oOperator == SimpleTypes::Spreadsheet::ECustomFilter::customfilterLessThanOrEqual)
+				{
+					ptr->doper.grbitSign = 0x03;
+				}
+				else if (m_oOperator == SimpleTypes::Spreadsheet::ECustomFilter::customfilterGreaterThan)
+				{
+					ptr->doper.grbitSign = 0x04;
+				}
+				else if (m_oOperator == SimpleTypes::Spreadsheet::ECustomFilter::customfilterNotEqual)
+				{
+					ptr->doper.grbitSign = 0x05;
+				}
+				else if (m_oOperator == SimpleTypes::Spreadsheet::ECustomFilter::customfilterGreaterThanOrEqual)
+				{
+					ptr->doper.grbitSign = 0x06;
+				}
+				ptr->doper.vt = 0x06;
+				if(m_oVal.IsInit())
+				{
+					ptr->str = m_oVal.get();
+					ptr->doper.vtValueStr.cch = m_oVal->size();
+					ptr->doper.vtValueStr.m_bAutoFilter = false;
+					ptr->doper.m_bAutoFilter = false;
+				}
+				return XLS::BiffStructurePtr(ptr);
+			}
 			EElementType CCustomFilter::getType () const
 			{
 				return et_x_CustomFilters;
@@ -943,6 +1104,20 @@ namespace OOX
 				XLS::BaseObjectPtr objectPtr(ptr);
 				ptr->rgch = m_oVal.get();
 				return objectPtr;
+			}
+			XLS::BiffStructurePtr CFilter::toXLS()
+			{
+				auto ptr = new  XLS::AF12Criteria;
+				ptr->doper.vt = 0x06;
+				ptr->doper.grbitSign = 0x02;
+				if(m_oVal.IsInit())
+				{
+					ptr->str = m_oVal.get();
+					ptr->doper.vtValueStr.cch = m_oVal->size();
+					ptr->doper.m_bAutoFilter = false;
+					ptr->doper.vtValueStr.m_bAutoFilter = false;
+				}
+				return XLS::BiffStructurePtr(ptr);
 			}
 			EElementType CFilter::getType () const
 			{
@@ -1462,6 +1637,47 @@ namespace OOX
 
 				return objectPtr;
 			}
+			XLS::BaseObjectPtr CFilterColumn::toXLS()
+			{
+				auto ptr = new XLS::AutoFilter12;
+				ptr->idList = 0xFFFFFFFF;
+				if(m_oColId.IsInit())
+					ptr->iEntry = m_oColId->GetValue();
+				if(m_oHiddenButton.IsInit())
+					ptr->fHideArrow = m_oHiddenButton->GetValue();
+				if(m_oColorFilter.IsInit())
+				{
+					if(m_oColorFilter->m_oCellColor.IsInit() && m_oColorFilter->m_oCellColor->GetValue())
+						ptr->ft = 1;
+					else
+						ptr->ft = 2;
+					//auto dxfn = new XLS::DXFN12;
+					//todo: сделать копирование структуры dxfn12 из стилей по id
+				}
+				else if(m_oFilters.IsInit() || m_oCustomFilters.IsInit())
+				{
+					if(m_oFilters.IsInit())
+					{
+						ptr->cCriteria +=  m_oFilters->m_arrItems.size();
+						for(auto i :  m_oFilters->m_arrItems)
+						{
+							auto castedFilter = static_cast<CFilter*>(i);
+							ptr->arAF12Criteries.push_back(castedFilter->toXLS());
+						}
+					}
+					if(m_oCustomFilters.IsInit())
+					{
+						ptr->cCriteria +=  m_oCustomFilters->m_arrItems.size();
+						for(auto i :  m_oCustomFilters->m_arrItems)
+						{
+							auto castedFilter = static_cast<CCustomFilter*>(i);
+							ptr->arAF12Criteries.push_back(castedFilter->toXLS());
+						}
+					}
+				}
+
+				return XLS::BaseObjectPtr(ptr);
+			}
 			EElementType CFilterColumn::getType () const
 			{
 				return et_x_FilterColumn;
@@ -1574,6 +1790,46 @@ namespace OOX
 					 ptr->m_SORTSTATE = m_oSortState->toBin();
 
 				return objectPtr;
+			}
+            void CAutofilter::toBin(XLS::StreamCacheWriterPtr& writer)
+            {
+                {
+                    auto beginRecord = writer->getNextRecord(XLSB::rt_BeginAFilter);
+                    XLSB::UncheckedRfX ref;
+                    if(m_oRef.IsInit())
+                        ref.fromString(m_oRef->GetValue());
+                    *beginRecord << ref;
+                    writer->storeNextRecord(beginRecord);
+                }
+                if(m_oSortState.IsInit())
+                     m_oSortState->toBin(writer);
+                {
+                    auto endRecord = writer->getNextRecord(XLSB::rt_EndAFilter);
+                    writer->storeNextRecord(endRecord);
+                }
+            }
+			void CAutofilter::toXLS(XLS::BaseObjectPtr autoFilterPtr)
+			{
+				auto castedPtr = static_cast<XLS::SORTANDFILTER*>(autoFilterPtr.get());
+				castedPtr->m_FilterMode = XLS::BaseObjectPtr(new XLS::FilterMode);
+				auto filterUnion = new XLS::AUTOFILTER;
+				castedPtr->m_AUTOFILTER = XLS::BaseObjectPtr(filterUnion);
+				{
+					auto filterInfo = new XLS::AutoFilterInfo;
+					filterUnion->m_AutoFilterInfo = XLS::BaseObjectPtr(filterInfo);
+					filterInfo->cEntries = m_arrItems.size();
+					for(auto i : m_arrItems)
+					{
+						filterUnion->m_arFilters.push_back(i->toXLS());
+						if(m_oRef.IsInit())
+						{
+							auto tempCol = static_cast<XLS::AutoFilter12*>(filterUnion->m_arFilters.back().get());
+							tempCol->frtRefHeader.grbitFrt.fFrtRef = true;
+							tempCol->frtRefHeader.ref8 = m_oRef->GetValue();
+						}
+					}
+				}
+
 			}
 			EElementType CAutofilter::getType () const
 			{

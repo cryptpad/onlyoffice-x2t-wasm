@@ -51,9 +51,12 @@ namespace PdfWriter
 	class CDocument;
 	class CPage;
 	class CFontCidTrueType;
+	class CFont14;
+	class CFontEmbedded;
 	class CImageDict;
 	class CShading;
 	class CExtGrState;
+	class RedactOutputDev;
 }
 
 namespace Aggplus
@@ -64,21 +67,23 @@ namespace Aggplus
 class CPdfWriter
 {
 public:
-	CPdfWriter(NSFonts::IApplicationFonts* pAppFonts, bool isPDFA = false, IRenderer* pRenderer = NULL, bool bCreate = true);
+	CPdfWriter(NSFonts::IApplicationFonts* pAppFonts, bool isPDFA = false, IRenderer* pRenderer = NULL, bool bCreate = true, const std::wstring& wsTempDirectory = L"");
 	~CPdfWriter();
 	int          SaveToFile(const std::wstring& wsPath);
+	int          SaveToMemory(BYTE** pData, int* pLength);
 	void         SetPassword(const std::wstring& wsPassword);
 	void         SetDocumentID(const std::wstring& wsDocumentID);
 	void         SetDocumentInfo(const std::wstring& wsTitle, const std::wstring& wsCreator, const std::wstring& wsSubject, const std::wstring& wsKeywords);
 	std::wstring GetTempFile(const std::wstring& wsDirectory);
+	void SetTempDirectory(const std::wstring& wsTempDirectory);
 	//----------------------------------------------------------------------------------------
 	// Функции для работы со страницей
 	//----------------------------------------------------------------------------------------
 	HRESULT NewPage();
 	HRESULT get_Height(double* dHeight);
-	HRESULT put_Height(const double& dHeight);
+	HRESULT put_Height(const double& dHeight, bool bMM2PT = true);
 	HRESULT get_Width(double* dWidth);
-	HRESULT put_Width(const double& dWidth);
+	HRESULT put_Width(const double& dWidth, bool bMM2PT = true);
 	//----------------------------------------------------------------------------------------
 	// Функции для работы с Pen
 	//----------------------------------------------------------------------------------------
@@ -130,6 +135,10 @@ public:
 	HRESULT put_BrushTextureImage(Aggplus::CImage* pImage);
 	HRESULT get_BrushTransform(Aggplus::CMatrix& oMatrix);
 	HRESULT put_BrushTransform(const Aggplus::CMatrix& oMatrix);
+	HRESULT get_BrushOffset(double& offsetX, double& offsetY) const;
+	HRESULT put_BrushOffset(const double& offsetX, const double& offsetY);
+	HRESULT get_BrushScale(bool& isScale, double& scaleX, double& scaleY) const;
+	HRESULT put_BrushScale(bool isScale, const double& scaleX, const double& scaleY);
 	//----------------------------------------------------------------------------------------
 	// Функции для работы со шрифтами
 	//----------------------------------------------------------------------------------------
@@ -170,7 +179,7 @@ public:
 	HRESULT PathCommandArcTo(const double& dX, const double& dY, const double& dW, const double& dH, const double& dStartAngle, const double& dSweepAngle);
 	HRESULT PathCommandClose();
 	HRESULT PathCommandEnd();
-	HRESULT DrawPath(NSFonts::IApplicationFonts* pAppFonts, const std::wstring& wsTempDirectory, const LONG& lType);
+	HRESULT DrawPath(NSFonts::IApplicationFonts* pAppFonts, const std::wstring& wsTempDirectory, const LONG& lType, bool bIgnoreRedact = false);
 	HRESULT PathCommandStart();
 	HRESULT PathCommandGetCurrentPoint(double* dX, double* dY);
 	HRESULT PathCommandTextCHAR  (const LONG& lUnicode,                   const double& dX, const double& dY, const double& dW, const double& dH);
@@ -196,6 +205,7 @@ public:
 	HRESULT AddFormField (NSFonts::IApplicationFonts* pAppFonts, CFormFieldInfo* pFieldInfo, const std::wstring& wsTempDirectory);
 	HRESULT AddAnnotField(NSFonts::IApplicationFonts* pAppFonts, CAnnotFieldInfo* pFieldInfo);
 	HRESULT AddMetaData(const std::wstring& sMetaName, BYTE* pMetaData, DWORD nMetaLength);
+	HRESULT AddRedact(const std::vector<double>& arrRedact);
 	HRESULT get_ClipMode(LONG* lMode);
 	HRESULT put_ClipMode(const LONG& lMode);
 	//----------------------------------------------------------------------------------------
@@ -209,25 +219,37 @@ public:
 	//----------------------------------------------------------------------------------------
 	// Дополнительные функции для дозаписи Pdf
 	//----------------------------------------------------------------------------------------
+	HRESULT EditWidgetParents(NSFonts::IApplicationFonts* pAppFonts, CWidgetsInfo* pFieldInfo, const std::wstring& wsTempDirectory);
+	void SetPage(PdfWriter::CPage* pPage);
 	bool EditPage(PdfWriter::CPage* pNewPage);
 	bool AddPage(int nPageIndex);
 	bool EditClose();
 	void PageRotate(int nRotate);
-	void Sign(const double& dX, const double& dY, const double& dW, const double& dH, const std::wstring& wsPicturePath, ICertificate* pCertificate);
-	HRESULT EditWidgetParents(NSFonts::IApplicationFonts* pAppFonts, CWidgetsInfo* pFieldInfo, const std::wstring& wsTempDirectory);
+	void Sign(const double& dX, const double& dY, const double& dW, const double& dH, const std::wstring& wsPicturePath,
+			  const std::wstring &wsReason, const std::wstring &wsContact, const std::wstring &wsName, const std::wstring &wsLocation);
+	bool PrepareSignature(const std::wstring& wsPath);
+	bool FinalizeSignature(BYTE* pSignedData, DWORD dwDataLength);
 	PdfWriter::CDocument* GetDocument();
 	PdfWriter::CPage*     GetPage();
+	IRenderer*            GetRenderer();
 	void AddFont(const std::wstring& wsFontName, const bool& bBold, const bool& bItalic, const std::wstring& wsFontPath, const LONG& lFaceIndex);
 	void SetHeadings(CHeadings* pCommand);
+	void SetNeedAddHelvetica(bool bNeedAddHelvetica);
+	void SetSplit(bool bSplit) { m_bSplit = bSplit; }
 
 private:
+	PdfWriter::CAction* GetAction(CAnnotFieldInfo::CActionFieldPr* pAction, bool bDeferred = false);
+	bool SkipRedact(const double& dX, const double& dY, const double& dW, const double& dH);
+	bool SkipRedact(const double& dX, const double& dY);
 	PdfWriter::CImageDict* LoadImage(Aggplus::CImage* pImage, BYTE nAlpha);
 	PdfWriter::CImageDict* DrawImage(Aggplus::CImage* pImage, const double& dX, const double& dY, const double& dW, const double& dH, const BYTE& nAlpha);
 	bool DrawText(unsigned char* pCodes, const unsigned int& unLen, const double& dX, const double& dY, const std::string& sPUA);
-	bool DrawTextToRenderer(const unsigned int* unGid, const unsigned int& unLen, const double& dX, const double& dY);
+	bool DrawTextToRenderer(const unsigned int* unGid, const unsigned int& unLen, const double& dX, const double& dY, const std::wstring& wsUnicodeText = L"");
 	bool PathCommandDrawText(unsigned int* pUnicodes, unsigned int unLen, const double& dX, const double& dY, const unsigned int* pGids = NULL);
 	int  IsEmbeddedBase14(const std::wstring& wsFontName);
 	bool GetBaseFont14(const std::wstring& wsFontName, int nBase14);
+	bool IsEmbeddedFont(const std::wstring& wsName);
+	bool GetEmbeddedFont(const std::wstring& wsFontName);
 	bool UpdateFont();
 	bool FindFontPath(const std::wstring& wsFontName, const bool& bBold, const bool& bItalic, std::wstring& wsFontPath, LONG& lFaceIndex);
 	bool GetFontPath(const std::wstring& wsFontName, const bool& bBold, const bool& bItalic, std::wstring& wsFontPath, LONG& lFaceIndex);
@@ -247,7 +269,7 @@ private:
 	unsigned char* EncodeGID(const unsigned int& unGID, const unsigned int* pUnicodes, const unsigned int& unUnicodesCount);
 	std::wstring GetDownloadFile(const std::wstring& sUrl, const std::wstring& wsTempDirectory);
 	PdfWriter::CAnnotAppearanceObject* DrawAP(PdfWriter::CAnnotation* pAnnot, BYTE* pRender, LONG nLenRender);
-	void DrawWidgetAP(PdfWriter::CAnnotation* pAnnot, BYTE* pRender, LONG nLenRender);
+	void DrawWidgetAP(PdfWriter::CAnnotation* pAnnot, BYTE* pRender, LONG nLenRender, int nRotate = 0, bool bDiff = true);
 	void DrawTextWidget  (NSFonts::IApplicationFonts* pAppFonts, PdfWriter::CTextWidget* pTextWidget, const std::wstring& wsValue);
 	void DrawChoiceWidget(NSFonts::IApplicationFonts* pAppFonts, PdfWriter::CChoiceWidget* pChoiceWidget, const std::vector<std::wstring>& arrValue);
 	void DrawButtonWidget(NSFonts::IApplicationFonts* pAppFonts, PdfWriter::CPushButtonWidget* pButtonWidget, BYTE nAP, PdfWriter::CXObject* pForm);
@@ -259,9 +281,11 @@ private:
 	PdfWriter::CPage*            m_pPage;
 	PdfWriter::CFontCidTrueType* m_pFont;
 	PdfWriter::CFont14*          m_pFont14;
+	PdfWriter::CFontEmbedded*    m_pFontEmbedded;
 	PdfWriter::CShading*         m_pShading;
 	PdfWriter::CExtGrState*      m_pShadingExtGrState;
 
+	std::wstring                 m_wsTempDirectory;
 	CCommandManager              m_oCommandManager;
 	CPenState                    m_oPen;
 	CBrushState                  m_oBrush;
@@ -269,6 +293,7 @@ private:
 	CPath                        m_oPath;
 	CTransform                   m_oTransform;
 	bool                         m_bNeedUpdateTextFont;
+	bool                         m_bNeedAddHelvetica;
 	double                       m_dPageHeight;
 	double                       m_dPageWidth;
 	LONG                         m_lClipDepth;
@@ -277,8 +302,12 @@ private:
 	std::vector<TDestinationInfo>m_vDestinations;
 	unsigned int                 m_unFieldsCounter;
 	CMultiLineTextManager        m_oLinesManager;
+	std::vector<double>          m_arrRedact;
 
 	bool                         m_bValid;
+	bool                         m_bSplit;
+
+	friend class PdfWriter::RedactOutputDev;
 };
 
 #endif // _PDF_WRITER_H

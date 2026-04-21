@@ -70,6 +70,8 @@ namespace OOX
             void fromBin(XLS::BaseObjectPtr& obj);
             void fromBin(XLS::StreamCacheReaderPtr& reader);
 			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toXLS();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const
 			{
 				return et_x_PivotCacheRecord;
@@ -100,6 +102,7 @@ namespace OOX
             void fromBin(XLS::BaseObjectPtr& obj);
             void fromBin(XLS::StreamCacheReaderPtr& reader);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const
 			{
 				return et_x_PivotCacheRecords;
@@ -150,6 +153,7 @@ namespace OOX
             }
             void readBin(const CPath& oPath);
 			XLS::BaseObjectPtr WriteBin() const;
+            void WriteBin(XLS::StreamCacheWriterPtr& writer) const;
 			virtual void read(const CPath& oRootPath, const CPath& oPath);
 			virtual void write(const CPath& oPath, const CPath& oDirectory, CContentTypes& oContent) const;
 			virtual const OOX::FileType type() const;
@@ -172,7 +176,6 @@ namespace OOX
 			DWORD m_nDataLength = 0;
 		private:
 			CPath m_oReadPath;
-			std::wstring prepareData() const;
 		};
 	} //Spreadsheet
 } // namespace OOX

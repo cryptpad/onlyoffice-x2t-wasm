@@ -37,8 +37,8 @@
 
 #include "../../../XlsxFormat/Chart/Chart.h"
 
-#include "../../Sheets/Reader/BinaryWriter.h"
-#include "../../Sheets/Writer/BinaryReader.h"
+#include "../../Sheets/Reader/BinaryWriterS.h"
+#include "../../Sheets/Writer/BinaryReaderS.h"
 #include "../../Presentation/FontPicker.h"
 
 #include "../../../../OfficeUtils/src/OfficeUtils.h"
@@ -57,7 +57,7 @@ namespace BinXlsxRW{
 	{
 	}
 
-    void CXlsxSerializer::CreateXlsxFolders(const std::wstring& sXmlOptions, const std::wstring& sDstPath,  std::wstring& sMediaPath, std::wstring& sEmbedPath)
+    void CXlsxSerializer::CreateXlsxFolders(const std::wstring& sDstPath,  std::wstring& sMediaPath, std::wstring& sEmbedPath)
 	{
         OOX::CPath pathMediaDir = sDstPath + FILE_SEPARATOR_STR + _T("xl") + FILE_SEPARATOR_STR + _T("media");
 		OOX::CPath pathEmbedDir = sDstPath + FILE_SEPARATOR_STR + _T("xl") + FILE_SEPARATOR_STR + _T("embeddings");
@@ -93,7 +93,7 @@ namespace BinXlsxRW{
 		NSBinPptxRW::CDrawingConverter oDrawingConverter;
 		
         oDrawingConverter.SetDstPath(sDstPath + FILE_SEPARATOR_STR + L"xl");
-        oDrawingConverter.SetSrcPath(strFileInDir, 2);
+        oDrawingConverter.SetSrcPath(strFileInDir, XMLWRITER_DOC_TYPE_XLSX);
 
 		oDrawingConverter.SetMediaDstPath(sMediaDir);
 		oDrawingConverter.SetEmbedDstPath(sEmbedDir);
@@ -150,7 +150,7 @@ namespace BinXlsxRW{
 		NSBinPptxRW::CDrawingConverter oDrawingConverter;
 
 		oDrawingConverter.SetDstPath(sDstPath + FILE_SEPARATOR_STR + L"xl");
-		oDrawingConverter.SetSrcPath(strFileInDir, 2);
+		oDrawingConverter.SetSrcPath(strFileInDir, XMLWRITER_DOC_TYPE_XLSX);
 		oDrawingConverter.SetFontDir(m_sFontDir);
 		
 		BinXlsxRW::BinaryFileReader oBinaryFileReader;
@@ -304,10 +304,9 @@ namespace BinXlsxRW{
 		NSDirectory::CreateDirectory(sTempDir);
 		OOX::CPath oPath(sTempDir.c_str());
 	//шиблонные папки
-        std::wstring sXmlOptions = _T("");
         std::wstring sMediaPath;// will be filled by 'CreateXlsxFolders' method
         std::wstring sEmbedPath; // will be filled by 'CreateXlsxFolders' method
-		CreateXlsxFolders (sXmlOptions, sTempDir, sMediaPath, sEmbedPath);
+		CreateXlsxFolders (sTempDir, sMediaPath, sEmbedPath);
 	//заполняем Xlsx
 		OOX::Spreadsheet::CXlsx oXlsx;
 		helper.toXlsx(oXlsx);
@@ -323,12 +322,5 @@ namespace BinXlsxRW{
 	//clean
 		NSDirectory::DeleteDirectory(sTempDir);
 		return res;
-	}
-	bool CXlsxSerializer::hasPivot(const std::wstring& sSrcPath)
-	{
-		//todo CXlsx
-		std::wstring sData;
-		NSFile::CFileBinary::ReadAllTextUtf8(sSrcPath + FILE_SEPARATOR_STR + L"[Content_Types].xml", sData);
-		return std::wstring::npos != sData.find(OOX::Spreadsheet::FileTypes::PivotTable.OverrideType());
 	}
 };

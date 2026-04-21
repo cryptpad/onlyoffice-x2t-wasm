@@ -63,6 +63,7 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:
@@ -84,6 +85,8 @@ namespace OOX
 			virtual void read(const CPath& oRootPath, const CPath& oPath);
 			virtual void write(const CPath& oPath, const CPath& oDirectory, CContentTypes& oContent) const;
 
+			void toXLSChart(XLS::BaseObjectPtr chartStreamPtr);
+
 			virtual const OOX::FileType type() const;
 
 			virtual const CPath DefaultDirectory() const;
@@ -91,6 +94,7 @@ namespace OOX
 
 			const CPath& GetReadPath();
 			bool IsEmpty();
+			bool IsChart();
 
 		private:
 			CPath m_oReadPath;
@@ -99,7 +103,8 @@ namespace OOX
 			void ClearItems();
 
 		public:
-			std::vector<CCellAnchor *>	m_arrItems;
+			std::vector<CCellAnchor*> m_arrItems;
+			std::map<unsigned int, OOX::WritingElement*> m_mapShapes;
 		};
 	} //Spreadsheet
 } // namespace OOX

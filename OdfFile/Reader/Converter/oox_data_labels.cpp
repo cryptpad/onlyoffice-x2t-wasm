@@ -56,6 +56,16 @@ void oox_data_labels::set_common_dLbl ( odf_reader::text_format_properties_ptr t
 	textPr_ = text_properties;
 }
 
+void oox_data_labels::set_general_dLbls_status( bool flag )
+{
+	set_genereal_dLbls = flag;
+}
+
+bool oox_data_labels::get_general_dLbls_status() const
+{
+	return set_genereal_dLbls;
+}
+
 void oox_data_labels::add_dLbl(int ind, odf_reader::text_format_properties_ptr text_properties)
 {
 	dLbls_.insert(std::make_pair(ind, text_properties));
@@ -67,6 +77,33 @@ void oox_data_labels::oox_serialize(std::wostream & _Wostream)
     {
 		CP_XML_NODE(L"c:dLbls")
         {
+			if( set_genereal_dLbls == false )
+			{
+				set_genereal_dLbls = true;
+			}
+			if (position_ >= 0 && position_ < 13)
+			{
+				CP_XML_NODE(L"c:dLblPos")
+				{
+					switch (position_)
+					{
+					case 0: CP_XML_ATTR(L"val", L"bestFit"); break;
+					case 1: CP_XML_ATTR(L"val", L"b");		break;
+					case 2: CP_XML_ATTR(L"val", L"b");		break;
+					case 3: CP_XML_ATTR(L"val", L"b");		break;
+					case 6: CP_XML_ATTR(L"val", L"l");		break;
+					case 7: CP_XML_ATTR(L"val", L"inBase");	break;
+					case 9: CP_XML_ATTR(L"val", L"r");		break;
+					case 10: CP_XML_ATTR(L"val", L"outEnd");break;
+					case 11: CP_XML_ATTR(L"val", L"t");		break;
+					case 12: CP_XML_ATTR(L"val", L"t");		break;
+					case 5: //CP_XML_ATTR(L"val", L"inEnd");	break;
+					case 8: //CP_XML_ATTR(L"val", L"outEnd");	break;
+					case 4: CP_XML_ATTR(L"val", L"ctr");	break;
+
+					}
+				}
+			}
 			if (false == formatCode_.empty())
 			{
 				CP_XML_NODE(L"c:numFmt")
@@ -113,30 +150,6 @@ void oox_data_labels::oox_serialize(std::wostream & _Wostream)
 					}
 				}
 			}
-			if (position_ >= 0 && position_ < 13)
-			{
-				CP_XML_NODE(L"c:dLblPos")
-				{
-					switch (position_)
-					{
-					case 0: CP_XML_ATTR(L"val", L"bestFit");break;
-					case 1: CP_XML_ATTR(L"val", L"b");		break;
-					case 2: CP_XML_ATTR(L"val", L"b");		break;
-					case 3: CP_XML_ATTR(L"val", L"b");		break;
-					case 6: CP_XML_ATTR(L"val", L"l");		break;
-					case 7: CP_XML_ATTR(L"val", L"inBase");	break;
-					case 9: CP_XML_ATTR(L"val", L"r");		break;
-					case 10: CP_XML_ATTR(L"val", L"t");		break;
-					case 11: CP_XML_ATTR(L"val", L"t");		break;
-					case 12: CP_XML_ATTR(L"val", L"t");		break;
-					case 5: //CP_XML_ATTR(L"val", L"inEnd");	break;
-					case 8: //CP_XML_ATTR(L"val", L"outEnd");	break;
-					case 4: CP_XML_ATTR(L"val", L"ctr");	break;
-
-					}
-				}
-			}
-
 			CP_XML_NODE(L"c:showLegendKey")
 			{
 				CP_XML_ATTR(L"val", showLegendKey_);

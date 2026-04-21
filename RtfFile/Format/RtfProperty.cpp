@@ -143,12 +143,12 @@ std::wstring RtfFont::RenderToOOX(RenderParameter oRenderParameter)
 {
 	if ( IsValid() == false) return L"";
 
-    std::wstring sResult;
-	
-	RtfDocument* poRtfDocument = static_cast<RtfDocument*>(oRenderParameter.poDocument);
-    std::wstring sFontName = m_sName;
+	std::wstring sResult;
 
-    if( sFontName.empty() )
+	RtfDocument* poRtfDocument = static_cast<RtfDocument*>(oRenderParameter.poDocument);
+	std::wstring sFontName = m_sName;
+
+	if( sFontName.empty() )
 	{
 		if( PROP_DEF != poRtfDocument->m_oProperty.m_nDefFont )
 		{
@@ -156,12 +156,14 @@ std::wstring RtfFont::RenderToOOX(RenderParameter oRenderParameter)
 			poRtfDocument->m_oFontTable.GetFont( poRtfDocument->m_oProperty.m_nDefFont, oDefFont );
 			sFontName = oDefFont.m_sName;
 		}
-        if( sFontName.empty())
-			sFontName = L"Arial";
+		if (sFontName.empty())
+		{
+			sFontName = poRtfDocument->m_oProperty.m_sDefFontName;
+		}
 	}
 	if( RENDER_TO_OOX_PARAM_MINOR_FONT == oRenderParameter.nType )
 	{
-        std::wstring sTag;
+		std::wstring sTag;
 		switch(m_eFontTheme)
 		{
 			case ft_flominor: 
@@ -463,13 +465,16 @@ std::wstring RtfColor::RenderToRtf(RenderParameter  oRenderParameter )
 std::wstring RtfColor::RenderToOOX(RenderParameter oRenderParameter)
 {
     std::wstring sResult;
+
+	oRenderParameter.sValue = ToHexColor();
+
 	if( RENDER_TO_OOX_PARAM_COLOR_VALUE == oRenderParameter.nType )
 	{
-		sResult +=  ToHexColor();
+		sResult += oRenderParameter.sValue;
 	}
 	else if( RENDER_TO_OOX_PARAM_COLOR_ATTRIBUTE == oRenderParameter.nType )
 	{
-		sResult +=  oRenderParameter.sValue;
+		sResult += L"w:color=\"" + oRenderParameter.sValue + L"\"";
 	}
 	else if( RENDER_TO_OOX_PARAM_COLOR_TAG == oRenderParameter.nType )
 	{
@@ -481,7 +486,7 @@ std::wstring RtfColor::RenderToOOX(RenderParameter oRenderParameter)
 	}
 	else
 	{
-        sResult += L"<w:color w:val=\"" + ToHexColor() + L"\"/>";
+        sResult += L"<w:color w:val=\"" + oRenderParameter.sValue + L"\"/>";
 	}
 	return sResult;
 }
@@ -1033,7 +1038,13 @@ std::wstring RtfShading::RenderToOOX(RenderParameter oRenderParameter)
 	{
 		switch (m_eType)
 		{
-		case st_clshdrawnil:	sShading += L" w:val=\"nil\"";						break;
+        case st_clshdrawnil:
+        {
+            if (PROP_DEF != m_nBackColor)
+                sShading += L" w:val=\"clear\"";
+            else
+                sShading += L" w:val=\"nil\"";
+        }break;
 		case st_chbghoriz:		sShading += L" w:val=\"thinHorzStripehorzStripe\"";	break;
 		case st_chbgvert:		sShading += L" w:val=\"thinVertStripe\"";			break;
 		case st_chbgfdiag:		sShading += L" w:val=\"thinReverseDiagStripe\"";	break;
@@ -1344,8 +1355,10 @@ void RtfCharProperty::SetDefaultRtf()
 	m_poShading.SetDefaultRtf();
 	m_poBorder.SetDefaultRtf();
 
-	if (false == m_bListLevel)
-		m_nFontSize = 24;
+    //if (false == m_bListLevel)
+    //{
+        //m_nFontSize = DefaultStyle::FontSize;
+    //}
 }
 void RtfCharProperty::SetDefaultOOX()
 {
@@ -1583,7 +1596,11 @@ std::wstring RtfCharProperty::RenderToOOX(RenderParameter oRenderParameter)
 	
 	bool bInsert = false;
 	bool bDelete = false;
-	
+
+	if (m_nFontSize == PROP_DEF)
+	{
+		m_nFontSize = poRtfDocument->m_oProperty.m_nDefFontSize;
+	}
 	if( RENDER_TO_OOX_PARAM_MATH == oRenderParameter.nType)
 	{//w:rPr в m:ctrlPr 
 		if (m_nRevised != PROP_DEF)
@@ -1755,7 +1772,7 @@ std::wstring RtfCharProperty::RenderToOOX(RenderParameter oRenderParameter)
 	if(  PROP_DEF != m_nUnderlineColor  )
 	{
 		RtfColor oCurColor;
-		if( true == poRtfDocument->m_oColorTable.GetColor( m_nUnderlineColor, oCurColor ) )
+		if ( true == poRtfDocument->m_oColorTable.GetColor( m_nUnderlineColor, oCurColor ) )
 		{
 			RenderParameter oNewParam = oRenderParameter;
 			oNewParam.nType = RENDER_TO_OOX_PARAM_COLOR_ATTRIBUTE;
@@ -1788,7 +1805,11 @@ std::wstring RtfCharProperty::RenderToOOX(RenderParameter oRenderParameter)
 			default:
 				break;
 		}
-	}
+    }
+    else
+    {
+        sResult += L"<w:u w:val=\"none\"/>";
+    }
 
 	RENDER_OOX_INT( m_nUp, sResult, L"w:position" )
 	
@@ -1886,7 +1907,7 @@ bool RtfListLevelProperty::IsValid()
 {
 	//return -1 != m_nFollow && -1 != m_nStart && -1 != m_nNumberType && -1 != m_nJustification &&
 	//	false == m_sText.empty() && false == m_sNumber.empty();
-	return  PROP_DEF != m_nNumberType && false == m_sText.empty();
+	return  PROP_DEF != m_nNumberType && false == m_sLevelText.empty();
 }
 std::wstring RtfListLevelProperty::GenerateListText()
  {//заменяем на булеты
@@ -1918,7 +1939,7 @@ void RtfListLevelProperty::SetDefault()
 	DEFAULT_PROPERTY	( m_nJustification )
 	DEFAULT_PROPERTY	( m_nFollow )
 	DEFAULT_PROPERTY	( m_nStart )
-	DEFAULT_PROPERTY_DEF( m_sText, L"" )
+	DEFAULT_PROPERTY_DEF(m_sLevelText, L"" )
 	DEFAULT_PROPERTY_DEF( m_sNumber, L"" )
 	DEFAULT_PROPERTY	( m_nNoRestart )
 	DEFAULT_PROPERTY	( m_nLegal )
@@ -1940,8 +1961,8 @@ void RtfListLevelProperty::Merge(RtfListLevelProperty& oListLevel)
 	MERGE_PROPERTY( m_nFollow, oListLevel)
 	MERGE_PROPERTY( m_nStart, oListLevel)
 
-	if (!oListLevel.m_sText.empty())
-		m_sText = oListLevel.m_sText;
+	if (!oListLevel.m_sLevelText.empty())
+		m_sLevelText = oListLevel.m_sLevelText;
 
 	if (!oListLevel.m_sNumber.empty())
 		m_sNumber = oListLevel.m_sNumber;
@@ -2119,7 +2140,7 @@ std::wstring RtfListLevelProperty::RenderToRtf(RenderParameter oRenderParameter)
 	//чтобы при последующем чтении из rtf не потерялась информация о шрифте
 	sResult +=  m_oCharProp.RenderToRtf( oRenderParameter ); 
 
-    sResult += L"{\\leveltext" +  m_sText + L";}";
+    sResult += L"{\\leveltext" + m_sLevelText + L";}";
     sResult += L"{\\levelnumbers" + m_sNumber + L";}";
 
 	RENDER_RTF_INT( m_nFirstIndent, sResult, L"fi" )
@@ -2138,7 +2159,7 @@ std::wstring RtfListLevelProperty::RenderToRtf(RenderParameter oRenderParameter)
 }
 std::wstring RtfListLevelProperty::GetLevelTextOOX()
 {
-    std::wstring sResult = m_sText;
+    std::wstring sResult = m_sLevelText;
     if ( sResult.length() > 0 )
 	{
 		size_t nLevelTextLength = sResult[0];
@@ -2174,8 +2195,8 @@ std::wstring RtfListLevelProperty::GetLevelTextOOX()
 
 void RtfListLevelProperty::SetLevelTextOOX(const std::wstring& sText)
 {
-	m_sText		= L"";
-	m_sNumber	= L"";
+	m_sLevelText.clear();
+	m_sNumber.clear();
 
 	int nLevelOffsets = 0;
 	int nText = 0;
@@ -2186,7 +2207,7 @@ void RtfListLevelProperty::SetLevelTextOOX(const std::wstring& sText)
 		{
 			int nLevel = RtfUtility::ToByte( sText[ i + 1 ] );
 
-			m_sText += L"\\'" + XmlUtils::ToString(nLevel - 1, L"%02x");
+			m_sLevelText += L"\\'" + XmlUtils::ToString(nLevel - 1, L"%02x");
 			m_sNumber += L"\\'" + XmlUtils::ToString(nLevelOffsets + 1, L"%02x");
 			i++; //т.к. следующий симовл уже учли
 
@@ -2195,12 +2216,12 @@ void RtfListLevelProperty::SetLevelTextOOX(const std::wstring& sText)
 		else
 		{
 			std::wstring s (sText.c_str() + i, 1);
-			m_sText += RtfChar::renderRtfText(s);
+			m_sLevelText += RtfChar::renderRtfText(s);
 			nText++;
 		}
 		 nLevelOffsets++;
 	 }
-	 m_sText = L"\\'"  + XmlUtils::ToString(nText, L"%02x") + m_sText;
+	 m_sLevelText = L"\\'"  + XmlUtils::ToString(nText, L"%02x") + m_sLevelText;
 }
 std::wstring RtfListLevelProperty::RenderToOOX(RenderParameter oRenderParameter)
 {
@@ -2429,7 +2450,15 @@ std::wstring RtfListOverrideProperty::ListOverrideLevels::RenderToOOX(RenderPara
 		sResult += L"<w:lvlOverride w:ilvl=\"" + std::to_wstring(index) + L"\">";
 		if ( PROP_DEF != OverrideLevel.m_nStart )
 			sResult += L"<w:startOverride w:val=\"" + std::to_wstring(OverrideLevel.m_nStart) + L"\"/>";
-		sResult += OverrideLevel.m_oLevel.RenderToOOX2(oRenderParameter, OverrideLevel.m_nLevelIndex);
+        if ( PROP_DEF != OverrideLevel.m_nLevelIndex )
+        {
+            sResult += OverrideLevel.m_oLevel.RenderToOOX2(oRenderParameter, OverrideLevel.m_nLevelIndex);
+        }
+        else
+        {
+            sResult += OverrideLevel.m_oLevel.RenderToOOX2(oRenderParameter, index);
+        }
+        //sResult += OverrideLevel.m_oLevel.RenderToOOX2(oRenderParameter, OverrideLevel.m_nLevelIndex);
 		sResult += L"</w:lvlOverride>";
 
 		index_prev = index;

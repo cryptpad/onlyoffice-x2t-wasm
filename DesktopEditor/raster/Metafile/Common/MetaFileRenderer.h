@@ -100,8 +100,6 @@ namespace MetaFile
 			m_bStartedPath = false;
 			m_bUpdatedClip = true;
 
-			m_pRenderer->CommandLong(c_nPenWidth0As1px, 1);
-
 			//int alpha = 0xff;
 			//m_pRenderer->put_BrushAlpha1(alpha);
 			//m_pRenderer->put_BrushType(c_BrushTypeSolid);
@@ -238,7 +236,7 @@ namespace MetaFile
 			m_bUpdatedClip = false;
 		}
 		
-		void DrawBitmap(double dX, double dY, double dW, double dH, BYTE* pBuffer, unsigned int unWidth, unsigned int unHeight)
+		void DrawBitmap(double dX, double dY, double dW, double dH, BYTE* pBuffer, unsigned int unWidth, unsigned int unHeight, unsigned int unBlendMode)
 		{
 			if (!pBuffer || 0 == unWidth || 0 == unHeight)
 				return;
@@ -286,7 +284,11 @@ namespace MetaFile
 				m_pRenderer->SetTransform(dKx * dM11, dKx * dM12, dKy * dM21, dKy * dM22, dShiftKoefX * dM11 + dShiftKoefY * dM21 + dMx, dShiftKoefX * dM12 + dShiftKoefY * dM22 + dMy);
 			}
 
+			m_pRenderer->BeginCommand(c_nLayerType);
+			m_pRenderer->put_BlendMode(unBlendMode);
 			m_pRenderer->DrawImage(&oImage, dImageX, dImageY, dImageW, dImageH);
+			m_pRenderer->EndCommand(c_nLayerType);
+			m_pRenderer->put_BlendMode(BLEND_MODE_DEFAULT);
 		}
 		void DrawDriverString(const std::wstring& wsString, const std::vector<TPointD>& arPoints)
 		{
@@ -350,7 +352,7 @@ namespace MetaFile
 
 		}
 
-		void DrawString(std::wstring& wsText, unsigned int unCharsCount, double _dX, double _dY, double* pDx, int iGraphicsMode, double dXScale, double dYScale)
+		void DrawString(std::wstring& wsText, unsigned int unCharsCount, double _dX, double _dY, double* pDx, int iGraphicsMode, double dXScale, double dYScale, bool bUseGID)
 		{
 			CheckEndPath();
 			const IFont* pFont = m_pFile->GetFont();
@@ -679,11 +681,12 @@ namespace MetaFile
 				m_pRenderer->put_BrushColor1(m_pFile->GetTextColor());
 				m_pRenderer->put_BrushAlpha1(255);
 
+				if (bUseGID)
+					m_pRenderer->put_FontStringGID(TRUE);
+
 				// Рисуем сам текст
 				if (NULL == pDx)
-				{
 					m_pRenderer->CommandDrawText(wsString, dX, dY, 0, 0);
-				}
 				else
 				{
 					unsigned int unUnicodeLen = 0;
@@ -701,6 +704,9 @@ namespace MetaFile
 						delete[] pUnicode;
 					}
 				}
+
+				if (bUseGID)
+					m_pRenderer->put_FontStringGID(FALSE);
 
 				if (bChangeCTM)
 					m_pRenderer->ResetTransform();
@@ -908,7 +914,7 @@ namespace MetaFile
 
 			m_bStartedPath = false;
 		}
-		void SetTransform(double& dM11, double& dM12, double& dM21, double& dM22, double& dX, double& dY)
+		void SetTransform(const double& dM11, const double& dM12, const double& dM21, const double& dM22, const double& dX, const double& dY)
 		{
 			double dKoefX = m_dScaleX;
 			double dKoefY = m_dScaleY;
@@ -1218,7 +1224,41 @@ namespace MetaFile
 			else if (PS_JOIN_MITER == ulPenJoin)
 				nJoinStyle = Aggplus::LineJoinMiter;
 
-			const double dWidth = pPen->GetWidth() * m_dScaleX;
+			double dWidth = pPen->GetWidth();
+
+			// Повторение кода из Graphics для вычисления минимальной ширины пера
+			double dM11, dM12, dM21, dM22, dDx, dDy;
+			m_pRenderer->GetTransform(&dM11, &dM12, &dM21, &dM22, &dDx, &dDy);
+
+			Aggplus::CMatrix oMatrix;
+
+			oMatrix.SetElements(dM11, dM12, dM21, dM22, dDx, dDy);
+			oMatrix.Scale(1. / m_dScaleX, 1. / m_dScaleY);
+
+			// Вычисление минимально возможной ширины пера
+			// # Код явялется дублированным из Graphics
+			const double dSqrtDet = sqrt(fabs(oMatrix.Determinant()));
+			const double dWidthMinSize = (dSqrtDet != 0) ? (1.0 / dSqrtDet) : dWidth;
+
+			if (0 == pPen->GetWidth())
+			{
+				double dX = 0.72, dY = 0.72;
+
+				oMatrix.Invert();
+				oMatrix.TransformPoint(dX, dY);
+				dX -= oMatrix.OffsetX();
+				dY -= oMatrix.OffsetY();
+				dWidth = std::min(abs(dX), abs(dY));
+			}
+			//------------------------
+			else
+			{
+				dWidth *= m_dScaleX;
+
+				if (dWidth < dWidthMinSize)
+					dWidth = dWidthMinSize;
+			}
+
 			const double dMiterLimit = (0 != pPen->GetMiterLimit()) ? pPen->GetMiterLimit() : m_pFile->GetMiterLimit() * m_dScaleX;
 
 			BYTE nDashStyle = Aggplus::DashStyleSolid;
@@ -1228,79 +1268,70 @@ namespace MetaFile
 
 			pPen->GetDashData(pDataDash, unSizeDash);
 
-			if (NULL != pDataDash && 0 != unSizeDash)
+			if ((NULL != pDataDash && 0 != unSizeDash) || PS_SOLID != ulPenStyle)
 			{
-				m_pRenderer->put_PenDashOffset(pPen->GetDashOffset());
-
-				double dM11, dTemp;
-				m_pRenderer->GetTransform(&dM11, &dTemp, &dTemp, &dTemp, &dTemp, &dTemp);
-				double dDpi;
-				m_pRenderer->get_DpiX(&dDpi);
-				const double dNewWidth{dWidth * dM11 * dDpi / 25.4};
-
-				std::vector<double> arDashes(unSizeDash);
-
-				for (unsigned int unIndex = 0; unIndex < unSizeDash; ++unIndex)
-					arDashes[unIndex] = pDataDash[unIndex] * dNewWidth;
-
-				m_pRenderer->PenDashPattern(arDashes.data(), unSizeDash);
-
-				nDashStyle = Aggplus::DashStyleCustom;
-			}
-			else if (PS_SOLID != ulPenStyle)
-			{
-				std::vector<double> arDashPattern;
-
-				double dM11, dTemp;
-				m_pRenderer->GetTransform(&dM11, &dTemp, &dTemp, &dTemp, &dTemp, &dTemp);
-				double dDpi;
-				m_pRenderer->get_DpiX(&dDpi);
-				const double dNewWidth{dWidth * dM11 * dDpi / 25.4};
-
-				switch (ulPenStyle)
+				if (NULL != pDataDash && 0 != unSizeDash)
 				{
-					case PS_DASH:
-					{
-						arDashPattern.push_back(9 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
+					m_pRenderer->put_PenDashOffset(pPen->GetDashOffset());
 
-						break;
-					}
-					case PS_DOT:
-					{
-						arDashPattern.push_back(3 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
+					std::vector<double> arDashes(unSizeDash);
 
-						break;
-					}
-					case PS_DASHDOT:
-					{
-						arDashPattern.push_back(9 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
+					for (unsigned int unIndex = 0; unIndex < unSizeDash; ++unIndex)
+						arDashes[unIndex] = pDataDash[unIndex] * dWidth;
 
-						break;
-					}
-					case PS_DASHDOTDOT:
-					{
-						arDashPattern.push_back(9 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
-						arDashPattern.push_back(3 * dNewWidth);
+					m_pRenderer->PenDashPattern(arDashes.data(), unSizeDash);
 
-						break;
-					}
-				}
-
-				if (!arDashPattern.empty())
-				{
-					m_pRenderer->PenDashPattern(arDashPattern.data(), arDashPattern.size());
 					nDashStyle = Aggplus::DashStyleCustom;
-					nStartCapStyle = nEndCapStyle = Aggplus::LineCapFlat;
-					nJoinStyle = Aggplus::LineJoinMiter;
+				}
+				else
+				{
+					std::vector<double> arDashPattern;
+
+					switch (ulPenStyle)
+					{
+						case PS_DASH:
+						{
+							arDashPattern.push_back(9 * dWidth);
+							arDashPattern.push_back(3 * dWidth);
+
+							break;
+						}
+						case PS_DOT:
+						{
+							arDashPattern.push_back(3 * dWidth);
+							arDashPattern.push_back(3 * dWidth);
+
+							break;
+						}
+						case PS_DASHDOT:
+						{
+							arDashPattern.push_back(9 * dWidth);
+							arDashPattern.push_back(6 * dWidth);
+							arDashPattern.push_back(3 * dWidth);
+							arDashPattern.push_back(6 * dWidth);
+
+							break;
+						}
+						case PS_DASHDOTDOT:
+						{
+							arDashPattern.push_back(9 * dWidth);
+							arDashPattern.push_back(6 * dWidth);
+							arDashPattern.push_back(3 * dWidth);
+							arDashPattern.push_back(6 * dWidth);
+							arDashPattern.push_back(3 * dWidth);
+							arDashPattern.push_back(6 * dWidth);
+
+							break;
+						}
+					}
+
+					if (!arDashPattern.empty())
+					{
+						m_pRenderer->PenDashPattern(arDashPattern.data(), arDashPattern.size());
+						nDashStyle = Aggplus::DashStyleCustom;
+						nStartCapStyle = nEndCapStyle = Aggplus::LineCapFlat;
+						nJoinStyle = Aggplus::LineJoinMiter;
+					}
 				}
 			}
 

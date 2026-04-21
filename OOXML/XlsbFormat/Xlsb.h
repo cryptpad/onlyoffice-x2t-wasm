@@ -68,6 +68,7 @@ namespace OOX
 
             XLS::GlobalWorkbookInfo* GetGlobalinfo();
             void PrepareSi();
+			void PrepareHlinks();
             void PrepareTableFormula();
             void LinkTables();
             void ReadSheetData();
@@ -79,6 +80,8 @@ namespace OOX
 			bool IsWriteToXlsx();
 			void WriteToXlsx(bool isXlsx);
             XLS::StreamCacheReaderPtr GetFileReader(const CPath& oFilePath, BYTE* &streamBuf);
+            XLS::StreamCacheWriterPtr GetFileWriter(const CPath& oFilePath);
+            bool WriteSreamCache(XLS::StreamCacheWriterPtr writer);
             
             std::unordered_map<std::wstring, _UINT32> m_mapSheetNameSheetData;
             

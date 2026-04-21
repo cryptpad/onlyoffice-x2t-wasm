@@ -19,7 +19,7 @@ include(../../../Common/base.pri)
 #BOOST
 include($$PWD/../../../Common/3dParty/boost/boost.pri)
 
-include($$PWD/../../Reader/Converter/StarMath2OOXML/StarMath2OOXML.pri)
+include($$PWD/../../Reader/Converter/SMCustomShape2OOXML/SMCustomShape2OOXML.pri)
 
 DEFINES +=  UNICODE \
             _UNICODE \
@@ -52,7 +52,8 @@ SOURCES += \
 	../../DataTypes/borderstyle.cpp \
 	../../DataTypes/borderwidths.cpp \
 	../../DataTypes/calcext_type.cpp \
-	../../DataTypes/chartdatalabelnumber.cpp \
+        ../../DataTypes/chartaxistype.cpp \
+        ../../DataTypes/chartdatalabelnumber.cpp \
 	../../DataTypes/charterrorcategory.cpp \
 	../../DataTypes/chartinterpolation.cpp \
 	../../DataTypes/chartlabelarrangement.cpp \
@@ -166,6 +167,7 @@ SOURCES += \
 	../../DataTypes/messagetype.cpp \
 	../../DataTypes/stylecellprotect.cpp \
         ../../DataTypes/sparklines.cpp \
+        ../../DataTypes/color_mode.cpp \
         \
 	../../Reader/Format/abstract_xml.cpp \
 	../../Reader/Format/anim_elements.cpp \
@@ -320,6 +322,7 @@ SOURCES += \
 	../../Reader/Converter/xlsx_data_validation.cpp \
 	../../Reader/Converter/xlsx_utils.cpp \
 	../../Reader/Converter/xlsx_xf.cpp \
+	../../Reader/Converter/StarMath2OOXML/cooxml2odf.cpp \
 	\
 	../../Writer/Format/office_document.cpp \
 	../../Writer/Format/office_forms.cpp \
@@ -719,6 +722,7 @@ HEADERS += \
 	../../Reader/Converter/xlsx_xf.h \
 	../../Reader/Converter/conversionelement.h \
 	../../Reader/Converter/ConvertOO2OOX.h \
+	../../Reader/Converter/StarMath2OOXML/cooxml2odf.h \
 	\
 	../../Writer/Format/math_elementaries.h \
 	../../Writer/Format/math_elements.h \
@@ -824,5 +828,5 @@ HEADERS += \
 	../../Writer/Converter/Oox2OdfConverter.h \
 	../../Writer/Converter/VmlShapeTypes2Oox.h \
 	../../Writer/Converter/XlsxConverter.h \
-	../../Writer/Converter/PptxConverter.h
+	../../Writer/Converter/PptxConverter.h \
 

@@ -22,17 +22,17 @@ namespace MetaFile
 			m_pMetaFileRenderer->End();
 	}
 
-	void CWmfInterpretatorRender::DrawBitmap(double dX, double dY, double dW, double dH, BYTE *pBuffer, unsigned int unWidth, unsigned int unHeight)
+	void CWmfInterpretatorRender::DrawBitmap(double dX, double dY, double dW, double dH, BYTE *pBuffer, unsigned int unWidth, unsigned int unHeight, unsigned int unBlendMode)
 	{
 		if (NULL != m_pMetaFileRenderer)
-			m_pMetaFileRenderer->DrawBitmap(dX, dY, dW, dH, pBuffer, unWidth, unHeight);
+			m_pMetaFileRenderer->DrawBitmap(dX, dY, dW, dH, pBuffer, unWidth, unHeight, unBlendMode);
 	}
 
 	void CWmfInterpretatorRender::DrawString(std::wstring &wsText, unsigned int unCharsCount, double dX, double dY, double *pDx,
-	                                         int iGraphicsMode, double dXScale, double dYScale)
+	                                         int iGraphicsMode, double dXScale, double dYScale, bool bUseGID)
 	{
 		if (NULL != m_pMetaFileRenderer)
-			m_pMetaFileRenderer->DrawString(wsText, unCharsCount, dX, dY, pDx, iGraphicsMode, dXScale, dYScale);
+			m_pMetaFileRenderer->DrawString(wsText, unCharsCount, dX, dY, pDx, iGraphicsMode, dXScale, dYScale, bUseGID);
 	}
 
 	void CWmfInterpretatorRender::DrawDriverString(const std::wstring& wsString, const std::vector<TPointD>& arPoints)
@@ -131,7 +131,7 @@ namespace MetaFile
 			m_pMetaFileRenderer->UpdateDC();
 	}
 
-	void CWmfInterpretatorRender::SetTransform(double &dM11, double &dM12, double &dM21, double &dM22, double &dX, double &dY)
+	void CWmfInterpretatorRender::SetTransform(const double& dM11, const double& dM12, const double& dM21, const double& dM22, const double& dX, const double& dY)
 	{
 		if (NULL != m_pMetaFileRenderer)
 			m_pMetaFileRenderer->SetTransform(dM11, dM12, dM21, dM22, dX, dY);

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
@@ -78,6 +78,17 @@
 #include "../Styles/Fonts.h"
 #include "../Styles/Fills.h"
 #include "../Styles/Borders.h"
+
+#include "../../../MsBinaryFile/XlsFile/Format/Binary/CFStreamCacheWriter.h"
+
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_unions/CONDFMTS.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_unions/CONDFMT12.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/CondFmt12.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/CF12.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/CFGradient.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/CFDatabar.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/CFMultistate.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_structures/CFFilter.h"
 
 using namespace XLS;
 
@@ -307,6 +318,135 @@ XLS::BaseObjectPtr CConditionalFormatValueObject::toBin(bool isIcon)
 
     return objectPtr;
 }
+void CConditionalFormatValueObject::toBin(XLS::StreamCacheWriterPtr& writer, const bool isIcon)
+{
+    XLSB::CFVO cfvo;
+    cfvo.fSaveGTE = isIcon;
+    if(m_oGte.IsInit())
+        cfvo.fGTE = m_oGte->GetValue();
+    else
+        cfvo.fGTE = true;
+
+    auto valType = m_oType->GetValue();
+    if (valType == SimpleTypes::Spreadsheet::ECfvoType::Number)
+        cfvo.iType = XLSB::CFVOtype::CFVONUM;
+    else if (valType == SimpleTypes::Spreadsheet::ECfvoType::Minimum || valType == SimpleTypes::Spreadsheet::ECfvoType::autoMin)
+        cfvo.iType = XLSB::CFVOtype::CFVOMIN;
+    else if (valType == SimpleTypes::Spreadsheet::ECfvoType::Maximum || valType == SimpleTypes::Spreadsheet::ECfvoType::autoMax)
+        cfvo.iType = XLSB::CFVOtype::CFVOMAX;
+    else if (valType == SimpleTypes::Spreadsheet::ECfvoType::Percent)
+        cfvo.iType = XLSB::CFVOtype::CFVOPERCENT;
+    else if (valType == SimpleTypes::Spreadsheet::ECfvoType::Percentile)
+        cfvo.iType = XLSB::CFVOtype::CFVOPERCENTILE;
+    else if (valType == SimpleTypes::Spreadsheet::ECfvoType::Formula)
+        cfvo.iType = XLSB::CFVOtype::CFVOFMLA;
+    else
+        cfvo.iType = XLSB::CFVOtype::CFVONUM;
+    if(valType == SimpleTypes::Spreadsheet::ECfvoType::Formula && !(m_oVal.IsInit()) && m_oFormula.IsInit())
+        m_oVal = m_oFormula->m_sText;
+    if(m_oVal.IsInit() && cfvo.iType != XLSB::CFVOtype::CFVOFMLA)
+        try
+        {
+            cfvo.numParam.data.value = std::stod(m_oVal.get());
+        }
+        catch (std::exception)
+        {
+            cfvo.formula = m_oVal.get();
+            auto lastValType = GETBITS(cfvo.formula.rgce.sequence.rbegin()->get()->ptg_id.get(),5,6);
+            if(lastValType == 1 || lastValType == 3)
+            {
+                SETBITS(cfvo.formula.rgce.sequence.rbegin()->get()->ptg_id.get(),5,6,2);
+            }
+
+            cfvo.cbFmla = 1;
+        }
+    if(cfvo.iType.get_type() == XLSB::CFVOtype::CFVOMIN)
+        cfvo.numParam.data.value = 0;
+    else if(cfvo.iType.get_type() == XLSB::CFVOtype::CFVOMAX)
+        cfvo.numParam.data.value = 0;
+
+    if(static_cast<_UINT32>(cfvo.iType) == XLSB::CFVOtype::CFVOFMLA && m_oVal.IsInit())
+    {
+        cfvo.formula = m_oVal.get();
+        auto lastValType = GETBITS(cfvo.formula.rgce.sequence.rbegin()->get()->ptg_id.get(),5,6);
+        if(lastValType == 1 || lastValType == 3)
+        {
+            SETBITS(cfvo.formula.rgce.sequence.rbegin()->get()->ptg_id.get(),5,6,2);
+        }
+
+        cfvo.cbFmla = 1;
+    }
+    else
+    {
+        cfvo.cbFmla = 0;
+    }
+    cfvo.write(writer, nullptr);
+}
+XLS::BiffStructurePtr CConditionalFormatValueObject::toXLS(const bool isIcon)
+{
+	auto ptr = new XLS::CFVO;
+	if(!m_oType.IsInit())
+		m_oType = SimpleTypes::Spreadsheet::ECfvoType::Number;
+	double numVal = 0;
+	if(m_oVal.IsInit())
+	{
+		try
+		{
+		numVal = stod(m_oVal.get());
+
+		}  catch (std::exception)
+		{
+		}
+	}
+	switch(m_oType->GetValue())
+	{
+		case SimpleTypes::Spreadsheet::ECfvoType::Number:
+		{
+			ptr->cfvoType = 1;
+			ptr->numValue = numVal;
+			break;
+		}
+		case SimpleTypes::Spreadsheet::ECfvoType::Minimum:
+		case SimpleTypes::Spreadsheet::ECfvoType::autoMin:
+		{
+			ptr->cfvoType = 2;
+			break;
+		}
+		case SimpleTypes::Spreadsheet::ECfvoType::Maximum:
+		case SimpleTypes::Spreadsheet::ECfvoType::autoMax:
+		{
+			ptr->cfvoType = 3;
+			break;
+		}
+		case SimpleTypes::Spreadsheet::ECfvoType::Percent:
+		{
+			ptr->cfvoType = 4;
+			ptr->numValue = numVal;
+			break;
+		}
+		case SimpleTypes::Spreadsheet::ECfvoType::Percentile:
+		{
+			ptr->cfvoType = 5;
+			ptr->numValue = numVal;
+			break;
+		}
+		case SimpleTypes::Spreadsheet::ECfvoType::Formula:
+		{
+			ptr->cfvoType = 7;
+			if(m_oFormula.IsInit())
+			ptr->fmla.parseStringFormula(m_oFormula->m_sText, L"");
+			ptr->numValue = numVal;
+			break;
+		}
+		default:
+		{
+			ptr->cfvoType = 1;
+			ptr->numValue = numVal;
+			break;
+		}
+	}
+	return XLS::BiffStructurePtr(ptr);
+}
 XLS::BaseObjectPtr CConditionalFormatValueObject::toBin14(bool isIcon)
 {
     auto ptr(new XLSB::uCFVO14);
@@ -331,6 +471,10 @@ XLS::BaseObjectPtr CConditionalFormatValueObject::toBin14(bool isIcon)
         ptr1->iType = XLSB::CFVOtype::CFVOPERCENTILE;
     else if (m_oType == SimpleTypes::Spreadsheet::ECfvoType::Formula)
         ptr1->iType = XLSB::CFVOtype::CFVOFMLA;
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfvoType::autoMin)
+        ptr1->iType = XLSB::CFVOType14::CFVOAUTOMIN_14;
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfvoType::autoMax)
+        ptr1->iType = XLSB::CFVOType14::CFVOAUTOMAX_14;
     else
         ptr1->iType = XLSB::CFVOtype::CFVONUM;
 
@@ -338,19 +482,17 @@ XLS::BaseObjectPtr CConditionalFormatValueObject::toBin14(bool isIcon)
         ptr1->numParam.data.value = 0;
     else if(ptr1->iType.get_type() == XLSB::CFVOtype::CFVOMAX)
         ptr1->numParam.data.value = 0;
-
+    if(static_cast<_UINT32>(ptr1->iType) == XLSB::CFVOtype::CFVOFMLA && !(m_oVal.IsInit()) && m_oFormula.IsInit() && !m_oFormula->m_sText.empty())
+        m_oVal = m_oFormula->m_sText;
     if(static_cast<_UINT32>(ptr1->iType) == XLSB::CFVOtype::CFVOFMLA && m_oVal.IsInit())
     {
         XLSB::FRTFormula tempFmla;
         tempFmla.formula = m_oVal.get();
-        ptr1->FRTheader.rgFormulas.array.push_back(tempFmla);
-        ptr1->FRTheader.fFormula = true;
-        ptr1->cbFmla = 1;
-    }
-    else if (static_cast<_UINT32>(ptr1->iType) == XLSB::CFVOtype::CFVOFMLA && m_oFormula.IsInit() && !m_oFormula->m_sText.empty())
-    {
-        XLSB::FRTFormula tempFmla;
-        tempFmla.formula = m_oFormula->m_sText;
+        auto lastValType = GETBITS(tempFmla.formula.rgce.sequence.rbegin()->get()->ptg_id.get(),5,6);
+        if(lastValType == 1 || lastValType == 3)
+        {
+            SETBITS(tempFmla.formula.rgce.sequence.rbegin()->get()->ptg_id.get(),5,6,2);
+        }
         ptr1->FRTheader.rgFormulas.array.push_back(tempFmla);
         ptr1->FRTheader.fFormula = true;
         ptr1->cbFmla = 1;
@@ -502,8 +644,8 @@ void CConditionalFormatIconSet::fromXML(XmlUtils::CXmlLiteReader& oReader)
 {
 	ReadAttributes(oReader);
 
-	if (oReader.IsEmptyNode())
-		return;
+    if (!oReader.IsEmptyNode())
+        oReader.ReadTillEnd();
 }
 void CConditionalFormatIconSet::fromBin(XLS::BaseObjectPtr& obj)
 {
@@ -758,6 +900,70 @@ XLS::BaseObjectPtr CColorScale::toBin()
     for(auto i:m_arrColors)
         ptr->m_arBrtColor.push_back(i->toBin());
     return objectPtr;
+}
+XLS::BiffStructurePtr CColorScale::toXLS()
+{
+	auto gradientPtr = new XLS::CFGradient;
+	gradientPtr->cInterpCurve = m_arrValues.size();
+	gradientPtr->cGradientCurve = m_arrColors.size();
+	double numDomain = 0;
+	for(auto i : m_arrValues)
+	{
+		auto valPtr = XLS::CFGradientInterpItemPtr(new XLS::CFGradientInterpItem);
+		valPtr->cfvo =  *static_cast<XLS::CFVO*>(i->toXLS().get());
+		gradientPtr->rgInterp.push_back(valPtr);
+		valPtr->numDomain += numDomain;
+		if(m_arrValues.size() == 3)
+			numDomain += 0.5;
+		else
+			numDomain += 1;
+	}
+	numDomain = 0;
+	for(auto i : m_arrColors)
+	{
+		auto tempColor = XLS::CFGradientItemPtr(new XLS::CFGradientItem);
+		tempColor->numGrange.data.value = numDomain;
+		if(m_arrColors.size() == 3)
+			numDomain += 0.5;
+		else
+			numDomain += 1;
+		tempColor->color.xclrType.type = XLS::XColorType::XCLRAUTO;
+		if(i->m_oIndexed.IsInit())
+		{
+			tempColor->color.xclrType.type = XLS::XColorType::XCLRINDEXED;
+			tempColor->color.icv = i->m_oIndexed->GetValue();
+		}
+		else if(i->m_oThemeColor.IsInit())
+		{
+			tempColor->color.xclrType.type = XLS::XColorType::XCLRTHEMED;
+			tempColor->color.theme = i->m_oThemeColor->GetValue();
+		}
+		else if (i->m_oRgb.IsInit())
+		{
+			tempColor->color.xclrType.type = XLS::XColorType::XCLRRGB;
+			tempColor->color.rgb.alpha = i->m_oRgb->Get_A();
+			tempColor->color.rgb.blue = i->m_oRgb->Get_B();
+			tempColor->color.rgb.red = i->m_oRgb->Get_R();
+			tempColor->color.rgb.green = i->m_oRgb->Get_G();
+		}
+		gradientPtr->rgCurve.push_back(tempColor);
+	}
+	return XLS::BiffStructurePtr(gradientPtr);
+}
+void CColorScale::toBin(XLS::StreamCacheWriterPtr& writer)
+{
+    {
+        auto begin = writer->getNextRecord(XLSB::rt_BeginColorScale);
+        writer->storeNextRecord(begin);
+    }
+    for(auto i:m_arrValues)
+        i->toBin(writer);
+    for(auto i:m_arrColors)
+        i->toBin(writer);
+    {
+        auto end = writer->getNextRecord(XLSB::rt_EndColorScale);
+        writer->storeNextRecord(end);
+    }
 }
 XLS::BaseObjectPtr CColorScale::toBin14()
 {
@@ -1014,7 +1220,76 @@ XLS::BaseObjectPtr CDataBar::toBin()
 
     return objectPtr;
 }
+XLS::BiffStructurePtr CDataBar::toXLS()
+{
+	auto ptr = new XLS::CFDatabar;
+	if(m_oMinLength.IsInit())
+		ptr->iPercentMin = m_oMinLength->GetValue();
+	if(m_oMaxLength.IsInit())
+		ptr->iPercentMax = m_oMaxLength->GetValue();
+	if(m_oDirection.IsInit() && m_oDirection->GetValue() == SimpleTypes::Spreadsheet::EDataBarDirection::rightToLeft)
+		ptr->fRightToLeft = true;
+	if(m_oShowValue.IsInit())
+		ptr->fShowValue = !m_oShowValue->GetValue();
+	if(m_oColor.IsInit())
+	{
 
+		ptr->color.xclrType.type = XLS::XColorType::XCLRAUTO;
+		if(m_oColor->m_oIndexed.IsInit())
+		{
+			ptr->color.xclrType.type = XLS::XColorType::XCLRINDEXED;
+			ptr->color.icv = m_oColor->m_oIndexed->GetValue();
+		}
+		else if(m_oColor->m_oThemeColor.IsInit())
+		{
+			ptr->color.xclrType.type = XLS::XColorType::XCLRTHEMED;
+			ptr->color.theme = m_oColor->m_oThemeColor->GetValue();
+		}
+		else if (m_oColor->m_oRgb.IsInit())
+		{
+			ptr->color.xclrType.type = XLS::XColorType::XCLRRGB;
+			ptr->color.rgb.alpha = m_oColor->m_oRgb->Get_A();
+			ptr->color.rgb.blue = m_oColor->m_oRgb->Get_B();
+			ptr->color.rgb.red =m_oColor->m_oRgb->Get_R();
+			ptr->color.rgb.green = m_oColor->m_oRgb->Get_G();
+		}
+	}
+	if(m_arrValues.size() > 0)
+	{
+		ptr->cfvoDB1 = *static_cast<XLS::CFVO*>(m_arrValues[0]->toXLS().get());
+	}
+	if(m_arrValues.size() > 0)
+	{
+		ptr->cfvoDB2 = *static_cast<XLS::CFVO*>(m_arrValues[1]->toXLS().get());
+	}
+
+	return XLS::BiffStructurePtr(ptr);
+}
+void CDataBar::toBin(XLS::StreamCacheWriterPtr& writer)
+{
+    {
+        auto begin = writer->getNextRecord(XLSB::rt_BeginDatabar);
+        BYTE bLenMin = 0;
+        BYTE bLenMax = 100;
+        BYTE fShowValue = true;
+        if(m_oMaxLength.IsInit())
+            bLenMax = m_oMaxLength->GetValue();
+        if(m_oMinLength.IsInit())
+            bLenMin = m_oMinLength->GetValue();
+        if(m_oShowValue.IsInit())
+            fShowValue = m_oShowValue->GetValue();
+        *begin << bLenMin << bLenMax << fShowValue;
+        writer->storeNextRecord(begin);
+    }
+    for(auto i:m_arrValues)
+        i->toBin(writer);
+    if(m_oColor.IsInit())
+        m_oColor->toBin(writer);
+    {
+        auto end = writer->getNextRecord(XLSB::rt_EndDatabar);
+        writer->storeNextRecord(end);
+    }
+}
 XLS::BaseObjectPtr CDataBar::toBin14()
 {
     auto ptr(new XLSB::DATABAR14);
@@ -1433,6 +1708,275 @@ XLS::BaseObjectPtr CIconSet::toBin()
     for(auto i:m_arrValues)
         ptr->m_arCFVO.push_back(i->toBin(true));
     return objectPtr;
+}
+XLS::BiffStructurePtr CIconSet::toXLS()
+{
+	auto ptr = new XLS::CFMultistate;
+	ptr->cStates = m_arrValues.size();
+
+	if(m_oIconSet.IsInit())
+	{
+		switch (m_oIconSet->GetValue())
+		{
+			case SimpleTypes::Spreadsheet::EIconSetType::Arrows3:
+			{
+				ptr->iIconSet = KPISets::KPI3ARROWS;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Arrows3Gray:
+			{
+				ptr->iIconSet = KPISets::KPI3ARROWSGRAY;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Flags3:
+			{
+				ptr->iIconSet = KPISets::KPI3FLAGS;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Traffic3Lights1:
+			{
+				ptr->iIconSet = KPISets::KPI3TRAFFICLIGHTS1;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Traffic3Lights2:
+			{
+				ptr->iIconSet = KPISets::KPI3TRAFFICLIGHTS2;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Signs3:
+			{
+				ptr->iIconSet = KPISets::KPI3SIGNS;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Symbols3:
+			{
+				ptr->iIconSet = KPISets::KPI3SYMBOLS;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Symbols3_2:
+			{
+				ptr->iIconSet = KPISets::KPI3SYMBOLS2;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Arrows4:
+			{
+				ptr->iIconSet = KPISets::KPI4ARROWS;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Arrows4Gray:
+			{
+				ptr->iIconSet = KPISets::KPI4ARROWSGRAY;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::RedToBlack4:
+			{
+				ptr->iIconSet = KPISets::KPI4REDTOBLACK;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Rating4:
+			{
+				ptr->iIconSet = KPISets::KPI4RATING;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Traffic4Lights:
+			{
+				ptr->iIconSet = KPISets::KPI4TRAFFICLIGHTS;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Arrows5:
+			{
+				ptr->iIconSet = KPISets::KPI5ARROWS;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Arrows5Gray:
+			{
+				ptr->iIconSet = KPISets::KPI5ARROWSGRAY;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Rating5:
+			{
+				ptr->iIconSet = KPISets::KPI5RATING;
+				break;
+			}
+			case SimpleTypes::Spreadsheet::EIconSetType::Quarters5:
+			{
+				ptr->iIconSet = KPISets::KPI3TRAFFICLIGHTS1;
+				break;
+			}
+			default:
+			{
+				ptr->iIconSet = 0;
+				break;
+			}
+		}
+	}
+	else
+		ptr->iIconSet = KPISets::KPI3TRAFFICLIGHTS1;
+	if(m_oShowValue.IsInit())
+		ptr->fIconOnly = !m_oShowValue->GetValue();
+	if(m_oReverse.IsInit())
+		ptr->fReverse = m_oReverse->GetValue();
+	for(auto i : m_arrValues)
+	{
+		auto tempVal = CFMStateItemPtr(new XLS::CFMStateItem);
+		tempVal->cfvo = *static_cast<XLS::CFVO*>(i->toXLS().get());
+		ptr->rgStates.push_back(tempVal);
+	}
+
+	return XLS::BiffStructurePtr(ptr);
+}
+void CIconSet::toBin(XLS::StreamCacheWriterPtr& writer)
+{
+    {
+        auto begin = writer->getNextRecord(XLSB::rt_BeginIconSet);
+        _UINT32 iSet = 0;
+        if(m_oIconSet.IsInit())
+        {
+            switch (m_oIconSet->GetValue())
+            {
+                case SimpleTypes::Spreadsheet::EIconSetType::NoIcons:
+                {
+                    iSet = KPISets::KPINIL;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Arrows3:
+                {
+                    iSet = KPISets::KPI3ARROWS;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Arrows3Gray:
+                {
+                    iSet = KPISets::KPI3ARROWSGRAY;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Flags3:
+                {
+                    iSet = KPISets::KPI3FLAGS;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Traffic3Lights1:
+                {
+                    iSet = KPISets::KPI3TRAFFICLIGHTS1;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Traffic3Lights2:
+                {
+                    iSet = KPISets::KPI3TRAFFICLIGHTS2;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Signs3:
+                {
+                    iSet = KPISets::KPI3SIGNS;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Symbols3:
+                {
+                    iSet = KPISets::KPI3SYMBOLS;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Symbols3_2:
+                {
+                    iSet = KPISets::KPI3SYMBOLS2;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Arrows4:
+                {
+                    iSet = KPISets::KPI4ARROWS;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Arrows4Gray:
+                {
+                    iSet = KPISets::KPI4ARROWSGRAY;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::RedToBlack4:
+                {
+                    iSet = KPISets::KPI4REDTOBLACK;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Rating4:
+                {
+                    iSet = KPISets::KPI4RATING;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Traffic4Lights:
+                {
+                    iSet =  KPISets::KPI4TRAFFICLIGHTS;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Arrows5:
+                {
+                    iSet = KPISets::KPI5ARROWS;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Arrows5Gray:
+                {
+                    iSet = KPISets::KPI5ARROWSGRAY;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Rating5:
+                {
+                    iSet = KPISets::KPI5RATING;
+                    break;
+                }
+                case SimpleTypes::Spreadsheet::EIconSetType::Quarters5:
+                {
+                    iSet = KPISets::KPI5QUARTERS;
+                    break;
+                }
+                default:
+                {
+                    iSet = KPISets::KPINIL;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            switch(m_arrValues.size())
+            {
+                case 0:
+                {
+                    iSet = KPISets::KPINIL;
+                    break;
+                }
+                case 3:
+                {
+                    iSet = KPISets::KPI3TRAFFICLIGHTS1;
+                    break;
+                }
+                case 4:
+                {
+                    iSet = KPISets::KPI4TRAFFICLIGHTS;
+                    break;
+                }
+                case 5:
+                {
+                    iSet = KPISets::KPI5QUARTERS;
+                    break;
+                }
+                default:
+                {
+                    iSet = KPISets::KPINIL;
+                    break;
+                }
+            }
+
+        }
+        _UINT16 flags = 0;
+        if(m_oShowValue.IsInit())
+            SETBIT(flags, 1, m_oShowValue->GetValue())
+        if(m_oReverse.IsInit())
+            SETBIT(flags, 2, m_oReverse->GetValue())
+        *begin << iSet << flags;
+        writer->storeNextRecord(begin);
+    }
+    for(auto i:m_arrValues)
+        i->toBin(writer, true);
+    {
+        auto end = writer->getNextRecord(XLSB::rt_EndIconSet);
+        writer->storeNextRecord(end);
+    }
 }
 XLS::BaseObjectPtr CIconSet::toBin14()
 {
@@ -2132,6 +2676,42 @@ XLS::BaseObjectPtr CConditionalFormattingRule::toBin(const  XLS::CellRef &cellRe
     return objPtr;
 }
 
+void CConditionalFormattingRule::toBin(XLS::StreamCacheWriterPtr& writer, const  XLS::CellRef &cellRef)
+{
+    {
+        auto begin = writer->getNextRecord(XLSB::rt_BeginCFRule);
+        WriteAttributes(begin, cellRef);
+        writer->storeNextRecord(begin);
+    }
+    if(m_oColorScale.IsInit())
+    {
+        m_oColorScale->toBin(writer);
+    }
+    else if(m_oDataBar.IsInit())
+    {
+        m_oDataBar->toBin(writer);
+    }
+    else if(m_oIconSet.IsInit())
+    {
+        m_oIconSet->toBin(writer);
+    }
+    if(m_oExtId.IsInit())
+    {
+        XLSB::FRTCFRULE ext;
+        auto beginExt(new XLSB::CFRuleExt);
+        ext.m_BrtCFRuleExt = XLS::BaseObjectPtr{beginExt};
+
+        beginExt->guid = m_oExtId.get();
+        auto ruleBegin(new XLSB::FRTBegin);
+        ext.m_BrtFRTBegin = XLS::BaseObjectPtr{ruleBegin};
+        ext.write(writer, nullptr);
+    }
+    {
+        auto end = writer->getNextRecord(XLSB::rt_EndCFRule);
+        writer->storeNextRecord(end);
+    }
+}
+
 XLS::BaseObjectPtr CConditionalFormattingRule::WriteAttributes(const  XLS::CellRef &cellRef)
 {
     
@@ -2364,6 +2944,234 @@ XLS::BaseObjectPtr CConditionalFormattingRule::WriteAttributes(const  XLS::CellR
     }
     return objectPtr;
 }
+void CConditionalFormattingRule::WriteAttributes(XLS::CFRecordPtr& record, const  XLS::CellRef &cellRef)
+{
+    _UINT32 iType = XLSB::CFType::CF_TYPE_EXPRIS;
+    _UINT32 iTemplate = XLSB::CFTemp::CF_TEMPLATE_EXPR;
+    _UINT32 iParam = 0;
+    _INT32 iPri = 1;
+    _UINT32 dxfId = 0xFFFFFFFF;
+    if(m_oPriority.IsInit())
+        iPri = m_oPriority->GetValue();
+    if(m_oDxfId.IsInit())
+        dxfId = m_oDxfId->GetValue();
+    if(!m_oType.IsInit())
+        m_oType = SimpleTypes::Spreadsheet::ECfType::expression;
+
+
+    if (m_oType == SimpleTypes::Spreadsheet::ECfType::cellIs)
+    {
+        if(m_oOperator.IsInit())
+        {
+            if (m_oOperator == SimpleTypes::Spreadsheet::ECfOperator::Operator_between)
+                iParam = XLSB::CFOper::CF_OPER_BN;
+            else if (m_oOperator == SimpleTypes::Spreadsheet::ECfOperator::Operator_notBetween)
+                iParam = XLSB::CFOper::CF_OPER_NB;
+            else if (m_oOperator == SimpleTypes::Spreadsheet::ECfOperator::Operator_equal)
+                iParam = XLSB::CFOper::CF_OPER_EQ;
+            else if (m_oOperator == SimpleTypes::Spreadsheet::ECfOperator::Operator_notEqual)
+                iParam = XLSB::CFOper::CF_OPER_NE;
+            else if (m_oOperator == SimpleTypes::Spreadsheet::ECfOperator::Operator_greaterThan)
+                iParam = XLSB::CFOper::CF_OPER_GT;
+            else if (m_oOperator == SimpleTypes::Spreadsheet::ECfOperator::Operator_lessThan)
+                iParam = XLSB::CFOper::CF_OPER_LT;
+            else if (m_oOperator == SimpleTypes::Spreadsheet::ECfOperator::Operator_greaterThanOrEqual)
+                iParam = XLSB::CFOper::CF_OPER_GE;
+            else if (m_oOperator == SimpleTypes::Spreadsheet::ECfOperator::Operator_lessThanOrEqual)
+                iParam = XLSB::CFOper::CF_OPER_LE;
+        }
+        iType = XLSB::CFType::CF_TYPE_CELLIS;
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_EXPR;
+    }
+
+    if (m_oType == SimpleTypes::Spreadsheet::ECfType::expression)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_FMLA;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::uniqueValues)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_UNIQUEVALUES;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::containsText)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSTEXT;
+        iParam = XLSB::CFTextOper::CF_TEXTOPER_CONTAINS;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::notContainsText)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSTEXT;
+        iParam = XLSB::CFTextOper::CF_TEXTOPER_NOTCONTAINS;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::beginsWith)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSTEXT;
+        iParam = XLSB::CFTextOper::CF_TEXTOPER_BEGINSWITH;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::endsWith)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSTEXT;
+        iParam = XLSB::CFTextOper::CF_TEXTOPER_ENDSWITH;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::containsBlanks)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSBLANKS;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::notContainsBlanks)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSNOBLANKS;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::containsErrors)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSERRORS;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::notContainsErrors)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSNOERRORS;
+    }
+
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::timePeriod)
+    {
+        if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::today)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODTODAY;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_TODAY;
+        }
+        else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::tomorrow)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODTOMORROW;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_TOMORROW;
+        }
+        else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::yesterday)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODYESTERDAY;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_YESTERDAY;
+        }
+        else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::last7Days)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODLAST7DAYS;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_LAST7DAYS;
+        }
+        else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::lastMonth)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODLASTMONTH;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_LASTMONTH;
+        }
+        else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::nextMonth)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODNEXTMONTH;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_NEXTMONTH;
+        }
+        else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::thisWeek)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODTHISWEEK;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_THISWEEK;
+        }
+        else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::nextWeek)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODNEXTWEEK;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_NEXTWEEK;
+        }
+        else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::lastWeek)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODLASTWEEK;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_LASTWEEK;
+        }
+        else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::thisMonth)
+        {
+            iTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODTHISMONTH;
+            iParam = XLSB::CFDateOper::CF_TIMEPERIOD_THISMONTH;
+        }
+    }
+
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::aboveAverage)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_ABOVEAVERAGE;
+        if(m_oStdDev.IsInit())
+            iParam = m_oStdDev->GetValue();
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::duplicateValues)
+    {
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_DUPLICATEVALUES;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::colorScale)
+    {
+        iType = XLSB::CFType::CF_TYPE_GRADIENT;
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_GRADIENT;
+        dxfId = 0xFFFFFFFF;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::dataBar)
+    {
+        iType = XLSB::CFType::CF_TYPE_DATABAR;
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_DATABAR;
+        dxfId = 0xFFFFFFFF;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::iconSet)
+    {
+        iType = XLSB::CFType::CF_TYPE_MULTISTATE;
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_MULTISTATE;
+    }
+    else if (m_oType == SimpleTypes::Spreadsheet::ECfType::top10)
+    {
+        iType = XLSB::CFType::CF_TYPE_FILTER;
+        if(m_oRank.IsInit())
+            iParam = m_oRank->GetValue();
+        else
+            iParam = 1;
+        iTemplate = XLSB::CFTemp::CF_TEMPLATE_FILTER;
+    }
+    *record << iType << iTemplate << dxfId << iPri << iParam;
+    record->reserveNunBytes(8);
+    _UINT16 flags = 0;
+    if(m_oStopIfTrue.IsInit())
+        SETBIT(flags, 1 , m_oStopIfTrue->GetValue())
+    if(m_oAboveAverage.IsInit())
+        SETBIT(flags, 2 , m_oAboveAverage->GetValue())
+    if(m_oBottom.IsInit())
+        SETBIT(flags, 3 , m_oBottom->GetValue())
+    if(m_oPercent.IsInit())
+        SETBIT(flags, 4 , m_oPercent->GetValue())
+    *record << flags;
+    {
+        XLS::CFParsedFormula rgce1(cellRef);
+        XLS::CFParsedFormula rgce2(cellRef);
+        XLS::CFParsedFormula rgce3(cellRef);
+        _UINT32 cbFmla1 = 0;
+        _UINT32 cbFmla2 = 0;
+        _UINT32 cbFmla3 = 0;
+        if(!m_arrFormula.empty() && !m_arrFormula.front()->m_sText.empty())
+        {
+            rgce1 = m_arrFormula.front()->m_sText;
+            m_arrFormula.erase(m_arrFormula.begin());
+            cbFmla1 = 1;
+        }
+
+        if(!m_arrFormula.empty() && !m_arrFormula.front()->m_sText.empty())
+        {
+            rgce2 = m_arrFormula.front()->m_sText;
+            m_arrFormula.erase(m_arrFormula.begin());
+            cbFmla2 = 1;
+        }
+
+        if(!m_arrFormula.empty() && !m_arrFormula.front()->m_sText.empty())
+        {
+            rgce3 = m_arrFormula.front()->m_sText;
+            m_arrFormula.erase(m_arrFormula.begin());
+            cbFmla3 = 1;
+        }
+        XLSB::XLNullableWideString strParam;
+        if(m_oText.IsInit())
+            strParam = m_oText.get();
+        else
+            strParam.setSize(0xFFFFFFFF);
+        *record << cbFmla1 << cbFmla2 << cbFmla3 << strParam;
+        if(cbFmla1)
+            *record << rgce1;
+        if(cbFmla2)
+            *record << rgce2;
+        if(cbFmla3)
+            *record << rgce3;
+    }
+}
 XLS::BaseObjectPtr CConditionalFormattingRule::toBin14(const  XLS::CellRef &cellRef)
 {
     auto ptr(new XLSB::CFRULE14());
@@ -2421,46 +3229,17 @@ XLS::BaseObjectPtr CConditionalFormattingRule::WriteAttributes14(const  XLS::Cel
                 XLSB::FRTFormula tempFmla;
                 tempFmla.formula.set_base_ref(cellRef);
                 tempFmla.formula = i->m_sText;
+                auto lastValType = GETBITS(tempFmla.formula.rgce.sequence.rbegin()->get()->ptg_id.get(),5,6);
+                if(lastValType == 1 || lastValType == 3)
+                {
+                    SETBITS(tempFmla.formula.rgce.sequence.rbegin()->get()->ptg_id.get(),5,6,2);
+                }
                 ptr->FRTheader.rgFormulas.array.push_back(tempFmla);
             }
         }
         if(!ptr->FRTheader.rgFormulas.array.empty())
             ptr->FRTheader.fFormula = true;
-      
-        if(m_oType == SimpleTypes::Spreadsheet::ECfType::colorScale || m_oType == SimpleTypes::Spreadsheet::ECfType::dataBar 
-        || m_oType == SimpleTypes::Spreadsheet::ECfType::iconSet)
-            ptr->cbFmla3 = 1;
-        else
-            ptr->cbFmla1 = 1;
-        if(m_arrFormula.size() > 1)
-            ptr->cbFmla2 = 1;
-    }
-
-    if(!m_arrFormula.empty() && !m_arrFormula.front()->m_sText.empty())
-    {
-        ptr->cbFmla1 = 1;
-    }
-    else
-    {
-        ptr->cbFmla1 = 0;
-    }
-    if(!m_arrFormula.empty() && !m_arrFormula.front()->m_sText.empty())
-    {
-        ptr->cbFmla2 = 1;
-    }
-    else
-    {
-        ptr->cbFmla2 = 0;
-    }
-    if(!m_arrFormula.empty() && !m_arrFormula.front()->m_sText.empty())
-    {
-        ptr->cbFmla3 = 1;
-    }
-    else
-    {
-        ptr->cbFmla3 = 0;
-    }
-
+      }
     ptr->iType = XLSB::CFType::CF_TYPE_EXPRIS;
     ptr->iParam =0;
     ptr->iTemplate = XLSB::CFTemp::CF_TEMPLATE_EXPR;
@@ -2625,7 +3404,215 @@ XLS::BaseObjectPtr CConditionalFormattingRule::WriteAttributes14(const  XLS::Cel
             ptr->iParam = 1;
         ptr->iTemplate = XLSB::CFTemp::CF_TEMPLATE_FILTER;
     }
+
+    if(!ptr->FRTheader.rgFormulas.array.empty())
+    {
+    if(ptr->iType != XLSB::CFType::CF_TYPE_GRADIENT && ptr->iType != XLSB::CFType::CF_TYPE_DATABAR
+        && ptr->iType != XLSB::CFType::CF_TYPE_MULTISTATE)
+            {
+                ptr->cbFmla1 = 1;
+                ptr->cbFmla3 = 0;
+            }
+        else
+            {
+                ptr->cbFmla1 = 0;
+                ptr->cbFmla3 = 1;
+            }
+        if(m_arrFormula.size() > 1 && ptr->cbFmla1)
+            ptr->cbFmla2 = 1;
+    }
     return objPtr;
+}
+
+XLS::BaseObjectPtr CConditionalFormattingRule::toXLS(const  XLS::CellRef &cellRef)
+{
+	auto ptr = new XLS::CF12(cellRef);
+	if(!m_oType.IsInit())
+		m_oType = SimpleTypes::Spreadsheet::ECfType::expression;
+	ptr->icfTemplate = 1;
+	ptr->ct = 2;
+	if(m_oType->GetValue() == SimpleTypes::Spreadsheet::ECfType::cellIs)
+	{
+		ptr->ct = 1;
+		ptr->icfTemplate = 0;
+		if(m_oOperator.IsInit())
+		{
+			if (m_oOperator->GetValue() == SimpleTypes::Spreadsheet::ECfOperator::Operator_between)
+				ptr->cp = XLSB::CFOper::CF_OPER_BN;
+			else if (m_oOperator->GetValue() == SimpleTypes::Spreadsheet::ECfOperator::Operator_notBetween)
+				ptr->cp = XLSB::CFOper::CF_OPER_NB;
+			else if (m_oOperator->GetValue() == SimpleTypes::Spreadsheet::ECfOperator::Operator_equal)
+				ptr->cp  = XLSB::CFOper::CF_OPER_EQ;
+			else if (m_oOperator->GetValue() == SimpleTypes::Spreadsheet::ECfOperator::Operator_notEqual)
+				ptr->cp  = XLSB::CFOper::CF_OPER_NE;
+			else if (m_oOperator->GetValue() == SimpleTypes::Spreadsheet::ECfOperator::Operator_greaterThan)
+				ptr->cp  = XLSB::CFOper::CF_OPER_GT;
+			else if (m_oOperator->GetValue() == SimpleTypes::Spreadsheet::ECfOperator::Operator_lessThan)
+				ptr->cp  = XLSB::CFOper::CF_OPER_LT;
+			else if (m_oOperator->GetValue() == SimpleTypes::Spreadsheet::ECfOperator::Operator_greaterThanOrEqual)
+				ptr->cp  = XLSB::CFOper::CF_OPER_GE;
+			else if (m_oOperator->GetValue() == SimpleTypes::Spreadsheet::ECfOperator::Operator_lessThanOrEqual)
+				ptr->cp  = XLSB::CFOper::CF_OPER_LE;
+		   }
+	}
+	else if(m_oType->GetValue() == SimpleTypes::Spreadsheet::ECfType::colorScale && m_oColorScale.IsInit())
+	{
+		ptr->ct = 3;
+		ptr->icfTemplate = 2;
+		ptr->rgbCT = m_oColorScale->toXLS();
+	}
+	else if(m_oType->GetValue() == SimpleTypes::Spreadsheet::ECfType::dataBar && m_oDataBar.IsInit())
+	{
+		ptr->ct = 4;
+		ptr->icfTemplate = 3;
+		ptr->rgbCT = m_oDataBar->toXLS();
+	}
+	else if(m_oType->GetValue() == SimpleTypes::Spreadsheet::ECfType::iconSet && m_oIconSet.IsInit())
+	{
+		ptr->ct = 6;
+		ptr->icfTemplate = 4;
+		ptr->rgbCT = m_oIconSet->toXLS();
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::top10)
+	{
+		ptr->ct = 5;
+		ptr->icfTemplate = 5;
+		if(m_oBottom.IsInit() && m_oBottom->GetValue())
+			ptr->rgbTemplateParms.data.filter.fTop = false;
+		else
+			ptr->rgbTemplateParms.data.filter.fTop = true;
+		if(m_oPercent.IsInit())
+			ptr->rgbTemplateParms.data.filter.fPercent = m_oPercent->GetValue();
+		else
+			ptr->rgbTemplateParms.data.filter.fPercent = false;
+		if(m_oRank.IsInit())
+			ptr->rgbTemplateParms.data.filter.iParam = m_oRank->GetValue();
+		else
+			ptr->rgbTemplateParms.data.filter.iParam = 10;
+		auto filterPtr = new XLS::CFFilter;
+		filterPtr->fPercent = ptr->rgbTemplateParms.data.filter.fPercent;
+		filterPtr->fTop = ptr->rgbTemplateParms.data.filter.fTop;
+		filterPtr->iParam = ptr->rgbTemplateParms.data.filter.iParam;
+		ptr->rgbCT = XLS::BiffStructurePtr(filterPtr);
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::uniqueValues)
+	{
+	   ptr->icfTemplate  = XLSB::CFTemp::CF_TEMPLATE_UNIQUEVALUES;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::duplicateValues)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_DUPLICATEVALUES;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::containsText)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSTEXT;
+		ptr->rgbTemplateParms.data.text.ctp = XLSB::CFTextOper::CF_TEXTOPER_CONTAINS;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::notContainsText)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSTEXT;
+		ptr->rgbTemplateParms.data.text.ctp = XLSB::CFTextOper::CF_TEXTOPER_NOTCONTAINS;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::beginsWith)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSTEXT;
+		ptr->rgbTemplateParms.data.text.ctp = XLSB::CFTextOper::CF_TEXTOPER_BEGINSWITH;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::endsWith)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSTEXT;
+		ptr->rgbTemplateParms.data.text.ctp = XLSB::CFTextOper::CF_TEXTOPER_ENDSWITH;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::aboveAverage)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_ABOVEAVERAGE;
+		if(m_oStdDev.IsInit())
+			ptr->rgbTemplateParms.data.averages.iParam =  m_oStdDev->GetValue();
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::containsBlanks)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSBLANKS;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::notContainsBlanks)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSNOBLANKS;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::containsErrors)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSERRORS;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::notContainsErrors)
+	{
+		ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_CONTAINSNOERRORS;
+	}
+	else if (m_oType == SimpleTypes::Spreadsheet::ECfType::timePeriod)
+	{
+		if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::today)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODTODAY;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_TODAY;
+		}
+		else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::tomorrow)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODTOMORROW;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_TOMORROW;
+		}
+		else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::yesterday)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODYESTERDAY;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_YESTERDAY;
+		}
+		else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::last7Days)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODLAST7DAYS;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_LAST7DAYS;
+		}
+		else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::lastMonth)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODLASTMONTH;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_LASTMONTH;
+		}
+		else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::nextMonth)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODNEXTMONTH;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_NEXTMONTH;
+		}
+		else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::thisWeek)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODTHISWEEK;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_THISWEEK;
+		}
+		else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::nextWeek)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODNEXTWEEK;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_NEXTWEEK;
+		}
+		else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::lastWeek)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODLASTWEEK;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_LASTWEEK;
+		}
+		else if (m_oTimePeriod == SimpleTypes::Spreadsheet::ETimePeriod::thisMonth)
+		{
+			ptr->icfTemplate = XLSB::CFTemp::CF_TEMPLATE_TIMEPERIODTHISMONTH;
+			ptr->rgbTemplateParms.data.date.dateOp = XLSB::CFDateOper::CF_TIMEPERIOD_THISMONTH;
+		}
+	}
+
+	if(!m_oColorScale.IsInit() && !m_oDataBar.IsInit() && !m_oIconSet.IsInit() && m_oDxfId.IsInit())
+	{
+		ptr->dxf.dxfn.reset(new XLS::DXFN);
+		ptr->dxfId_ = m_oDxfId->GetValue();
+	}
+	if(m_oStopIfTrue.IsInit())
+		ptr->fStopIfTrue = m_oStopIfTrue->GetValue();
+	if(m_oPriority.IsInit())
+		ptr->ipriority = m_oPriority->GetValue();
+	if(m_arrFormula.size() > 0)
+		ptr->rgce1.parseStringFormula(m_arrFormula[0].get().m_sText, L"");
+	if(m_arrFormula.size() > 1)
+		ptr->rgce2.parseStringFormula(m_arrFormula[1].get().m_sText, L"");
+	return XLS::BaseObjectPtr(ptr);
 }
 
 template<typename Type>
@@ -3329,6 +4316,35 @@ XLS::BaseObjectPtr CConditionalFormatting::toBin()
     }
     return objectPtr;
 }
+void CConditionalFormatting::toBin(XLS::StreamCacheWriterPtr& writer)
+{
+    XLS::CellRef formatingfirstCell;
+    {
+        auto begin = writer->getNextRecord(XLSB::rt_BeginConditionalFormatting);
+        _UINT32 ccf = m_arrItems.size();
+        *begin <<ccf;
+        ccf = 0;
+        if(m_oPivot.IsInit())
+            ccf = m_oPivot->GetValue();
+        *begin <<ccf;
+        XLSB::UncheckedSqRfX sqrfx;
+        if(m_oSqRef.IsInit())
+            sqrfx.strValue = m_oSqRef.get();
+        formatingfirstCell = sqrfx.getLocationFirstCell();
+        *begin <<sqrfx;
+        writer->storeNextRecord(begin);
+    }
+     for(auto i: m_arrItems)
+     {
+        if(m_bIsExtended)
+            i->m_oExtId = L"{" + XmlUtils::GenerateGuid() + L"}";
+        i->toBin(writer, formatingfirstCell);
+     }
+    {
+        auto end = writer->getNextRecord(XLSB::rt_EndConditionalFormatting);
+        writer->storeNextRecord(end);
+    }
+}
 
 XLS::BaseObjectPtr CConditionalFormatting::toBin14()
 {
@@ -3360,6 +4376,30 @@ XLS::BaseObjectPtr CConditionalFormatting::toBin14()
         ptr->m_arCFRULE14.push_back(i->toBin14(formatingfirstCell));
     }
     return objectPtr;
+}
+
+void CConditionalFormatting::toXLS(XLS::BaseObjectPtr fmtsPtr)
+{
+	auto fmtsArray = static_cast<XLS::CONDFMTS*>(fmtsPtr.get());
+	auto UnionPtr = new XLS::CONDFMT12;
+	auto ptr = new XLS::CondFmt12;
+	UnionPtr->m_CondFmt12 = XLS::BaseObjectPtr(ptr);
+	XLS::CellRef formatingfirstCell;
+
+	if(m_oSqRef.IsInit())
+	{
+		ptr->frtRefHeaderU.ref8 = m_oSqRef.get();
+		ptr->mainCF.refBound = m_oSqRef.get();
+		ptr->mainCF.sqref.strValue = m_oSqRef.get();
+		formatingfirstCell = ptr->mainCF.sqref.getLocationFirstCell();
+	}
+	ptr->mainCF.ccf = m_arrItems.size();
+	for(auto i : m_arrItems)
+	{
+		UnionPtr->m_arCF12.push_back(i->toXLS(formatingfirstCell));
+	}
+
+	fmtsArray->m_arCONDFMT.push_back(XLS::BaseObjectPtr(UnionPtr));
 }
 
 bool CConditionalFormatting::IsUsage()

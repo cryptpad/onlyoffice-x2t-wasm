@@ -20,7 +20,7 @@ namespace NSDocxRenderer
 		gtNoGraphics,
 	};
 
-	class CShape : public CBaseItem
+	class CShape : public CBaseItem, public IOoxmlItem
 	{
 	public:
 		enum class eShapeType
@@ -46,7 +46,6 @@ namespace NSDocxRenderer
 		std::wstring m_strDstMedia    {};
 
 		double m_dRotation {0.0};
-		size_t m_nOrder  {0};
 
 		bool m_bIsNoFill    {true};
 		bool m_bIsNoStroke  {true};
@@ -63,15 +62,16 @@ namespace NSDocxRenderer
 		eSimpleLineType m_eSimpleLineType{eSimpleLineType::sltUnknown};
 		eLineType m_eLineType            {eLineType::ltUnknown};
 
-		std::vector<std::shared_ptr<CBaseItem>> m_arOutputObjects;
+		std::vector<std::shared_ptr<IOoxmlItem>> m_arOutputObjects;
 
 	public:
 		CShape();
 		CShape(std::shared_ptr<CImageInfo> pInfo, const std::wstring& strDstMedia);
 		virtual ~CShape();
-		virtual void Clear() override final;
+		virtual void Clear();
 		virtual void ToXml(NSStringUtils::CStringBuilder& oWriter) const override final;
 		virtual void ToXmlPptx(NSStringUtils::CStringBuilder& oWriter)const override final;
+		virtual void ToBin(NSWasm::CData& oWriter) const override final;
 
 		void SetVector(CVectorGraphics&& oVector);
 		void CalcNoRotVector();

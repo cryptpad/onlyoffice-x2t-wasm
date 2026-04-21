@@ -350,6 +350,16 @@ namespace cpdoccore {
 				master_page = res->second;
 			return master_page;
 		}
+		
+		void styles_container::set_new_name_master_page(std::wstring ws_name_layout, std::wstring ws_new_name)
+		{
+			vec_new_name_master_page.push_back({ws_name_layout,ws_new_name});
+		}
+		
+		std::vector<std::pair<std::wstring, std::wstring> >& styles_container::get_vec_new_name()
+		{
+			return vec_new_name_master_page;
+		}
 
 		style_instance* styles_container::style_default_by_type(style_family::type Type) const
 		{
@@ -387,8 +397,8 @@ namespace cpdoccore {
 				const style_header_footer_properties_attlist& attr = headerProp->style_header_footer_properties_attlist_;
 				_CP_OPT(double) header;
 
-				if (attr.fo_min_height_)	header = attr.fo_min_height_->get_value_unit(length::pt);
-				else if (attr.svg_height_)	header = attr.svg_height_->get_value_unit(length::pt);
+				if (attr.fo_min_height_)	header = attr.fo_min_height_->get_value_unit(length::inch);
+				else if (attr.svg_height_)	header = attr.svg_height_->get_value_unit(length::inch);
 
 				Context.get_table_context().set_header_page(header);
 			}
@@ -398,8 +408,8 @@ namespace cpdoccore {
 				const style_header_footer_properties_attlist& attr = footerProp->style_header_footer_properties_attlist_;
 				_CP_OPT(double) footer;
 
-				if (attr.fo_min_height_)	footer = attr.fo_min_height_->get_value_unit(length::pt);
-				else if (attr.svg_height_)	footer = attr.svg_height_->get_value_unit(length::pt);
+				if (attr.fo_min_height_)	footer = attr.fo_min_height_->get_value_unit(length::inch);
+				else if (attr.svg_height_)	footer = attr.svg_height_->get_value_unit(length::inch);
 
 				Context.get_table_context().set_footer_page(footer);
 			}

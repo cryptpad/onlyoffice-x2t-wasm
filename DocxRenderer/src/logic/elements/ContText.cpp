@@ -70,13 +70,29 @@ namespace NSDocxRenderer
 		m_dBotWithDescent = rCont.m_dBotWithDescent;
 
 		m_oSelectedFont = rCont.m_oSelectedFont;
-		m_bPossibleSplit = rCont.m_bPossibleSplit;
+		m_bPossibleHorSplit = rCont.m_bPossibleHorSplit;
 		m_bWriteStyleRaw = rCont.m_bWriteStyleRaw;
+
+		m_nOriginFontFaceIndex = rCont.m_nOriginFontFaceIndex;
+		m_wsOriginFontName = rCont.m_nOriginFontFaceIndex;
 
 		m_arSymWidths.clear();
 		m_arSymWidths.resize(rCont.m_arSymWidths.size());
 		for (size_t i = 0; i < rCont.m_arSymWidths.size(); ++i)
 			m_arSymWidths[i] = rCont.m_arSymWidths[i];
+
+		m_arGids.clear();
+		m_arGids.resize(rCont.m_arGids.size());
+		for (size_t i = 0; i < rCont.m_arGids.size(); ++i)
+			m_arGids[i] = rCont.m_arGids[i];
+
+		m_arOriginLefts.clear();
+		m_arOriginLefts.resize(rCont.m_arOriginLefts.size());
+		for (size_t i = 0; i < rCont.m_arOriginLefts.size(); ++i)
+			m_arOriginLefts[i] = rCont.m_arOriginLefts[i];
+
+		m_bFontSubstitution = rCont.m_bFontSubstitution;
+		m_dSpacing = rCont.m_dSpacing;
 
 		return *this;
 	}
@@ -85,7 +101,6 @@ namespace NSDocxRenderer
 	{
 		if (!m_pFontStyle->wsFontName.empty() && !m_oText.empty())
 		{
-			// нужно перемерять...
 			if (m_oSelectedFont.Path.empty())
 				m_pManager->LoadFontByName(m_oSelectedFont);
 			else
@@ -106,6 +121,7 @@ namespace NSDocxRenderer
 
 			m_oSelectedSizes.dWidth = dBoxWidth;
 			m_oSelectedSizes.dHeight = dBoxHeight;
+			m_dSpacing = (m_dWidth - m_oSelectedSizes.dWidth) / (m_oText.length());
 		}
 	}
 
@@ -128,14 +144,28 @@ namespace NSDocxRenderer
 		cont->m_dWidth = cont->m_dRight - cont->m_dLeft;
 
 		cont->m_arSymWidths.clear();
+		cont->m_arOriginLefts.clear();
+		cont->m_arGids.clear();
 		for (size_t i = index + 1; i < len; ++i)
+		{
 			cont->m_arSymWidths.push_back(m_arSymWidths[i]);
+			cont->m_arOriginLefts.push_back(m_arOriginLefts[i]);
+
+			if (!m_arGids.empty() && cont->m_bCollectMetaInfo)
+				cont->m_arGids.push_back(m_arGids[i]);
+		}
 
 		m_oText = m_oText.substr(0, index + 1);
 		m_dRight = cont->m_dLeft;
 		m_dWidth = m_dRight - m_dLeft;
+
 		m_arSymWidths.resize(index + 1);
-		m_bPossibleSplit = false;
+		m_arOriginLefts.resize(index + 1);
+
+		if (!m_arGids.empty())
+			m_arGids.resize(index + 1);
+
+		m_bPossibleHorSplit = false;
 
 		return cont;
 	}
@@ -178,34 +208,34 @@ namespace NSDocxRenderer
 			return eVerticalCrossingType::vctCurrentInsideNext;
 
 		else if (this_top < other_top && this_bot > other_bot)
-			return  eVerticalCrossingType::vctCurrentOutsideNext;
+			return eVerticalCrossingType::vctCurrentOutsideNext;
 
-		else if (this_top < other_top && this_bot < other_bot &&
-				 (this_bot >= other_top || fabs(this_bot - other_top) < c_dTHE_SAME_STRING_Y_PRECISION_MM))
-			return  eVerticalCrossingType::vctCurrentAboveNext;
+		else if (this_top < other_top && this_bot < other_bot && this_bot > other_top &&
+		    this_bot - other_top > c_dOVERLAP_TEXT_LINE_ERROR_MM)
+			return eVerticalCrossingType::vctCurrentAboveNext;
 
-		else if (this_top > other_top && this_bot > other_bot &&
-				 (this_top <= other_bot || fabs(this_top - other_bot) < c_dTHE_SAME_STRING_Y_PRECISION_MM))
-			return  eVerticalCrossingType::vctCurrentBelowNext;
+		else if (this_top > other_top && this_bot > other_bot && this_top < other_bot &&
+		         other_bot - this_top > c_dOVERLAP_TEXT_LINE_ERROR_MM)
+			return eVerticalCrossingType::vctCurrentBelowNext;
 
 		else if (this_top == other_top && this_bot == other_bot)
 			return  eVerticalCrossingType::vctDublicate;
 
 		else if (fabs(this_top - other_top) < c_dTHE_SAME_STRING_Y_PRECISION_MM &&
-				 fabs(this_bot - other_bot) < c_dTHE_SAME_STRING_Y_PRECISION_MM)
-			return  eVerticalCrossingType::vctTopAndBottomBordersMatch;
+		         fabs(this_bot - other_bot) < c_dTHE_SAME_STRING_Y_PRECISION_MM)
+			return eVerticalCrossingType::vctTopAndBottomBordersMatch;
 
 		else if (fabs(this_top - other_top) < c_dTHE_SAME_STRING_Y_PRECISION_MM)
-			return  eVerticalCrossingType::vctTopBorderMatch;
+			return eVerticalCrossingType::vctTopBorderMatch;
 
 		else if (fabs(this_bot - other_bot) < c_dTHE_SAME_STRING_Y_PRECISION_MM)
-			return  eVerticalCrossingType::vctBottomBorderMatch;
+			return eVerticalCrossingType::vctBottomBorderMatch;
 
-		else if (this_bot < other_top)
-			return  eVerticalCrossingType::vctNoCrossingCurrentAboveNext;
+		else if (other_top - this_bot > -c_dOVERLAP_TEXT_LINE_ERROR_MM)
+			return eVerticalCrossingType::vctNoCrossingCurrentAboveNext;
 
-		else if (this_top > other_bot)
-			return  eVerticalCrossingType::vctNoCrossingCurrentBelowNext;
+		else if (this_top - other_bot > -c_dOVERLAP_TEXT_LINE_ERROR_MM)
+			return eVerticalCrossingType::vctNoCrossingCurrentBelowNext;
 
 		else
 			return  eVerticalCrossingType::vctUnknown;
@@ -229,18 +259,11 @@ namespace NSDocxRenderer
 
 		LONG lCalculatedSpacing = 0;
 
+		// mm to points * 20
 		if (!m_oText.empty())
-		{
-			double dSpacing = (m_dWidth - m_oSelectedSizes.dWidth) / (m_oText.length());
-			dSpacing *= c_dMMToDx;
+			lCalculatedSpacing = static_cast<LONG>(m_dSpacing * c_dMMToDx);
 
-			//mm to points * 20
-			lCalculatedSpacing = static_cast<LONG>(dSpacing);
-		}
-
-		// принудительно уменьшаем spacing чтобы текстовые линии не выходили за правую границу
 		lCalculatedSpacing -= 1;
-
 		if (lCalculatedSpacing != 0)
 		{
 			oWriter.WriteString(L"<w:spacing w:val=\"");
@@ -367,14 +390,7 @@ namespace NSDocxRenderer
 
 		LONG lCalculatedSpacing = 0;
 		if (!m_oText.empty())
-		{
-			double dSpacing = (m_dWidth - m_oSelectedSizes.dWidth) / (m_oText.length());
-			dSpacing *= c_dMMToPt * 100;
-			lCalculatedSpacing = static_cast<LONG>(dSpacing);
-		}
-
-		// принудительно уменьшаем spacing чтобы текстовые линии не выходили за правую границу
-		lCalculatedSpacing -= 15;
+			lCalculatedSpacing = static_cast<LONG>(m_dSpacing * c_dMMToPt * 100);
 
 		oWriter.WriteString(L" spc=\"");
 		oWriter.AddInt(lCalculatedSpacing);
@@ -470,29 +486,182 @@ namespace NSDocxRenderer
 		oWriter.WriteString(L"</a:t>");
 		if (m_bIsAddBrEnd) oWriter.WriteString(L"<a:br/>");
 
+		std::wstring origin_gids{};
+		for (auto& gid : m_arGids)
+			origin_gids += std::to_wstring(gid) + L";";
+
+		// Origin width string
+		std::wstring origin_lefts{};
+		for (auto& l : m_arOriginLefts)
+			origin_lefts += std::to_wstring(static_cast<int>(l * c_dMMToEMU)) + L";";
+
 		// meta info for pdf-editor
 		oWriter.WriteString(L"<metaorigin:pos");
 		oWriter.WriteString(L" x=\"");
-		oWriter.AddDouble(m_dLeft, 4);
+		oWriter.AddInt(static_cast<int>(m_dLeft * c_dMMToEMU));
 		oWriter.WriteString(L"\" y=\"");
-		oWriter.AddDouble(m_dBaselinePos, 4);
-		oWriter.WriteString(L"\" widths=\"");
-		for (auto& w : m_arSymWidths)
-		{
-			oWriter.AddDouble(w, 4);
-			oWriter.WriteString(L",");
-		}
+		oWriter.AddInt(static_cast<int>(m_dBot * c_dMMToEMU));
 		oWriter.WriteString(L"\" />");
 
 		oWriter.WriteString(L"<metaorigin:font ");
-		oWriter.WriteString(L" font=\"");
+		oWriter.WriteString(L" name=\"");
 		oWriter.WriteString(m_wsOriginFontName);
+		oWriter.WriteString(L"\" faceindex=\"");
+		oWriter.AddInt(m_nOriginFontFaceIndex);
 		oWriter.WriteString(L"\" />");
+
+		oWriter.WriteString(L"<metaorigin:syminfo");
+		oWriter.WriteString(L" lefts=\"");
+		oWriter.WriteString(origin_lefts);
+		oWriter.WriteString(L"\" gids=\"");
+		oWriter.WriteString(origin_gids);
+		oWriter.WriteString(L"\" />");
+
+		oWriter.WriteString(L"<metaorigin:fontsubstitution");
+		oWriter.WriteString(L" value=\"");
+		oWriter.AddInt(m_bFontSubstitution);
+		oWriter.WriteString(L"\" />");
+
 		oWriter.WriteString(L"</a:r>");
+	}
+	void CContText::ToBin(NSWasm::CData& oWriter) const
+	{
+		int lCalculatedSpacing = 0;
+		if (!m_oText.empty())
+			lCalculatedSpacing = static_cast<LONG>(m_dSpacing * c_dMMToPt * 100);
+
+		const BYTE kPARRUN_TYPE_RUN = 1;
+		oWriter.StartRecord(kPARRUN_TYPE_RUN);
+
+		oWriter.WriteBYTE(kBin_g_nodeAttributeStart);
+		oWriter.WriteBYTE(0); oWriter.WriteStringUtf16(m_oText.ToStdWString());
+		oWriter.WriteBYTE(kBin_g_nodeAttributeEnd);
+
+		// Meta-info
+		oWriter.StartRecord(111);
+		oWriter.WriteBYTE(kBin_g_nodeAttributeStart);
+		oWriter.WriteBYTE(0); oWriter.WriteStringUtf16(m_wsOriginFontName); // Origin font name
+		oWriter.WriteBYTE(1); oWriter.AddInt(m_nOriginFontFaceIndex); // Origin face index
+		oWriter.WriteBYTE(2); oWriter.AddSInt(static_cast<int>(m_dLeft * c_dMMToEMU)); // Origin left
+		oWriter.WriteBYTE(3); oWriter.AddSInt(static_cast<int>(m_dBot * c_dMMToEMU)); // Origin bot
+
+		std::wstring origin_gids{};
+		for (auto& gid : m_arGids)
+			origin_gids += std::to_wstring(gid) + L";";
+
+		oWriter.WriteBYTE(4); oWriter.WriteStringUtf16(origin_gids); // Origin gids string
+
+		// Origin width string
+		std::wstring origin_lefts{};
+		for (auto& l : m_arOriginLefts)
+			origin_lefts += std::to_wstring(static_cast<int>(l * c_dMMToEMU)) + L";";
+		// add offset for last symbol
+		if (!m_arSymWidths.empty())
+			origin_lefts += std::to_wstring(static_cast<int>((m_arOriginLefts.back() + m_arSymWidths.back()) * c_dMMToEMU)) + L";";
+
+		oWriter.WriteBYTE(5); oWriter.WriteStringUtf16(origin_lefts); // Origin lefts
+		oWriter.WriteBYTE(6); oWriter.WriteBool(m_bFontSubstitution); // Font Substitution (just pass from pdf)
+
+		oWriter.WriteBYTE(kBin_g_nodeAttributeEnd);
+		oWriter.EndRecord();
+
+		// WriteRecord WriteRunProperties
+		[&oWriter, this, lCalculatedSpacing] () {
+			oWriter.StartRecord(0);
+			oWriter.WriteBYTE(kBin_g_nodeAttributeStart);
+
+			oWriter.WriteBYTE(1); oWriter.WriteBool(m_pFontStyle->bBold);
+			oWriter.WriteBYTE(7); oWriter.WriteBool(m_pFontStyle->bItalic);
+
+			BYTE strike = 1;
+			if (m_bIsDoubleStrikeout) strike = 0;
+			else if (m_bIsStrikeoutPresent) strike = 2;
+			oWriter.WriteBYTE(16); oWriter.WriteBYTE(strike);
+			oWriter.WriteBYTE(15); oWriter.AddSInt(lCalculatedSpacing);
+			oWriter.WriteBYTE(18); oWriter.WriteBYTE(m_bIsUnderlinePresent ? 13 : 12);
+			unsigned int font_size = static_cast<unsigned int>(m_pFontStyle->dFontSize) * 100;
+			const unsigned int min_font_size = 100;
+			oWriter.WriteBYTE(17); oWriter.AddInt(std::max(font_size, std::max(font_size, min_font_size)));
+
+			oWriter.WriteBYTE(2);
+			if (m_eVertAlignType == eVertAlignType::vatSubscript)
+				oWriter.AddSInt(-25000);
+			else if (m_eVertAlignType == eVertAlignType::vatSuperscript)
+				oWriter.AddSInt(30000);
+			else
+				oWriter.AddInt(0);
+
+			oWriter.WriteBYTE(kBin_g_nodeAttributeEnd);
+
+			// WriteTextFontTypeface
+			auto WriteTextFontTypeface = [this, &oWriter] (const std::wstring& wsTypeface) {
+				oWriter.WriteBYTE(kBin_g_nodeAttributeStart);
+				oWriter.WriteBYTE(3); oWriter.WriteStringUtf16(wsTypeface);
+				oWriter.WriteBYTE(kBin_g_nodeAttributeEnd);
+			};
+
+			// WriteRecord WriteTextFontTypeface
+			oWriter.StartRecord(3); WriteTextFontTypeface(m_pFontStyle->wsFontName); oWriter.EndRecord();
+			oWriter.StartRecord(4); WriteTextFontTypeface(m_pFontStyle->wsFontName); oWriter.EndRecord();
+			oWriter.StartRecord(5); WriteTextFontTypeface(m_pFontStyle->wsFontName); oWriter.EndRecord();
+
+			// WriteUniColor
+			auto WriteUniColor = [&oWriter] (long color, long alpha) {
+				BYTE r = reinterpret_cast<BYTE*>(&color)[0];
+				BYTE g = reinterpret_cast<BYTE*>(&color)[1];
+				BYTE b = reinterpret_cast<BYTE*>(&color)[2];
+
+				oWriter.StartRecord(1); // COLOR_TYPE_SRGB
+				oWriter.WriteBYTE(kBin_g_nodeAttributeStart);
+				oWriter.WriteBYTE(0); oWriter.WriteBYTE(r);
+				oWriter.WriteBYTE(1); oWriter.WriteBYTE(g);
+				oWriter.WriteBYTE(2); oWriter.WriteBYTE(b);
+				oWriter.WriteBYTE(kBin_g_nodeAttributeEnd);
+				// WriteMods (alpha)
+				oWriter.StartRecord(0);
+				oWriter.AddInt(1);
+				oWriter.StartRecord(1);
+				oWriter.WriteBYTE(kBin_g_nodeAttributeStart);
+				oWriter.WriteBYTE(0); oWriter.WriteStringUtf16(L"alpha");
+				oWriter.WriteBYTE(1); oWriter.AddInt(alpha * 100000 / 255);
+				oWriter.WriteBYTE(kBin_g_nodeAttributeEnd);
+				oWriter.EndRecord();
+				oWriter.EndRecord();
+				oWriter.EndRecord();
+			};
+
+			auto WriteUniFill = [&oWriter, this, &WriteUniColor] () {
+				oWriter.StartRecord(3); // FILL_TYPE_SOLID
+				oWriter.StartRecord(0);
+				WriteUniColor(m_pFontStyle->oBrush.Color1, m_pFontStyle->oBrush.Alpha1);
+				oWriter.EndRecord();
+				oWriter.EndRecord();
+			};
+
+			// WriteRecord WriteUniFill
+			oWriter.StartRecord(1);
+			WriteUniFill();
+			oWriter.EndRecord();
+
+			// WriteRecord WriteHighlightColor
+			if (m_bIsHighlightPresent)
+			{
+				oWriter.StartRecord(12);
+				oWriter.WriteBYTE(kBin_g_nodeAttributeStart);
+				oWriter.WriteBYTE(kBin_g_nodeAttributeEnd);
+				oWriter.StartRecord(0);
+				WriteUniColor(m_lHighlightColor, 255);
+				oWriter.EndRecord();
+				oWriter.EndRecord();
+			}
+			oWriter.EndRecord();
+		}();
+		oWriter.EndRecord();
 	}
 
 	bool CContText::IsEqual(const CContText *pCont) const noexcept
 	{
+		bool bIf0 = IsFontsEqual(m_oSelectedFont, pCont->m_oSelectedFont);
 		bool bIf1 = m_pFontStyle->wsFontStyleId == pCont->m_pFontStyle->wsFontStyleId;
 		bool bIf2 = m_bIsStrikeoutPresent == pCont->m_bIsStrikeoutPresent;
 		bool bIf3 = m_bIsDoubleStrikeout == pCont->m_bIsDoubleStrikeout;
@@ -509,8 +678,8 @@ namespace NSDocxRenderer
 		bool bIf14 = m_eVertAlignType == eVertAlignType::vatUnknown && pCont->m_eVertAlignType == eVertAlignType::vatBase;
 		bool bIf15 = m_eVertAlignType == eVertAlignType::vatBase && pCont->m_eVertAlignType == eVertAlignType::vatUnknown;
 
-		return (bIf1 && bIf2 && bIf3 && bIf4 && bIf5 && bIf6 && bIf7 &&
-				bIf8 && bIf9 && bIf10 && bIf11 && bIf12 && (bIf13 || bIf14 || bIf15));
+		return (bIf0 && bIf1 && bIf2 && bIf3 && bIf4 && bIf5 && bIf6 && bIf7 &&
+		        bIf8 && bIf9 && bIf10 && bIf11 && bIf12 && (bIf13 || bIf14 || bIf15));
 	}
 
 	UINT CContText::GetNumberOfFeatures() const noexcept
@@ -529,10 +698,11 @@ namespace NSDocxRenderer
 	bool CContText::IsDuplicate(CContText* pCont, eVerticalCrossingType eVType, eHorizontalCrossingType eHType) const noexcept
 	{
 		return m_oText == pCont->m_oText &&
-			   eVType == eVerticalCrossingType::vctDublicate &&
-			   (eHType == eHorizontalCrossingType::hctDublicate ||
-				eHType == eHorizontalCrossingType::hctCurrentLeftOfNext ||
-				eHType == eHorizontalCrossingType::hctCurrentRightOfNext);
+		        eVType == eVerticalCrossingType::vctDublicate &&
+		        (eHType == eHorizontalCrossingType::hctDublicate ||
+		         eHType == eHorizontalCrossingType::hctCurrentLeftOfNext ||
+		         eHType == eHorizontalCrossingType::hctCurrentRightOfNext ||
+		         eHType == eHorizontalCrossingType::hctLeftAndRightBordersMatch);
 	}
 
 	bool CContText::IsOnlySpaces() const
@@ -552,10 +722,13 @@ namespace NSDocxRenderer
 		return text.length() == 1 && CContText::IsUnicodeDiacriticalMark(text.at(0));
 	}
 
-	void CContText::AddTextBack(const NSStringUtils::CStringUTF32& oText, const std::vector<double>& arSymWidths)
+	void CContText::AddTextBack(const NSStringUtils::CStringUTF32& oText,
+	                             const std::vector<double>& arSymWidths,
+	                             const std::vector<unsigned int>& arGids,
+	                             const std::vector<double>& arOriginLefts)
 	{
 		bool is_space_twice = m_oText.at(m_oText.length() - 1) == c_SPACE_SYM &&
-							  oText.at(0) == c_SPACE_SYM;
+		        oText.at(0) == c_SPACE_SYM;
 
 		for (size_t i = 0; i < arSymWidths.size(); ++i)
 		{
@@ -567,22 +740,47 @@ namespace NSDocxRenderer
 				continue;
 			}
 			m_arSymWidths.push_back(w);
-			m_dWidth += w;
 			m_oText += oText.at(i);
+			m_arOriginLefts.push_back(arOriginLefts[i]);
+			m_dRight = arOriginLefts[i] + w;
+
+			if (!arGids.empty() && m_bCollectMetaInfo)
+				m_arGids.push_back(arGids[i]);
 		}
-		m_dRight = m_dLeft + m_dWidth;
+		m_dWidth = m_dRight - m_dLeft;
 	}
-	void CContText::AddTextFront(const NSStringUtils::CStringUTF32& oText, const std::vector<double>& arSymWidths)
+	void CContText::AddTextFront(const NSStringUtils::CStringUTF32& oText,
+	                             const std::vector<double>& arSymWidths,
+	                             const std::vector<unsigned int>& arGids,
+	                             const std::vector<double>& arOriginLefts)
 	{
 		m_oText = oText + m_oText;
 
 		auto ar_sym_w = m_arSymWidths;
 		m_arSymWidths = arSymWidths;
-
 		for (auto& w : ar_sym_w)
 			m_arSymWidths.push_back(w);
+
+		if (!arGids.empty() && m_bCollectMetaInfo)
+		{
+			auto ar_gids = m_arGids;
+			m_arGids = arGids;
+			for (auto& gid : ar_gids)
+				m_arGids.push_back(gid);
+		}
+
+		auto ar_lefts = m_arOriginLefts;
+		m_arOriginLefts = arOriginLefts;
+		for (auto& left : ar_lefts)
+			m_arOriginLefts.push_back(left);
+
+		m_dLeft = m_arOriginLefts.back();
+		m_dWidth = m_dRight - m_dLeft;
 	}
-	void CContText::SetText(const NSStringUtils::CStringUTF32& oText, const std::vector<double>& arSymWidths)
+	void CContText::SetText(const NSStringUtils::CStringUTF32& oText,
+	                        const std::vector<double>& arSymWidths,
+	                        std::vector<unsigned int>&& arGids,
+	                        std::vector<double>&& arOriginLefts)
 	{
 		m_oText = oText;
 		m_arSymWidths.clear();
@@ -593,32 +791,52 @@ namespace NSDocxRenderer
 			m_dWidth += w;
 		}
 		m_dRight = m_dLeft + m_dWidth;
+		m_arOriginLefts = std::move(arOriginLefts);
+
+		if (m_bCollectMetaInfo)
+			m_arGids = std::move(arGids);
 	}
 
-	void CContText::AddSymBack(uint32_t cSym, double dWidth)
+	void CContText::AddSymBack(uint32_t cSym, double dWidth, double dLeft, unsigned int nGid)
 	{
 		bool is_space_twice = m_oText.at(m_oText.length() - 1) == c_SPACE_SYM && cSym == c_SPACE_SYM;
 
 		if (is_space_twice)
+		{
 			m_arSymWidths.back() += dWidth;
+		}
 		else
 		{
 			m_arSymWidths.push_back(dWidth);
 			m_oText += cSym;
-		}
-		m_dWidth += dWidth;
-		m_dRight = m_dLeft + m_dWidth;
+			m_arOriginLefts.push_back(dLeft);
 
+			if (m_bCollectMetaInfo)
+			{
+				m_arGids.push_back(nGid);
+			}
+		}
+		m_dRight = dLeft + dWidth;
+		m_dWidth = m_dRight - m_dLeft;
 	}
-	void CContText::AddSymFront(uint32_t cSym, double dWidth)
+	void CContText::AddSymFront(uint32_t cSym, double dWidth, double dLeft, unsigned int nGid)
 	{
 		NSStringUtils::CStringUTF32 text;
 		text += cSym;
 		text += m_oText;
 		m_oText = text;
+
+		m_dLeft = dLeft;
+		m_dWidth = m_dRight - m_dLeft;
+
 		m_arSymWidths.insert(m_arSymWidths.begin(), dWidth);
+		m_arOriginLefts.insert(m_arOriginLefts.begin(), dLeft);
+		if (m_bCollectMetaInfo)
+		{
+			m_arGids.insert(m_arGids.begin(), nGid);
+		}
 	}
-	void CContText::SetSym(uint32_t cSym, double dWidth)
+	void CContText::SetSym(uint32_t cSym, double dWidth, double dLeft, unsigned int nGid)
 	{
 		m_oText = L"";
 		m_oText += cSym;
@@ -626,13 +844,34 @@ namespace NSDocxRenderer
 		m_arSymWidths.push_back(dWidth);
 		m_dWidth = dWidth;
 		m_dRight = m_dLeft + m_dWidth;
+
+		m_arSymWidths.clear();
+		m_arSymWidths.push_back(dWidth);
+
+		m_arOriginLefts.clear();
+		m_arOriginLefts.push_back(dLeft);
+
+		if (m_bCollectMetaInfo)
+		{
+			m_arGids.clear();
+			m_arGids.push_back(nGid);
+		}
 	}
 	void CContText::RemoveLastSym()
 	{
 		m_oText = m_oText.substr(0, m_oText.length() - 1);
-		m_dWidth -= m_arSymWidths[m_arSymWidths.size() - 1];
-		m_dRight = m_dLeft + m_dWidth;
 		m_arSymWidths.resize(m_arSymWidths.size() - 1);
+		m_arOriginLefts.resize(m_arOriginLefts.size() - 1);
+
+		if (!m_arOriginLefts.empty())
+			m_dRight = m_arOriginLefts.back() + m_arSymWidths.back();
+		else
+			m_dRight = m_dLeft;
+
+		m_dWidth = m_dRight - m_dLeft;
+
+		if (!m_arGids.empty() && m_bCollectMetaInfo)
+			m_arGids.resize(m_arGids.size() - 1);
 	}
 	uint32_t CContText::GetLastSym() const
 	{
@@ -647,31 +886,24 @@ namespace NSDocxRenderer
 	{
 		return m_arSymWidths;
 	}
-	const std::vector<double> CContText::GetSymLefts() const noexcept
+	const std::vector<double>& CContText::GetSymLefts() const noexcept
 	{
-		std::vector<double> lefts;
-		double left = m_dLeft;
-		for (auto& w : m_arSymWidths)
-		{
-			lefts.push_back(left);
-			left += w;
-		}
-		return lefts;
+		return m_arOriginLefts;
 	}
 
 	bool CContText::CheckFontEffects
-		(std::shared_ptr<CContText>& pFirstCont,
-		 std::shared_ptr<CContText>& pSecondCont,
-		 eVerticalCrossingType eVType,
-		 eHorizontalCrossingType eHType)
+	(std::shared_ptr<CContText>& pFirstCont,
+	 std::shared_ptr<CContText>& pSecondCont,
+	 eVerticalCrossingType eVType,
+	 eHorizontalCrossingType eHType)
 	{
 		//Условие пересечения по вертикали
-		bool bIf1 = eVType == eVerticalCrossingType::vctCurrentAboveNext; //текущий cont выше
-		bool bIf2 = eVType == eVerticalCrossingType::vctCurrentBelowNext; //текущий cont ниже
+		bool bIf1 = eVType == eVerticalCrossingType::vctCurrentAboveNext;
+		bool bIf2 = eVType == eVerticalCrossingType::vctCurrentBelowNext;
 
 		//Условие пересечения по горизонтали
-		bool bIf3 = eHType == eHorizontalCrossingType::hctCurrentLeftOfNext; //текущий cont левее
-		bool bIf4 = eHType == eHorizontalCrossingType::hctCurrentRightOfNext; //текущий cont правее
+		bool bIf3 = eHType == eHorizontalCrossingType::hctCurrentLeftOfNext;
+		bool bIf4 = eHType == eHorizontalCrossingType::hctCurrentRightOfNext;
 
 		//Размеры шрифта и текст должны бать одинаковыми
 		bool bIf5 = pFirstCont->m_pFontStyle->dFontSize == pSecondCont->m_pFontStyle->dFontSize;
@@ -687,9 +919,7 @@ namespace NSDocxRenderer
 		bool bIf11 = pFirstCont->m_pFontStyle->oBrush.Color1 == c_iGreyColor2;
 		bool bIf12 = pSecondCont->m_pFontStyle->oBrush.Color1 == c_iGreyColor2;
 
-		//note Каждый символ с Emboss или Engrave разбиваются на 3 символа с разными цветами
-		//note Логика подобрана для конкретного примера - возможно нужно будет ее обобщить.
-		//todo существует проблема неправильного определением FontEffects с физически пересекаемыми строчками - файл generaltest.pdf p.14
+		// каждый символ с Emboss или Engrave разбиваются на 3 символа с разными цветами
 		if (bIf5 && bIf6)
 		{
 			if (bIf12 && pFirstCont->m_bIsEmbossPresent)
@@ -743,28 +973,30 @@ namespace NSDocxRenderer
 	}
 
 	bool CContText::CheckVertAlignTypeBetweenConts
-		(std::shared_ptr<CContText> pFirstCont,
-		 std::shared_ptr<CContText> pSecondCont,
-		 eVerticalCrossingType eVType,
-		 eHorizontalCrossingType eHType)
+	(std::shared_ptr<CContText> pFirstCont,
+	 std::shared_ptr<CContText> pSecondCont,
+	 eVerticalCrossingType eVType,
+	 eHorizontalCrossingType eHType)
 	{
 
+		double first_height = pFirstCont->m_dBotWithDescent - pFirstCont->m_dTopWithAscent;
 		bool bIf1 = eVType == eVerticalCrossingType::vctCurrentAboveNext ||
-					eVType == eVerticalCrossingType::vctCurrentInsideNext;
+		        eVType == eVerticalCrossingType::vctCurrentInsideNext &&
+		        pSecondCont->m_dBotWithDescent - pFirstCont->m_dBotWithDescent > first_height * 0.2;
 
 		bool bIf2 = eVType == eVerticalCrossingType::vctCurrentBelowNext;
 
 		bool bIf3 = (eHType == eHorizontalCrossingType::hctNoCrossingCurrentLeftOfNext ||
-					 eHType == eHorizontalCrossingType::hctCurrentLeftOfNext) &&
-					fabs(pFirstCont->m_dRight - pSecondCont->m_dLeft) < c_dTHE_STRING_X_PRECISION_MM * 3;
+		             eHType == eHorizontalCrossingType::hctCurrentLeftOfNext) &&
+		        fabs(pFirstCont->m_dRight - pSecondCont->m_dLeft) < c_dTHE_STRING_X_PRECISION_MM;
 
 		bool bIf4 = (eHType == eHorizontalCrossingType::hctNoCrossingCurrentRightOfNext ||
-					 eHType == eHorizontalCrossingType::hctCurrentRightOfNext) &&
-					fabs(pFirstCont->m_dLeft - pSecondCont->m_dRight) < c_dTHE_STRING_X_PRECISION_MM * 3;
+		             eHType == eHorizontalCrossingType::hctCurrentRightOfNext) &&
+		        fabs(pFirstCont->m_dLeft - pSecondCont->m_dRight) < c_dTHE_STRING_X_PRECISION_MM;
 
 		//Размеры шрифта должны бать разными
-		bool bIf5 = pFirstCont->m_pFontStyle->dFontSize * 0.7 > pSecondCont->m_pFontStyle->dFontSize;
-		bool bIf6 = pFirstCont->m_pFontStyle->dFontSize <  pSecondCont->m_pFontStyle->dFontSize * 0.7;
+        bool bIf5 = pFirstCont->m_pFontStyle->dFontSize * 0.8 > pSecondCont->m_pFontStyle->dFontSize;
+        bool bIf6 = pFirstCont->m_pFontStyle->dFontSize <  pSecondCont->m_pFontStyle->dFontSize * 0.8;
 
 		if (bIf3 || bIf4)
 		{
@@ -774,7 +1006,7 @@ namespace NSDocxRenderer
 				pSecondCont->m_pCont = pFirstCont;
 				pFirstCont->m_eVertAlignType = eVertAlignType::vatBase;
 				pFirstCont->m_pCont = pSecondCont;
-				pFirstCont->m_bPossibleSplit = false;
+				pFirstCont->m_bPossibleHorSplit = false;
 				return true;
 			}
 			else if (bIf2 && bIf5)
@@ -783,7 +1015,7 @@ namespace NSDocxRenderer
 				pSecondCont->m_pCont = pFirstCont;
 				pFirstCont->m_eVertAlignType = eVertAlignType::vatBase;
 				pFirstCont->m_pCont = pSecondCont;
-				pFirstCont->m_bPossibleSplit = false;
+				pFirstCont->m_bPossibleHorSplit = false;
 				return true;
 			}
 			else if (bIf1 && bIf6)
@@ -792,7 +1024,7 @@ namespace NSDocxRenderer
 				pFirstCont->m_pCont = pSecondCont;
 				pSecondCont->m_eVertAlignType = eVertAlignType::vatBase;
 				pSecondCont->m_pCont = pFirstCont;
-				pSecondCont->m_bPossibleSplit = false;
+				pSecondCont->m_bPossibleHorSplit = false;
 				return true;
 			}
 			else if (bIf2 && bIf6)
@@ -801,7 +1033,7 @@ namespace NSDocxRenderer
 				pFirstCont->m_pCont = pSecondCont;
 				pSecondCont->m_eVertAlignType = eVertAlignType::vatBase;
 				pSecondCont->m_pCont = pFirstCont;
-				pSecondCont->m_bPossibleSplit = false;
+				pSecondCont->m_bPossibleHorSplit = false;
 				return true;
 			}
 		}
@@ -824,15 +1056,15 @@ namespace NSDocxRenderer
 	{
 		// more symbols of delims
 		bool is_bullet =
-			(cSym == 0x2022) || (cSym == 0x2023) || (cSym == 0x2043) || (cSym == 0x204C) ||
-			(cSym == 0x204D) || (cSym == 0x2219) || (cSym == 0x25CB) || (cSym == 0x25CF) ||
-			(cSym == 0x25D8) || (cSym == 0x25E6) || (cSym == 0x2619) || (cSym == 0x2765) ||
-			(cSym == 0x2767) || (cSym == 0x29BE) || (cSym == 0x29BF) || (cSym == 0x25C9);
+		        (cSym == 0x2022) || (cSym == 0x2023) || (cSym == 0x2043) || (cSym == 0x204C) ||
+		        (cSym == 0x204D) || (cSym == 0x2219) || (cSym == 0x25CB) || (cSym == 0x25CF) ||
+		        (cSym == 0x25D8) || (cSym == 0x25E6) || (cSym == 0x2619) || (cSym == 0x2765) ||
+		        (cSym == 0x2767) || (cSym == 0x29BE) || (cSym == 0x29BF) || (cSym == 0x25C9);
 
 		bool is_another =
-			(cSym == 0xB7) || (cSym == 0xA7) || (cSym == 0xF076) || (cSym == 0x2013) ||
-			(cSym == 0x2713) || (cSym == 0x2714) || (cSym == 0x2756) || (cSym == 0x25C6) ||
-			(cSym == 0x25C7) || (cSym == 0x25C8);
+		        (cSym == 0xB7) || (cSym == 0xA7) || (cSym == 0xF076) || (cSym == 0x2013) ||
+		        (cSym == 0x2713) || (cSym == 0x2714) || (cSym == 0x2756) || (cSym == 0x25C6) ||
+		        (cSym == 0x25C7) || (cSym == 0x25C8);
 
 		return is_bullet || is_another;
 	}
@@ -852,15 +1084,28 @@ namespace NSDocxRenderer
 	bool CContText::IsUnicodeSymbol(uint32_t cSym )
 	{
 		bool is_unicode =
-			(( 0x0009 == cSym) || (0x000A == cSym ) || (0x000D == cSym ) ||
-			(( 0x0020 <= cSym) && (0xD7FF >= cSym )) || ((0xE000 <= cSym) && (cSym <= 0xFFFD )) ||
-			(( 0x10000 <= cSym) && cSym));
+		        (( 0x0009 == cSym) || (0x000A == cSym ) || (0x000D == cSym ) ||
+		         (( 0x0020 <= cSym) && (0xD7FF >= cSym )) || ((0xE000 <= cSym) && (cSym <= 0xFFFD )) ||
+		         (( 0x10000 <= cSym) && cSym));
 
 		return is_unicode;
 	}
 	bool CContText::IsUnicodeDiacriticalMark(uint32_t cSym)
 	{
 		return 0x0300 <= cSym && 0x036F >= cSym;
+	}
+	bool CContText::IsFontsEqual(const NSStructures::CFont& oFont1, const NSStructures::CFont& oFont2)
+	{
+		bool res = oFont1.Name == oFont2.Name;
+		res = res && oFont1.Path == oFont2.Path;
+		res = res && oFont1.FaceIndex == oFont2.FaceIndex;
+		res = res && oFont1.StringGID == oFont2.StringGID;
+		res = res && oFont1.Size == oFont2.Size;
+		res = res && oFont1.Bold == oFont2.Bold;
+		res = res && oFont1.Italic == oFont2.Italic;
+		res = res && oFont1.Underline == oFont2.Underline;
+		res = res && oFont1.Strikeout == oFont2.Strikeout;
+		return res;
 	}
 
 	double CContText::CalculateSpace() const noexcept
@@ -869,80 +1114,115 @@ namespace NSDocxRenderer
 	}
 
 	CContTextBuilder::CContTextBuilder(CFontStyleManager* pFontStyleManager, CFontSelector* pFontSelector) :
-		m_pFontStyleManager(pFontStyleManager), m_pFontSelector(pFontSelector)
+	    m_pFontStyleManager(pFontStyleManager), m_pFontSelector(pFontSelector)
 	{}
 
 	std::vector<CContTextBuilder::cont_ptr_t> CContTextBuilder::GetConts()
 	{
 		return std::move(m_arConts);
+		m_pCurrCont = nullptr;
+	}
+	std::vector<CContTextBuilder::cont_ptr_t> CContTextBuilder::GetDiacs()
+	{
+		return std::move(m_arDiacs);
+		m_pCurrCont = nullptr;
 	}
 
 	void CContTextBuilder::AddUnicode(
-		double dTop,
-		double dBot,
-		double dLeft,
-		double dRight,
-		const NSStructures::CFont& oFont,
-		const NSStructures::CBrush& oBrush,
-		CFontManager* pFontManager,
-		const NSStringUtils::CStringUTF32& oText,
-		bool bForcedBold,
-		bool bUseDefaultFont,
-		bool bWriteStyleRaw)
+	        double dTop,
+	        double dBot,
+	        double dLeft,
+	        double dRight,
+	        const NSStructures::CFont& oFont,
+	        const NSStructures::CBrush& oBrush,
+	        CFontManager* pFontManager,
+	        const NSStringUtils::CStringUTF32& oText,
+	        size_t nOrder,
+	        const PUINT pGids,
+	        bool bForcedBold,
+	        bool bUseDefaultFont,
+	        bool bWriteStyleRaw,
+	        bool bCollectMetaInfo,
+	        bool bFontSubstitution)
 	{
 		double dWidth = dRight - dLeft;
 		double dHeight = dBot - dTop;
 
+		std::vector<unsigned int> gids;
+		if (bCollectMetaInfo)
+		{
+			for (size_t i = 0; i < oText.length(); ++i)
+				if (pGids)
+					gids.push_back(pGids[i]);
+				else
+					gids.push_back(0);
+		}
+
+		std::vector<double> origin_lefts;
+		double curr_origin_left = dLeft;
+		for (size_t i = 0; i < oText.length(); ++i)
+		{
+			origin_lefts.push_back(curr_origin_left);
+			curr_origin_left += dWidth / oText.length();
+		}
+
 		// if new text is close to current cont
 		if (m_pCurrCont != nullptr &&
-			fabs(m_pCurrCont->m_dBaselinePos - dBot) < c_dTHE_SAME_STRING_Y_PRECISION_MM &&
-			m_oPrevFont.IsEqual2(&oFont) &&
-			m_oPrevBrush.IsEqual(&oBrush))
+		        fabs(m_pCurrCont->m_dBot - dBot) < c_dTHE_SAME_STRING_Y_PRECISION_MM &&
+		        m_oPrevFont.IsEqual2(&oFont) &&
+		        m_oPrevBrush.IsEqual(&oBrush) && !(
+		            oText.length() == 1 && CContText::IsUnicodeDiacriticalMark(oText.at(0))) &&
+		        bFontSubstitution == m_pCurrCont->m_bFontSubstitution)
 		{
-
-			double avg_width = dWidth / oText.length();
-			for (size_t i = 0; i < oText.length(); ++i)
-				if (oText.at(i) == c_SPACE_SYM)
-					m_pCurrCont->m_pFontStyle->UpdateAvgSpaceWidth(avg_width);
-
 			double avg_space_width = m_pCurrCont->m_pFontStyle->GetAvgSpaceWidth();
 			double space_width =
-				avg_space_width != 0.0 ?
-					avg_space_width * c_dAVERAGE_SPACE_WIDTH_COEF :
-					m_pCurrCont->CalculateSpace() * c_dSPACE_WIDTH_COEF;
+			        avg_space_width != 0.0 ?
+			            avg_space_width * c_dAVERAGE_SPACE_WIDTH_COEF :
+			            m_pCurrCont->CalculateSpace() * c_dSPACE_WIDTH_COEF;
 
+			double spacing = dLeft - m_dPrevRight;
 			bool is_added = false;
+			bool diff_spacing = false;
+
+			// set spacing at the second symbol
+			if (m_pCurrCont->GetLength() == 1)
+				m_pCurrCont->m_dSpacing = spacing;
+
+			if (fabs(spacing - m_pCurrCont->m_dSpacing) > c_dTHE_SAME_SPACING_ERROR)
+				diff_spacing = true;
 
 			// some_text+more_text
-			if (fabs(m_pCurrCont->m_dRight - dLeft) < space_width && dRight > m_pCurrCont->m_dRight)
+			if (!diff_spacing && fabs(m_pCurrCont->m_dRight - dLeft) < space_width && dRight > m_pCurrCont->m_dRight)
 			{
 				double left_avg_width = (dRight - m_pCurrCont->m_dRight) / oText.length();
 				std::vector<double> ar_widths;
 				for (size_t i = 0; i < oText.length(); ++i)
 					ar_widths.push_back(left_avg_width);
 
-				m_pCurrCont->AddTextBack(oText, ar_widths);
+				m_pCurrCont->AddTextBack(oText, ar_widths, gids, origin_lefts);
 				is_added = true;
 
 			}
 			// more_text+some_text
-			else if (fabs(m_pCurrCont->m_dLeft - dRight) < space_width && dLeft < m_pCurrCont->m_dLeft)
+			else if (diff_spacing && fabs(m_pCurrCont->m_dLeft - dRight) < space_width && dLeft < m_pCurrCont->m_dLeft)
 			{
 				double right_avg_width = (m_pCurrCont->m_dLeft - dLeft) / oText.length();
 				std::vector<double> ar_widths;
 				for (size_t i = 0; i < oText.length(); ++i)
 					ar_widths.push_back(right_avg_width);
 
-				m_pCurrCont->AddTextFront(oText, ar_widths);
+				m_pCurrCont->AddTextFront(oText, ar_widths, gids, origin_lefts);
 				is_added = true;
 			}
 
 			if (is_added)
 			{
 				m_pCurrCont->m_dTop = std::min(m_pCurrCont->m_dTop, dTop);
-				m_pCurrCont->m_dBaselinePos = std::max(m_pCurrCont->m_dBaselinePos, dBot);
-				m_pCurrCont->m_dHeight = m_pCurrCont->m_dBaselinePos - m_pCurrCont->m_dTop;
+				m_pCurrCont->m_dBot = std::max(m_pCurrCont->m_dBot, dBot);
+				m_pCurrCont->m_dHeight = m_pCurrCont->m_dBot - m_pCurrCont->m_dTop;
 				m_pCurrCont->m_dWidth = m_pCurrCont->m_dRight - m_pCurrCont->m_dLeft;
+				m_pCurrCont->m_nOrder = nOrder;
+				m_dPrevRight = dRight;
 				return;
 			}
 		}
@@ -952,43 +1232,45 @@ namespace NSDocxRenderer
 		const auto& oMetrics = pFontManager->GetFontMetrics();
 		m_pFontSelector->SelectFont(oParams, oMetrics, oText);
 
-		pCont->m_dBaselinePos = dBot;
-		pCont->m_dTop         = dTop;
-		pCont->m_dHeight      = dHeight;
-		pCont->m_dLeft        = dLeft;
+		pCont->m_dBot    = dBot;
+		pCont->m_dTop    = dTop;
+		pCont->m_dHeight = dHeight;
+		pCont->m_dLeft   = dLeft;
 
 		// первичное получение стиля для текущего символа
 		// при дальнейшем анализе может измениться
 		pCont->m_pFontStyle = m_pFontStyleManager->GetOrAddFontStyle(
-			oBrush,
-			m_pFontSelector->GetSelectedName(),
-			oFont.Size,
-			m_pFontSelector->IsSelectedItalic(),
-			m_pFontSelector->IsSelectedBold() || bForcedBold);
+		            oBrush,
+		            m_pFontSelector->GetSelectedName(),
+		            oFont.Size,
+		            m_pFontSelector->IsSelectedItalic(),
+		            m_pFontSelector->IsSelectedBold() || bForcedBold);
 
-		// just in case if oText contains more than 1 symbol
-		std::vector<double> ar_widths;
-		double avg_width = abs(dRight - dLeft) / oText.length();
+		double avg_width = dWidth / oText.length();
 		for (size_t i = 0; i < oText.length(); ++i)
-		{
-			if (oText.at(i) == c_SPACE_SYM) pCont->m_pFontStyle->UpdateAvgSpaceWidth(avg_width);
-			ar_widths.push_back(avg_width);
-		}
+			if (oText.at(i) == c_SPACE_SYM)
+				pCont->m_pFontStyle->UpdateAvgSpaceWidth(avg_width);
 
-		pCont->SetText(oText, ar_widths);
+		std::vector<double> ar_widths;
+		for (size_t i = 0; i < oText.length(); ++i)
+			ar_widths.push_back(avg_width);
+
+		pCont->m_bCollectMetaInfo = bCollectMetaInfo;
+		pCont->SetText(oText, ar_widths, std::move(gids), std::move(origin_lefts));
 		pCont->m_bIsRtl = CContText::IsUnicodeRtl(oText.at(0));
 
 		pCont->m_dWidth = dWidth;
 		pCont->m_dRight = dRight;
 
-		double font_size = oFont.Size;
-		double em_height = oMetrics.dEmHeight;
-		double ratio = font_size / em_height * c_dPtToMM;
+		double ascent = pFontManager->GetFontAscent();
+		double descent = pFontManager->GetFontDescent();
 
-		pCont->m_dTopWithAscent = pCont->m_dBaselinePos - (oMetrics.dAscent * ratio) - oMetrics.dBaselineOffset;
-		pCont->m_dBotWithDescent = pCont->m_dBaselinePos + (oMetrics.dDescent * ratio) - oMetrics.dBaselineOffset;
+		pCont->m_dTopWithAscent = pCont->m_dBot - ascent;
+		pCont->m_dBotWithDescent = pCont->m_dBot + fabs(descent);
 		pCont->m_dSpaceWidthMM = pFontManager->GetSpaceWidthMM();
+
 		pCont->m_wsOriginFontName = oFont.Name;
+		pCont->m_nOriginFontFaceIndex = oFont.FaceIndex;
 
 		if (bUseDefaultFont)
 		{
@@ -1005,10 +1287,34 @@ namespace NSDocxRenderer
 			pCont->m_oSelectedFont.Italic = m_pFontSelector->IsSelectedItalic();
 		}
 		pCont->m_bWriteStyleRaw = bWriteStyleRaw;
-		m_arConts.push_back(pCont);
+		pCont->m_bFontSubstitution = bFontSubstitution;
+		pCont->m_nOrder = nOrder;
+
+		if (pCont->IsDiacritical())
+		{
+			m_arDiacs.push_back(std::move(pCont));
+		}
+        else
+        {
+            m_arConts.push_back(pCont);
+        }
 
 		m_pCurrCont = pCont;
 		m_oPrevFont = oFont;
 		m_oPrevBrush = oBrush;
+		m_dPrevRight = dRight;
+	}
+
+	void CContTextBuilder::NullCurrCont()
+	{
+		m_pCurrCont = nullptr;
+	}
+	void CContTextBuilder::Clear()
+	{
+		m_pCurrCont = nullptr;
+		m_arConts.clear();
+		m_arDiacs.clear();
+		m_oPrevFont.SetDefaultParams();
+		m_oPrevBrush.SetDefaultParams();
 	}
 }

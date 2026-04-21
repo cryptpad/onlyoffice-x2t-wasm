@@ -140,7 +140,8 @@ namespace ComplexTypes
 			virtual void FromXML(XmlUtils::CXmlNode& oNode);
 			virtual void FromXML(XmlUtils::CXmlLiteReader& oReader);
 			virtual std::wstring ToString() const;
-
+			
+			std::wstring ToString(bool noAlpha) const;
 		private:
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 
@@ -245,6 +246,8 @@ namespace ComplexTypes
 			virtual void FromXML(XmlUtils::CXmlNode& oNode);
 			virtual void FromXML(XmlUtils::CXmlLiteReader& oReader);
 			virtual std::wstring ToString() const;
+			
+			std::wstring ToString(bool noAlpha) const;
 
 		private:
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
@@ -416,10 +419,10 @@ namespace ComplexTypes
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 
 		public:
-			nullable<SimpleTypes::CThemeColor           > m_oThemeColor;
-			nullable<SimpleTypes::CUcharHexNumber       > m_oThemeShade;
-			nullable<SimpleTypes::CUcharHexNumber       > m_oThemeTint;
-			nullable<SimpleTypes::CHexColor             > m_oVal;
+			nullable<SimpleTypes::CThemeColor> m_oThemeColor;
+			nullable<SimpleTypes::CUcharHexNumber> m_oThemeShade;
+			nullable<SimpleTypes::CUcharHexNumber> m_oThemeTint;
+			nullable<SimpleTypes::CHexColor> m_oVal;
 		};
 
 		//--------------------------------------------------------------------------------

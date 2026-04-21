@@ -59,11 +59,14 @@ public:
     _CP_OPT(odf_types::vertical_rel)	styleVerticalRel;
 
 	_CP_OPT(odf_types::style_wrap)		styleWrap;
+	_CP_OPT(bool)						styleWrapContour;
 
 	int number_wrapped_paragraphs;
 
     std::wstring relativeHeight;
     std::wstring behindDoc;
+
+	std::wstring hyperlinkRId;
 
 	int posOffsetV;
 	int posOffsetH;
@@ -76,7 +79,8 @@ public:
 	std::wstring content_group_;
 
 	void serialize_text	(std::wostream & strm);
-    void serialize		(std::wostream & strm/*, bool insideOtherDrawing*/);    
+	void serialize		(std::wostream & strm/*, bool insideOtherDrawing*/, oox::docx_conversion_context & Context);
+	void serialize		(std::wostream & strm/*, bool insideOtherDrawing*/);
 };
 }
 }

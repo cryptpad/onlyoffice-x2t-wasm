@@ -35,7 +35,6 @@
 #include "templates.h"
 
 #include <vector>
-#include <boost/unordered_map.hpp>
 #include "../../DataTypes/stylefamily.h"
 #include "../../DataTypes/noteclass.h"
 
@@ -191,6 +190,9 @@ public:
 
 	presentation_layouts_instance & presentation_layouts() { return presentation_layouts_; } 
 	presentation_masters_instance & presentation_masters() { return presentation_masters_; } 
+	
+	void set_new_name_master_page(std::wstring ws_name_layout, std::wstring ws_new_name);
+	std::vector<std::pair<std::wstring,std::wstring>>& get_vec_new_name();
 
 private:
 	presentation_layouts_instance presentation_layouts_;
@@ -210,6 +212,8 @@ private:
     map_style_family_int default_map_;
    
 	int hyperlink_style_pos_;
+    
+    std::vector<std::pair<std::wstring,std::wstring>> vec_new_name_master_page;
 };
 
 class page_layout_instance;
@@ -321,8 +325,8 @@ public:
     void add_font( font_instance_ptr FontInstance );
 
 private:
-    boost::unordered_map<std::wstring, int> font_names_;
-    boost::unordered_map<std::wstring, int> font_style_names_;
+    std::map<std::wstring, int> font_names_;
+    std::map<std::wstring, int> font_style_names_;
     instances_array instances_;
 
 };

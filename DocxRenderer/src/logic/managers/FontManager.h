@@ -80,8 +80,8 @@ namespace NSDocxRenderer
 		~CFontSelector();
 
 		void SelectFont(const CFontSelectParams& oFontSelectParams,
-						const CFontMetrics& oFontMetrics,
-						const NSStringUtils::CStringUTF32& oText);
+		                const CFontMetrics& oFontMetrics,
+		                const NSStringUtils::CStringUTF32& oText);
 		std::wstring GetSelectedName() const noexcept;
 		bool IsSelectedBold() const noexcept;
 		bool IsSelectedItalic() const noexcept;
@@ -124,30 +124,33 @@ namespace NSDocxRenderer
 		const CFontMetrics& GetFontMetrics() const noexcept;
 
 		double GetFontHeight() const;
+		double GetFontAscent() const;
+		double GetFontDescent() const;
+
 		double GetSpaceWidthMM() const;
 
 		void SetStringGid(const LONG& lGid);
 
 		void MeasureString(
-			const std::wstring& wsText,
-			double x,
-			double y,
-			double& dBoxX,
-			double& dBoxY,
-			double& dBoxWidth,
-			double& dBoxHeight,
-			MeasureType measureType) const;
+		        const std::wstring& wsText,
+		        double x,
+		        double y,
+		        double& dBoxX,
+		        double& dBoxY,
+		        double& dBoxWidth,
+		        double& dBoxHeight,
+		        MeasureType measureType) const;
 
 		void MeasureStringGids(
-			unsigned int* pGids,
-			unsigned int count,
-			double x,
-			double y,
-			double& dBoxX,
-			double& dBoxY,
-			double& dBoxWidth,
-			double& dBoxHeight,
-			MeasureType measureType) const;
+		        unsigned int* pGids,
+		        unsigned int count,
+		        double x,
+		        double y,
+		        double& dBoxX,
+		        double& dBoxY,
+		        double& dBoxWidth,
+		        double& dBoxHeight,
+		        MeasureType measureType) const;
 
 		void ClearCache();
 	private:

@@ -3,7 +3,8 @@
 #include "../../OfficeUtils/src/OfficeUtils.h"
 #include "../../DesktopEditor/xml/include/xmlutils.h"
 #include "../../HtmlFile2/htmlfile2.h"
-#include "../../DesktopEditor/raster/BgraFrame.h"
+#include "../../DesktopEditor/common/Path.h"
+#include "../../DesktopEditor/common/ProcessEnv.h"
 #include "src/CBookInfo.h"
 
 #include <iostream>
@@ -141,7 +142,7 @@ HRESULT CEpubFile::Convert(const std::wstring& sInputFile, const std::wstring& s
     */
 
     CHtmlFile2 oFile;
-    CHtmlParams oFileParams;
+    HTML::THTMLParameters oFileParams;
 
     oFileParams.SetAuthors     (m_oBookInfo.GetCreators());
     oFileParams.SetGenres      (m_oBookInfo.GetSubjects());
@@ -154,14 +155,21 @@ HRESULT CEpubFile::Convert(const std::wstring& sInputFile, const std::wstring& s
 
     std::wstring sDocxFileTempDir = m_sTempDir + L"/tmp";
     NSDirectory::CreateDirectory(sDocxFileTempDir);
-    oFile.SetTmpDirectory(sDocxFileTempDir);
+    oFile.SetTempDirectory(sDocxFileTempDir);
     oFile.SetCoreDirectory(NSFile::GetDirectoryName(sContent));
 
     std::vector<std::wstring> arFiles;
+
     for (const CBookContentItem& oContent : m_arContents)
     {
-        std::wstring sFile = m_mapRefs[oContent.m_sID].GetRef();
+        std::wstring sFile = NSSystemPath::ShortenPath(m_mapRefs[oContent.m_sID].GetRef());
         replace_all(sFile, L"%20", L" ");
+
+        if (sFile.length() > 3 && L'.' == sFile[0] && L'.' == sFile[1] && L'/' == sFile[2] &&
+            NSProcessEnv::IsPresent(NSProcessEnv::Converter::gc_allowPrivateIP) &&
+            !NSProcessEnv::GetBoolValue(NSProcessEnv::Converter::gc_allowPrivateIP))
+            continue;
+
         arFiles.push_back(m_sTempDir + ((!sContentPath.empty()) ? (L"/" + sContentPath) : L"" ) + L"/" + sFile);
     }
 
@@ -174,7 +182,7 @@ HRESULT CEpubFile::Convert(const std::wstring& sInputFile, const std::wstring& s
         sOutputDir = sOutputFile;
 
     NSDirectory::CreateDirectory(sOutputDir);
-    HRESULT hRes = oFile.OpenBatchHtml(arFiles, sOutputDir, &oFileParams);
+    HRESULT hRes = oFile.ConvertHTML2OOXML(arFiles, sOutputDir, &oFileParams);
     if (bIsOutCompress && S_OK == hRes)
         hRes = oOfficeUtils.CompressFileOrDirectory(sOutputDir, sOutputFile);
 

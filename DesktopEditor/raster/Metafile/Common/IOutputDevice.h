@@ -50,10 +50,10 @@ namespace MetaFile
 		virtual void End() = 0;
 
 		// pBuffer - BGRA картинка размерами ulWidth, ulHeight, которую надо нарисовать в заданном ректе
-		virtual void DrawBitmap(double dX, double dY, double dW, double dH, BYTE* pBuffer, unsigned int unWidth, unsigned int unHeight) = 0;
+		virtual void DrawBitmap(double dX, double dY, double dW, double dH, BYTE* pBuffer, unsigned int unWidth, unsigned int unHeight, unsigned int nBlendMode) = 0;
 
 		virtual void DrawString(std::wstring& wsText, unsigned int unCharsCount, double dX, double dY, double* pDx,
-		                        int iGraphicsMode = 1, double dXScale = 1, double dYScale = 1) = 0;
+		                        int iGraphicsMode = 1, double dXScale = 1, double dYScale = 1, bool bUseGID = false) = 0;
 
 		virtual void DrawDriverString(const std::wstring& wsString, const std::vector<TPointD>& arPoints) = 0;
 
@@ -74,7 +74,7 @@ namespace MetaFile
 		virtual void EndClipPath(unsigned int unMode) = 0;
 
 		virtual void UpdateDC() = 0;
-		virtual void SetTransform(double& dM11, double& dM12, double& dM21, double& dM22, double& dX, double& dY) = 0;
+		virtual void SetTransform(const double& dM11, const double& dM12, const double& dM21, const double& dM22, const double& dX, const double& dY) = 0;
 		virtual void GetTransform(double* pdM11, double* pdM12, double* pdM21, double* pdM22, double* pdX, double* pdY) = 0;
 	};
 

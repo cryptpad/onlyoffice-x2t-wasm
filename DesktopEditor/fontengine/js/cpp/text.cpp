@@ -117,7 +117,7 @@ WASM_EXPORT unsigned int ASC_FT_SetCMapForCharCode(FT_Face face, unsigned int un
 		return 0;
 
 	if ( 0 == face->num_charmaps )
-		return unicode;
+		return 0;
 
 	unsigned int nCharIndex = 0;
 
@@ -592,6 +592,13 @@ WASM_EXPORT unsigned char* ASC_HB_ShapeText(FT_Face pFace, hb_font_t* pFont, cha
 			g_userfeatures[nTag].end = HB_FEATURE_GLOBAL_END;
 		}
 		g_userfeatures_init = true;
+	}
+
+	// Turn on ligatures on arabic script
+	if (nScript == HB_SCRIPT_ARABIC ||
+		nScript == HB_SCRIPT_SYRIAC)
+	{
+		nFeatures |= 1;
 	}
 
 	// font

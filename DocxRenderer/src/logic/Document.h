@@ -5,6 +5,7 @@
 #include "managers/ImageManager.h"
 #include "managers/FontStyleManager.h"
 #include "managers/ParagraphStyleManager.h"
+#include <list>
 
 
 namespace NSDocxRenderer
@@ -39,8 +40,10 @@ namespace NSDocxRenderer
 		LONG m_lNumberPages{0};
 
 		bool m_bIsDisablePageCommand {false}; // disable commands inside draw function
+		bool m_bIsRecord {true};
 
-		std::map<LONG, NSStringUtils::CStringBuilder*> m_mapXmlString;
+		NSStringUtils::CStringBuilder m_oPageBuilder;
+		std::list<std::string> m_arXmlString;
 
 	public:
 		CDocument(IRenderer* pRenderer, NSFonts::IApplicationFonts* pFonts);
