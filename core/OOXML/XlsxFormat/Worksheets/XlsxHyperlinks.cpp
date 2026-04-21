@@ -1,4 +1,4 @@
-/*
+﻿/*
  * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
@@ -36,6 +36,10 @@
 #include "../../Common/SimpleTypes_Shared.h"
 
 #include "../../XlsbFormat/Biff12_unions/HLINKS.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Binary/CFStreamCacheWriter.h"
+
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_unions/HLINK.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/HLink.h"
 
 namespace OOX
 {
@@ -101,6 +105,75 @@ namespace OOX
 
 			return ptr;
 		}
+		XLS::BaseObjectPtr CHyperlink::toXLS()
+		{
+			auto unionPtr = new XLS::HLINK;
+			auto ptr = new XLS::HLink;
+			unionPtr->m_HLink = XLS::BaseObjectPtr(ptr);
+			if(m_oRef.IsInit())
+				ptr->ref8.fromString(m_oRef.get());
+			if(m_oDisplay.IsInit())
+			{
+				ptr->hyperlink.hlstmfHasDisplayName = true;
+				ptr->hyperlink.displayName = m_oDisplay.get();
+			}
+			if(m_oLocation.IsInit())
+			{
+				ptr->hyperlink.hlstmfHasLocationStr = true;
+				ptr->hyperlink.location = m_oLocation.get();
+			}
+			if(m_oLink.IsInit())
+			{
+				ptr->hyperlink.hlstmfHasMoniker = true;
+				ptr->hyperlink.hlstmfMonikerSavedAsStr = true;
+				ptr->hyperlink.moniker = m_oLink.get();
+			}
+			return XLS::BaseObjectPtr(unionPtr);
+		}
+        void CHyperlink::toBin(XLS::StreamCacheWriterPtr& writer)
+        {
+            auto record = writer->getNextRecord(XLSB::rt_HLink);
+            {
+                XLSB::UncheckedRfX rfx;
+                if(m_oRef.IsInit())
+                    rfx = m_oRef.get();
+                *record <<rfx;
+            }
+            {
+                XLSB::XLWideString rellId;
+                if(m_oRid.IsInit())
+                    rellId = m_oRid->GetValue();
+                else
+                    rellId = L"";
+                *record << rellId;
+            }
+            {
+                XLSB::XLWideString loc;
+                if(m_oLocation.IsInit())
+                    loc = m_oLocation.get();
+                else
+                    loc = L"";
+                *record << loc;
+            }
+            {
+                XLSB::XLWideString tooltip ;
+                if(m_oTooltip.IsInit())
+                    tooltip = m_oTooltip.get();
+                else
+                    tooltip = L"";
+                *record << tooltip;
+            }
+            {
+                XLSB::XLWideString display  ;
+                if(m_oDisplay.IsInit())
+                    display = m_oDisplay.get();
+                else
+                    display = L"";
+                *record << display ;
+            }
+            writer->storeNextRecord(record);
+
+        }
 		EElementType CHyperlink::getType () const
 		{
 			return et_x_Hyperlink;
@@ -200,6 +273,22 @@ namespace OOX
 			}
 			return ptr;
 		}
+		std::vector<XLS::BaseObjectPtr> CHyperlinks::toXLS()
+		{
+			std::vector<XLS::BaseObjectPtr> objectVector;
+			for(auto i:m_arrItems)
+			{
+				objectVector.push_back(i->toXLS());
+			}
+			return objectVector;
+		}
+        void CHyperlinks::toBin(XLS::StreamCacheWriterPtr& writer)
+        {
+            for(auto i : m_arrItems)
+            {
+                i->toBin(writer);
+            }
+        }
 
 		EElementType CHyperlinks::getType () const
 			{

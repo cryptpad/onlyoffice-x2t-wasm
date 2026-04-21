@@ -7,25 +7,26 @@
 #include <iterator>
 #include <map>
 
-#include <iostream>
 #include "../../../../../DesktopEditor/common/File.h"
 #include "StaticFunctions.h"
 #include "ConstValues.h"
 
-#define DEFAULT_FONT_SIZE 14
+#define DEFAULT_FONT_SIZE 12
 
 namespace NSCSS
 {
 	typedef std::map<std::wstring, std::wstring>::const_iterator styles_iterator;
 
-	CCompiledStyle::CCompiledStyle() : m_nDpi(96), m_UnitMeasure(Point), m_dCoreFontSize(DEFAULT_FONT_SIZE)
+	CCompiledStyle::CCompiledStyle()
+		: m_nDpi(96), m_UnitMeasure(Point), m_dCoreFontSize(DEFAULT_FONT_SIZE)
 	{}
 
 	CCompiledStyle::CCompiledStyle(const CCompiledStyle& oStyle) :
 		m_arParentsStyles(oStyle.m_arParentsStyles), m_sId(oStyle.m_sId),
 		m_nDpi(oStyle.m_nDpi), m_UnitMeasure(oStyle.m_UnitMeasure), m_dCoreFontSize(oStyle.m_dCoreFontSize),
 		m_oFont(oStyle.m_oFont), m_oMargin(oStyle.m_oMargin), m_oPadding(oStyle.m_oPadding), m_oBackground(oStyle.m_oBackground),
-		m_oText(oStyle.m_oText), m_oBorder(oStyle.m_oBorder), m_oDisplay(oStyle.m_oDisplay), m_oTransform(oStyle.m_oTransform){}
+		m_oText(oStyle.m_oText), m_oBorder(oStyle.m_oBorder), m_oDisplay(oStyle.m_oDisplay), m_oTransform(oStyle.m_oTransform)
+	{}
 
 	CCompiledStyle::~CCompiledStyle()
 	{
@@ -34,6 +35,8 @@ namespace NSCSS
 
 	CCompiledStyle& CCompiledStyle::operator+= (const CCompiledStyle &oElement)
 	{
+		m_arParentsStyles.insert(oElement.m_arParentsStyles.begin(), oElement.m_arParentsStyles.end());
+
 		if (oElement.Empty())
 			return *this;
 
@@ -68,6 +71,8 @@ namespace NSCSS
 		m_oText         = oElement.m_oText;
 		m_oDisplay      = oElement.m_oDisplay;
 		m_oTransform    = oElement.m_oTransform;
+
+		m_arParentsStyles = oElement.m_arParentsStyles;
 
 		return *this;
 	}
@@ -109,7 +114,8 @@ namespace NSCSS
 	bool CCompiledStyle::Empty() const
 	{
 		return m_oBackground.Empty() && m_oBorder.Empty() && m_oFont.Empty() &&
-		       m_oMargin.Empty() && m_oPadding.Empty() && m_oText.Empty() && m_oDisplay.Empty();
+		       m_oMargin.Empty() && m_oPadding.Empty() && m_oText.Empty() &&
+		       m_oDisplay.Empty() && m_oTransform.Empty();
 	}
 
 	void CCompiledStyle::AddPropSel(const std::wstring& sProperty, const std::wstring& sValue, const unsigned int unLevel, const bool& bHardMode)
@@ -314,6 +320,7 @@ namespace NSCSS
 				}
 				//BORDER TOP
 				CASE(L"border-top"):
+				CASE(L"mso-border-top-alt"):
 				{
 					m_oBorder.SetTopSide(pPropertie.second, unLevel, bHardMode);
 					break;
@@ -335,6 +342,7 @@ namespace NSCSS
 				}
 				//BORDER RIGHT
 				CASE(L"border-right"):
+				CASE(L"mso-border-right-alt"):
 				{
 					m_oBorder.SetRightSide(pPropertie.second, unLevel, bHardMode);
 					break;
@@ -356,6 +364,7 @@ namespace NSCSS
 				}
 				//BORDER bottom
 				CASE(L"border-bottom"):
+				CASE(L"mso-border-bottom-alt"):
 				{
 					m_oBorder.SetBottomSide(pPropertie.second, unLevel, bHardMode);
 					break;
@@ -377,6 +386,7 @@ namespace NSCSS
 				}
 				//BORDER LEFT
 				CASE(L"border-left"):
+				CASE(L"mso-border-left-alt"):
 				{
 					m_oBorder.SetLeftSide(pPropertie.second, unLevel, bHardMode);
 					break;
@@ -433,6 +443,11 @@ namespace NSCSS
 				CASE(L"valign"):
 				{
 					m_oDisplay.SetVAlign(pPropertie.second, unLevel, bHardMode);
+					break;
+				}
+				CASE(L"white-space"):
+				{
+					m_oDisplay.SetWhiteSpace(pPropertie.second, unLevel, bHardMode);
 					break;
 				}
 				//TRANSFORM
@@ -521,7 +536,7 @@ namespace NSCSS
 	{
 		return m_sId;
 	}
-	
+
 	bool CCompiledStyle::HaveThisParent(const std::wstring &wsParentName) const
 	{
 		return m_arParentsStyles.end() != m_arParentsStyles.find(wsParentName);

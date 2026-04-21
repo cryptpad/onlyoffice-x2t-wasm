@@ -91,7 +91,7 @@ void process_paragraph_drop_cap_attr(const paragraph_attrs & Attr, oox::docx_con
 	Context.get_drop_cap_context().Scale = style_drop_cap_->style_lines_;
 	
 	if (style_drop_cap_->style_distance_)
-		Context.get_drop_cap_context().Space = (int)(20.0 * (style_drop_cap_->style_distance_->get_value_unit(length::pt) + 5)+ 0.5);//формула ачуметь !! - подбор вручную
+		Context.get_drop_cap_context().Space = (int)(20.0 * (style_drop_cap_->style_distance_->get_value_unit(length::pt) ) );//формула ачуметь !! - подбор вручную
 
 	//font size пощитаем здесь .. так как его значение нужо в стиле параграфа (межстрочный интервал) - в (pt*20)
 	
@@ -255,6 +255,9 @@ size_t paragraph::drop_cap_docx_convert(oox::docx_conversion_context & Context)
 
 void paragraph::process_list_bullet_style(oox::docx_conversion_context& Context)
 {
+	if (Context.get_list_style_level() == 0)
+		return;
+
 	if (content_.size() <= 0)
 		return;
 
@@ -270,7 +273,6 @@ void paragraph::process_list_bullet_style(oox::docx_conversion_context& Context)
 	if (!span_style_content)
 		return;
 
-	std::wstringstream ss;
 	style_text_properties* text_props = span_style_content->get_style_text_properties();
 
 	if (text_props)
@@ -283,17 +285,7 @@ void paragraph::process_list_bullet_style(oox::docx_conversion_context& Context)
 				paragraph_style->content()->get_style_text_properties(true)->content_.apply_from(text_props->content_);
 			}
 		}
-
-		const _CP_OPT(odf_types::font_weight)& font_weight = text_props->content_.fo_font_weight_;
-		const _CP_OPT(odf_types::font_style)& font_style = text_props->content_.fo_font_style_;
-
-		if (font_weight && font_weight->get_type() == odf_types::font_weight::WBold)
-			ss << "<w:b/>";
-		if (font_style && font_style->get_type() == odf_types::font_style::Italic)
-			ss << "<w:i/>";
 	}
-
-	Context.get_text_tracked_context().dumpRPrInsDel_ = ss.str();
 }
 
 void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std::wstring) next_element_style_name)
@@ -301,6 +293,8 @@ void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std
     std::wstring styleName = attrs_.text_style_name_;
 	
 	bool in_drawing	= false;
+
+    bool flag_for_emplicit_end = false;
 
  	if (Context.get_drawing_context().get_current_shape() || Context.get_drawing_context().get_current_frame())
 	{
@@ -317,7 +311,7 @@ void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std
 		
 	bool bIsNewParagraph = true;
 	
-	bool is_empty = content_.empty();
+    bool is_empty = content_.empty();
 
 	if (Context.get_paragraph_state() && (Context.get_process_note() == oox::docx_conversion_context::noNote) && !in_drawing)
     {//вложеннные элементы ... или после графики embedded_linux_kernel_and_drivers_labs_zh_TW.odt
@@ -326,7 +320,7 @@ void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std
 		if (!Context.get_paragraph_keep())// например Appendix I_IPP.odt - tracked elements (
 		{
 			for (size_t i = 0; i < content_.size(); i++)
-			{
+            {
 				content_[i]->docx_convert(Context); 
 			}
 			if (!Context.get_delete_text_state())
@@ -364,18 +358,24 @@ void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std
 				next_masterPageName = boost::none;
         }
 		else next_masterPageName = boost::none;
-    } 
-	if (next_section_ || next_end_section_) // remove in text::section  - GreekSynopsis.odt
+    }
+
+    flag_for_emplicit_end = Context.get_implicit_end();
+
+	if (!Context.process_headers_footers_ && (next_section_ || next_end_section_)) // remove in text::section  - GreekSynopsis.odt
 	{
-		Context.get_section_context().get_last().is_dump_ = true;
-		is_empty = false;
+		if( !flag_for_emplicit_end )
+        {
+            Context.get_section_context().get_last().is_dump_ = true;
+            is_empty = false;
+        }
 	}
-	std::wstringstream strm;
-	if (Context.process_page_properties(strm))
-	{
-		Context.get_section_context().dump_ = strm.str();
-	}
-	process_paragraph_drop_cap_attr(attrs_, Context);
+    std::wstringstream strm;
+    if (Context.process_page_properties(strm))
+    {
+        Context.get_section_context().dump_ = strm.str();
+    }
+    process_paragraph_drop_cap_attr(attrs_, Context);
 
 	size_t index = 0;
 	if (Context.get_drop_cap_context().state() == 2)//active
@@ -394,7 +394,7 @@ void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std
 	
 	process_list_bullet_style(Context);
 
-    int textStyle = Context.process_paragraph_attr(&attrs_);
+	int textStyle = Context.process_paragraph_attr(&attrs_);
 
     Context.add_note_reference();
 	
@@ -437,7 +437,7 @@ void paragraph::docx_convert(oox::docx_conversion_context & Context, _CP_OPT(std
 		}
 		else
 		{
-			content_[i]->docx_convert(Context); 
+			content_[i]->docx_convert(Context);
 			
 			if (Context.get_drop_cap_context().state() > 0)		
 				Context.get_drop_cap_context().state(0);//disable
@@ -526,6 +526,15 @@ void soft_page_break::docx_convert(oox::docx_conversion_context & Context)
 {
 	if (Context.process_headers_footers_) 
 		return;
+
+	std::wstring currentMasterPageName = Context.get_master_page_name();
+	style_master_page* masterPage = Context.root()->odf_context().pageLayoutContainer().master_page_by_name(currentMasterPageName);
+
+	if (masterPage && masterPage->attlist_.style_next_style_name_)
+	{
+		Context.set_next_master_page_name(*masterPage->attlist_.style_next_style_name_);
+		Context.next_dump_page_properties(true);
+	}
 	
 	if (0 == Context.get_page_break_after() && 0 == Context.get_page_break_before())
 	{
@@ -699,6 +708,14 @@ void list::pptx_convert(oox::pptx_conversion_context & Context)
     bool continue_ = continue_numbering_.get_value_or(false);
     Context.get_text_context().start_list(style_name_, continue_);
 
+	bool style_name(false);
+
+	if(!Context.get_text_context().get_has_style_name() && !style_name_.empty())
+	{
+		style_name = true;
+		Context.get_text_context().set_style_name(style_name);
+	}
+
     if (list_header_)
         list_header_->pptx_convert(Context);
 
@@ -708,6 +725,9 @@ void list::pptx_convert(oox::pptx_conversion_context & Context)
     }
 
     Context.get_text_context().end_list();
+
+	if(style_name)
+		Context.get_text_context().set_style_name(false);
 }
 // text:soft-page-break
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -842,8 +862,12 @@ void section::docx_convert(oox::docx_conversion_context & Context)
 					//is_empty = false;
 				}
 			}
-		} 
-		content_[i]->docx_convert(Context);
+        }
+        if(i == content_.size() - 1)
+        {
+            Context.set_implicit_end(true);
+        }
+        content_[i]->docx_convert(Context);
     }
 	if (bAddSection)
 	{

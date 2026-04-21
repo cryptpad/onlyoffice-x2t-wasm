@@ -55,6 +55,15 @@ void DataFormat::readFields(CFRecord& record)
 	unsigned short flags;
 	record >> xi >> yi >> iss >> flags;
 	fUnknown = GETBIT(flags, 0);
+	if(iss > 1000)
+		iss = 0;
+}
+
+void DataFormat::writeFields(CFRecord& record)
+{
+	unsigned short flags = 0;
+	SETBIT(flags, 0, fUnknown);
+	record << xi << yi << iss << flags;
 }
 
 } // namespace XLS

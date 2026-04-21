@@ -28,10 +28,10 @@ namespace NSDocxRenderer
 			pctClose = 3
 		};
 
-		struct PathCommand
+		struct CPathCommand
 		{
 			ePathCommandType type;
-			std::list<Point> points;
+			std::vector<Point> points;
 		};
 
 		CVectorGraphics() noexcept;
@@ -50,7 +50,7 @@ namespace NSDocxRenderer
 		bool operator<=(const CVectorGraphics& other) const noexcept;
 		bool operator>=(const CVectorGraphics& other) const noexcept;
 
-		const std::list<PathCommand>& GetData() const;
+		const std::list<CPathCommand>& GetData() const;
 
 		double GetLeft() const noexcept;
 		double GetTop() const noexcept;
@@ -64,12 +64,12 @@ namespace NSDocxRenderer
 		void MoveTo(const double& x1, const double& y1);
 		void LineTo(const double& x1, const double& y1);
 		void CurveTo(
-			const double& x1, const double& y1,
-			const double& x2, const double& y2,
-			const double& x3, const double& y3);
+		        const double& x1, const double& y1,
+		        const double& x2, const double& y2,
+		        const double& x3, const double& y3);
 		void Close();
 
-		void Add(const PathCommand& command);
+		void Add(const CPathCommand& command);
 		void Join(CVectorGraphics&& other);
 
 		void Clear();
@@ -79,11 +79,12 @@ namespace NSDocxRenderer
 		void Rotate(const double& rotation);
 		void Transform(const Aggplus::CMatrix& matrix);
 		void DrawOnRenderer(IRenderer* renderer) const noexcept;
+		bool IsClockwise() const;
 
-		static CVectorGraphics CalcBoolean(const CVectorGraphics& vg1, const CVectorGraphics& vg2, long clipType, long fillType = c_nWindingFillMode);
+		static CVectorGraphics CalcBoolean(const CVectorGraphics& vg1, const CVectorGraphics& vg2, long clipType, long fillType = c_nWindingFillMode, bool isLuminosity = false);
 
 	private:
-		std::list<PathCommand> m_arData;
+		std::list<CPathCommand> m_arData;
 
 		double m_dLeft;
 		double m_dTop;

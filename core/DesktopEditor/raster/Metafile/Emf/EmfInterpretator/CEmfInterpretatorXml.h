@@ -213,10 +213,10 @@ namespace MetaFile
 		void End() override;
 		//Следующие методы ничего не делают
 
-		void DrawBitmap(double dX, double dY, double dW, double dH, BYTE* pBuffer, unsigned int unWidth, unsigned int unHeight) override {};
+		void DrawBitmap(double dX, double dY, double dW, double dH, BYTE* pBuffer, unsigned int unWidth, unsigned int unHeight, unsigned int unBlendMode) override {};
 
 		void DrawString(std::wstring& wsText, unsigned int unCharsCount, double dX, double dY, double* pDx,
-						int iGraphicsMode = 1, double dXScale = 1, double dYScale = 1) override {};
+						int iGraphicsMode = 1, double dXScale = 1, double dYScale = 1, bool bUseGID = false) override {};
 
 		void DrawDriverString(const std::wstring& wsString, const std::vector<TPointD>& arPoints) override {};
 
@@ -237,7 +237,7 @@ namespace MetaFile
 		void EndClipPath(unsigned int unMode) override {};
 
 		void UpdateDC() override {};
-		void SetTransform(double& dM11, double& dM12, double& dM21, double& dM22, double& dX, double& dY) override {};
+		void SetTransform(const double& dM11, const double& dM12, const double& dM21, const double& dM22, const double& dX, const double& dY) override {};
 		void GetTransform(double* pdM11, double* pdM12, double* pdM21, double* pdM22, double* pdX, double* pdY) override {};
 	};
 }

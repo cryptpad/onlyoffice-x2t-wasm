@@ -73,17 +73,17 @@ namespace MetaFile
 			pInterpretator->End();
 	}
 
-	void CEmfInterpretatorArray::DrawBitmap(double dX, double dY, double dW, double dH, BYTE *pBuffer, unsigned int unWidth, unsigned int unHeight)
+	void CEmfInterpretatorArray::DrawBitmap(double dX, double dY, double dW, double dH, BYTE *pBuffer, unsigned int unWidth, unsigned int unHeight, unsigned int unBlendMode)
 	{
 		for (CEmfInterpretatorBase* pInterpretator : m_arInterpretators)
-			pInterpretator->DrawBitmap(dX, dY, dW, dH, pBuffer, unWidth, unHeight);
+			pInterpretator->DrawBitmap(dX, dY, dW, dH, pBuffer, unWidth, unHeight, unBlendMode);
 	}
 
 	void CEmfInterpretatorArray::DrawString(std::wstring &wsText, unsigned int unCharsCount, double dX, double dY, double *pDx,
-											int iGraphicsMode, double dXScale, double dYScale)
+	                                        int iGraphicsMode, double dXScale, double dYScale, bool bUseGID)
 	{
 		for (CEmfInterpretatorBase* pInterpretator : m_arInterpretators)
-			pInterpretator->DrawString(wsText, unCharsCount, dX, dY, pDx, iGraphicsMode, dXScale, dYScale);
+			pInterpretator->DrawString(wsText, unCharsCount, dX, dY, pDx, iGraphicsMode, dXScale, dYScale, bUseGID);
 	}
 
 	void CEmfInterpretatorArray::DrawDriverString(const std::wstring& wsString, const std::vector<TPointD>& arPoints)
@@ -182,7 +182,7 @@ namespace MetaFile
 			pInterpretator->UpdateDC();
 	}
 
-	void CEmfInterpretatorArray::SetTransform(double &dM11, double &dM12, double &dM21, double &dM22, double &dX, double &dY)
+	void CEmfInterpretatorArray::SetTransform(const double &dM11, const double &dM12, const double &dM21, const double &dM22, const double &dX, const double &dY)
 	{
 		for (CEmfInterpretatorBase* pInterpretator : m_arInterpretators)
 			pInterpretator->SetTransform(dM11, dM12, dM21, dM22, dX, dY);

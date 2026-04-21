@@ -43,13 +43,24 @@ public:
 	JSSmart<CJSValue> GetFontBinary(JSSmart<CJSValue> Id);
 	JSSmart<CJSValue> GetGlyphs(JSSmart<CJSValue> nPageIndex);
 	JSSmart<CJSValue> DestroyTextInfo();
+	JSSmart<CJSValue> GetGIDByUnicode(JSSmart<CJSValue> sId);
 
 	JSSmart<CJSValue> IsNeedCMap();
 	JSSmart<CJSValue> ScanPage(JSSmart<CJSValue> nPageIndex, JSSmart<CJSValue> mode);
+	JSSmart<CJSValue> SetScanPageFonts(JSSmart<CJSValue> nPageIndex);
 
 	JSSmart<CJSValue> GetImageBase64(JSSmart<CJSValue> rId);
 
 	JSSmart<CJSValue> FreeWasmData(JSSmart<CJSValue> typedArray);
+
+	JSSmart<CJSValue> SplitPages(JSSmart<CJSValue> arrPageIndexes, JSSmart<CJSValue> data);
+	JSSmart<CJSValue> MergePages(JSSmart<CJSValue> data, JSSmart<CJSValue> nMaxID, JSSmart<CJSValue> sPrefixForm);
+	JSSmart<CJSValue> UnmergePages();
+	JSSmart<CJSValue> RedactPage(JSSmart<CJSValue> nPageIndex, JSSmart<CJSValue> arrRedactBox, JSSmart<CJSValue> dataFiller);
+	JSSmart<CJSValue> UndoRedact();
+
+	JSSmart<CJSValue> CheckOwnerPassword(JSSmart<CJSValue> sPassword);
+	JSSmart<CJSValue> CheckPerm(JSSmart<CJSValue> nPerm);
 
 	DECLARE_EMBED_METHODS
 };

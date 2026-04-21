@@ -50,16 +50,17 @@ public:
 
 	
 	void readFields(CFRecord& record);
+    void writeFields(CFRecord& record);
 	
 	static const ElementType	type = typeShtProps;
 
 //-----------------------------
-	bool fManSerAlloc;
-	bool fManPlotArea;
-	bool fPlotVisOnly;
-	bool fNotSizeWith;
-	bool fAlwaysAutoPlotArea;
-	unsigned char	mdBlank;
+    bool fManSerAlloc = false;
+	bool fManPlotArea = true;
+	bool fPlotVisOnly = true;
+    bool fNotSizeWith = false;
+	bool fAlwaysAutoPlotArea = true;
+    unsigned char	mdBlank = 0;
 };
 
 } // namespace XLS

@@ -237,6 +237,35 @@ const bool SS::loadContent(BinProcessor& proc)
 	return true;
 }
 
+const bool SS::saveContent(BinProcessor& proc)
+{
+	if(m_DataFormat == nullptr)
+		return false;
+	proc.mandatory(*m_DataFormat);
+	proc.mandatory<Begin>();
+	if(m_Chart3DBarShape != nullptr)
+		proc.mandatory(*m_Chart3DBarShape);
+	if(m_LineFormat != nullptr)
+		proc.mandatory(*m_LineFormat);
+	if(m_AreaFormat != nullptr)
+		proc.mandatory(*m_AreaFormat);
+	if(m_PieFormat != nullptr)
+		proc.mandatory(*m_PieFormat);
+	if(m_SerFmt != nullptr)
+		proc.mandatory(*m_SerFmt);
+	if(m_GELFRAME != nullptr)
+		proc.optional(*m_GELFRAME);
+	if(m_MarkerFormat != nullptr)
+		proc.mandatory(*m_MarkerFormat);
+	if(m_AttachedLabel != nullptr)
+		proc.mandatory(*m_AttachedLabel);
+	for(auto i : m_arSHAPEPROPS)
+		if(i != nullptr)
+			proc.mandatory(*i);
+	proc.mandatory<End>();
+	return true;
+}
+
 void SS::apply_crt_ss (BaseObjectPtr crt_ss)
 {
 	SS * ss_common = dynamic_cast<SS*>(crt_ss.get());
@@ -276,7 +305,7 @@ int SS::serialize_default(std::wostream & _stream, int series_type, int ind )
 				if ((line) && (line->lns == (_UINT16)5)) ind = -1;
 			}
 
-			if (ind >= 0 && m_isAutoLine)
+			if (ind >= 0 && default_series_line_color->size() > ind &&  m_isAutoLine)
 			{
 				CP_XML_NODE(L"a:ln")
 				{
@@ -415,7 +444,8 @@ int SS::serialize(std::wostream & _stream, int series_type, int indPt)
 						{
 							CP_XML_NODE(L"a:srgbClr")
 							{
-								CP_XML_ATTR(L"val",  default_series_line_color[ind]);		
+								if(default_series_line_color->size() > ind)
+									CP_XML_ATTR(L"val",  default_series_line_color[ind]);
 							}
 						}
 						CP_XML_NODE(L"a:prstDash")

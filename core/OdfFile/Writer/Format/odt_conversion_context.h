@@ -65,6 +65,8 @@ public:
 	virtual void start_document();
 	virtual void end_document();
 
+	virtual bool is_child_text_context();
+
 	virtual odf_drawing_context		* drawing_context();
 	virtual odf_text_context		* text_context();
 	virtual odf_controls_context	* controls_context();
@@ -79,7 +81,7 @@ public:
 	virtual void start_drawing_context();
 	virtual void end_drawing_context();
 
-	virtual bool start_math();
+	virtual bool start_math(int base_font_size, const std::wstring& base_font_color);
 	virtual void end_math();
 
 	void add_text_content	(const std::wstring & text);
@@ -140,7 +142,7 @@ public:
 	void end_run			();
 
 	void	add_section					(bool continuous);
-	void	add_section_columns			(int count, double space_pt, bool separator );
+	void	add_section_columns			(int count, double space_pt, bool separator, bool flag );
 	void	add_section_column			(std::vector<std::pair<double,double>> width_space);
 	int		get_current_section_columns	();
 	void	flush_section				();
@@ -199,6 +201,9 @@ public:
 	bool is_paragraph_in_current_section_;
 
 	bool empty() {return current_root_elements_.empty();}
+
+	int m_pendingBreakType = -1;
+	bool pendingBreakType = false;
 
 private:
 	void start_table_header_rows();
@@ -268,8 +273,6 @@ private:
 	}text_changes_state_;
 
 	bool table_row_header_state_ = false;
-
-	bool is_hyperlink_;
 
 	struct _drop_cap_state
 	{

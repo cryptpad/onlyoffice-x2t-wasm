@@ -181,6 +181,7 @@ namespace PPTX
 		}
 		std::wstring Blip::GetFullPicName(OOX::IFileContainer* pRels)const
 		{
+			std::wstring result;
 			for (size_t i = 0; i < ExtLst.size(); ++i)
 			{
 				if (ExtLst[i].link_svg.IsInit())
@@ -189,13 +190,21 @@ namespace PPTX
 					{
 						smart_ptr<OOX::Image> p = pRels->Get<OOX::Image>(*ExtLst[i].link_svg);
 						if (p.is_init())
-							return p->filename().m_strFilename;
+						{
+							result = p->filename().m_strFilename;
+							break;
+						}
 					}
 
 					if (parentFileIs<FileContainer>())
-						return parentFileAs<FileContainer>().GetImagePathNameFromRId(*ExtLst[i].link_svg);
+					{
+						result = parentFileAs<FileContainer>().GetImagePathNameFromRId(*ExtLst[i].link_svg);
+						break;
+					}
 				}
 			}
+			if (false == result.empty()) return result;
+			
 			if (embed.IsInit())
 			{
 				if (pRels != NULL)
@@ -293,13 +302,10 @@ namespace PPTX
 
 			pWriter->EndRecord();
 
-			double dX = pWriter->GetShapeX(); //mm
-			double dY = pWriter->GetShapeY();
+			double dW = pWriter->GetShapeWidth() / 12700. ; //emu to pt 
+			double dH = pWriter->GetShapeHeight() / 12700.;
 
-			double dW = pWriter->GetShapeWidth(); //mm
-			double dH = pWriter->GetShapeHeight();
-
-			OOX::IFileContainer* pRels = pWriter->GetRels().GetPointer();
+			OOX::IFileContainer* pRels = pWriter->GetRelsPtr();
 
 			std::wstring	additionalPath;
 			int				additionalType = 0;
@@ -326,21 +332,21 @@ namespace PPTX
 			NSShapeImageGen::CMediaInfo oId;
 			if (!dataFilepathImageA.empty())
 			{
-				oId = pWriter->m_pCommon->m_pMediaManager->WriteImage(dataFilepathImageA, dX, dY, dW, dH, additionalPath, additionalType);
+				oId = pWriter->m_pCommon->m_pMediaManager->WriteImage(dataFilepathImageA, dW, dH, additionalPath, additionalType);
 			}
 			else if (!dataFilepathImage.empty())
 			{
-				oId = pWriter->m_pCommon->m_pMediaManager->WriteImage(dataFilepathImage, dX, dY, dW, dH, additionalPath, additionalType);
+				oId = pWriter->m_pCommon->m_pMediaManager->WriteImage(dataFilepathImage, dW, dH, additionalPath, additionalType);
 			}
 			else if (!oleFilepathImage.empty())
 			{
 				std::wstring imagePath = oleFilepathImage;
-				oId = pWriter->m_pCommon->m_pMediaManager->WriteImage(imagePath, dX, dY, dW, dH, additionalPath, additionalType);
+				oId = pWriter->m_pCommon->m_pMediaManager->WriteImage(imagePath, dW, dH, additionalPath, additionalType);
 			}
 			else
 			{
 				std::wstring imagePath = this->GetFullPicName(pRels);
-				oId = pWriter->m_pCommon->m_pMediaManager->WriteImage(imagePath, dX, dY, dW, dH, additionalPath, additionalType);
+				oId = pWriter->m_pCommon->m_pMediaManager->WriteImage(imagePath, dW, dH, additionalPath, additionalType);
 			}
 
 			std::wstring s = oId.GetPath2();
@@ -445,8 +451,8 @@ namespace PPTX
 						}	
 						if (false == strImagePath.empty())
 						{
-							smart_ptr<OOX::File> additionalFile;
-							NSBinPptxRW::_relsGeneratorInfo oRelsGeneratorInfo = pReader->m_pRels->WriteImage(strImagePath, additionalFile, L"", L"");
+							std::vector<smart_ptr<OOX::File>> additionalFiles;
+							NSBinPptxRW::_relsGeneratorInfo oRelsGeneratorInfo = pReader->m_pRels->WriteImage(strImagePath, additionalFiles, L"", L"");
 
 							if (oRelsGeneratorInfo.nImageRId > 0)
 							{

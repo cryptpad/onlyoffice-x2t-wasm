@@ -51,6 +51,7 @@ public:
 
 	
 	void readFields(CFRecord& record);
+	void writeFields(CFRecord& record);
 		
 	static const ElementType	type = typeAreaFormat;
 
@@ -59,13 +60,13 @@ public:
 	LongRGB rgbFore;
 	LongRGB rgbBack;
 	
-	_UINT16 fls;
+	_UINT16 fls = 0;
 	
-	bool fAuto;
-	bool fInvertNeg;
+	bool fAuto = true;
+	bool fInvertNeg = false;
 	
-	IcvChart icvFore;
-	IcvChart icvBack;
+	IcvChart icvFore = 0x004D;
+	IcvChart icvBack = 0x0009;
 };
 
 } // namespace XLS

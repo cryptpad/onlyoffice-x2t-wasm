@@ -17,14 +17,15 @@ namespace NSDocxRenderer
 		m_arConts.clear();
 		m_pLine = nullptr;
 	}
-	void CTextLine::AddCont(std::shared_ptr<CContText> oCont)
+	void CTextLine::AddCont(const std::shared_ptr<CContText>& oCont)
 	{
 		RecalcWithNewItem(oCont.get());
 		m_arConts.push_back(oCont);
+		m_nOrder = std::max(m_nOrder, oCont->m_nOrder);
 	}
 	void CTextLine::AddConts(const std::vector<std::shared_ptr<CContText>>& arConts)
 	{
-		for (auto& cont : arConts)
+		for (const auto& cont : arConts)
 			AddCont(cont);
 	}
 
@@ -65,13 +66,15 @@ namespace NSDocxRenderer
 		std::sort(m_arConts.begin(), m_arConts.end(), [] (const cont_ptr_t& a, const cont_ptr_t& b) {
 			if (!a) return false;
 			if (!b) return true;
+			if (fabs(a->m_dLeft - b->m_dLeft) < c_dTHE_SAME_STRING_X_PRECISION_MM)
+				return a->m_dRight < b->m_dRight;
 			return a->m_dLeft < b->m_dLeft;
 		});
 
 		std::shared_ptr<CContText> pFirst;
 		size_t j = 0;
 
-		for(; j < m_arConts.size() && !pFirst; ++j)
+		for (; j < m_arConts.size() && !pFirst; ++j)
 			pFirst = m_arConts[j];
 
 		for (size_t i = j; i < m_arConts.size(); ++i)
@@ -82,8 +85,8 @@ namespace NSDocxRenderer
 
 			double avg_space_width = pCurrent->m_pFontStyle->GetAvgSpaceWidth();
 			double space_width = avg_space_width != 0.0 ?
-									 avg_space_width * c_dAVERAGE_SPACE_WIDTH_COEF :
-									 pCurrent->CalculateSpace() * c_dSPACE_WIDTH_COEF;
+			            avg_space_width * c_dAVERAGE_SPACE_WIDTH_COEF :
+			            pCurrent->CalculateSpace() * c_dSPACE_WIDTH_COEF;
 
 			double dDifference = pCurrent->m_dLeft - pFirst->m_dRight;
 
@@ -91,7 +94,7 @@ namespace NSDocxRenderer
 			bool bIsSpaceDelta = dDifference > space_width;
 			bool bIsWideSpaceDelta = dDifference > space_width * 3;
 
-			if (bIsWideSpaceDelta || (pCurrent->m_bPossibleSplit && bIsSpaceDelta))
+			if (bIsWideSpaceDelta || (pCurrent->m_bPossibleHorSplit && bIsSpaceDelta))
 			{
 				if (CContText::IsUnicodeSpace(pFirst->GetLastSym()))
 					pFirst->RemoveLastSym();
@@ -104,7 +107,7 @@ namespace NSDocxRenderer
 					wide_space->m_dRight = pCurrent->m_dLeft;
 					wide_space->m_dWidth = wide_space->m_dRight - wide_space->m_dLeft;
 
-					wide_space->m_dBaselinePos = pCurrent->m_dBaselinePos;
+					wide_space->m_dBot = pCurrent->m_dBot;
 					wide_space->m_dTop = pCurrent->m_dTop;
 
 					wide_space->m_dTopWithAscent = pCurrent->m_dTopWithAscent;
@@ -112,7 +115,7 @@ namespace NSDocxRenderer
 
 					wide_space->m_dHeight = pCurrent->m_dHeight;
 
-					wide_space->SetSym(c_SPACE_SYM, wide_space->m_dRight - wide_space->m_dLeft);
+					wide_space->SetSym(c_SPACE_SYM, wide_space->m_dRight - wide_space->m_dLeft, wide_space->m_dLeft, 0);
 					wide_space->m_pFontStyle = pFirst->m_pFontStyle;
 					wide_space->m_pShape = nullptr;
 					wide_space->m_iNumDuplicates = 0;
@@ -146,12 +149,12 @@ namespace NSDocxRenderer
 			{
 				if (!bIsSpaceDelta)
 				{
-					pFirst->AddTextBack(pCurrent->GetText(), pCurrent->GetSymWidths());
+					pFirst->AddTextBack(pCurrent->GetText(), pCurrent->GetSymWidths(), pCurrent->m_arGids, pCurrent->m_arOriginLefts);
 				}
 				else
 				{
-					pFirst->AddSymBack(c_SPACE_SYM, pCurrent->m_dLeft - pFirst->m_dRight);
-					pFirst->AddTextBack(pCurrent->GetText(), pCurrent->GetSymWidths());
+					pFirst->AddSymBack(c_SPACE_SYM, pCurrent->m_dLeft - pFirst->m_dRight, pFirst->m_dRight, 0);
+					pFirst->AddTextBack(pCurrent->GetText(), pCurrent->GetSymWidths(), pCurrent->m_arGids, pCurrent->m_arOriginLefts);
 				}
 
 				if (pFirst->m_pCont.expired())
@@ -166,9 +169,9 @@ namespace NSDocxRenderer
 				if (bIsSpaceDelta)
 				{
 					if (pFirst->GetNumberOfFeatures() <= pCurrent->GetNumberOfFeatures())
-						pFirst->AddSymBack(c_SPACE_SYM, pCurrent->m_dLeft - pFirst->m_dRight);
+						pFirst->AddSymBack(c_SPACE_SYM, pCurrent->m_dLeft - pFirst->m_dRight, pFirst->m_dRight, 0);
 					else
-						pCurrent->AddSymFront(c_SPACE_SYM, pCurrent->m_dLeft - pFirst->m_dRight);
+						pCurrent->AddSymFront(c_SPACE_SYM, pCurrent->m_dLeft - pFirst->m_dRight, pFirst->m_dRight, 0);
 				}
 				pFirst = pCurrent;
 			}
@@ -193,16 +196,20 @@ namespace NSDocxRenderer
 				continue;
 
 			const auto& text = cont->GetText();
-			auto ar_widths = cont->GetSymWidths();
+			auto ar_lefts = cont->GetSymLefts();
+			auto ar_width = cont->GetSymWidths();
 			for (size_t i = 0; i < text.length(); ++i)
 			{
 				if (text.at(i) == c_SPACE_SYM)
 				{
-					m_dFirstWordWidth = width;
+					if (i == 0)
+						m_dFirstWordWidth = cont->m_dLeft - m_dLeft;
+					else
+						m_dFirstWordWidth = ar_lefts[i - 1] - m_dLeft + ar_width[i - 1];
 					is_done = true;
 					break;
 				}
-				width += ar_widths[i];
+
 			}
 			if (is_done)
 				break;
@@ -217,7 +224,7 @@ namespace NSDocxRenderer
 		m_dTop = 0.0;
 		m_dWidth = 0.0;
 		m_dHeight = 0.0;
-		m_dBaselinePos = 0.0;
+		m_dBot = 0.0;
 		m_dRight = 0.0;
 		m_dHeight = 0.0;
 
@@ -238,47 +245,49 @@ namespace NSDocxRenderer
 			return eVerticalCrossingType::vctCurrentInsideNext;
 
 		else if (this_top < other_top && this_bot > other_bot)
-			return  eVerticalCrossingType::vctCurrentOutsideNext;
+			return eVerticalCrossingType::vctCurrentOutsideNext;
 
-		else if (this_top < other_top && this_bot < other_bot &&
-				 (this_bot >= other_top || fabs(this_bot - other_top) < c_dTHE_SAME_STRING_Y_PRECISION_MM))
-			return  eVerticalCrossingType::vctCurrentAboveNext;
+		else if (this_top < other_top && this_bot < other_bot && this_bot > other_top &&
+		    this_bot - other_top > c_dOVERLAP_TEXT_LINE_ERROR_MM)
+			return eVerticalCrossingType::vctCurrentAboveNext;
 
-		else if (this_top > other_top && this_bot > other_bot &&
-				 (this_top <= other_bot || fabs(this_top - other_bot) < c_dTHE_SAME_STRING_Y_PRECISION_MM))
-			return  eVerticalCrossingType::vctCurrentBelowNext;
+		else if (this_top > other_top && this_bot > other_bot && this_top < other_bot &&
+		         other_bot - this_top > c_dOVERLAP_TEXT_LINE_ERROR_MM)
+			return eVerticalCrossingType::vctCurrentBelowNext;
 
 		else if (this_top == other_top && this_bot == other_bot &&
-				 m_dLeft == pLine->m_dLeft && m_dRight == pLine->m_dRight)
+		         m_dLeft == pLine->m_dLeft && m_dRight == pLine->m_dRight)
 			return  eVerticalCrossingType::vctDublicate;
 
 		else if (fabs(this_top - other_top) < c_dTHE_SAME_STRING_Y_PRECISION_MM &&
-				 fabs(this_bot - other_bot) < c_dTHE_SAME_STRING_Y_PRECISION_MM)
-			return  eVerticalCrossingType::vctTopAndBottomBordersMatch;
+		         fabs(this_bot - other_bot) < c_dTHE_SAME_STRING_Y_PRECISION_MM)
+			return eVerticalCrossingType::vctTopAndBottomBordersMatch;
 
 		else if (fabs(this_top - other_top) < c_dTHE_SAME_STRING_Y_PRECISION_MM)
-			return  eVerticalCrossingType::vctTopBorderMatch;
+			return eVerticalCrossingType::vctTopBorderMatch;
 
 		else if (fabs(this_bot - other_bot) < c_dTHE_SAME_STRING_Y_PRECISION_MM)
-			return  eVerticalCrossingType::vctBottomBorderMatch;
+			return eVerticalCrossingType::vctBottomBorderMatch;
 
-		else if (this_bot < other_top)
-			return  eVerticalCrossingType::vctNoCrossingCurrentAboveNext;
+		else if (other_top - this_bot > -c_dOVERLAP_TEXT_LINE_ERROR_MM)
+			return eVerticalCrossingType::vctNoCrossingCurrentAboveNext;
 
-		else if (this_top > other_bot)
-			return  eVerticalCrossingType::vctNoCrossingCurrentBelowNext;
+		else if (this_top - other_bot > -c_dOVERLAP_TEXT_LINE_ERROR_MM)
+			return eVerticalCrossingType::vctNoCrossingCurrentBelowNext;
 
 		else
-			return  eVerticalCrossingType::vctUnknown;
+			return eVerticalCrossingType::vctUnknown;
 	}
 
 	void CTextLine::RecalcWithNewItem(const CContText* pCont)
 	{
 		CBaseItem::RecalcWithNewItem(pCont);
-		if (m_dTopWithMaxAscent == 0.0) m_dTopWithMaxAscent = pCont->m_dTopWithAscent;
-		else m_dTopWithMaxAscent = std::min(m_dTopWithMaxAscent, pCont->m_dTopWithAscent);
-
-		m_dBotWithMaxDescent = std::max(m_dBotWithMaxDescent, pCont->m_dBotWithDescent);
+		if (!pCont->IsOnlySpaces())
+		{
+			if (m_dTopWithMaxAscent == 0.0) m_dTopWithMaxAscent = pCont->m_dTopWithAscent;
+			else m_dTopWithMaxAscent = std::min(m_dTopWithMaxAscent, pCont->m_dTopWithAscent);
+			m_dBotWithMaxDescent = std::max(m_dBotWithMaxDescent, pCont->m_dBotWithDescent);
+		}
 	}
 
 	void CTextLine::SetVertAlignType(const eVertAlignType& oType)
@@ -294,23 +303,32 @@ namespace NSDocxRenderer
 	bool CTextLine::IsShadingPresent(const CTextLine *pLine) const noexcept
 	{
 		return (m_pDominantShape && pLine->m_pDominantShape &&
-				m_pDominantShape->m_oBrush.Color1 == pLine->m_pDominantShape->m_oBrush.Color1 &&
-				fabs(m_pDominantShape->m_dLeft - pLine->m_pDominantShape->m_dLeft) < c_dGRAPHICS_ERROR_IN_LINES_MM &&
-				fabs(m_pDominantShape->m_dWidth - pLine->m_pDominantShape->m_dWidth) < c_dGRAPHICS_ERROR_IN_LINES_MM);
+		        m_pDominantShape->m_oBrush.Color1 == pLine->m_pDominantShape->m_oBrush.Color1 &&
+		        fabs(m_pDominantShape->m_dLeft - pLine->m_pDominantShape->m_dLeft) < c_dGRAPHICS_ERROR_IN_LINES_MM &&
+		        fabs(m_pDominantShape->m_dWidth - pLine->m_pDominantShape->m_dWidth) < c_dGRAPHICS_ERROR_IN_LINES_MM);
 	}
 
 	void CTextLine::ToXml(NSStringUtils::CStringBuilder& oWriter) const
 	{
 		for (const auto& cont : m_arConts)
-			if(cont)
+			if (cont)
 				cont->ToXml(oWriter);
 	}
 
 	void CTextLine::ToXmlPptx(NSStringUtils::CStringBuilder& oWriter) const
 	{
 		for (const auto& cont : m_arConts)
-			if(cont)
+			if (cont)
 				cont->ToXmlPptx(oWriter);
+	}
+	void CTextLine::ToBin(NSWasm::CData& oWriter) const
+	{
+		for (const auto& cont : m_arConts)
+		{
+			oWriter.StartRecord(0);
+			cont->ToBin(oWriter);
+			oWriter.EndRecord();
+		}
 	}
 
 	size_t CTextLine::GetLength() const

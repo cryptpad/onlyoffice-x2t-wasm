@@ -37,6 +37,8 @@ namespace XLS
 
 PlotGrowth::PlotGrowth()
 {
+	dxPlotGrowth = 1;
+	dyPlotGrowth = 1;
 }
 
 
@@ -54,6 +56,11 @@ BaseObjectPtr PlotGrowth::clone()
 void PlotGrowth::readFields(CFRecord& record)
 {
 	record >> dxPlotGrowth >> dyPlotGrowth;
+}
+
+void PlotGrowth::writeFields(CFRecord& record)
+{
+    record << dxPlotGrowth << dyPlotGrowth;
 }
 
 } // namespace XLS

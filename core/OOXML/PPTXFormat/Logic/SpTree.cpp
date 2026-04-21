@@ -188,7 +188,7 @@ namespace PPTX
 
 			return XmlUtils::CreateNode(name_, oValue);
 		}
-		void SpTree::toXmlWriterVML(NSBinPptxRW::CXmlWriter *pWriter, NSCommon::smart_ptr<PPTX::Theme>& oTheme, NSCommon::smart_ptr<PPTX::Logic::ClrMap>& oClrMap, bool in_group)
+		void SpTree::toXmlWriterVML(NSBinPptxRW::CXmlWriter *pWriter, NSCommon::smart_ptr<PPTX::Theme>& oTheme, NSCommon::smart_ptr<PPTX::Logic::ClrMap>& oClrMap, OOX::IFileContainer* pContainer, bool in_group)
 		{
 			pWriter->StartNode(_T("v:group"));
 			pWriter->StartAttributes();
@@ -311,7 +311,7 @@ namespace PPTX
 			{
 				if (SpTreeElems[i].is<PPTX::Logic::Shape>())
 				{
-					SpTreeElems[i].as<PPTX::Logic::Shape>().toXmlWriterVML(pWriter, oTheme, oClrMap, true);
+					SpTreeElems[i].as<PPTX::Logic::Shape>().toXmlWriterVML(pWriter, oTheme, oClrMap, pContainer, true);
 				}
 				else if (SpTreeElems[i].is<PPTX::Logic::Pic>())
 				{
@@ -319,7 +319,7 @@ namespace PPTX
 				}
 				else if (SpTreeElems[i].is<PPTX::Logic::SpTree>())
 				{
-					SpTreeElems[i].as<PPTX::Logic::SpTree>().toXmlWriterVML(pWriter, oTheme, oClrMap, true);
+					SpTreeElems[i].as<PPTX::Logic::SpTree>().toXmlWriterVML(pWriter, oTheme, oClrMap, pContainer, true);
 				}				
 			}
 
@@ -409,15 +409,9 @@ namespace PPTX
 					_UINT32 len = (_UINT32)SpTreeElems.size();
 					pWriter->WriteULONG(len);
 
-					double oldCxCurShape = pWriter->m_dCxCurShape;
-					double oldCyCurShape = pWriter->m_dCyCurShape;
-
 					for (_UINT32 i = 0; i < len; ++i)
 					{
-						pWriter->WriteRecord1(0, SpTreeElems[i]);
-					
-						pWriter->m_dCxCurShape = oldCxCurShape;
-						pWriter->m_dCyCurShape = oldCyCurShape;
+						pWriter->WriteRecord1(0, SpTreeElems[i]);					
 					}
 				pWriter->EndRecord();
 //---------------------------------------------------------------------------------------			
@@ -551,8 +545,8 @@ namespace PPTX
 		}
 		void LockedCanvas::toPPTY(NSBinPptxRW::CBinaryFileWriter* pWriter) const
 		{
-			BinDocxRW::CDocxSerializer* docx = pWriter->m_pMainDocument;
-			pWriter->m_pMainDocument = NULL;
+			BinDocxRW::CDocxSerializer* docx = pWriter->m_pDocxSerializer;
+			pWriter->m_pDocxSerializer = NULL;
 
 			pWriter->StartRecord(SPTREE_TYPE_LOCKED_CANVAS);
 
@@ -561,7 +555,7 @@ namespace PPTX
 			pWriter->WriteRecordArray(2, 0, SpTreeElems);
 
 			pWriter->EndRecord();
-			pWriter->m_pMainDocument = docx;
+			pWriter->m_pDocxSerializer = docx;
 		}
 		void LockedCanvas::fromPPTY(NSBinPptxRW::CBinaryFileReader* pReader)
 		{
@@ -569,8 +563,8 @@ namespace PPTX
 
 			pReader->Skip(5); // type + len
 
-			BinDocxRW::CDocxSerializer* docx = pReader->m_pMainDocument;
-			pReader->m_pMainDocument = NULL;
+			BinDocxRW::CDocxSerializer* docx = pReader->m_pDocxSerializer;
+			pReader->m_pDocxSerializer = NULL;
 
 			while (pReader->GetPos() < _end_rec)
 			{
@@ -621,7 +615,7 @@ namespace PPTX
 				}
 			}
 			pReader->Seek(_end_rec);
-			pReader->m_pMainDocument = docx;
+			pReader->m_pDocxSerializer = docx;
 		}
 	}
 }

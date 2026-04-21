@@ -366,7 +366,7 @@ void line_break::docx_convert(oox::docx_conversion_context & Context)
 {
 	bool in_drawing	= false;
 
- 	if (Context.get_drawing_context().get_current_shape() || Context.get_drawing_context().get_current_frame())
+	if (Context.get_drawing_context().get_current_shape() || Context.get_drawing_context().get_current_frame())
 	{
 		in_drawing = true;
 
@@ -387,6 +387,8 @@ void line_break::xlsx_convert(oox::xlsx_conversion_context & Context)
 }
 void line_break::pptx_convert(oox::pptx_conversion_context & Context)
 {
+    bool bLineBreak = true;
+    Context.get_text_context().set_line_break(bLineBreak);
     Context.get_text_context().add_text(L"\n");
 }
 
@@ -616,7 +618,7 @@ void span::docx_convert(oox::docx_conversion_context & Context)
 					style_text_properties *text_props = styleContent->get_style_text_properties();
 					std::wstring parent = styleInst->parent_name();
 
-					if (false == parent.empty())
+					if (text_props && false == parent.empty())
 					{
 						text_props->content_.r_style_ = Context.styles_map_.get(parent, styleInst->type());
 					}
@@ -999,11 +1001,17 @@ void note::docx_convert(oox::docx_conversion_context & Context)
 
     if (text_note_class_.get_type() == noteclass::Footnote)
     {
-	   Context.output_stream() << "<w:footnoteReference w:id=\"" << Context.get_notes_context().next_id() << "\"/>";
+		Context.output_stream() << L"<w:rPr>";
+		Context.output_stream() << L"<w:vertAlign w:val=\"superscript\"/>";
+		Context.output_stream() << L"</w:rPr>";
+
+		Context.output_stream() << "<w:footnoteReference w:id=\"" << Context.get_notes_context().next_id() << "\"/>";
+		Context.add_new_run();
     }
     else 
     {
 		Context.output_stream() << "<w:endnoteReference w:id=\"" << Context.get_notes_context().next_id() << "\"/>";
+		Context.add_new_run();
     }
 
     if (text_note_citation_)

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
@@ -38,6 +38,13 @@
 #include "../../XlsbFormat/Biff12_records/FileSharingIso.h"
 #include "../../XlsbFormat/Biff12_records/CommonRecords.h"
 
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_unions/PROTECTION.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/WinProtect.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/Protect.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/Password.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/Prot4Rev.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Logic/Biff_records/Prot4RevPass.h"
+
 #include "../../Common/SimpleTypes_Word.h"
 #include "../../Common/SimpleTypes_Shared.h"
 #include "../../Common/SimpleTypes_Spreadsheet.h"
@@ -66,7 +73,7 @@ namespace OOX
 			WritingStringNullableAttrBool(L"autoCompressPictures", m_oAutoCompressPictures);
 			WritingStringNullableAttrBool(L"backupFile", m_oBackupFile);
 			WritingStringNullableAttrBool(L"checkCompatibility", m_oCheckCompatibility);
-			WritingStringNullableAttrBool(L"codeName", m_oCodeName);
+			WritingStringNullableAttrString(L"codeName", m_oCodeName, *m_oCodeName);
 			WritingStringNullableAttrBool(L"date1904", m_oDate1904);
 			WritingStringNullableAttrBool(L"dateCompatibility", m_oDateCompatibility);
 			WritingStringNullableAttrInt(L"defaultThemeVersion", m_oDefaultThemeVersion, m_oDefaultThemeVersion->GetValue());
@@ -109,7 +116,7 @@ namespace OOX
             else
                 ptr->fCheckCompat = false;
 			if(m_oCodeName.IsInit())
-				ptr->strName.value = m_oCodeName->GetValue();
+				ptr->strName.value = *m_oCodeName;
 			else
 				ptr->strName.value = false;
 			if(m_oDate1904.IsInit())
@@ -342,6 +349,38 @@ namespace OOX
 			}
 			return objectPtr;
 		}
+		XLS::BaseObjectPtr CWorkbookProtection::toXLS()
+		{
+			auto ptr = new XLS::PROTECTION;
+			if(m_oLockWindows.IsInit())
+			{
+				auto winPtr = new XLS::WinProtect;
+				winPtr->fLockWn = m_oLockWindows->GetValue();
+				ptr->m_WinProtect = XLS::BaseObjectPtr(winPtr);
+			}
+			if(m_oLockStructure.IsInit())
+			{
+				auto protPtr = new XLS::Protect;
+				protPtr->fLock = m_oLockStructure->GetValue();
+				ptr->m_Protect = XLS::BaseObjectPtr(protPtr);
+			}
+			if(m_oPassword.IsInit())
+			{
+				auto pass = new XLS::Password;
+				pass->wPassword = m_oPassword.get();
+				ptr->m_Password = XLS::BaseObjectPtr(pass);
+			}
+			if(m_oLockRevision.IsInit() && m_oPassword.IsInit())
+			{
+				auto rev = new XLS::Prot4Rev;
+				rev->fRevLock = m_oLockRevision->GetValue();
+				ptr->m_Prot4Rev = XLS::BaseObjectPtr(rev);
+				auto revPass = new XLS::Prot4RevPass;
+				revPass->protPwdRev = m_oPassword.get();
+				ptr->m_Prot4RevPass = XLS::BaseObjectPtr(revPass);
+			}
+			return XLS::BaseObjectPtr(ptr);
+		}
 		void CWorkbookProtection::fromBin(XLS::BaseObjectPtr& obj)
 		{
 			ReadAttributes(obj);
@@ -428,13 +467,13 @@ namespace OOX
 			if (!oReader.IsEmptyNode())
 				oReader.ReadTillEnd();
 		}
-		XLS::BaseObjectPtr CFileSharing::toBin()
+        std::vector<XLS::BaseObjectPtr> CFileSharing::toBin()
 		{
-			XLS::BaseObjectPtr objectPtr;
+            std::vector<XLS::BaseObjectPtr> objectVector;
 			if(m_oSpinCount.IsInit() || m_oAlgorithmName.IsInit() || m_oHashValue.IsInit())
 			{
 				auto ptr(new XLSB::FileSharingIso);
-				objectPtr = XLS::BaseObjectPtr{ptr};
+                XLS::BaseObjectPtr objectPtr = XLS::BaseObjectPtr{ptr};
 
 				if (m_oReadOnlyRecommended.IsInit())
 					ptr->fReadOnlyRec = m_oReadOnlyRecommended.get();
@@ -472,12 +511,18 @@ namespace OOX
                         bytes1, len1);
                 }
 				ptr->ipdPasswordData.rgbSalt.cbLength = len1;
+                auto ptr1(new XLSB::FileSharing);
+                ptr1->wResPass = L"";
+                ptr1->fReadOnlyRec = ptr->fReadOnlyRec;
+                ptr1->stUserName =  ptr->stUserName;
+                objectVector.push_back(objectPtr);
+                objectVector.push_back(XLS::BaseObjectPtr{ptr1});
 
 			}
 			else
 			{
 				auto ptr(new XLSB::FileSharing);
-				objectPtr = XLS::BaseObjectPtr{ptr};
+                XLS::BaseObjectPtr objectPtr = XLS::BaseObjectPtr{ptr};
 				if (m_oReadOnlyRecommended.IsInit())
 					ptr->fReadOnlyRec = m_oReadOnlyRecommended.get();
                 else
@@ -490,8 +535,9 @@ namespace OOX
                     ptr->wResPass = m_oPassword.get();
                 else
                     ptr->wResPass = L"";
+                objectVector.push_back(objectPtr);
 			}
-			return objectPtr;
+            return objectVector;
 		}
 		void CFileSharing::fromBin(XLS::BaseObjectPtr& obj)
 		{

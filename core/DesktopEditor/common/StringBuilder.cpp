@@ -195,6 +195,16 @@ namespace NSStringUtils
 		m_pDataCur = m_pData;
 		m_lSizeCur = m_lSize;
 	}
+
+	CStringBuilder::CStringBuilder(size_t nSize)
+	{
+		m_lSize = nSize;
+		m_pData = (wchar_t*)malloc(m_lSize * sizeof(wchar_t));
+
+		m_lSizeCur = 0;
+		m_pDataCur = m_pData;
+		return;
+	}
 	CStringBuilder::~CStringBuilder()
 	{
 		if (NULL != m_pData)
@@ -319,7 +329,14 @@ namespace NSStringUtils
 	{
 		WriteEncodeXmlString(sString.c_str(), (int)sString.length());
 	}
-
+	void CStringBuilder::WriteEncodeXmlString(const std::string& sString)
+	{
+		WriteEncodeXmlString(std::wstring(sString.begin(), sString.end()));
+	}
+	void CStringBuilder::WriteUtf8EncodeXmlString(const std::string& sString)
+    {
+        WriteEncodeXmlString(NSFile::CUtf8Converter::GetUnicodeStringFromUTF8((BYTE*)sString.c_str(), sString.size()));
+	}
 	void CStringBuilder::WriteEncodeXmlString(const wchar_t* pString, int nCount)
 	{
 		if (sizeof(wchar_t) == 2)

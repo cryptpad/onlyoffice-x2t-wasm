@@ -20,19 +20,21 @@ OO_BUILD_BRANDING = $$(OO_BRANDING)
 OO_DESTDIR_BUILD_OVERRIDE = $$(DESTDIR_BUILD_OVERRIDE)
 
 win32 {
-    CURRENT_YEAR = $$system(wmic PATH Win32_LocalTime GET ^Year /FORMAT:VALUE | find \"=\")
-    CURRENT_YEAR = $$replace(CURRENT_YEAR, "Year=", "")
-    CURRENT_YEAR = $$replace(CURRENT_YEAR, "\r", "")
-    CURRENT_YEAR = $$replace(CURRENT_YEAR, "\n", "")
-    CURRENT_YEAR = $$replace(CURRENT_YEAR, "\t", "")
+	CURRENT_YEAR = $$system(powershell -NoLogo -NoProfile -Command "(Get-Date).Year")
+	CURRENT_YEAR = $$replace(CURRENT_YEAR, "\r", "")
+	CURRENT_YEAR = $$replace(CURRENT_YEAR, "\n", "")
+	CURRENT_YEAR = $$replace(CURRENT_YEAR, "\t", "")
 }
 
 !win32 {
     CURRENT_YEAR = $$system(date +%Y)
 }
 
+DEFINES += COPYRIGHT_YEAR=$${CURRENT_YEAR}
+#DEFINES += _LOGOUT_ALWAYS
+
 QMAKE_TARGET_COMPANY = $$PUBLISHER_NAME
-QMAKE_TARGET_COPYRIGHT = Copyright (C) $${PUBLISHER_NAME} $${CURRENT_YEAR}. All rights reserved
+QMAKE_TARGET_COPYRIGHT = © $${PUBLISHER_NAME} $${CURRENT_YEAR}. All rights reserved.
 
 # CONFIGURATION
 CONFIG(debug, debug|release) {
@@ -75,7 +77,11 @@ isEqual(QT_MAJOR_VERSION, 5) {
 }
 
 greaterThan(QT_MAJOR_VERSION, 5) {
-    DEFINES += QT_VERSION_6
+	DEFINES += QT_VERSION_6
+
+	core_windows {
+		QMAKE_CXXFLAGS += /permissive-
+	}
 }
 
 ios {
@@ -92,6 +98,35 @@ win32:contains(QMAKE_TARGET.arch, x86_64): {
 }
 win32:!contains(QMAKE_TARGET.arch, x86_64): {
     CONFIG += core_win_32
+}
+win32:contains(QMAKE_TARGET.arch, arm64): {
+	CONFIG -= core_win_32
+	CONFIG += core_win_arm64
+}
+
+linux-clang-libc++ {
+	CONFIG += core_linux
+	CONFIG += core_linux_64
+	CONFIG += core_linux_clang
+	message("linux-64-clang-libc++")
+}
+linux-clang-libc++-32 {
+	CONFIG += core_linux
+	CONFIG += core_linux_32
+	CONFIG += core_linux_clang
+	message("linux-32-clang-libc++")
+}
+linux-clang {
+	CONFIG += core_linux
+	CONFIG += core_linux_64
+	CONFIG += core_linux_clang
+	message("linux-64-clang")
+}
+linux-clang-32 {
+	CONFIG += core_linux
+	CONFIG += core_linux_32
+	CONFIG += core_linux_clang
+	message("linux-32-clang")
 }
 
 linux-g++ {
@@ -129,24 +164,86 @@ linux-g++-32 {
 
 
 mac {
-    !core_ios {
-        CONFIG += core_mac
-        CONFIG += core_mac_64
-    }
+	!core_ios {
+		CONFIG += core_mac
+		CONFIG += core_mac_64
+	}
+
+	DEFINES += _LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION
 }
 
 # DEFINES
 core_windows {
-    DEFINES += WIN32 _WIN32
-    DEFINES += NOMINMAX
+	DEFINES += WIN32 _WIN32
+	DEFINES += NOMINMAX
+
+	#DEFINES += WIN32_LEAN_AND_MEAN
+
+	# use default _ITERATOR_DEBUG_LEVEL value
+	#core_debug:DEFINES += "_ITERATOR_DEBUG_LEVEL=0"
 }
 core_win_64 {
-    DEFINES += WIN64 _WIN64
+	DEFINES += WIN64 _WIN64
+}
+
+defineTest(startsWith) {
+    tmp = $$2
+    tmp ~= s,^$$re_escape($$1),,
+    !equals(tmp, $$2): return(true)
+    return(false)
 }
 
 core_linux {
-    DEFINES += LINUX _LINUX
+	DEFINES += LINUX _LINUX
+
+	QMAKE_CUSTOM_SYSROOT = $$(QMAKE_CUSTOM_SYSROOT)
+	!isEmpty(QMAKE_CUSTOM_SYSROOT) {
+		CONFIG += core_linix_use_sysroot
+		message("using custom sysroot $$QMAKE_CUSTOM_SYSROOT")
+
+		QMAKE_CUSTOM_SYSROOT_BIN = $$(QMAKE_CUSTOM_SYSROOT_BIN)
+		isEmpty(QMAKE_CUSTOM_SYSROOT_BIN) {
+			QMAKE_CUSTOM_SYSROOT_BIN = $$QMAKE_CUSTOM_SYSROOT/usr/bin
+		}
+		QMAKE_CUSTOM_SYSROOT_BIN = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , /)
+
+		startsWith($$QMAKE_CUSTOM_SYSROOT, $$QMAKE_CUSTOM_SYSROOT_BIN) {
+			message("Using compilers from same sysroot")
+			QMAKE_CC          = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "gcc")
+			QMAKE_CXX         = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "g++")
+			QMAKE_LINK        = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "g++")
+			QMAKE_LINK_SHLIB  = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "g++")
+			QMAKE_AR          = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "ar") cqs
+			QMAKE_RANLIB      = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "ranlib")
+			QMAKE_STRIP       = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "strip")
+		} else {
+			message("Using cross-compilers from host sysroot")
+			QMAKE_CC          = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "aarch64-linux-gnu-gcc")
+			QMAKE_CXX         = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "aarch64-linux-gnu-g++")
+			QMAKE_LINK        = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "aarch64-linux-gnu-g++")
+			QMAKE_LINK_SHLIB  = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "aarch64-linux-gnu-g++")
+			QMAKE_AR          = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "aarch64-linux-gnu-ar") cqs
+			QMAKE_RANLIB      = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "aarch64-linux-gnu-ranlib")
+			QMAKE_STRIP       = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "aarch64-linux-gnu-strip")
+			QMAKE_OBJCOPY     = $$join(QMAKE_CUSTOM_SYSROOT_BIN, , , "aarch64-linux-gnu-objcopy")
+		}
+
+		QMAKE_CFLAGS      += --sysroot=$$QMAKE_CUSTOM_SYSROOT
+		QMAKE_CXXFLAGS    += --sysroot=$$QMAKE_CUSTOM_SYSROOT -std=gnu++1y
+
+		QMAKE_LFLAGS      += --sysroot=$$QMAKE_CUSTOM_SYSROOT
+		QMAKE_INCDIR      += $$QMAKE_CUSTOM_SYSROOT/usr/include
+	}
 }
+
+gcc {
+	COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
+	COMPILER_MAJOR_VERSION_ARRAY = $$split(COMPILER_VERSION, ".")
+	COMPILER_MAJOR_VERSION = $$member(COMPILER_MAJOR_VERSION_ARRAY, 0)
+	lessThan(COMPILER_MAJOR_VERSION, 5): CONFIG += build_gcc_less_5
+	lessThan(COMPILER_MAJOR_VERSION, 6): CONFIG += build_gcc_less_6
+}
+
 core_linux_host_arm64 {
     message("build on arm64")
     DEFINES += _ARM_ALIGN_
@@ -157,20 +254,36 @@ core_mac {
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.11
     QMAKE_LFLAGS += -isysroot $$QMAKE_MAC_SDK_PATH
 
-    QMAKE_CFLAGS += "-Wno-implicit-function-declaration"
+	# xcode15 add new linker
+	greaterThan(QMAKE_XCODE_VERSION, 1499) {
+		QMAKE_LFLAGS += -Wl,-ld_classic
+	} else {
+		CONFIG += c++14
+	}
 
-    greaterThan(QT_MAJOR_VERSION, 5) {
-        QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.12
-        !apple_silicon:QMAKE_APPLE_DEVICE_ARCHS = x86_64
-    }
+	QMAKE_CFLAGS += "-Wno-implicit-function-declaration"
+
+	greaterThan(QT_MAJOR_VERSION, 5) {
+		QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.12
+		!apple_silicon:QMAKE_APPLE_DEVICE_ARCHS = x86_64
+	}
+
+	!core_debug {
+		equals(TEMPLATE, app):QMAKE_POST_LINK += strip $(TARGET)
+		# TODO: plugin!
+	}
+}
+
+core_linux_clang {
+	QMAKE_CFLAGS += -Wno-implicit-function-declaration
 }
 
 # PREFIXES
 core_windows {
-    CONFIG -= debug_and_release debug_and_release_target
-    QMAKE_CXXFLAGS_RELEASE -= -Zc:strictStrings
-    QMAKE_CXXFLAGS -= -Zc:strictStrings
-    QMAKE_CXXFLAGS += /MP
+	CONFIG -= debug_and_release debug_and_release_target
+	QMAKE_CXXFLAGS_RELEASE += /Zc:strictStrings-
+	QMAKE_CXXFLAGS += /Zc:strictStrings-
+	QMAKE_CXXFLAGS += /MP
 
     MSVC_VERSION_DETECT = $$(VisualStudioVersion)
 	greaterThan(MSVC_VERSION_DETECT, 15.0) {
@@ -218,6 +331,10 @@ core_linux {
 core_linux {
 	equals(TEMPLATE, app):CONFIG += core_static_link_libstd
 	plugin:CONFIG += core_static_link_libstd
+
+
+	equals(TEMPLATE, app):QMAKE_LFLAGS_RELEASE += -Wl,-s
+	plugin:QMAKE_LFLAGS_RELEASE += -Wl,-s
 }
 
 core_win_32 {
@@ -225,6 +342,9 @@ core_win_32 {
 }
 core_win_64 {
     CORE_BUILDS_PLATFORM_PREFIX = win_64
+}
+core_win_arm64 {
+	CORE_BUILDS_PLATFORM_PREFIX = win_arm64
 }
 core_linux_32 {
     CORE_BUILDS_PLATFORM_PREFIX = linux_32
@@ -244,29 +364,8 @@ core_linux_arm {
     CORE_BUILDS_PLATFORM_PREFIX = arm
 }
 linux_arm64 {
-    CORE_BUILDS_PLATFORM_PREFIX = linux_arm64
-    DEFINES += _ARM_ALIGN_
-
-    ARM64_TOOLCHAIN_BIN = $$(ARM64_TOOLCHAIN_BIN)
-    ARM64_TOOLCHAIN_BIN_PREFIX = $$(ARM64_TOOLCHAIN_BIN_PREFIX)
-
-    !isEmpty(ARM64_TOOLCHAIN_BIN){
-        !isEmpty(ARM64_TOOLCHAIN_BIN_PREFIX){
-
-            ARM64_TOOLCHAIN_BIN_FULL = $$ARM64_TOOLCHAIN_BIN/$$ARM64_TOOLCHAIN_BIN_PREFIX
-
-            QMAKE_CC          = $$join(ARM64_TOOLCHAIN_BIN_FULL, , , "gcc")
-            QMAKE_CXX         = $$join(ARM64_TOOLCHAIN_BIN_FULL, , , "g++")
-            QMAKE_LINK        = $$join(ARM64_TOOLCHAIN_BIN_FULL, , , "g++")
-            QMAKE_LINK_SHLIB  = $$join(ARM64_TOOLCHAIN_BIN_FULL, , , "g++")
-
-            QMAKE_AR          = $$join(ARM64_TOOLCHAIN_BIN_FULL, , , "ar cqs")
-            QMAKE_OBJCOPY     = $$join(ARM64_TOOLCHAIN_BIN_FULL, , , "objcopy")
-            QMAKE_NM          = $$join(ARM64_TOOLCHAIN_BIN_FULL, , , "nm -P")
-            QMAKE_STRIP       = $$join(ARM64_TOOLCHAIN_BIN_FULL, , , "strip")
-
-        }
-    }
+	CORE_BUILDS_PLATFORM_PREFIX = linux_arm64
+	DEFINES += _ARM_ALIGN_
 }
 core_ios {
     CORE_BUILDS_PLATFORM_PREFIX = ios
@@ -375,17 +474,25 @@ message($$CORE_BUILDS_PLATFORM_PREFIX/$$CORE_BUILDS_CONFIGURATION_PREFIX)
 # COMPILER
 CONFIG += c++11
 
-greaterThan(QT_MAJOR_VERSION, 5) {
-    !core_windows {
-        QMAKE_CXXFLAGS += -Wno-register
-        QMAKE_CFLAGS += -Wno-register
-    }
+#CONFIG += enable_cpp_17
+enable_cpp_17 {
+	CONFIG += c++1z
+	DEFINES += _LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION
+}
+
+!core_windows {
+	QMAKE_CXXFLAGS += -Wno-register
+	QMAKE_CFLAGS += -Wno-register
 }
 
 core_linux {
 core_static_link_libstd {
-    QMAKE_LFLAGS += -static-libstdc++ -static-libgcc
-    message(core_static_link_libstd)
+	!core_linux_clang {
+		QMAKE_LFLAGS += -static-libstdc++ -static-libgcc
+	} else {
+		# TODO: add libc++abi?
+	}
+	message(core_static_link_libstd)
 }
 plugin {
     QMAKE_CXXFLAGS += -fvisibility=hidden
@@ -482,50 +589,53 @@ core_windows {
 DEFINES += CRYPTOPP_DISABLE_ASM
 }
 
-core_ios:CONFIG+=support_bundle_dylibs
+core_ios|core_mac {
+	CONFIG += support_bundle_dylibs
+}
 
 !support_bundle_dylibs:CONFIG-=bundle_dylibs
 
-core_ios {
-    bundle_dylibs {
-        plugin {
-            CONFIG -= plugin
-            CONFIG += lib_bundle
+bundle_dylibs {
+	plugin {
+		CONFIG -= plugin
+		CONFIG += lib_bundle
 
-            QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
-            #QMAKE_LFLAGS += -Xlinker -rpath -Xlinker @executable_path/Frameworks
-            #QMAKE_LFLAGS += -Xlinker -rpath -Xlinker @loader_path/Frameworks
+		QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
+		#QMAKE_LFLAGS += -Xlinker -rpath -Xlinker @executable_path/Frameworks
+		#QMAKE_LFLAGS += -Xlinker -rpath -Xlinker @loader_path/Frameworks
 
-            # correct version to < 256
-            VERSIONS = $$split(VERSION, ".")
-            VERSION_1 = $$member(VERSIONS, 0)
-            VERSION_2 = $$member(VERSIONS, 1)
-            VERSION_3 = $$member(VERSIONS, 2)
-            VERSION_4 = $$member(VERSIONS, 3)
+		# correct version to < 256
+		VERSIONS = $$split(VERSION, ".")
+		VERSION_1 = $$member(VERSIONS, 0)
+		VERSION_2 = $$member(VERSIONS, 1)
+		VERSION_3 = $$member(VERSIONS, 2)
+		VERSION_4 = $$member(VERSIONS, 3)
 
-            greaterThan(VERSION_1, 255): VERSION_1 = 255
-            greaterThan(VERSION_2, 255): VERSION_2 = 255
-            greaterThan(VERSION_3, 255): VERSION_3 = 255
-            greaterThan(VERSION_4, 255): VERSION_4 = 255
+		greaterThan(VERSION_1, 255): VERSION_1 = 255
+		greaterThan(VERSION_2, 255): VERSION_2 = 255
+		greaterThan(VERSION_3, 255): VERSION_3 = 255
+		greaterThan(VERSION_4, 255): VERSION_4 = 255
 
-            VERSION_CORRECT = $$VERSION_1
-            VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", ".")
-            VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", $$VERSION_2)
-            VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", ".")
-            VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", $$VERSION_3)
-            VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", ".")
-            VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", $$VERSION_4)
+		VERSION_CORRECT = $$VERSION_1
+		VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", ".")
+		VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", $$VERSION_2)
+		VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", ".")
+		VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", $$VERSION_3)
+		VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", ".")
+		VERSION_CORRECT = $$join(VERSION_CORRECT, "", "", $$VERSION_4)
 
-            VERSION = $$VERSION_CORRECT
-        }
-    }
+		VERSION = $$VERSION_CORRECT
+		MAJOR_VERSION = $$VERSION_1
+		# set framework version as A
+		QMAKE_FRAMEWORK_VERSION = A
+	}
 }
 
 defineTest(ADD_DEPENDENCY) {
     libs = $$ARGS
     for(lib, libs) {
         CORE_BUILDS_LIBRARIES_PATH_DST=$$CORE_BUILDS_LIBRARIES_PATH
-        
+
         isEqual(lib, videoplayer) {
             BASE_VIDEO_PLAYER_VLC_DIR = $$(VIDEO_PLAYER_VLC_DIR)
             !isEmpty(BASE_VIDEO_PLAYER_VLC_DIR):CORE_BUILDS_LIBRARIES_PATH_DST=$$CORE_BUILDS_LIBRARIES_PATH/mediaplayer
@@ -537,7 +647,7 @@ defineTest(ADD_DEPENDENCY) {
 			isEqual(lib, qtascdocumentscore):CORE_BUILDS_LIBRARIES_PATH_DST=$$CORE_BUILDS_LIBRARIES_PATH_DST/xp
 			isEqual(lib, videoplayer):CORE_BUILDS_LIBRARIES_PATH_DST=$$CORE_BUILDS_LIBRARIES_PATH_DST/xp
 			isEqual(lib, ooxmlsignature):CORE_BUILDS_LIBRARIES_PATH_DST=$$CORE_BUILDS_LIBRARIES_PATH_DST/xp
-        } 
+        }
         !bundle_dylibs:LIBS += -L$$CORE_BUILDS_LIBRARIES_PATH_DST -l$$lib
         bundle_dylibs:LIBS += -F$$CORE_BUILDS_LIBRARIES_PATH_DST -framework $$lib
     }
@@ -546,3 +656,116 @@ defineTest(ADD_DEPENDENCY) {
 
 ADD_INC_PATH = $$(ADDITIONAL_INCLUDE_PATH)
 !isEmpty(ADD_INC_PATH):INCLUDEPATH += $$ADD_INC_PATH
+
+!core_enable_all_warnings {
+	core_disable_all_warnings {
+		QMAKE_CXXFLAGS_WARN_OFF = -w
+		QMAKE_CFLAGS_WARN_OFF = -w
+		CONFIG += warn_off
+	}
+}
+
+!disable_precompiled_header {
+	CONFIG += precompile_header
+}
+
+SWIFT_SOURCES=
+defineTest(UseSwift) {
+	isEmpty(SWIFT_SOURCES): return(false)
+	# work only on ios and mac
+	!core_ios:!core_mac {
+		return(false)
+	}
+
+	# path to the bridging header that exposes Objective-C code to Swift
+	BRIDGING_HEADER = $$1
+	# sdk and toolchain (set from environment variables)
+	SDK_PATH = $$(SDK_PATH)
+	XCODE_TOOLCHAIN_PATH = $$(XCODE_TOOLCHAIN_PATH)
+
+	IOS_TARGET_PLATFORM = apple-ios11.0
+	SWIFT_GEN_HEADERS_PATH = $$PWD_ROOT_DIR/core_build/$$CORE_BUILDS_PLATFORM_PREFIX/$$CORE_BUILDS_CONFIGURATION_PREFIX
+	ARCHS = arm64
+	# simulator
+	xcframework_platform_ios_simulator {
+		IOS_TARGET_PLATFORM = $${IOS_TARGET_PLATFORM}-simulator
+		SWIFT_GEN_HEADERS_PATH = $$SWIFT_GEN_HEADERS_PATH/simulator
+		ARCHS += x86_64
+	}
+
+	# add swift compiler for each architecture
+	SWIFT_COMPILERS_OUT =
+	for(ARCH, ARCHS) {
+		COMPILER_NAME = swift_compiler_$${ARCH}
+		COMPILER_OUTPUT = $$SWIFT_GEN_HEADERS_PATH/swift_module_$${ARCH}.o
+		SWIFT_COMPILERS_OUT += $$COMPILER_OUTPUT
+
+		$${COMPILER_NAME}.name = SwiftCompiler_$${ARCH}
+		$${COMPILER_NAME}.input = SWIFT_SOURCES
+		$${COMPILER_NAME}.output = $$COMPILER_OUTPUT
+		SWIFT_CMD = swiftc -c $$SWIFT_SOURCES \
+					-module-name SwiftModule \
+					-whole-module-optimization \
+					-emit-objc-header \
+					-emit-objc-header-path $$SWIFT_GEN_HEADERS_PATH/SwiftModule-Swift.h \
+					-emit-object \
+					-sdk $$SDK_PATH \
+					-target $${ARCH}-$${IOS_TARGET_PLATFORM} \
+					-o $$COMPILER_OUTPUT \
+					-framework UIKit
+
+		!isEmpty(BRIDGING_HEADER) {
+			SWIFT_CMD += -import-objc-header $$BRIDGING_HEADER
+		}
+
+		$${COMPILER_NAME}.commands = $$SWIFT_CMD
+		$${COMPILER_NAME}.CONFIG = combine target_predeps no_link
+
+		export($${COMPILER_NAME}.name)
+		export($${COMPILER_NAME}.input)
+		export($${COMPILER_NAME}.output)
+		export($${COMPILER_NAME}.commands)
+		export($${COMPILER_NAME}.CONFIG)
+		QMAKE_EXTRA_COMPILERS += $${COMPILER_NAME}
+	}
+
+	# add lipo tool execution to form universal binary
+	LIPO_OUT = $$SWIFT_GEN_HEADERS_PATH/swift_module.o
+	lipo_tool.name = LipoTool
+	# as input for lipo_tool we set SWIFT_SOURCES (not SWIFT_COMPILERS_OUT as it won't be executed otherwise!)
+	lipo_tool.input = SWIFT_SOURCES
+	# compiled swift sources go into depends
+	lipo_tool.depends = $$SWIFT_COMPILERS_OUT
+	lipo_tool.output = $$LIPO_OUT
+	lipo_tool.commands = lipo -create $$SWIFT_COMPILERS_OUT -output $$LIPO_OUT
+	lipo_tool.CONFIG = combine target_predeps no_link
+	lipo_tool.variable_out = OBJECTS
+
+	export(lipo_tool.name)
+	export(lipo_tool.input)
+	export(lipo_tool.depends)
+	export(lipo_tool.output)
+	export(lipo_tool.commands)
+	export(lipo_tool.CONFIG)
+	export(lipo_tool.variable_out)
+	QMAKE_EXTRA_COMPILERS += lipo_tool
+
+	export(QMAKE_EXTRA_COMPILERS)
+
+	INCLUDEPATH += $$SWIFT_GEN_HEADERS_PATH
+	export(INCLUDEPATH)
+
+	# link with libs from toolchain
+	SWIFT_LIB_PATH = $$XCODE_TOOLCHAIN_PATH/usr/lib/swift/iphoneos
+	xcframework_platform_ios_simulator {
+		SWIFT_LIB_PATH = $$XCODE_TOOLCHAIN_PATH/usr/lib/swift/iphonesimulator
+	}
+	LIBS += -L$$SWIFT_LIB_PATH
+	LIBS += -lswiftCore -lswiftFoundation -lswiftObjectiveC
+
+	export(LIBS)
+
+	OTHER_FILES += $$SWIFT_SOURCES
+	export(OTHER_FILES)
+	return(true)
+}

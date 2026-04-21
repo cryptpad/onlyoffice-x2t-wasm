@@ -1,4 +1,4 @@
-/*
+﻿/*
  * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
@@ -108,7 +108,7 @@ namespace NExtractTools
 		oCXlsxSerializer.setIsNoBase64(params.getIsNoBase64());
 		oCXlsxSerializer.setFontDir(params.getFontPath());
 
-		return oCXlsxSerializer.saveToFile(sTo, sFrom, params.getXmlOptions());
+		return oCXlsxSerializer.saveToFile(sTo, sFrom, params.getXmlOptionsFrom());
 	}
 	_UINT32 xlsxflat2xlsx(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{
@@ -123,7 +123,7 @@ namespace NExtractTools
 		oCXlsxSerializer.setFontDir(params.getFontPath());
 		oCXlsxSerializer.setMacroEnabled(params.m_bMacro);
 
-		_UINT32 nRes = oCXlsxSerializer.xml2Xlsx(sFrom, sTo, params.getXmlOptions());
+		_UINT32 nRes = oCXlsxSerializer.xml2Xlsx(sFrom, sTo, params.getXmlOptionsFrom());
 
 		return nRes;
 	}
@@ -142,17 +142,12 @@ namespace NExtractTools
 		else
 		{
 			BinXlsxRW::CXlsxSerializer oCXlsxSerializer;
-			if (oCXlsxSerializer.hasPivot(sFrom))
-			{
-				// save Editor.xlsx for pivot
-				nRes = CopyOOXOrigin(sToDir, sFrom, L"Editor.xlsx", convertParams.m_sTempParamOOXMLFile);
-			}
 
 			// Save to file (from temp dir)
 			oCXlsxSerializer.setIsNoBase64(params.getIsNoBase64());
 			oCXlsxSerializer.setFontDir(params.getFontPath());
 
-			nRes = oCXlsxSerializer.saveToFile(sTo, sFrom, convertParams.m_bTempIsXmlOptions ? params.getXmlOptions() : L"");
+			nRes = oCXlsxSerializer.saveToFile(sTo, sFrom, convertParams.m_bTempIsXmlOptions ? params.getXmlOptionsFrom() : L"");
 		}
 
 		convertParams.m_sTempParamOOXMLFile = L"";
@@ -176,10 +171,23 @@ namespace NExtractTools
 
 		return nRes;
 	}
+	_UINT32 xlsx_dir2xls_dir(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
+	{
+		_UINT32 nRes = S_OK;
+		const OOX::CPath oox_path(sFrom);
+		{
+			OOX::Spreadsheet::CXlsb oXlsx;
+			oXlsx.m_bWriteToXlsb = true;
+			oXlsx.Read(oox_path);
+			oXlsx.PrepareHlinks();
+			oXlsx.PrepareRichStr();
+			oXlsx.PrepareTableFormula();
+			nRes = oXlsx.WriteXLS(sTo)? S_OK : AVS_FILEUTILS_ERROR_CONVERT;;
+		}
+		return nRes;
+	}
 	_UINT32 xlst_bin2xlsb_dir(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{
-		std::wstring sTempUnpackedXLSX = combinePath(convertParams.m_sTempDir, L"xlsx_unpacked");
-		NSDirectory::CreateDirectory(sTempUnpackedXLSX);
 
 		_UINT32 nRes = 0;
 		
@@ -194,14 +202,9 @@ namespace NExtractTools
 		
 		std::wstring sTempUnpackedXLSB = convertParams.m_sTempResultOOXMLDirectory;
 
-		convertParams.m_sTempResultOOXMLDirectory = sTempUnpackedXLSX;
-		nRes = xlst_bin2xlsx_dir(sTargetBin, sTempUnpackedXLSX, params, convertParams);
+        convertParams.m_sTempResultOOXMLDirectory = sTempUnpackedXLSB;
+        nRes = xlst_bin2xlsx_dir(sTargetBin, sTempUnpackedXLSB, params, convertParams);
 
-		if (SUCCEEDED_X2T(nRes))
-		{
-			convertParams.m_sTempResultOOXMLDirectory = sTempUnpackedXLSB;
-			nRes = xlsx_dir2xlsb_dir(sTempUnpackedXLSX, sTempUnpackedXLSB, params, convertParams);
-		}
 		// удаляем EditorWithChanges, потому что он не в Temp
 		if (sFrom != sTargetBin)
 			NSFile::CFileBinary::Remove(sTargetBin);
@@ -279,14 +282,15 @@ namespace NExtractTools
 		oCXlsxSerializer.setIsNoBase64(params.getIsNoBase64());
 		oCXlsxSerializer.setFontDir(params.getFontPath());
 
-		std::wstring sXmlOptions = _T("");
 		std::wstring sMediaPath; // will be filled by 'CreateXlsxFolders' method
 		std::wstring sEmbedPath; // will be filled by 'CreateXlsxFolders' method
 
-		oCXlsxSerializer.CreateXlsxFolders(sXmlOptions, convertParams.m_sTempResultOOXMLDirectory, sMediaPath, sEmbedPath);
+		oCXlsxSerializer.CreateXlsxFolders(convertParams.m_sTempResultOOXMLDirectory, sMediaPath, sEmbedPath);
 
 		if (SUCCEEDED_X2T(nRes))
 		{
+			std::wstring sXmlOptions = params.getXmlOptionsTo();
+
 			nRes = oCXlsxSerializer.loadFromFile(sTargetBin, convertParams.m_sTempResultOOXMLDirectory, sXmlOptions, sMediaPath, sEmbedPath);
 			params.m_bMacro = oCXlsxSerializer.getMacroEnabled();
 		}
@@ -301,7 +305,6 @@ namespace NExtractTools
 	{
 		return NSCommon::oot2format(sFrom, sTo, params, convertParams, L"xlst", xlst_bin2xlsx);
 	}
-	
 	_UINT32 xlst2xlsb(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{
 		return NSCommon::oot2format(sFrom, sTo, params, convertParams, L"xlst", xlst_bin2xlsb);
@@ -390,6 +393,10 @@ namespace NExtractTools
 			nRes = xlsx_dir2xlsb(sTempUnpackedXLSX, sTo, params, convertParams);
 		}
 		return nRes;
+	}
+	_UINT32 xlsx2xls(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
+	{
+		return NSCommon::ooxml2format(sFrom, sTo, params, convertParams, L"xls", xlsx_dir2xls_dir);
 	}
 	_UINT32 xml2xlsx(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{

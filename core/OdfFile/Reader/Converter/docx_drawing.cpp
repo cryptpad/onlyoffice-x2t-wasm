@@ -33,6 +33,8 @@
 #include "docx_drawing.h"
 #include <xml/simple_xml_writer.h>
 #include "../../DataTypes/custom_shape_types_convert.h"
+#include <xml/utils.h>
+#include "measuredigits.h"
 
 namespace cpdoccore {
 
@@ -52,6 +54,20 @@ void serialize_wrap_top_bottom(std::wostream & strm,  _docx_drawing const & val)
 			if (val.margin_rect[1])CP_XML_ATTR(L"distT",val.margin_rect[1]);
 		}
 	}
+}
+
+static double convert_symbol_size(double val, double metrix, bool add_padding)
+{
+	val = ((int)((val * metrix + 5) / metrix * 256)) / 256.;
+
+	double pixels = (int)(((256. * val + ((int)(128. / metrix))) / 256.) * metrix); //in pixels
+
+	return pixels * 0.75; //* 9525. * 72.0 / (360000.0 * 2.54);
+}
+
+int get_value_emu(double pt)
+{
+	return static_cast<int>((pt* 360000 * 2.54) / 72);
 }
 
 void serialize_wrap_square(std::wostream & strm, _docx_drawing const & val)
@@ -151,7 +167,6 @@ void serialize_wrap(std::wostream & strm, _docx_drawing const & val)
 				break;
 			case odf_types::style_wrap::Left:
 			case odf_types::style_wrap::Right:
-			case odf_types::style_wrap::Dynamic: //Présentation_de_tib.odt
 				serialize_wrap_square(strm, val);
 				break;
 			case odf_types::style_wrap::RunThrough:
@@ -160,6 +175,17 @@ void serialize_wrap(std::wostream & strm, _docx_drawing const & val)
 			case odf_types::style_wrap::None:
 				serialize_wrap_top_bottom(strm, val);
 				break;
+			case odf_types::style_wrap::Dynamic: 
+			{
+				//if (val.styleWrapContour && *val.styleWrapContour == false)
+				//{
+				//	CP_XML_NODE(L"wp:wrapTopAndBottom");
+				//}
+				//else
+				{
+					serialize_wrap_square(strm, val);
+				}
+			}break;
 			default:
 				CP_XML_NODE(L"wp:wrapTopAndBottom");
 				break;
@@ -179,7 +205,7 @@ void _docx_drawing::serialize_text(std::wostream & strm)
 
 	CP_XML_WRITER(strm)
 	{			
-		if (strTextContent)
+		if (strTextContent && !strTextContent->empty())
 		{
 			CP_XML_NODE(L"wps:txbx")
 			{  
@@ -296,8 +322,8 @@ void docx_serialize_image_child(std::wostream & strm, _docx_drawing & val)
 						CP_XML_ATTR(L"id", val.id + 1);
 						CP_XML_ATTR(L"name", val.name);
 
-						CP_XML_ATTR_OPT(L"title", title);
-						CP_XML_ATTR_OPT(L"descr", descr);
+						CP_XML_ATTR_OPT_ENCODE_STRING(L"title", title);
+						CP_XML_ATTR_OPT_ENCODE_STRING(L"descr", descr);
 					
 						//oox_serialize_action(CP_XML_STREAM(), val.action);
 					}
@@ -413,10 +439,18 @@ void docx_serialize_common(std::wostream & strm, _docx_drawing & val)
 			CP_XML_ATTR(L"name",	val.name);
 			CP_XML_ATTR(L"id",		0xf000 + val.id + 1);
 
-			CP_XML_ATTR_OPT(L"title", title);
-			CP_XML_ATTR_OPT(L"descr", descr);
+			CP_XML_ATTR_OPT_ENCODE_STRING(L"title", title);
+			CP_XML_ATTR_OPT_ENCODE_STRING(L"descr", descr);
 			
 			oox_serialize_action(CP_XML_STREAM(), val.action);
+			
+			if (val.hyperlinkRId.empty() == false)
+			{
+				CP_XML_NODE(L"a:hlinkClick")
+				{
+					CP_XML_ATTR(L"r:id", val.hyperlinkRId);
+				}
+			}
 		}
 
 		CP_XML_NODE(L"wp:cNvGraphicFramePr")
@@ -481,7 +515,7 @@ void docx_serialize_child(std::wostream & strm, _docx_drawing & val)
 	}
 }
 
-void docx_serialize_wps(std::wostream & strm, _docx_drawing & val)
+void docx_serialize_wps(std::wostream & strm, _docx_drawing & val, oox::docx_conversion_context & Context)
 {
 	CP_XML_WRITER(strm)    
     {
@@ -495,21 +529,79 @@ void docx_serialize_wps(std::wostream & strm, _docx_drawing & val)
 				{
 					CP_XML_NODE(L"wp:extent")
 					{
-						if (val.cx > 0 || val.cy > 0)
+						if (val.cx > 0 && val.cy > 0)
 						{
 							CP_XML_ATTR(L"cx", val.cx);
 							CP_XML_ATTR(L"cy", val.cy);
 						}
+						else
+						{
+							double fontSize = 0.0;
 
+							std::wstring fontName = Context.get_current_fontName();
+
+							if( Context.get_current_fontSize() > 0 )
+							{
+								fontSize = Context.get_current_fontSize();
+							}
+							else if( Context.get_drop_cap_context().FontSize > 0 )
+							{
+								fontSize = Context.get_drop_cap_context().FontSize;
+							}
+							else
+							{
+								fontSize = Context.get_current_fontSize_from_default_style();
+							}
+
+							if( fontName.empty() )
+							{
+								fontName = L"Times New Roman";
+							}
+
+							if( fontSize <= 0 )
+							{
+								fontSize = 12.0; // default
+							}
+
+							std::pair<double, double> maxDigitSize_ = utils::GetMaxDigitSizePixels(fontName, fontSize, 96., 0, Context.get_mediaitems()->applicationFonts());
+
+							double cx, cy;
+
+							double mathHeight = Context.get_math_context().height;
+							double mathWidth = Context.get_math_context().width;
+
+							if( mathHeight <= 0 || mathWidth <= 0)
+							{
+								cx = get_value_emu(convert_symbol_size(1.76,  maxDigitSize_.first,  false));
+								cy = get_value_emu(convert_symbol_size(1.76,  maxDigitSize_.second, false));
+							}
+							else
+							{
+								cx = get_value_emu(convert_symbol_size(1.76 * mathWidth,  maxDigitSize_.first, false));
+								cy = get_value_emu(convert_symbol_size(1.76 * mathHeight, maxDigitSize_.second, false));
+							}
+
+							if (cx > val.cx)
+								val.cx = cx;
+
+							if (cy > val.cy)
+								val.cy = cy;
+
+							CP_XML_NODE(L"wp:extent")
+							{
+								CP_XML_ATTR(L"cx", val.cx);
+								CP_XML_ATTR(L"cy", val.cy);
+							}
+						}
 					}
 					serialize_null_extent(CP_XML_STREAM());
 				}
 				else//anchor
 				{
-					CP_XML_ATTR(L"simplePos",0);
-					CP_XML_ATTR(L"locked",0);
-					CP_XML_ATTR(L"layoutInCell",1);
-					CP_XML_ATTR(L"allowOverlap",1);
+					CP_XML_ATTR(L"simplePos", 0);
+					CP_XML_ATTR(L"locked", 0);
+					CP_XML_ATTR(L"layoutInCell", 1);
+					CP_XML_ATTR(L"allowOverlap", 1);
 
 					CP_XML_ATTR(L"relativeHeight" ,val.relativeHeight);
 					CP_XML_ATTR(L"behindDoc" , val.behindDoc);
@@ -569,11 +661,70 @@ void docx_serialize_wps(std::wostream & strm, _docx_drawing & val)
 							}
 						}
 					}
-					if (val.cx > 0 || val.cy > 0)
+					if (val.cx > 0 && val.cy > 0)
 					{
 						CP_XML_NODE(L"wp:extent")
 						{
 							CP_XML_ATTR(L"cx", val.cx); 
+							CP_XML_ATTR(L"cy", val.cy);
+						}
+					}
+					else
+					{
+						double fontSize = 0.0;
+
+						std::wstring fontName = Context.get_current_fontName();
+
+						if( Context.get_current_fontSize() > 0 )
+						{
+							fontSize = Context.get_current_fontSize();
+						}
+						else if( Context.get_drop_cap_context().FontSize > 0 )
+						{
+							fontSize = Context.get_drop_cap_context().FontSize;
+						}
+						else
+						{
+							fontSize = Context.get_current_fontSize_from_default_style();
+						}
+
+						if( fontName.empty() )
+						{
+							fontName = L"Times New Roman";
+						}
+
+						if( fontSize <= 0 )
+						{
+							fontSize = 12.0; // default
+						}
+
+						std::pair<double, double> maxDigitSize_ = utils::GetMaxDigitSizePixels(fontName, fontSize, 96., 0, Context.get_mediaitems()->applicationFonts());
+
+						double cx, cy;
+
+						double mathHeight = Context.get_math_context().height;
+						double mathWidth = Context.get_math_context().width;
+
+						if( mathHeight <= 0 || mathWidth <= 0)
+						{
+							cx = get_value_emu(convert_symbol_size(1.76,  maxDigitSize_.first,  false));
+							cy = get_value_emu(convert_symbol_size(1.76,  maxDigitSize_.second, false));
+						}
+						else
+						{
+							cx = get_value_emu(convert_symbol_size(1.76 * mathWidth,  maxDigitSize_.first, false));
+							cy = get_value_emu(convert_symbol_size(1.76 * mathHeight, maxDigitSize_.second, false));
+						}
+
+						if (cx > val.cx)
+							val.cx = cx;
+
+						if (cy > val.cy)
+							val.cy = cy;
+
+						CP_XML_NODE(L"wp:extent")
+						{
+							CP_XML_ATTR(L"cx", val.cx);
 							CP_XML_ATTR(L"cy", val.cy);
 						}
 					}
@@ -605,6 +756,149 @@ void docx_serialize_wps(std::wostream & strm, _docx_drawing & val)
 					if (val.styleVerticalRel)relativeFrom = val.styleVerticalRel->get_type_str();					
 					
 					if (relativeFrom == L"paragraph") relativeFrom = L"margin";     
+
+					CP_XML_NODE(L"wp14:sizeRelV")
+					{
+						CP_XML_ATTR(L"relativeFrom", relativeFrom);
+						CP_XML_NODE(L"wp14:pctHeight")
+						{
+							CP_XML_STREAM() << (val.pctHeight.get() * 1000);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void docx_serialize_wps(std::wostream & strm, _docx_drawing & val)
+{
+	CP_XML_WRITER(strm)
+	{
+		CP_XML_NODE(L"w:drawing")
+		{
+			std::wstring	 strWp = L"wp:anchor";
+			if (val.isInline)strWp = L"wp:inline";
+			CP_XML_NODE(strWp)
+			{
+				if (val.isInline)
+				{
+					CP_XML_NODE(L"wp:extent")
+					{
+						if (val.cx > 0 && val.cy > 0)
+						{
+							CP_XML_ATTR(L"cx", val.cx);
+							CP_XML_ATTR(L"cy", val.cy);
+						}
+						else
+						{
+							CP_XML_ATTR(L"cx", 180000);
+							CP_XML_ATTR(L"cy", 180000);
+						}
+					}
+					serialize_null_extent(CP_XML_STREAM());
+				}
+				else//anchor
+				{
+					CP_XML_ATTR(L"simplePos", 0);
+					CP_XML_ATTR(L"locked", 0);
+					CP_XML_ATTR(L"layoutInCell", 1);
+					CP_XML_ATTR(L"allowOverlap", 1);
+
+					CP_XML_ATTR(L"relativeHeight" ,val.relativeHeight);
+					CP_XML_ATTR(L"behindDoc" , val.behindDoc);
+
+					CP_XML_ATTR(L"distL", val.margin_rect[0]);
+					CP_XML_ATTR(L"distT", val.margin_rect[1]);
+					CP_XML_ATTR(L"distR", val.margin_rect[2]);
+					CP_XML_ATTR(L"distB", val.margin_rect[3]);
+
+					CP_XML_NODE(L"wp:simplePos")
+					{
+						CP_XML_ATTR(L"x",0);
+						CP_XML_ATTR(L"y",0);
+					}
+
+					CP_XML_NODE(L"wp:positionH")
+					{
+						std::wstring relativeFrom = L"margin";
+						if (val.styleHorizontalRel) relativeFrom =val.styleHorizontalRel->get_type_str();
+
+						CP_XML_ATTR(L"relativeFrom", relativeFrom);
+
+						if (val.styleHorizontalPos &&
+						    val.styleHorizontalPos->get_type() != odf_types::horizontal_pos::FromLeft &&
+						    val.styleHorizontalPos->get_type() != odf_types::horizontal_pos::Outside)
+						{
+							CP_XML_NODE(L"wp:align") {CP_XML_STREAM() << (*val.styleHorizontalPos);}
+
+						}
+						else
+						{
+							CP_XML_NODE(L"wp:posOffset") {CP_XML_STREAM() << val.posOffsetH;}
+						}
+					}
+
+					CP_XML_NODE(L"wp:positionV")
+					{
+						std::wstring relativeFrom = L"margin";
+						if (val.styleVerticalRel)relativeFrom = val.styleVerticalRel->get_type_str();
+
+						CP_XML_ATTR(L"relativeFrom", relativeFrom);
+
+						if (val.styleVerticalPos &&
+						    val.styleVerticalPos->get_type() != odf_types::vertical_pos::FromTop &&
+						    val.styleVerticalPos->get_type() != odf_types::vertical_pos::Below)
+						{
+							CP_XML_NODE(L"wp:align")
+							{
+								CP_XML_STREAM() << val.styleVerticalPos->get_type_str();
+							}
+						}
+						else
+						{
+							CP_XML_NODE(L"wp:posOffset")
+							{
+								CP_XML_STREAM() << val.posOffsetV;
+							}
+						}
+					}
+					if (val.cx > 0 && val.cy > 0)
+					{
+						CP_XML_NODE(L"wp:extent")
+						{
+							CP_XML_ATTR(L"cx", val.cx);
+							CP_XML_ATTR(L"cy", val.cy);
+						}
+					}
+
+					serialize_wrap(CP_XML_STREAM(), val);
+				}
+
+				docx_serialize_common(CP_XML_STREAM(), val);
+
+				if (val.pctWidth)
+				{
+					std::wstring relativeFrom = L"margin";
+					if (val.styleHorizontalRel) relativeFrom =val.styleHorizontalRel->get_type_str();
+
+					if (relativeFrom == L"column") relativeFrom = L"margin";
+
+					CP_XML_NODE(L"wp14:sizeRelH")
+					{
+						CP_XML_ATTR(L"relativeFrom", relativeFrom);
+						CP_XML_NODE(L"wp14:pctWidth")
+						{
+							CP_XML_STREAM() << (val.pctWidth.get() * 1000);
+						}
+					}
+				}
+				if (val.pctHeight)
+				{
+					std::wstring relativeFrom = L"paragraph";
+					if (val.styleVerticalRel)relativeFrom = val.styleVerticalRel->get_type_str();
+
+					if (relativeFrom == L"paragraph") relativeFrom = L"margin";
 
 					CP_XML_NODE(L"wp14:sizeRelV")
 					{
@@ -746,7 +1040,7 @@ void docx_serialize_control(std::wostream & strm, _docx_drawing & val)
 	}
 }
 
-void _docx_drawing::serialize(std::wostream & strm/*, bool insideOtherDrawing*/)
+void _docx_drawing::serialize(std::wostream & strm/*, bool insideOtherDrawing*/, oox::docx_conversion_context & Context)
 {
 	if (type == typeUnknown) return;
 
@@ -766,7 +1060,34 @@ void _docx_drawing::serialize(std::wostream & strm/*, bool insideOtherDrawing*/)
 	else
 	{
 		//if (insideOtherDrawing)
-			docx_serialize_wps(strm, *this);
+		    docx_serialize_wps(strm, *this, Context);
+		//else
+		//	docx_serialize_alt_content(strm, val);
+	}
+
+}
+
+void _docx_drawing::serialize(std::wostream & strm/*, bool insideOtherDrawing*/)
+{
+	if (type == typeUnknown) return;
+
+	if (inGroup)
+		return docx_serialize_child(strm, *this);
+
+	if (type == typeMsObject ||
+	    type == typeOleObject ||
+	    type == typePDF)
+	{
+		docx_serialize_object(strm, *this);
+	}
+	else if (type == typeControl)
+	{
+		docx_serialize_control(strm, *this);
+	}
+	else
+	{
+		//if (insideOtherDrawing)
+		    docx_serialize_wps(strm, *this);
 		//else
 		//	docx_serialize_alt_content(strm, val);
 	}
