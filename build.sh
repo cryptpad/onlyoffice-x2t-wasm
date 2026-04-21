@@ -17,7 +17,9 @@ rm -rf build
 mkdir build
 
 CONTAINER_ID=$(docker create "$IMAGE_ID")
-docker cp "$CONTAINER_ID:/core/build/bin/linux_64/x2t" build/x2t.js
-docker cp "$CONTAINER_ID:/core/build/bin/linux_64/x2t.wasm" build/
+docker cp "$CONTAINER_ID:/x2t.js" build/x2t.js
+docker cp "$CONTAINER_ID:/x2t.wasm" build/
+docker cp "$CONTAINER_ID:/x2t.js.br" build/
+docker cp "$CONTAINER_ID:/x2t.wasm.br" build/
 # docker cp "$CONTAINER_ID:/core/build/bin/linux_64/x2t.wasm.map" build/
 docker rm "$CONTAINER_ID"

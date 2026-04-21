@@ -21,7 +21,8 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        qtchooser \
        build-essential \
        cmake \
-       libc++-dev
+       libc++-dev \
+       brotli
 
 WORKDIR /
 RUN git clone https://github.com/emscripten-core/emsdk.git
@@ -138,6 +139,8 @@ RUN embuild.sh \
 
 WORKDIR /
 RUN cp /core/build/bin/linux_64/x2t* .
+RUN mv x2t x2t.js
+RUN brotli x2t.wasm x2t.js
 COPY test.js /test.js
 EXPOSE 9229
 
