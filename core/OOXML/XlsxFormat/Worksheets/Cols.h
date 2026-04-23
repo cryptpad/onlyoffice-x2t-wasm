@@ -62,6 +62,8 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toXLS();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType() const;
 
 		private:
@@ -97,6 +99,8 @@ namespace OOX
 
 			void fromBin(std::vector<XLS::BaseObjectPtr>& obj);
 			std::vector<XLS::BaseObjectPtr> toBin();
+			XLS::BaseObjectPtr toXLS();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:

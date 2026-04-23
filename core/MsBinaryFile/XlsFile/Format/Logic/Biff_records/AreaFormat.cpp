@@ -37,6 +37,9 @@ namespace XLS
 
 AreaFormat::AreaFormat()
 {
+	rgbFore.red = 0xFF;
+	rgbFore.green = 0xFF;
+	rgbFore.blue = 0xFF;
 }
 
 
@@ -58,6 +61,14 @@ void AreaFormat::readFields(CFRecord& record)
 	
 	fAuto		= GETBIT(flags, 0);
 	fInvertNeg	= GETBIT(flags, 1);
+}
+
+void AreaFormat::writeFields(CFRecord& record)
+{
+	unsigned short flags = 0;
+	SETBIT(flags, 0, fAuto)
+	SETBIT(flags, 1, fInvertNeg)
+	record << rgbFore << rgbBack << fls << flags << icvFore << icvBack;
 }
 
 int AreaFormat::serialize(std::wostream & _stream)

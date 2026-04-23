@@ -1318,6 +1318,10 @@ namespace OOX
 			}
 			if (oNode.GetNode(L"w15:color", oChild))
 				m_oColor = oChild;
+			if (oNode.GetNode(L"w:border", oChild))
+				m_oBorder = oChild;
+			if (oNode.GetNode(L"w:shd", oChild))
+				m_oShd = oChild;
 
 			if (oNode.GetNode(L"w:dataBinding", oChild))
 				m_oDataBinding = oChild;
@@ -1434,6 +1438,10 @@ namespace OOX
 				}
 				else if (L"color" == sName)
 					m_oColor = oReader;
+				else if (L"border" == sName)
+					m_oBorder = oReader;
+				else if (L"shd" == sName)
+					m_oShd = oReader;
 				else if (L"dataBinding" == sName)
 					m_oDataBinding = oReader;
 				else if (sdttypeUnknown == m_eType && L"date" == sName)
@@ -1507,6 +1515,10 @@ namespace OOX
 				}
 				else if (L"complexFormPr" == sName)
 					m_oComplexFormPr = oReader;
+				else if (L"repeatingSection" == sName)
+					m_oRepeatingSection = true;
+				else if (L"repeatingSectionItem" == sName)
+					m_oRepeatingSectionItem = true;
 			}
 		}
 		std::wstring CSdtPr::toXMLStart() const
@@ -1515,6 +1527,7 @@ namespace OOX
 
 			WritingElement_WriteNode_2(m_oRPr);
 			WritingElement_WriteNode_1(L"<w:alias ", m_oAlias);
+			WritingElement_WriteNode_1(L"<w:tag ", m_oTag);
 			WritingElement_WriteNode_1(L"<w15:appearance ", m_oAppearance);
 			WritingElement_WriteNode_1(L"<w15:color ", m_oColor);
 			WritingElement_WriteNode_1(L"<w:id ", m_oId);
@@ -1526,7 +1539,7 @@ namespace OOX
 
 			if (m_oDataBinding.IsInit())
 			{ 
-				if (m_oDataBinding->m_sStoreItemChecksum.IsInit())
+				if (m_oDataBinding->m_sStoreItemChecksum.IsInit() || m_oRepeatingSectionItem.IsInit() || m_oRepeatingSection.IsInit())
 				{
 					WritingElement_WriteNode_1(L"<w15:dataBinding", m_oDataBinding);
 				}
@@ -1535,8 +1548,10 @@ namespace OOX
 					WritingElement_WriteNode_1(L"<w:dataBinding", m_oDataBinding);
 				}
 			}
+			if (m_oRepeatingSection.IsInit()) sResult += L"<w15:repeatingSection/>";
+			else if (m_oRepeatingSectionItem.IsInit()) sResult += L"<w15:repeatingSectionItem/>";
+
 			WritingElement_WriteNode_1(L"<w:temporary ", m_oTemporary);
-			WritingElement_WriteNode_1(L"<w:tag ", m_oTag);
 
 			switch (m_eType)
 			{
@@ -1627,6 +1642,8 @@ namespace OOX
 			WritingElement_WriteNode_2(m_oFormPr);
 			WritingElement_WriteNode_2(m_oTextFormPr);
 			WritingElement_WriteNode_2(m_oComplexFormPr);
+			WritingElement_WriteNode_3(L"<w:border ", m_oBorder);
+			WritingElement_WriteNode_3(L"<w:shd ", m_oShd);
 
 			return sResult;
 		}

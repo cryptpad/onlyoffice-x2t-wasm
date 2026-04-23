@@ -1,10 +1,6 @@
 #ifndef CEMFPARSERBASE_H
 #define CEMFPARSERBASE_H
 
-//#include "../EmfTypes.h"
-//#include "../EmfObjects.h"
-//#include "../../Common/MetaFileUtils.h"
-
 #include "../EmfPlayer.h"
 
 #include "../../Common/MetaFile.h"
@@ -132,7 +128,7 @@ namespace MetaFile
 		void ImageProcessing(const TEmfSetDiBitsToDevice&oTEmfSetDiBitsToDevice);
 		void ImageProcessing(const TEmfStretchBLT       &oTEmfStretchBLT);
 		void ImageProcessing(const TEmfDibPatternBrush  &oTEmfDibPatternBrush, unsigned int ulBrushIndex);
-		void DrawImage(int nX, int nY, int nW, int nH, BYTE *pImageBuffer, unsigned int unImageW, unsigned int unImageH);
+		void DrawImage(int nX, int nY, int nW, int nH, BYTE *pImageBuffer, unsigned int unImageW, unsigned int unImageH, unsigned int unBlendMode);
 		//----------------------
 
 		void TranslatePoint(TPointL &oPoint, double &dX, double &dY) const;
@@ -160,7 +156,7 @@ namespace MetaFile
 		void ArcTo(int nL, int nT, int nR, int nB, double dStart, double dSweep);
 
 		void DrawPath(bool bStroke, bool bFill, bool bClosePath = true);
-		void DrawText(std::wstring &wsString, unsigned int unCharsCount, int _nX, int _nY, int *pnDx, int iGraphicsMode, TScale oScale);
+		void DrawText(std::wstring &wsString, unsigned int unCharsCount, int _nX, int _nY, int *pnDx, int iGraphicsMode, TScale oScale, bool bUseGID);
 		void DrawTextA(TEmrTextA &oText, int iGraphicsMode, TScale oScale = TScale(1, 1));
 		void DrawTextW(TEmrTextW &oText, int iGraphicsMode, TScale oScale = TScale(1, 1));
 

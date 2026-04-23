@@ -1,5 +1,6 @@
 #pragma once
 #include <type_traits>
+#include <cstdlib>
 #include <limits>
 
 #include "../../../DesktopEditor/common/Types.h"
@@ -23,26 +24,32 @@ constexpr double c_dPtToEMU       = 12700.0;
 constexpr double c_dDegreeToAngle = 60000.0;
 
 const double c_dSTANDART_STRING_HEIGHT_MM       = 4.2333333333333334;
-const double c_dTHE_SAME_STRING_Y_PRECISION_MM  = 0.02;
-const double c_dTHE_SAME_STRING_X_PRECISION_MM  = 0.02;
+const double c_dTHE_SAME_STRING_Y_PRECISION_MM  = 0.015;
+const double c_dTHE_SAME_STRING_X_PRECISION_MM  = 0.03;
+const double c_dTHE_SAME_SPACING_ERROR          = 0.1;
 const double c_dLINE_DISTANCE_ERROR_MM          = 0.3;
+const double c_dOVERLAP_TEXT_LINE_ERROR_MM      = 0.7;
 const double c_dERROR_OF_PARAGRAPH_BORDERS_MM   = 1.0;
-const double c_dERROR_GAP                       = 1.5;
 const double c_dCENTER_POSITION_ERROR_MM        = 1.5;
 const double c_dTHE_STRING_X_PRECISION_MM       = 0.5;
 const double c_dERROR_FOR_TEXT_WITH_GRAPHICS_MM = 0.1;
 const double c_dGRAPHICS_ERROR_MM               = 0.5;
+const double c_dMAX_TABLE_LINE_WIDTH_MM         = 2.2;
+const double c_dMAX_TABLE_CELL_DIFF_MM          = 7.0;
 const double c_dGRAPHICS_ERROR_IN_LINES_MM      = 0.3;
 const double c_dMAX_LINE_HEIGHT_MM              = 2.5;
 const double c_dMAX_LINE_WITH_TEXT_ERROR_MM     = 2.5;
-const double c_dCORRECTION_FOR_FIRST_PARAGRAPH  = -1.5;
+const double c_dCELL_GROUP_SPLIT_MM             = 12.0;
+const double c_dLINE_GROUP_SPLIT_MM             = 12.0;
+const double c_dCORRECTION_FIRST_PARAGRAPH_MM   = -1.5;
 const double c_dLINE_DISTANCE_MAX_MM            = 50.0;
-const double c_dSHAPE_TROUGH_MAX_MM             = 120.0;
+const double c_dSHAPE_TROUGH_MAX_MM             = 80.0;
 const double c_dLINE_SPLIT_DISTANCE_MM          = 10.0;
-const double c_dSHAPE_X_OFFSET                  = 1.5;
+const double c_dSHAPE_X_OFFSET_MM               = 1.5;
 const double c_dAVERAGE_SPACE_WIDTH_COEF        = 0.9;
 const double c_dSPACE_WIDTH_COEF                = 0.4;
 const double c_dMIN_ROTATION                    = 0.01;
+const double c_dMAX_FIRST_LINE_INDENT           = 20.0;
 
 const UINT   c_iWhiteColor = 0xFFFFFF;
 const UINT   c_iBlackColor = 0x000000;

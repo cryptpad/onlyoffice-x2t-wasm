@@ -70,6 +70,18 @@ void OfficeArtClientAnchorSheet::loadFields(XLS::CFRecord& record)
 	record >> colL >> dxL >> rwT >> dyT >> colR >> dxR >> rwB >> dyB;
 }
 
+void OfficeArtClientAnchorSheet::save(XLS::CFRecord& record)
+{
+	rh_own.recVer = 0;
+	rh_own.recType = 0xF010;
+	rh_own.recLen  = 0x00000012;
+	record << rh_own;
+
+	unsigned short flags = 0;
+	SETBIT(flags, 0, fMove)
+	SETBIT(flags, 1, fSize)
+	record << flags << colL << dxL << rwT << dyT << colR << dxR << rwB << dyB;
+}
 void OfficeArtClientAnchorSheet::calculate()
 {
 	global_info->GetDigitFontSizePixels();
@@ -183,7 +195,7 @@ void OfficeArtClientAnchorSheet::calculate_1()
 		else 
 			_cy += 256 * kfRow * sheet_info.defaultRowHeight;	
 	}
-	_cy += _dyT - _y;
+	_cy += _dyB - _y;
 
 
 }

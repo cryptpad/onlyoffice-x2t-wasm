@@ -10,8 +10,8 @@
 namespace NSDocxRenderer
 {
 	CUnicodeRange::CUnicodeRange(const int& _start, const int& _end,
-								 const BYTE& _range, const BYTE& _rangenum):
-		RangeNum(_rangenum), Range(_range), Start(_start), End(_end)
+	                             const BYTE& _range, const BYTE& _rangenum):
+	    RangeNum(_rangenum), Range(_range), Start(_start), End(_end)
 	{
 	}
 
@@ -314,13 +314,13 @@ namespace NSDocxRenderer
 
 	void CFontSelector::ClearCache()
 	{
-		if(!m_arParamsCache.empty())
+		if (!m_arParamsCache.empty())
 			m_arParamsCache.clear();
 	}
 
 	void CFontSelector::SelectFont(const CFontSelectParams& oFontSelectParams,
-								   const CFontMetrics& oFontMetrics,
-								   const NSStringUtils::CStringUTF32& oText)
+	                               const CFontMetrics& oFontMetrics,
+	                               const NSStringUtils::CStringUTF32& oText)
 	{
 		BYTE lRangeNum	= 0xFF;
 		BYTE lRange		= 0xFF;
@@ -581,6 +581,16 @@ namespace NSDocxRenderer
 	{
 		return c_dPtToMM * (m_oFontMetrics.dLineSpacing * m_oFont.Size) / m_oFontMetrics.dEmHeight;
 	}
+	double CFontManager::GetFontAscent() const
+	{
+		//double tmp = m_oFontMetrics.dAscent;
+		double tmp = m_oFontMetrics.dLineSpacing - fabs(m_oFontMetrics.dDescent);
+		return c_dPtToMM * (tmp * m_oFont.Size) / m_oFontMetrics.dEmHeight;
+	}
+	double CFontManager::GetFontDescent() const
+	{
+		return c_dPtToMM * (m_oFontMetrics.dDescent * m_oFont.Size) / m_oFontMetrics.dEmHeight;
+	}
 	double CFontManager::GetSpaceWidthMM() const
 	{
 		double dSpaceWidthMM = 0.0;
@@ -605,14 +615,14 @@ namespace NSDocxRenderer
 	}
 
 	void CFontManager::MeasureString(
-		const std::wstring& wsText,
-		double x,
-		double y,
-		double& dBoxX,
-		double& dBoxY,
-		double& dBoxWidth,
-		double& dBoxHeight,
-		MeasureType measureType) const
+	        const std::wstring& wsText,
+	        double x,
+	        double y,
+	        double& dBoxX,
+	        double& dBoxY,
+	        double& dBoxWidth,
+	        double& dBoxHeight,
+	        MeasureType measureType) const
 	{
 		dBoxX		= 0;
 		dBoxY		= 0;
@@ -640,15 +650,15 @@ namespace NSDocxRenderer
 		dBoxHeight	*= c_dPixToMM;
 	}
 	void CFontManager::MeasureStringGids(
-		unsigned int* pGids,
-		unsigned int count,
-		double x,
-		double y,
-		double& dBoxX,
-		double& dBoxY,
-		double& dBoxWidth,
-		double& dBoxHeight,
-		MeasureType measureType) const
+	        unsigned int* pGids,
+	        unsigned int count,
+	        double x,
+	        double y,
+	        double& dBoxX,
+	        double& dBoxY,
+	        double& dBoxWidth,
+	        double& dBoxHeight,
+	        MeasureType measureType) const
 	{
 		dBoxX		= 0;
 		dBoxY		= 0;

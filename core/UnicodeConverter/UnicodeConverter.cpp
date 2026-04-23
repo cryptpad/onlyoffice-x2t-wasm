@@ -37,8 +37,6 @@
 #include "unicode/ucnv.h"     /* C   Converter API    */
 #include "unicode/usprep.h"
 
-//#include "../DesktopEditor/common/File.h"
-
 #if !defined (_WIN32) && !defined (_WIN64)
 #if defined (_LINUX) && !defined(__ANDROID__) && !defined(_IOS) && !defined(_MAC)
 #define USE_ICONV
@@ -48,8 +46,13 @@
 #include <windows.h>
 #endif
 
-// CryptPad: for some reason TRUE is unknown here
-#define TRUE true
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
 
 std::string g_overrideIcuDataPath = "";
 

@@ -177,6 +177,7 @@ public:
   // Gfx constructor, i.e., before processing any content streams with
   // the new Gfx object.
   void takeContentStreamStack(Gfx *oldGfx);
+  Object* getTopContentStreamStack();
 
   // Clear the state stack and the marked content stack.
   void endOfPage();
@@ -355,6 +356,7 @@ private:
   void opBeginMarkedContent(Object args[], int numArgs);
   void opEndMarkedContent(Object args[], int numArgs);
   void opMarkPoint(Object args[], int numArgs);
+  void SkipBDC();
 
   GfxState *saveStateStack();
   void restoreStateStack(GfxState *oldState);

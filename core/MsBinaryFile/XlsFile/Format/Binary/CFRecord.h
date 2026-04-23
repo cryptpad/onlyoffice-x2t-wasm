@@ -33,6 +33,7 @@
 
 #include "CFRecordType.h"
 #include "CFStream.h"
+#include "CFStreamCacheWriter.h"
 #include "BinSmartPointers.h"
 #include "../Logic/GlobalWorkbookInfo.h"
 
@@ -90,6 +91,7 @@ public:
 
 	//save record to stream
 	void save(NSBinPptxRW::CXlsbBinaryWriter& writer);
+	void save(CFStreamPtr& writer);
 
 	template<class T>
 	const T* getCurData() const
@@ -173,12 +175,12 @@ private:
 	CFStream::ReceiverItems receiver_items;
 	CFStream::SourceItems source_items;
 
-	unsigned int file_ptr;
-	CFRecordType::TypeId type_id_;
-	size_t size_;
-    char*  data_;
-    BYTE   sizeOfRecordTypeRecordLength; //размер RecordType и RecordLength
-	size_t rdPtr;
+	unsigned int file_ptr = 0;
+	CFRecordType::TypeId type_id_ = 0;
+	size_t size_ = 0;
+	char*  data_ = 0;
+	BYTE   sizeOfRecordTypeRecordLength = 0; //размер RecordType и RecordLength
+	size_t rdPtr = 0;
 	static char intData[MAX_RECORD_SIZE_XLSB];
 
 	GlobalWorkbookInfoPtr global_info_;

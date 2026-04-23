@@ -82,6 +82,26 @@ void SST::readFields(CFRecord& record)
 	}
 }
 
+void SST::writeFields(CFRecord& record)
+{
+	const auto MaxRecordSize = 8000;
+    cstUnique = rgb.size();
+	if(cstTotal == 0 && cstTotal < cstUnique)
+		cstTotal = cstUnique;
+    record << cstTotal << cstUnique;
+    while(!rgb.empty())
+    {
+        auto oldPose = record.getRdPtr();
+		rgb.at(0)->save(record);
+		if(record.getRdPtr() >= MaxRecordSize)
+        {
+            record.RollRdPtrBack(record.getRdPtr() - oldPose);
+            break;
+        }
+        rgb.erase(rgb.begin());
+    }
+
+}
 
 int SST::serialize(std::wostream & stream)
 {

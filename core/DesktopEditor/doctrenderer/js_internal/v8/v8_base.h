@@ -62,7 +62,13 @@ v8::Local<v8::String> CreateV8String(v8::Isolate* i, const std::string& str);
 #include <android/log.h>
 #define  LOGW(...)  __android_log_print(ANDROID_LOG_WARN, "js", __VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, "js", __VA_ARGS__)
-#endif
+#ifdef _DEBUG
+#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, "js", __VA_ARGS__)
+#else
+// should be disabled for release builds
+#define  LOGD(...)
+#endif	// _DEBUG
+#endif	// ANDROID_LOGS
 
 #endif
 
@@ -799,6 +805,9 @@ namespace NSJSBase
 		CV8TryCatch() : CJSTryCatch(), try_catch(V8IsolateOneArg)
 		{
 		}
+		CV8TryCatch(v8::Isolate* isolate) : CJSTryCatch(), try_catch(isolate)
+		{
+		}
 		virtual ~CV8TryCatch()
 		{
 		}
@@ -857,12 +866,14 @@ namespace NSJSBase
 		v8::Local<v8::Context>			m_context;
 
 		v8::StartupData m_startup_data;
+		bool m_entered;
 
 	public:
 		CJSContextPrivate() : m_isolate(NULL)
 		{
 			m_startup_data.data = NULL;
 			m_startup_data.raw_size = 0;
+			m_entered = false;
 		}
 
 		void InsertToGlobal(const std::string& name, v8::FunctionCallback creator)
@@ -881,6 +892,7 @@ namespace NSJSBase
 
 	// embed
 	void CreateEmbedNativeObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void FreeNativeObject(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 	class CJSEmbedObjectAdapterV8Template : public CJSEmbedObjectAdapterBase
 	{
@@ -898,6 +910,8 @@ namespace NSJSBase
 	{
 	public:
 		v8::Persistent<v8::Object> handle;
+		// contstant id for all weak native handles
+		static const uint16_t kWeakHandleId = 1;
 
 		CJSEmbedObjectPrivate(v8::Local<v8::Object> obj)
 		{
@@ -916,6 +930,8 @@ namespace NSJSBase
 
 			handle.Reset(CV8Worker::GetCurrent(), obj);
 			handle.SetWeak(pEmbedObject, EmbedObjectWeakCallback, v8::WeakCallbackType::kParameter);
+			// set class_id for being able to iterate over all these handles to destroy them on isolate disposal
+			handle.SetWrapperClassId(kWeakHandleId);
 
 			pEmbedObject->embed_native_internal = this;
 		}
@@ -929,8 +945,6 @@ namespace NSJSBase
 
 		static void EmbedObjectWeakCallback(const v8::WeakCallbackInfo<CJSEmbedObject>& data)
 		{
-			v8::Isolate* isolate = data.GetIsolate();
-			v8::HandleScope scope(isolate);
 			CJSEmbedObject* wrap = data.GetParameter();
 			((CJSEmbedObjectPrivate*)wrap->embed_native_internal)->handle.Reset();
 			delete wrap;

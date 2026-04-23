@@ -55,6 +55,7 @@ public:
 	BaseObjectPtr clone();
 
 	virtual const bool loadContent(BinProcessor& proc);
+    virtual const bool saveContent(BinProcessor& proc);
 
 	int serialize			(std::wostream & _stream);
 	int serialize_title		(std::wostream & _stream);
@@ -80,6 +81,7 @@ public:
 	BaseObjectPtr				m_PrintSize;
 	BaseObjectPtr				m_Palette;
 	BaseObjectPtr				m_WriteProtect;
+	bool						separate = true;
 	
 private:
 

@@ -37,12 +37,19 @@
 #include "../DesktopEditor/graphics/commands/DocInfo.h"
 #include <algorithm>
 
+enum class ShapeSerializeType
+{
+	sstBinary,
+	sstXml
+};
+
 class CDocxRenderer_Private
 {
 public:
 	NSDocxRenderer::CDocument m_oDocument;
 	std::wstring m_sTempDirectory;
 	bool m_bIsSupportShapeCommands = false;
+	ShapeSerializeType m_eShapeSerializeType = ShapeSerializeType::sstBinary;
 
 public:
 	CDocxRenderer_Private(NSFonts::IApplicationFonts* pFonts, IRenderer* pRenderer) : m_oDocument(pRenderer, pFonts)
@@ -85,6 +92,8 @@ int CDocxRenderer::Convert(IOfficeDrawingFile* pFile, const std::wstring& sDst, 
 	m_pInternal->m_oDocument.m_oCurrentPage.m_bUseDefaultFont = false;
 	m_pInternal->m_oDocument.m_oCurrentPage.m_bWriteStyleRaw = false;
 	m_pInternal->m_bIsSupportShapeCommands = false;
+	m_pInternal->m_oDocument.m_bIsRecord = true;
+	m_pInternal->m_oDocument.m_oCurrentPage.m_bFirstParagraphLineCorrection = true;
 
 	if (bIsOutCompress)
 		m_pInternal->m_oDocument.m_strTempDirectory = NSDirectory::CreateDirectoryWithUniqueName(m_pInternal->m_sTempDirectory);
@@ -122,7 +131,9 @@ std::vector<std::wstring> CDocxRenderer::ScanPage(IOfficeDrawingFile* pFile, siz
 	m_pInternal->m_oDocument.Init(false);
 	m_pInternal->m_oDocument.m_oCurrentPage.m_bUseDefaultFont = true;
 	m_pInternal->m_oDocument.m_oCurrentPage.m_bWriteStyleRaw = true;
+	m_pInternal->m_oDocument.m_oCurrentPage.m_bFirstParagraphLineCorrection = true;
 	m_pInternal->m_bIsSupportShapeCommands = false;
+	m_pInternal->m_oDocument.m_bIsRecord = false;
 
 	DrawPage(pFile, nPage);
 
@@ -137,13 +148,37 @@ std::vector<std::wstring> CDocxRenderer::ScanPagePptx(IOfficeDrawingFile* pFile,
 	m_pInternal->m_oDocument.Init(false);
 	m_pInternal->m_oDocument.m_oCurrentPage.m_bUseDefaultFont = true;
 	m_pInternal->m_oDocument.m_oCurrentPage.m_bWriteStyleRaw = true;
+	m_pInternal->m_oDocument.m_oCurrentPage.m_bCollectMetaInfo = true;
+	m_pInternal->m_oDocument.m_oCurrentPage.m_bFirstParagraphLineCorrection = true;
 	m_pInternal->m_bIsSupportShapeCommands = true;
+	m_pInternal->m_oDocument.m_bIsRecord = false;
 
+	m_pInternal->m_eShapeSerializeType = ShapeSerializeType::sstXml;
 	DrawPage(pFile, nPage);
+	m_pInternal->m_eShapeSerializeType = ShapeSerializeType::sstBinary;
 
 	auto xml_shapes = m_pInternal->m_oDocument.m_oCurrentPage.GetXmlShapesPptx();
 	m_pInternal->m_oDocument.Clear();
 	return xml_shapes;
+}
+NSWasm::CData CDocxRenderer::ScanPageBin(IOfficeDrawingFile* pFile, size_t nPage)
+{
+	m_pInternal->m_oDocument.Clear();
+	m_pInternal->m_oDocument.Init(false);
+	m_pInternal->m_oDocument.m_oCurrentPage.m_bUseDefaultFont = true;
+	m_pInternal->m_oDocument.m_oCurrentPage.m_bWriteStyleRaw = true;
+	m_pInternal->m_oDocument.m_oCurrentPage.m_bCollectMetaInfo = true;
+	m_pInternal->m_oDocument.m_oCurrentPage.m_bFirstParagraphLineCorrection = true;
+	m_pInternal->m_oDocument.m_bIsRecord = false;
+	m_pInternal->m_bIsSupportShapeCommands = true;
+	m_pInternal->m_oDocument.m_oFontStyleManager.Clear();
+	m_pInternal->m_oDocument.m_oFontSelector.ClearCache();
+
+	DrawPage(pFile, nPage);
+
+	auto bin_shapes = m_pInternal->m_oDocument.m_oCurrentPage.GetShapesBin();
+	m_pInternal->m_oDocument.Clear();
+	return bin_shapes;
 }
 
 void CDocxRenderer::SetExternalImageStorage(NSDocxRenderer::IImageStorage* pStorage)
@@ -194,6 +229,7 @@ HRESULT CDocxRenderer::IsSupportAdvancedCommand(const IAdvancedCommand::Advanced
 
 	return S_FALSE;
 }
+
 HRESULT CDocxRenderer::AdvancedCommand(IAdvancedCommand* command)
 {
 	if (NULL == command)
@@ -205,14 +241,69 @@ HRESULT CDocxRenderer::AdvancedCommand(IAdvancedCommand* command)
 	{
 		CShapeStart* pShape = (CShapeStart*)command;
 		std::string& sUtf8Shape = pShape->GetShapeXML();
+		UINT nImageId = 0xFFFFFFFF;
+
 		Aggplus::CImage* pImage = pShape->GetShapeImage();
 		if (pImage)
 		{
 			std::shared_ptr<NSDocxRenderer::CImageInfo> pInfo = m_pInternal->m_oDocument.m_oImageManager.GenerateImageID(pImage);
-			std::string sNewId = "r:embed=\"rId" + std::to_string(pInfo->m_nId + c_iStartingIdForImages) + "\"";
-			NSStringUtils::string_replaceA(sUtf8Shape, "r:embed=\"\"", sNewId);
+			nImageId = pInfo->m_nId;
 		}
-		m_pInternal->m_oDocument.m_oCurrentPage.AddCompleteXml(UTF8_TO_U(sUtf8Shape));
+
+		if (sUtf8Shape.empty())
+			return S_FALSE;
+
+		if ('<' == sUtf8Shape.at(0))
+		{
+			if (m_pInternal->m_eShapeSerializeType == ShapeSerializeType::sstBinary)
+				return S_FALSE;
+
+			if (0xFFFFFFFF != nImageId)
+			{
+				std::string sNewId = "r:embed=\"rId" + std::to_string(nImageId + c_iStartingIdForImages) + "\"";
+				NSStringUtils::string_replaceA(sUtf8Shape, "r:embed=\"\"", sNewId);
+			}
+			m_pInternal->m_oDocument.m_oCurrentPage.AddCompleteXml(UTF8_TO_U(sUtf8Shape));
+		}
+		else
+		{
+			if (m_pInternal->m_eShapeSerializeType == ShapeSerializeType::sstXml)
+				return S_FALSE;
+
+			if (0xFFFFFFFF != nImageId)
+			{
+				std::wstring rId_new = L"rId" + std::to_wstring(nImageId + c_iStartingIdForImages);
+				NSWasm::CData rId_record;
+				rId_record.StartRecord(100);
+				rId_record.WriteStringUtf16(rId_new);
+				rId_record.EndRecord();
+
+				int buff_len = NSBase64::Base64DecodeGetRequiredLength(sUtf8Shape.size());
+				BYTE* buff = new BYTE[buff_len + rId_record.GetSize()];
+
+				if (NSBase64::Base64Decode(sUtf8Shape.c_str(), (int)sUtf8Shape.size(), buff, &buff_len))
+				{
+					memcpy(buff + buff_len, rId_record.GetBuffer(), rId_record.GetSize());
+
+					unsigned int curr_len = 0;
+					memcpy(&curr_len, buff + 1, sizeof(unsigned int)); // first byte is "type" byte
+
+					curr_len += rId_record.GetSize();
+					memcpy(buff + 1, &curr_len, sizeof(unsigned int));
+				}
+
+				int buff_len_new = buff_len + rId_record.GetSize();
+				int size_base64 = NSBase64::Base64EncodeGetRequiredLength(buff_len_new);
+				char* data_base64 = new char[size_base64];
+				NSBase64::Base64Encode(buff, buff_len_new, (BYTE*)data_base64, &size_base64, NSBase64::B64_BASE64_FLAG_NOCRLF);
+
+				sUtf8Shape = std::string(data_base64, size_base64);
+
+				delete[] buff;
+				delete[] data_base64;
+			}
+			m_pInternal->m_oDocument.m_oCurrentPage.AddCompleteBinBase64(sUtf8Shape);
+		}
 		return S_OK;
 	}
 	case IAdvancedCommand::AdvancedCommandType::ShapeEnd:
@@ -652,6 +743,10 @@ HRESULT CDocxRenderer::CommandLong(const LONG& lType, const LONG& lCommand)
 			return S_FALSE;
 
 		return S_OK;
+	}
+	if (c_nFontSubstitution == lType)
+	{
+		m_pInternal->m_oDocument.m_oCurrentPage.m_bFontSubstitution = true;
 	}
 	return S_OK;
 }

@@ -559,9 +559,40 @@ namespace NS_DWC_Common
 	bool getColorFromString(const std::wstring& colorStr, ODRAW::CColor & color)
 	{
 		bool bSet = false;
-		if (colorStr.find(L"#") != std::wstring::npos)
+		
+		int RGB = 0;
+		std::wstring str;
+
+		size_t pos = colorStr.find(L"["); //"buttonFace [67]" "#9c0 [50]"
+		if (pos != std::wstring::npos)
 		{
-			if (colorStr.length() == 4)
+			size_t pos1 = colorStr.find(L"]", pos + 1);
+			if (pos1 != std::wstring::npos)
+			{
+				str = colorStr.substr(pos + 1, pos1 - pos - 1);
+
+				if (NSStringUtils::IsNumber(str))
+				{
+					int index = XmlUtils::GetInteger(str);
+					if (index < 64)
+					{
+						RGB = shemeDefaultColor[index];
+						bSet = true;
+					}
+				}
+			}
+			//else if (index < 93)
+			//{
+			//	RGB = background ? controlPanelColors2[index - 65] : controlPanelColors1[index - 65];
+			//	bSet = true;
+			//}
+		}
+		if (!bSet && colorStr.find(L"#") == 0) // "#9c0 [50]"
+		{
+			size_t pos_end = colorStr.find(L" ", 1); //"buttonFace [67]" "#9c0 [50]"
+			if (pos_end == std::wstring::npos) pos_end = colorStr.length();
+			
+			if (pos_end == 4)
 			{
 				int lColor = XmlUtils::GetColorBGR(colorStr.substr(1, 3));
 				BYTE lB = ((lColor >> 16) & 0x0F);
@@ -581,292 +612,263 @@ namespace NS_DWC_Common
 				color.B = (BYTE)(lColor >> 16);
 				color.A = 0;
 			}
+			RGB = color.GetLONG_RGB();
 			bSet = true;
 		}
-		else
+
+		if (!bSet)
 		{
-			int RGB = 0;
-			std::wstring str;
+			pos = colorStr.find(' ');
+			if (pos == std::wstring::npos)
+				str = colorStr;
+			else
+				str = colorStr.substr(0, pos);
 
-			size_t pos = colorStr.find(L"["); //"buttonFace [67]"
-			if (pos != std::wstring::npos)
+			switch (str[0])
 			{
-				size_t pos1 = colorStr.find(L"]", pos + 1);
-				if (pos1 != std::wstring::npos)
-				{
-					str = colorStr.substr(pos + 1, pos1 - pos - 1);
-
-					if (NSStringUtils::IsNumber(str))
-					{
-						int index = XmlUtils::GetInteger(str);
-						if (index < 64)
-						{
-							RGB = shemeDefaultColor[index];
-							bSet = true;
-						}
-					}
-				}
-				//else if (index < 93)
-				//{
-				//	RGB = background ? controlPanelColors2[index - 65] : controlPanelColors1[index - 65];
-				//	bSet = true;
-				//}
+			case 'a':
+				if (str == L"aliceBlue") { RGB = 0xF0F8FF; bSet = true; break; } // (Alice Blue Preset Color)		Specifies a color with RGB value (240,248,255)
+				else if (str == L"antiqueWhite") { RGB = 0xFAEBD7; bSet = true; break; } // (Antique White Preset Color)	Specifies a color with RGB value (250,235,215)
+				else if (str == L"aqua") { RGB = 0x00FFFF; bSet = true; break; } // (Aqua Preset Color)				Specifies a color with RGB value (0,255,255)
+				else if (str == L"aquamarine") { RGB = 0x7FFFD4; bSet = true; break; } // (Aquamarine Preset Color)		Specifies a color with RGB value (127,255,212)
+				else if (str == L"azure") { RGB = 0xF0FFFF; bSet = true; break; } // (Azure Preset Color)			Specifies a color with RGB value (240,255,255)
+				break;
+			case 'b':
+				if (str == L"beige") { RGB = 0xF5F5DC; bSet = true; break; } // (Beige Preset Color)			Specifies a color with RGB value (245,245,220)
+				else if (str == L"bisque") { RGB = 0xFFE4C4; bSet = true; break; } // (Bisque Preset Color)			Specifies a color with RGB value (255,228,196)
+				else if (str == L"black") { RGB = 0x000000; bSet = true; break; } // (Black Preset Color)			Specifies a color with RGB value (0,0,0)
+				else if (str == L"blanchedAlmond") { RGB = 0xFFEBCD; bSet = true; break; } // (Blanched Almond Preset Color)  Specifies a color with RGB value (255,235,205)
+				else if (str == L"blue") { RGB = 0x0000FF; bSet = true; break; } // (Blue Preset Color)				Specifies a color with RGB value (0,0,255)
+				else if (str == L"blueViolet") { RGB = 0x8A2BE2; bSet = true; break; } // (Blue Violet Preset Color)		Specifies a color with RGB value (138,43,226)
+				else if (str == L"brown") { RGB = 0xA52A2A; bSet = true; break; } // (Brown Preset Color)			Specifies a color with RGB value (165,42,42)
+				else if (str == L"burlyWood") { RGB = 0xDEB887; bSet = true; break; } // (Burly Wood Preset Color)		Specifies a color with RGB value (222,184,135)
+				else if (str == L"buttonFace") { RGB = 0xF0F0F0; bSet = true; break; }
+				else if (str == L"buttonText") { RGB = 0x000000; bSet = true; break; }
+				break;
+			case 'c':
+				if (str == L"cadetBlue") { RGB = 0x5F9EA0; bSet = true; break; } // (Cadet Blue Preset Color)		Specifies a color with RGB value (95,158,160)
+				else if (str == L"chartreuse") { RGB = 0x7FFF00; bSet = true; break; } // (Chartreuse Preset Color)		Specifies a color with RGB value (127,255,0)
+				else if (str == L"chocolate") { RGB = 0xD2691E; bSet = true; break; } // (Chocolate Preset Color)		Specifies a color with RGB value (210,105,30)
+				else if (str == L"coral") { RGB = 0xFF7F50; bSet = true; break; } // (Coral Preset Color)			Specifies a color with RGB value (255,127,80)
+				else if (str == L"cornflowerBlue") { RGB = 0x6495ED; bSet = true; break; } // (Cornflower Blue Preset Color)  Specifies a color with RGB value (100,149,237)
+				else if (str == L"cornsilk") { RGB = 0xFFF8DC; bSet = true; break; } // (Cornsilk Preset Color)			Specifies a color with RGB value (255,248,220)
+				else if (str == L"crimson") { RGB = 0xDC143C; bSet = true; break; } // (Crimson Preset Color)			Specifies a color with RGB value (220,20,60)
+				else if (str == L"cyan") { RGB = 0x00FFFF; bSet = true; break; } // (Cyan Preset Color)				Specifies a color with RGB value (0,255,255)
+				break;
+			case 'd':
+				if (str == L"darkBlue") { RGB = 0x00008B; bSet = true; break; } // (Dark Blue Preset Color)		Specifies a color with RGB value (0,0,139)
+				else if (str == L"darkCyan") { RGB = 0x008B8B; bSet = true; break; } // (Dark Cyan Preset Color)		Specifies a color with RGB value (0,139,139)
+				else if (str == L"darkGoldenrod") { RGB = 0xB8860B; bSet = true; break; } // (Dark Goldenrod Preset Color)	Specifies a color with RGB value (184,134,11)
+				else if (str == L"darkGray") { RGB = 0xA9A9A9; bSet = true; break; } // (Dark Gray Preset Color)		Specifies a color with RGB value (169,169,169)
+				else if (str == L"darkGreen") { RGB = 0x006400; bSet = true; break; } // (Dark Green Preset Color)		Specifies a color with RGB value (0,100,0)
+				else if (str == L"darkGrey") { RGB = 0xA9A9A9; bSet = true; break; } // (Dark Gray Preset Color)		Specifies a color with RGB value (169,169,169)
+				else if (str == L"darkKhaki") { RGB = 0xBDB76B; bSet = true; break; } // (Dark Khaki Preset Color)		Specifies a color with RGB value (189,183,107)
+				else if (str == L"darkMagenta") { RGB = 0x8B008B; bSet = true; break; } // (Dark Magenta Preset Color)		Specifies a color with RGB value (139,0,139)
+				else if (str == L"darkOliveGreen") { RGB = 0x556B2F; bSet = true; break; } // (Dark Olive Green Preset Color) Specifies a color with RGB value (85,107,47)
+				else if (str == L"darkOrange") { RGB = 0xFF8C00; bSet = true; break; } // (Dark Orange Preset Color)		Specifies a color with RGB value (255,140,0)
+				else if (str == L"darkOrchid") { RGB = 0x9932CC; bSet = true; break; } // (Dark Orchid Preset Color)		Specifies a color with RGB value (153,50,204)
+				else if (str == L"darkRed") { RGB = 0x8B0000; bSet = true; break; } // (Dark Red Preset Color)			Specifies a color with RGB value (139,0,0)
+				else if (str == L"darkSalmon") { RGB = 0xE9967A; bSet = true; break; } // (Dark Salmon Preset Color)		Specifies a color with RGB value (233,150,122)
+				else if (str == L"darkSeaGreen") { RGB = 0x8FBC8F; bSet = true; break; } // (Dark Sea Green Preset Color)	Specifies a color with RGB value (143,188,143)
+				else if (str == L"darkSlateBlue") { RGB = 0x483D8B; bSet = true; break; } // (Dark Slate Blue Preset Color)  Specifies a color with RGB value (72,61,139)
+				else if (str == L"darkSlateGray") { RGB = 0x2F4F4F; bSet = true; break; } // (Dark Slate Gray Preset Color)  Specifies a color with RGB value (47,79,79)
+				else if (str == L"darkSlateGrey") { RGB = 0x2F4F4F; bSet = true; break; } // (Dark Slate Gray Preset Color)  Specifies a color with RGB value (47,79,79)
+				else if (str == L"darkTurquoise") { RGB = 0x00CED1; bSet = true; break; } // (Dark Turquoise Preset Color)	Specifies a color with RGB value (0,206,209)
+				else if (str == L"darkViolet") { RGB = 0x9400D3; bSet = true; break; } // (Dark Violet Preset Color)		Specifies a color with RGB value (148,0,211)
+				else if (str == L"deepPink") { RGB = 0xFF1493; bSet = true; break; } // (Deep Pink Preset Color)		Specifies a color with RGB value (255,20,147)
+				else if (str == L"deepSkyBlue") { RGB = 0x00BFFF; bSet = true; break; } // (Deep Sky Blue Preset Color)	Specifies a color with RGB value (0,191,255)
+				else if (str == L"dimGray") { RGB = 0x696969; bSet = true; break; } // (Dim Gray Preset Color)			Specifies a color with RGB value (105,105,105)
+				else if (str == L"dimGrey") { RGB = 0x696969; bSet = true; break; } // (Dim Gray Preset Color)			Specifies a color with RGB value (105,105,105)
+				else if (str == L"dkBlue") { RGB = 0x00008B; bSet = true; break; } // (Dark Blue Preset Color)		Specifies a color with RGB value (0,0,139)
+				else if (str == L"dkCyan") { RGB = 0x008B8B; bSet = true; break; } // (Dark Cyan Preset Color)		Specifies a color with RGB value (0,139,139)
+				else if (str == L"dkGoldenrod") { RGB = 0xB8860B; bSet = true; break; } // (Dark Goldenrod Preset Color)	Specifies a color with RGB value (184,134,11)
+				else if (str == L"dkGray") { RGB = 0xA9A9A9; bSet = true; break; } // (Dark Gray Preset Color)		Specifies a color with RGB value (169,169,169)
+				else if (str == L"dkGreen") { RGB = 0x006400; bSet = true; break; } // (Dark Green Preset Color)		Specifies a color with RGB value (0,100,0)
+				else if (str == L"dkGrey") { RGB = 0xA9A9A9; bSet = true; break; } // (Dark Gray Preset Color)		Specifies a color with RGB value (169,169,169)
+				else if (str == L"dkKhaki") { RGB = 0xBDB76B; bSet = true; break; } // (Dark Khaki Preset Color)		Specifies a color with RGB value (189,183,107)
+				else if (str == L"dkMagenta") { RGB = 0x8B008B; bSet = true; break; } // (Dark Magenta Preset Color)		Specifies a color with RGB value (139,0,139)
+				else if (str == L"dkOliveGreen") { RGB = 0x556B2F; bSet = true; break; } // (Dark Olive Green Preset Color) Specifies a color with RGB value (85,107,47)
+				else if (str == L"dkOrange") { RGB = 0xFF8C00; bSet = true; break; } // (Dark Orange Preset Color)		Specifies a color with RGB value (255,140,0)
+				else if (str == L"dkOrchid") { RGB = 0x9932CC; bSet = true; break; } // (Dark Orchid Preset Color)		Specifies a color with RGB value (153,50,204)
+				else if (str == L"dkRed") { RGB = 0x8B0000; bSet = true; break; } // (Dark Red Preset Color)			Specifies a color with RGB value (139,0,0)
+				else if (str == L"dkSalmon") { RGB = 0xE9967A; bSet = true; break; } // (Dark Salmon Preset Color)		Specifies a color with RGB value (233,150,122)
+				else if (str == L"dkSeaGreen") { RGB = 0x8FBC8B; bSet = true; break; } // (Dark Sea Green Preset Color)	Specifies a color with RGB value (143,188,139)
+				else if (str == L"dkSlateBlue") { RGB = 0x483D8B; bSet = true; break; } // (Dark Slate Blue Preset Color)  Specifies a color with RGB value (72,61,139)
+				else if (str == L"dkSlateGray") { RGB = 0x2F4F4F; bSet = true; break; } // (Dark Slate Gray Preset Color)  Specifies a color with RGB value (47,79,79)
+				else if (str == L"dkSlateGrey") { RGB = 0x2F4F4F; bSet = true; break; } // (Dark Slate Gray Preset Color)  Specifies a color with RGB value (47,79,79)
+				else if (str == L"dkTurquoise") { RGB = 0x00CED1; bSet = true; break; } // (Dark Turquoise Preset Color)	Specifies a color with RGB value (0,206,209)
+				else if (str == L"dkViolet") { RGB = 0x9400D3; bSet = true; break; } // (Dark Violet Preset Color)		Specifies a color with RGB value (148,0,211)
+				else if (str == L"dodgerBlue") { RGB = 0x1E90FF; bSet = true; break; } // (Dodger Blue Preset Color)		Specifies a color with RGB value (30,144,255)
+				break;
+			case 'f':
+				if (str == L"firebrick") { RGB = 0xB22222; bSet = true; break; } // (Firebrick Preset Color)		Specifies a color with RGB value (178,34,34)
+				else if (str == L"floralWhite") { RGB = 0xFFFAF0; bSet = true; break; } // (Floral White Preset Color)		Specifies a color with RGB value (255,250,240)
+				else if (str == L"forestGreen") { RGB = 0x228B22; bSet = true; break; } // (Forest Green Preset Color)		Specifies a color with RGB value (34,139,34)
+				else if (str == L"fuchsia") { RGB = 0xFF00FF; bSet = true; break; } // (Fuchsia Preset Color)			Specifies a color with RGB value (255,0,255)
+				break;
+			case 'g':
+				if (str == L"gainsboro") { RGB = 0xDCDCDC; bSet = true; break; } // (Gainsboro Preset Color)		Specifies a color with RGB value (220,220,220)
+				else if (str == L"ghostWhite") { RGB = 0xF8F8FF; bSet = true; break; } // (Ghost White Preset Color)		Specifies a color with RGB value (248,248,255)
+				else if (str == L"gold") { RGB = 0xFFD700; bSet = true; break; } // (Gold Preset Color)				Specifies a color with RGB value (255,215,0)
+				else if (str == L"goldenrod") { RGB = 0xDAA520; bSet = true; break; } // (Goldenrod Preset Color)		Specifies a color with RGB value (218,165,32)
+				else if (str == L"gray") { RGB = 0x808080; bSet = true; break; } // (Gray Preset Color)				Specifies a color with RGB value (128,128,128)
+				else if (str == L"green") { RGB = 0x008000; bSet = true; break; } // (Green Preset Color)				Specifies a color with RGB value (0,128,0)
+				else if (str == L"greenYellow") { RGB = 0xADFF2F; bSet = true; break; } // (Green Yellow Preset Color)		Specifies a color with RGB value (173,255,47)
+				else if (str == L"grey") { RGB = 0x808080; bSet = true; break; } // (Gray Preset Color)				Specifies a color with RGB value (128,128,128)
+				break;
+			case 'h':
+				if (str == L"honeydew") { RGB = 0xF0FFF0; bSet = true; break; } // (Honeydew Preset Color)			Specifies a color with RGB value (240,255,240)
+				else if (str == L"hotPink") { RGB = 0xFF69B4; bSet = true; break; } // (Hot Pink Preset Color)			Specifies a color with RGB value (255,105,180)
+				break;
+			case 'i':
+				if (str == L"indianRed") { RGB = 0xCD5C5C; bSet = true; break; } // (Indian Red Preset Color)		Specifies a color with RGB value (205,92,92)
+				else if (str == L"indigo") { RGB = 0x4B0082; bSet = true; break; } // (Indigo Preset Color)			Specifies a color with RGB value (75,0,130)
+				else if (str == L"ivory") { RGB = 0xFFFFF0; bSet = true; break; } // (Ivory Preset Color)			Specifies a color with RGB value (255,255,240)
+				else if (str == L"infoText") { RGB = 0x000000; bSet = true; break; }
+				break;
+			case 'k':
+				if (str == L"khaki") { RGB = 0xF0E68C; bSet = true; break; } // (Khaki Preset Color)			Specifies a color with RGB value (240,230,140)
+				break;
+			case 'l':
+				if (str == L"lavender") { RGB = 0xE6E6FA; bSet = true; break; } // (Lavender Preset Color)			Specifies a color with RGB value (230,230,250)
+				else if (str == L"lavenderBlush") { RGB = 0xFFF0F5; bSet = true; break; } // (Lavender Blush Preset Color)	Specifies a color with RGB value (255,240,245)
+				else if (str == L"lawnGreen") { RGB = 0x7CFC00; bSet = true; break; } // (Lawn Green Preset Color)		Specifies a color with RGB value (124,252,0)
+				else if (str == L"lemonChiffon") { RGB = 0xFFFACD; bSet = true; break; } // (Lemon Chiffon Preset Color)	Specifies a color with RGB value (255,250,205)
+				else if (str == L"lightBlue") { RGB = 0xADD8E6; bSet = true; break; } // (Light Blue Preset Color)		Specifies a color with RGB value (173,216,230)
+				else if (str == L"lightCoral") { RGB = 0xF08080; bSet = true; break; } // (Light Coral Preset Color)		Specifies a color with RGB value (240,128,128)
+				else if (str == L"lightCyan") { RGB = 0xE0FFFF; bSet = true; break; } // (Light Cyan Preset Color)		Specifies a color with RGB value (224,255,255)
+				else if (str == L"lightGoldenrodYellow") { RGB = 0xFAFAD2; bSet = true; break; } // (Light Goldenrod Color)			Specifies a color with RGB value (250,250,210)
+				else if (str == L"lightGray") { RGB = 0xD3D3D3; bSet = true; break; } // (Light Gray Preset Color)		Specifies a color with RGB value (211,211,211)
+				else if (str == L"lightGreen") { RGB = 0x90EE90; bSet = true; break; } // (Light Green Preset Color)		Specifies a color with RGB value (144,238,144)
+				else if (str == L"lightGrey") { RGB = 0xD3D3D3; bSet = true; break; } // (Light Gray Preset Color)		Specifies a color with RGB value (211,211,211)
+				else if (str == L"lightPink") { RGB = 0xFFB6C1; bSet = true; break; } // (Light Pink Preset Color)		Specifies a color with RGB value (255,182,193)
+				else if (str == L"lightSalmon") { RGB = 0xFFA07A; bSet = true; break; } // (Light Salmon Preset Color)		Specifies a color with RGB value (255,160,122)
+				else if (str == L"lightSeaGreen") { RGB = 0x20B2AA; bSet = true; break; } // (Light Sea Green Preset Color)  Specifies a color with RGB value (32,178,170)
+				else if (str == L"lightSkyBlue") { RGB = 0x87CEFA; bSet = true; break; } // (Light Sky Blue Preset Color)	Specifies a color with RGB value (135,206,250)
+				else if (str == L"lightSlateGray") { RGB = 0x778899; bSet = true; break; } // (Light Slate Gray Preset Color) Specifies a color with RGB value (119,136,153)
+				else if (str == L"lightSlateGrey") { RGB = 0x778899; bSet = true; break; } // (Light Slate Gray Preset Color) Specifies a color with RGB value (119,136,153)
+				else if (str == L"lightSteelBlue") { RGB = 0xB0C4DE; bSet = true; break; } // (Light Steel Blue Preset Color) Specifies a color with RGB value (176,196,222)
+				else if (str == L"lightYellow") { RGB = 0xFFFFE0; bSet = true; break; } // (Light Yellow Preset Color)		Specifies a color with RGB value (255,255,224)
+				else if (str == L"lime") { RGB = 0x00FF00; bSet = true; break; } // (Lime Preset Color)				Specifies a color with RGB value (0,255,0)
+				else if (str == L"limeGreen") { RGB = 0x32CD32; bSet = true; break; } // (Lime Green Preset Color)		Specifies a color with RGB value (50,205,50)
+				else if (str == L"linen") { RGB = 0xFAF0E6; bSet = true; break; } // (Linen Preset Color)			Specifies a color with RGB value (250,240,230)
+				else if (str == L"ltBlue") { RGB = 0xADD8E6; bSet = true; break; } // (Light Blue Preset Color)		Specifies a color with RGB value (173,216,230)
+				else if (str == L"ltCoral") { RGB = 0xF08080; bSet = true; break; } // (Light Coral Preset Color)		Specifies a color with RGB value (240,128,128)
+				else if (str == L"ltCyan") { RGB = 0xE0FFFF; bSet = true; break; } // (Light Cyan Preset Color)		Specifies a color with RGB value (224,255,255)
+				else if (str == L"ltGoldenrodYellow") { RGB = 0xFAFA78; bSet = true; break; } // (Light Goldenrod Color)			Specifies a color with RGB value (250,250,120)
+				else if (str == L"ltGray") { RGB = 0xD3D3D3; bSet = true; break; } // (Light Gray Preset Color)		Specifies a color with RGB value (211,211,211)
+				else if (str == L"ltGreen") { RGB = 0x90EE90; bSet = true; break; } // (Light Green Preset Color)		Specifies a color with RGB value (144,238,144)
+				else if (str == L"ltGrey") { RGB = 0xD3D3D3; bSet = true; break; } // (Light Gray Preset Color)		Specifies a color with RGB value (211,211,211)
+				else if (str == L"ltPink") { RGB = 0xFFB6C1; bSet = true; break; } // (Light Pink Preset Color)		Specifies a color with RGB value (255,182,193)
+				else if (str == L"ltSalmon") { RGB = 0xFFA07A; bSet = true; break; } // (Light Salmon Preset Color)		Specifies a color with RGB value (255,160,122)
+				else if (str == L"ltSeaGreen") { RGB = 0x20B2AA; bSet = true; break; } // (Light Sea Green Preset Color)  Specifies a color with RGB value (32,178,170)
+				else if (str == L"ltSkyBlue") { RGB = 0x87CEFA; bSet = true; break; } // (Light Sky Blue Preset Color)	Specifies a color with RGB value (135,206,250)
+				else if (str == L"ltSlateGray") { RGB = 0x778899; bSet = true; break; } // (Light Slate Gray Preset Color) Specifies a color with RGB value (119,136,153)
+				else if (str == L"ltSlateGrey") { RGB = 0x778899; bSet = true; break; } // (Light Slate Gray Preset Color) Specifies a color with RGB value (119,136,153)
+				else if (str == L"ltSteelBlue") { RGB = 0xB0C4DE; bSet = true; break; } // (Light Steel Blue Preset Color) Specifies a color with RGB value (176,196,222)
+				else if (str == L"ltYellow") { RGB = 0xFFFFE0; bSet = true; break; } // (Light Yellow Preset Color)		Specifies a color with RGB value (255,255,224)
+				break;
+			case 'm':
+				if (str == L"magenta") { RGB = 0xFF00FF; bSet = true; break; } // (Magenta Preset Color)			Specifies a color with RGB value (255,0,255)
+				else if (str == L"maroon") { RGB = 0x800000; bSet = true; break; } // (Maroon Preset Color)			Specifies a color with RGB value (128,0,0)
+				else if (str == L"medAquamarine") { RGB = 0x66CDAA; bSet = true; break; } // (Medium Aquamarine Preset Color)Specifies a color with RGB value (102,205,170)
+				else if (str == L"medBlue") { RGB = 0x0000CD; bSet = true; break; } // (Medium Blue Preset Color)		Specifies a color with RGB value (0,0,205)
+				else if (str == L"mediumAquamarine") { RGB = 0x66CDAA; bSet = true; break; } // (Medium Aquamarine Color)		Specifies a color with RGB value (102,205,170)
+				else if (str == L"mediumBlue") { RGB = 0x0000CD; bSet = true; break; } // (Medium Blue Preset Color)		Specifies a color with RGB value (0,0,205)
+				else if (str == L"mediumOrchid") { RGB = 0xBA55D3; bSet = true; break; } // (Medium Orchid Preset Color)	Specifies a color with RGB value (186,85,211)
+				else if (str == L"mediumPurple") { RGB = 0x9370DB; bSet = true; break; } // (Medium Purple Preset Color)	Specifies a color with RGB value (147,112,219)
+				else if (str == L"mediumSeaGreen") { RGB = 0x3CB371; bSet = true; break; } // (Medium Sea Green Preset Color) Specifies a color with RGB value (60,179,113)
+				else if (str == L"mediumSlateBlue") { RGB = 0x7B68EE; bSet = true; break; } // (Medium Slate Blue Preset Color)Specifies a color with RGB value (123,104,238)
+				else if (str == L"mediumSpringGreen") { RGB = 0x00FA9A; bSet = true; break; } // (Medium Spring Color)			Specifies a color with RGB value (0,250,154)
+				else if (str == L"mediumTurquoise") { RGB = 0x48D1CC; bSet = true; break; } // (Medium Turquoise Preset Color) Specifies a color with RGB value (72,209,204)
+				else if (str == L"mediumVioletRed") { RGB = 0xC71585; bSet = true; break; } // (Medium Violet Red Preset Color)Specifies a color with RGB value (199,21,133)
+				else if (str == L"medOrchid") { RGB = 0xBA55D3; bSet = true; break; } // (Medium Orchid Preset Color)	Specifies a color with RGB value (186,85,211)
+				else if (str == L"medPurple") { RGB = 0x9370DB; bSet = true; break; } // (Medium Purple Preset Color)	Specifies a color with RGB value (147,112,219)
+				else if (str == L"medSeaGreen") { RGB = 0x3CB371; bSet = true; break; } // (Medium Sea Green Preset Color) Specifies a color with RGB value (60,179,113)
+				else if (str == L"medSlateBlue") { RGB = 0x7B68EE; bSet = true; break; } // (Medium Slate Blue Preset Color)Specifies a color with RGB value (123,104,238)
+				else if (str == L"medSpringGreen") { RGB = 0x00FA9A; bSet = true; break; } // (Medium Spring Preset Color)	Specifies a color with RGB value (0,250,154)
+				else if (str == L"medTurquoise") { RGB = 0x48D1CC; bSet = true; break; } // (Medium Turquoise Preset Color) Specifies a color with RGB value (72,209,204)
+				else if (str == L"medVioletRed") { RGB = 0xC71585; bSet = true; break; } // (Medium Violet Red Preset Color)Specifies a color with RGB value (199,21,133)
+				else if (str == L"midnightBlue") { RGB = 0x191970; bSet = true; break; } // (Midnight Blue Preset Color)	Specifies a color with RGB value (25,25,112)
+				else if (str == L"mintCream") { RGB = 0xF5FFFA; bSet = true; break; } // (Mint Cream Preset Color)		Specifies a color with RGB value (245,255,250)
+				else if (str == L"mistyRose") { RGB = 0xFFE4FF; bSet = true; break; } // (Misty Rose Preset Color)		Specifies a color with RGB value (255,228,225)
+				else if (str == L"moccasin") { RGB = 0xFFE4B5; bSet = true; break; } // (Moccasin Preset Color)			Specifies a color with RGB value (255,228,181)
+				else if (str == L"menuText") { RGB = 0x000000; bSet = true; break; }
+				break;
+			case 'n':
+				if (str == L"navajoWhite") { RGB = 0xFFDEAD; bSet = true; break; } // (Navajo White Preset Color)		Specifies a color with RGB value (255,222,173)
+				else if (str == L"navy") { RGB = 0x000080; bSet = true; break; } // (Navy Preset Color)				Specifies a color with RGB value (0,0,128)
+				break;
+			case 'o':
+				if (str == L"oldLace") { RGB = 0xFDF5E6; bSet = true; break; } // (Old Lace Preset Color)			Specifies a color with RGB value (253,245,230)
+				else if (str == L"olive") { RGB = 0x808000; bSet = true; break; } // (Olive Preset Color)			Specifies a color with RGB value (128,128,0)
+				else if (str == L"oliveDrab") { RGB = 0x6B8E23; bSet = true; break; } // (Olive Drab Preset Color)		Specifies a color with RGB value (107,142,35)
+				else if (str == L"orange") { RGB = 0xFFA500; bSet = true; break; } // (Orange Preset Color)			Specifies a color with RGB value (255,165,0)
+				else if (str == L"orangeRed") { RGB = 0xFF4500; bSet = true; break; } // (Orange Red Preset Color)		Specifies a color with RGB value (255,69,0)
+				else if (str == L"orchid") { RGB = 0xDA70D6; bSet = true; break; } // (Orchid Preset Color)			Specifies a color with RGB value (218,112,214)
+				break;
+			case 'p':
+				if (str == L"paleGoldenrod") { RGB = 0xEEE8AA; bSet = true; break; } // (Pale Goldenrod Preset Color)	Specifies a color with RGB value (238,232,170)
+				else if (str == L"paleGreen") { RGB = 0x98FB98; bSet = true; break; } // (Pale Green Preset Color)		Specifies a color with RGB value (152,251,152)
+				else if (str == L"paleTurquoise") { RGB = 0xAFEEEE; bSet = true; break; } // (Pale Turquoise Preset Color)	Specifies a color with RGB value (175,238,238)
+				else if (str == L"paleVioletRed") { RGB = 0xDB7093; bSet = true; break; } // (Pale Violet Red Preset Color)  Specifies a color with RGB value (219,112,147)
+				else if (str == L"papayaWhip") { RGB = 0xFFEFD5; bSet = true; break; } // (Papaya Whip Preset Color)		Specifies a color with RGB value (255,239,213)
+				else if (str == L"peachPuff") { RGB = 0xFFDAB9; bSet = true; break; } // (Peach Puff Preset Color)		Specifies a color with RGB value (255,218,185)
+				else if (str == L"peru") { RGB = 0xCD853F; bSet = true; break; } // (Peru Preset Color)				Specifies a color with RGB value (205,133,63)
+				else if (str == L"pink") { RGB = 0xFFC0CB; bSet = true; break; } // (Pink Preset Color)				Specifies a color with RGB value (255,192,203)
+				else if (str == L"plum") { RGB = 0xD3A0D3; bSet = true; break; } // (Plum Preset Color)				Specifies a color with RGB value (221,160,221)
+				else if (str == L"powderBlue") { RGB = 0xB0E0E6; bSet = true; break; } // (Powder Blue Preset Color)		Specifies a color with RGB value (176,224,230)
+				else if (str == L"purple") { RGB = 0x800080; bSet = true; break; } // (Purple Preset Color)			Specifies a color with RGB value (128,0,128)
+				break;
+			case 'r':
+				if (str == L"red") { RGB = 0xFF0000; bSet = true; break; } // (Red Preset Color)				Specifies a color with RGB value (255,0,0)
+				else if (str == L"rosyBrown") { RGB = 0xBC8F8F; bSet = true; break; } // (Rosy Brown Preset Color)		Specifies a color with RGB value (188,143,143)
+				else if (str == L"royalBlue") { RGB = 0x4169E1; bSet = true; break; } // (Royal Blue Preset Color)		Specifies a color with RGB value (65,105,225)
+				break;
+			case 's':
+				if (str == L"saddleBrown") { RGB = 0x8B4513; bSet = true; break; } // (Saddle Brown Preset Color)		Specifies a color with RGB value (139,69,19)
+				else if (str == L"salmon") { RGB = 0xFA8072; bSet = true; break; } // (Salmon Preset Color)			Specifies a color with RGB value (250,128,114)
+				else if (str == L"sandyBrown") { RGB = 0xF4A460; bSet = true; break; } // (Sandy Brown Preset Color)		Specifies a color with RGB value (244,164,96)
+				else if (str == L"seaGreen") { RGB = 0x2E8B57; bSet = true; break; } // (Sea Green Preset Color)		Specifies a color with RGB value (46,139,87)
+				else if (str == L"seaShell") { RGB = 0xFFF5EE; bSet = true; break; } // (Sea Shell Preset Color)		Specifies a color with RGB value (255,245,238)
+				else if (str == L"sienna") { RGB = 0xA0522D; bSet = true; break; } // (Sienna Preset Color)			Specifies a color with RGB value (160,82,45)
+				else if (str == L"silver") { RGB = 0xC0C0C0; bSet = true; break; } // (Silver Preset Color)			Specifies a color with RGB value (192,192,192)
+				else if (str == L"skyBlue") { RGB = 0x87CEEB; bSet = true; break; } // (Sky Blue Preset Color)			Specifies a color with RGB value (135,206,235)
+				else if (str == L"slateBlue") { RGB = 0x6A5AEB; bSet = true; break; } // (Slate Blue Preset Color)		Specifies a color with RGB value (106,90,205)
+				else if (str == L"slateGray") { RGB = 0x708090; bSet = true; break; } // (Slate Gray Preset Color)		Specifies a color with RGB value (112,128,144)
+				else if (str == L"slateGrey") { RGB = 0x708090; bSet = true; break; } // (Slate Gray Preset Color)		Specifies a color with RGB value (112,128,144)
+				else if (str == L"snow") { RGB = 0xFFFAFA; bSet = true; break; } // (Snow Preset Color)				Specifies a color with RGB value (255,250,250)
+				else if (str == L"springGreen") { RGB = 0x00FF7F; bSet = true; break; } // (Spring Green Preset Color)		Specifies a color with RGB value (0,255,127)
+				else if (str == L"steelBlue") { RGB = 0x4682B4; bSet = true; break; } // (Steel Blue Preset Color)		Specifies a color with RGB value (70,130,180)
+				break;
+			case 't':
+				if (str == L"tan") { RGB = 0xD2B48C; bSet = true; break; } // (Tan Preset Color)				Specifies a color with RGB value (210,180,140)
+				else if (str == L"teal") { RGB = 0x008080; bSet = true; break; } // (Teal Preset Color)				Specifies a color with RGB value (0,128,128)
+				else if (str == L"thistle") { RGB = 0xD8BFD8; bSet = true; break; } // (Thistle Preset Color)			Specifies a color with RGB value (216,191,216)
+				else if (str == L"tomato") { RGB = 0xFF7347; bSet = true; break; } // (Tomato Preset Color)			Specifies a color with RGB value (255,99,71)
+				else if (str == L"turquoise") { RGB = 0x40E0D0; bSet = true; break; } // (Turquoise Preset Color)		Specifies a color with RGB value (64,224,208)
+				break;
+			case 'v':
+				if (str == L"violet") { RGB = 0xEE82EE; bSet = true; break; } // (Violet Preset Color)			Specifies a color with RGB value (238,130,238)
+				break;
+			case 'w':
+				if (str == L"wheat") { RGB = 0xF5DEB3; bSet = true; break; } // (Wheat Preset Color)			Specifies a color with RGB value (245,222,179)
+				else if (str == L"white") { RGB = 0xFFFFFF; bSet = true; break; } // (White Preset Color)			Specifies a color with RGB value (255,255,255)
+				else if (str == L"whiteSmoke") { RGB = 0xF5F5F5; bSet = true; break; } // (White Smoke Preset Color)		Specifies a color with RGB value (245,245,245)
+				else if (str == L"windowsText") { RGB = 0x000000; bSet = true; break; } // (White Smoke Preset Color)		Specifies a color with RGB value (245,245,245)
+				break;
+			case 'y':
+				if (str == L"yellow") { RGB = 0xFFFF00; bSet = true; break; } // (Yellow Preset Color)			Specifies a color with RGB value (255,255,0)
+				else if (str == L"yellowGreen") { RGB = 0x9ACD32; bSet = true; break; } // (Yellow Green Preset Color)		Specifies a color with RGB value (154,205,50)
+				break;
 			}
-
-			if (!bSet)
-			{
-				pos = colorStr.find(' ');
-				if (pos == std::wstring::npos)
-					str = colorStr;
-				else
-					str = colorStr.substr(0, pos);
-
-				switch (str[0])
-				{
-				case 'a':
-					if (str == L"aliceBlue") { RGB = 0xF0F8FF; bSet = true; break; } // (Alice Blue Preset Color)		Specifies a color with RGB value (240,248,255)
-					else if (str == L"antiqueWhite") { RGB = 0xFAEBD7; bSet = true; break; } // (Antique White Preset Color)	Specifies a color with RGB value (250,235,215)
-					else if (str == L"aqua") { RGB = 0x00FFFF; bSet = true; break; } // (Aqua Preset Color)				Specifies a color with RGB value (0,255,255)
-					else if (str == L"aquamarine") { RGB = 0x7FFFD4; bSet = true; break; } // (Aquamarine Preset Color)		Specifies a color with RGB value (127,255,212)
-					else if (str == L"azure") { RGB = 0xF0FFFF; bSet = true; break; } // (Azure Preset Color)			Specifies a color with RGB value (240,255,255)
-					break;
-				case 'b':
-					if (str == L"beige") { RGB = 0xF5F5DC; bSet = true; break; } // (Beige Preset Color)			Specifies a color with RGB value (245,245,220)
-					else if (str == L"bisque") { RGB = 0xFFE4C4; bSet = true; break; } // (Bisque Preset Color)			Specifies a color with RGB value (255,228,196)
-					else if (str == L"black") { RGB = 0x000000; bSet = true; break; } // (Black Preset Color)			Specifies a color with RGB value (0,0,0)
-					else if (str == L"blanchedAlmond") { RGB = 0xFFEBCD; bSet = true; break; } // (Blanched Almond Preset Color)  Specifies a color with RGB value (255,235,205)
-					else if (str == L"blue") { RGB = 0x0000FF; bSet = true; break; } // (Blue Preset Color)				Specifies a color with RGB value (0,0,255)
-					else if (str == L"blueViolet") { RGB = 0x8A2BE2; bSet = true; break; } // (Blue Violet Preset Color)		Specifies a color with RGB value (138,43,226)
-					else if (str == L"brown") { RGB = 0xA52A2A; bSet = true; break; } // (Brown Preset Color)			Specifies a color with RGB value (165,42,42)
-					else if (str == L"burlyWood") { RGB = 0xDEB887; bSet = true; break; } // (Burly Wood Preset Color)		Specifies a color with RGB value (222,184,135)
-					else if (str == L"buttonFace") { RGB = 0xF0F0F0; bSet = true; break; }
-					else if (str == L"buttonText") { RGB = 0x000000; bSet = true; break; }
-					break;
-				case 'c':
-					if (str == L"cadetBlue") { RGB = 0x5F9EA0; bSet = true; break; } // (Cadet Blue Preset Color)		Specifies a color with RGB value (95,158,160)
-					else if (str == L"chartreuse") { RGB = 0x7FFF00; bSet = true; break; } // (Chartreuse Preset Color)		Specifies a color with RGB value (127,255,0)
-					else if (str == L"chocolate") { RGB = 0xD2691E; bSet = true; break; } // (Chocolate Preset Color)		Specifies a color with RGB value (210,105,30)
-					else if (str == L"coral") { RGB = 0xFF7F50; bSet = true; break; } // (Coral Preset Color)			Specifies a color with RGB value (255,127,80)
-					else if (str == L"cornflowerBlue") { RGB = 0x6495ED; bSet = true; break; } // (Cornflower Blue Preset Color)  Specifies a color with RGB value (100,149,237)
-					else if (str == L"cornsilk") { RGB = 0xFFF8DC; bSet = true; break; } // (Cornsilk Preset Color)			Specifies a color with RGB value (255,248,220)
-					else if (str == L"crimson") { RGB = 0xDC143C; bSet = true; break; } // (Crimson Preset Color)			Specifies a color with RGB value (220,20,60)
-					else if (str == L"cyan") { RGB = 0x00FFFF; bSet = true; break; } // (Cyan Preset Color)				Specifies a color with RGB value (0,255,255)
-					break;
-				case 'd':
-					if (str == L"darkBlue") { RGB = 0x00008B; bSet = true; break; } // (Dark Blue Preset Color)		Specifies a color with RGB value (0,0,139)
-					else if (str == L"darkCyan") { RGB = 0x008B8B; bSet = true; break; } // (Dark Cyan Preset Color)		Specifies a color with RGB value (0,139,139)
-					else if (str == L"darkGoldenrod") { RGB = 0xB8860B; bSet = true; break; } // (Dark Goldenrod Preset Color)	Specifies a color with RGB value (184,134,11)
-					else if (str == L"darkGray") { RGB = 0xA9A9A9; bSet = true; break; } // (Dark Gray Preset Color)		Specifies a color with RGB value (169,169,169)
-					else if (str == L"darkGreen") { RGB = 0x006400; bSet = true; break; } // (Dark Green Preset Color)		Specifies a color with RGB value (0,100,0)
-					else if (str == L"darkGrey") { RGB = 0xA9A9A9; bSet = true; break; } // (Dark Gray Preset Color)		Specifies a color with RGB value (169,169,169)
-					else if (str == L"darkKhaki") { RGB = 0xBDB76B; bSet = true; break; } // (Dark Khaki Preset Color)		Specifies a color with RGB value (189,183,107)
-					else if (str == L"darkMagenta") { RGB = 0x8B008B; bSet = true; break; } // (Dark Magenta Preset Color)		Specifies a color with RGB value (139,0,139)
-					else if (str == L"darkOliveGreen") { RGB = 0x556B2F; bSet = true; break; } // (Dark Olive Green Preset Color) Specifies a color with RGB value (85,107,47)
-					else if (str == L"darkOrange") { RGB = 0xFF8C00; bSet = true; break; } // (Dark Orange Preset Color)		Specifies a color with RGB value (255,140,0)
-					else if (str == L"darkOrchid") { RGB = 0x9932CC; bSet = true; break; } // (Dark Orchid Preset Color)		Specifies a color with RGB value (153,50,204)
-					else if (str == L"darkRed") { RGB = 0x8B0000; bSet = true; break; } // (Dark Red Preset Color)			Specifies a color with RGB value (139,0,0)
-					else if (str == L"darkSalmon") { RGB = 0xE9967A; bSet = true; break; } // (Dark Salmon Preset Color)		Specifies a color with RGB value (233,150,122)
-					else if (str == L"darkSeaGreen") { RGB = 0x8FBC8F; bSet = true; break; } // (Dark Sea Green Preset Color)	Specifies a color with RGB value (143,188,143)
-					else if (str == L"darkSlateBlue") { RGB = 0x483D8B; bSet = true; break; } // (Dark Slate Blue Preset Color)  Specifies a color with RGB value (72,61,139)
-					else if (str == L"darkSlateGray") { RGB = 0x2F4F4F; bSet = true; break; } // (Dark Slate Gray Preset Color)  Specifies a color with RGB value (47,79,79)
-					else if (str == L"darkSlateGrey") { RGB = 0x2F4F4F; bSet = true; break; } // (Dark Slate Gray Preset Color)  Specifies a color with RGB value (47,79,79)
-					else if (str == L"darkTurquoise") { RGB = 0x00CED1; bSet = true; break; } // (Dark Turquoise Preset Color)	Specifies a color with RGB value (0,206,209)
-					else if (str == L"darkViolet") { RGB = 0x9400D3; bSet = true; break; } // (Dark Violet Preset Color)		Specifies a color with RGB value (148,0,211)
-					else if (str == L"deepPink") { RGB = 0xFF1493; bSet = true; break; } // (Deep Pink Preset Color)		Specifies a color with RGB value (255,20,147)
-					else if (str == L"deepSkyBlue") { RGB = 0x00BFFF; bSet = true; break; } // (Deep Sky Blue Preset Color)	Specifies a color with RGB value (0,191,255)
-					else if (str == L"dimGray") { RGB = 0x696969; bSet = true; break; } // (Dim Gray Preset Color)			Specifies a color with RGB value (105,105,105)
-					else if (str == L"dimGrey") { RGB = 0x696969; bSet = true; break; } // (Dim Gray Preset Color)			Specifies a color with RGB value (105,105,105)
-					else if (str == L"dkBlue") { RGB = 0x00008B; bSet = true; break; } // (Dark Blue Preset Color)		Specifies a color with RGB value (0,0,139)
-					else if (str == L"dkCyan") { RGB = 0x008B8B; bSet = true; break; } // (Dark Cyan Preset Color)		Specifies a color with RGB value (0,139,139)
-					else if (str == L"dkGoldenrod") { RGB = 0xB8860B; bSet = true; break; } // (Dark Goldenrod Preset Color)	Specifies a color with RGB value (184,134,11)
-					else if (str == L"dkGray") { RGB = 0xA9A9A9; bSet = true; break; } // (Dark Gray Preset Color)		Specifies a color with RGB value (169,169,169)
-					else if (str == L"dkGreen") { RGB = 0x006400; bSet = true; break; } // (Dark Green Preset Color)		Specifies a color with RGB value (0,100,0)
-					else if (str == L"dkGrey") { RGB = 0xA9A9A9; bSet = true; break; } // (Dark Gray Preset Color)		Specifies a color with RGB value (169,169,169)
-					else if (str == L"dkKhaki") { RGB = 0xBDB76B; bSet = true; break; } // (Dark Khaki Preset Color)		Specifies a color with RGB value (189,183,107)
-					else if (str == L"dkMagenta") { RGB = 0x8B008B; bSet = true; break; } // (Dark Magenta Preset Color)		Specifies a color with RGB value (139,0,139)
-					else if (str == L"dkOliveGreen") { RGB = 0x556B2F; bSet = true; break; } // (Dark Olive Green Preset Color) Specifies a color with RGB value (85,107,47)
-					else if (str == L"dkOrange") { RGB = 0xFF8C00; bSet = true; break; } // (Dark Orange Preset Color)		Specifies a color with RGB value (255,140,0)
-					else if (str == L"dkOrchid") { RGB = 0x9932CC; bSet = true; break; } // (Dark Orchid Preset Color)		Specifies a color with RGB value (153,50,204)
-					else if (str == L"dkRed") { RGB = 0x8B0000; bSet = true; break; } // (Dark Red Preset Color)			Specifies a color with RGB value (139,0,0)
-					else if (str == L"dkSalmon") { RGB = 0xE9967A; bSet = true; break; } // (Dark Salmon Preset Color)		Specifies a color with RGB value (233,150,122)
-					else if (str == L"dkSeaGreen") { RGB = 0x8FBC8B; bSet = true; break; } // (Dark Sea Green Preset Color)	Specifies a color with RGB value (143,188,139)
-					else if (str == L"dkSlateBlue") { RGB = 0x483D8B; bSet = true; break; } // (Dark Slate Blue Preset Color)  Specifies a color with RGB value (72,61,139)
-					else if (str == L"dkSlateGray") { RGB = 0x2F4F4F; bSet = true; break; } // (Dark Slate Gray Preset Color)  Specifies a color with RGB value (47,79,79)
-					else if (str == L"dkSlateGrey") { RGB = 0x2F4F4F; bSet = true; break; } // (Dark Slate Gray Preset Color)  Specifies a color with RGB value (47,79,79)
-					else if (str == L"dkTurquoise") { RGB = 0x00CED1; bSet = true; break; } // (Dark Turquoise Preset Color)	Specifies a color with RGB value (0,206,209)
-					else if (str == L"dkViolet") { RGB = 0x9400D3; bSet = true; break; } // (Dark Violet Preset Color)		Specifies a color with RGB value (148,0,211)
-					else if (str == L"dodgerBlue") { RGB = 0x1E90FF; bSet = true; break; } // (Dodger Blue Preset Color)		Specifies a color with RGB value (30,144,255)
-					break;
-				case 'f':
-					if (str == L"firebrick") { RGB = 0xB22222; bSet = true; break; } // (Firebrick Preset Color)		Specifies a color with RGB value (178,34,34)
-					else if (str == L"floralWhite") { RGB = 0xFFFAF0; bSet = true; break; } // (Floral White Preset Color)		Specifies a color with RGB value (255,250,240)
-					else if (str == L"forestGreen") { RGB = 0x228B22; bSet = true; break; } // (Forest Green Preset Color)		Specifies a color with RGB value (34,139,34)
-					else if (str == L"fuchsia") { RGB = 0xFF00FF; bSet = true; break; } // (Fuchsia Preset Color)			Specifies a color with RGB value (255,0,255)
-					break;
-				case 'g':
-					if (str == L"gainsboro") { RGB = 0xDCDCDC; bSet = true; break; } // (Gainsboro Preset Color)		Specifies a color with RGB value (220,220,220)
-					else if (str == L"ghostWhite") { RGB = 0xF8F8FF; bSet = true; break; } // (Ghost White Preset Color)		Specifies a color with RGB value (248,248,255)
-					else if (str == L"gold") { RGB = 0xFFD700; bSet = true; break; } // (Gold Preset Color)				Specifies a color with RGB value (255,215,0)
-					else if (str == L"goldenrod") { RGB = 0xDAA520; bSet = true; break; } // (Goldenrod Preset Color)		Specifies a color with RGB value (218,165,32)
-					else if (str == L"gray") { RGB = 0x808080; bSet = true; break; } // (Gray Preset Color)				Specifies a color with RGB value (128,128,128)
-					else if (str == L"green") { RGB = 0x008000; bSet = true; break; } // (Green Preset Color)				Specifies a color with RGB value (0,128,0)
-					else if (str == L"greenYellow") { RGB = 0xADFF2F; bSet = true; break; } // (Green Yellow Preset Color)		Specifies a color with RGB value (173,255,47)
-					else if (str == L"grey") { RGB = 0x808080; bSet = true; break; } // (Gray Preset Color)				Specifies a color with RGB value (128,128,128)
-					break;
-				case 'h':
-					if (str == L"honeydew") { RGB = 0xF0FFF0; bSet = true; break; } // (Honeydew Preset Color)			Specifies a color with RGB value (240,255,240)
-					else if (str == L"hotPink") { RGB = 0xFF69B4; bSet = true; break; } // (Hot Pink Preset Color)			Specifies a color with RGB value (255,105,180)
-					break;
-				case 'i':
-					if (str == L"indianRed") { RGB = 0xCD5C5C; bSet = true; break; } // (Indian Red Preset Color)		Specifies a color with RGB value (205,92,92)
-					else if (str == L"indigo") { RGB = 0x4B0082; bSet = true; break; } // (Indigo Preset Color)			Specifies a color with RGB value (75,0,130)
-					else if (str == L"ivory") { RGB = 0xFFFFF0; bSet = true; break; } // (Ivory Preset Color)			Specifies a color with RGB value (255,255,240)
-					else if (str == L"infoText") { RGB = 0x000000; bSet = true; break; }
-					break;
-				case 'k':
-					if (str == L"khaki") { RGB = 0xF0E68C; bSet = true; break; } // (Khaki Preset Color)			Specifies a color with RGB value (240,230,140)
-					break;
-				case 'l':
-					if (str == L"lavender") { RGB = 0xE6E6FA; bSet = true; break; } // (Lavender Preset Color)			Specifies a color with RGB value (230,230,250)
-					else if (str == L"lavenderBlush") { RGB = 0xFFF0F5; bSet = true; break; } // (Lavender Blush Preset Color)	Specifies a color with RGB value (255,240,245)
-					else if (str == L"lawnGreen") { RGB = 0x7CFC00; bSet = true; break; } // (Lawn Green Preset Color)		Specifies a color with RGB value (124,252,0)
-					else if (str == L"lemonChiffon") { RGB = 0xFFFACD; bSet = true; break; } // (Lemon Chiffon Preset Color)	Specifies a color with RGB value (255,250,205)
-					else if (str == L"lightBlue") { RGB = 0xADD8E6; bSet = true; break; } // (Light Blue Preset Color)		Specifies a color with RGB value (173,216,230)
-					else if (str == L"lightCoral") { RGB = 0xF08080; bSet = true; break; } // (Light Coral Preset Color)		Specifies a color with RGB value (240,128,128)
-					else if (str == L"lightCyan") { RGB = 0xE0FFFF; bSet = true; break; } // (Light Cyan Preset Color)		Specifies a color with RGB value (224,255,255)
-					else if (str == L"lightGoldenrodYellow") { RGB = 0xFAFAD2; bSet = true; break; } // (Light Goldenrod Color)			Specifies a color with RGB value (250,250,210)
-					else if (str == L"lightGray") { RGB = 0xD3D3D3; bSet = true; break; } // (Light Gray Preset Color)		Specifies a color with RGB value (211,211,211)
-					else if (str == L"lightGreen") { RGB = 0x90EE90; bSet = true; break; } // (Light Green Preset Color)		Specifies a color with RGB value (144,238,144)
-					else if (str == L"lightGrey") { RGB = 0xD3D3D3; bSet = true; break; } // (Light Gray Preset Color)		Specifies a color with RGB value (211,211,211)
-					else if (str == L"lightPink") { RGB = 0xFFB6C1; bSet = true; break; } // (Light Pink Preset Color)		Specifies a color with RGB value (255,182,193)
-					else if (str == L"lightSalmon") { RGB = 0xFFA07A; bSet = true; break; } // (Light Salmon Preset Color)		Specifies a color with RGB value (255,160,122)
-					else if (str == L"lightSeaGreen") { RGB = 0x20B2AA; bSet = true; break; } // (Light Sea Green Preset Color)  Specifies a color with RGB value (32,178,170)
-					else if (str == L"lightSkyBlue") { RGB = 0x87CEFA; bSet = true; break; } // (Light Sky Blue Preset Color)	Specifies a color with RGB value (135,206,250)
-					else if (str == L"lightSlateGray") { RGB = 0x778899; bSet = true; break; } // (Light Slate Gray Preset Color) Specifies a color with RGB value (119,136,153)
-					else if (str == L"lightSlateGrey") { RGB = 0x778899; bSet = true; break; } // (Light Slate Gray Preset Color) Specifies a color with RGB value (119,136,153)
-					else if (str == L"lightSteelBlue") { RGB = 0xB0C4DE; bSet = true; break; } // (Light Steel Blue Preset Color) Specifies a color with RGB value (176,196,222)
-					else if (str == L"lightYellow") { RGB = 0xFFFFE0; bSet = true; break; } // (Light Yellow Preset Color)		Specifies a color with RGB value (255,255,224)
-					else if (str == L"lime") { RGB = 0x00FF00; bSet = true; break; } // (Lime Preset Color)				Specifies a color with RGB value (0,255,0)
-					else if (str == L"limeGreen") { RGB = 0x32CD32; bSet = true; break; } // (Lime Green Preset Color)		Specifies a color with RGB value (50,205,50)
-					else if (str == L"linen") { RGB = 0xFAF0E6; bSet = true; break; } // (Linen Preset Color)			Specifies a color with RGB value (250,240,230)
-					else if (str == L"ltBlue") { RGB = 0xADD8E6; bSet = true; break; } // (Light Blue Preset Color)		Specifies a color with RGB value (173,216,230)
-					else if (str == L"ltCoral") { RGB = 0xF08080; bSet = true; break; } // (Light Coral Preset Color)		Specifies a color with RGB value (240,128,128)
-					else if (str == L"ltCyan") { RGB = 0xE0FFFF; bSet = true; break; } // (Light Cyan Preset Color)		Specifies a color with RGB value (224,255,255)
-					else if (str == L"ltGoldenrodYellow") { RGB = 0xFAFA78; bSet = true; break; } // (Light Goldenrod Color)			Specifies a color with RGB value (250,250,120)
-					else if (str == L"ltGray") { RGB = 0xD3D3D3; bSet = true; break; } // (Light Gray Preset Color)		Specifies a color with RGB value (211,211,211)
-					else if (str == L"ltGreen") { RGB = 0x90EE90; bSet = true; break; } // (Light Green Preset Color)		Specifies a color with RGB value (144,238,144)
-					else if (str == L"ltGrey") { RGB = 0xD3D3D3; bSet = true; break; } // (Light Gray Preset Color)		Specifies a color with RGB value (211,211,211)
-					else if (str == L"ltPink") { RGB = 0xFFB6C1; bSet = true; break; } // (Light Pink Preset Color)		Specifies a color with RGB value (255,182,193)
-					else if (str == L"ltSalmon") { RGB = 0xFFA07A; bSet = true; break; } // (Light Salmon Preset Color)		Specifies a color with RGB value (255,160,122)
-					else if (str == L"ltSeaGreen") { RGB = 0x20B2AA; bSet = true; break; } // (Light Sea Green Preset Color)  Specifies a color with RGB value (32,178,170)
-					else if (str == L"ltSkyBlue") { RGB = 0x87CEFA; bSet = true; break; } // (Light Sky Blue Preset Color)	Specifies a color with RGB value (135,206,250)
-					else if (str == L"ltSlateGray") { RGB = 0x778899; bSet = true; break; } // (Light Slate Gray Preset Color) Specifies a color with RGB value (119,136,153)
-					else if (str == L"ltSlateGrey") { RGB = 0x778899; bSet = true; break; } // (Light Slate Gray Preset Color) Specifies a color with RGB value (119,136,153)
-					else if (str == L"ltSteelBlue") { RGB = 0xB0C4DE; bSet = true; break; } // (Light Steel Blue Preset Color) Specifies a color with RGB value (176,196,222)
-					else if (str == L"ltYellow") { RGB = 0xFFFFE0; bSet = true; break; } // (Light Yellow Preset Color)		Specifies a color with RGB value (255,255,224)
-					break;
-				case 'm':
-					if (str == L"magenta") { RGB = 0xFF00FF; bSet = true; break; } // (Magenta Preset Color)			Specifies a color with RGB value (255,0,255)
-					else if (str == L"maroon") { RGB = 0x800000; bSet = true; break; } // (Maroon Preset Color)			Specifies a color with RGB value (128,0,0)
-					else if (str == L"medAquamarine") { RGB = 0x66CDAA; bSet = true; break; } // (Medium Aquamarine Preset Color)Specifies a color with RGB value (102,205,170)
-					else if (str == L"medBlue") { RGB = 0x0000CD; bSet = true; break; } // (Medium Blue Preset Color)		Specifies a color with RGB value (0,0,205)
-					else if (str == L"mediumAquamarine") { RGB = 0x66CDAA; bSet = true; break; } // (Medium Aquamarine Color)		Specifies a color with RGB value (102,205,170)
-					else if (str == L"mediumBlue") { RGB = 0x0000CD; bSet = true; break; } // (Medium Blue Preset Color)		Specifies a color with RGB value (0,0,205)
-					else if (str == L"mediumOrchid") { RGB = 0xBA55D3; bSet = true; break; } // (Medium Orchid Preset Color)	Specifies a color with RGB value (186,85,211)
-					else if (str == L"mediumPurple") { RGB = 0x9370DB; bSet = true; break; } // (Medium Purple Preset Color)	Specifies a color with RGB value (147,112,219)
-					else if (str == L"mediumSeaGreen") { RGB = 0x3CB371; bSet = true; break; } // (Medium Sea Green Preset Color) Specifies a color with RGB value (60,179,113)
-					else if (str == L"mediumSlateBlue") { RGB = 0x7B68EE; bSet = true; break; } // (Medium Slate Blue Preset Color)Specifies a color with RGB value (123,104,238)
-					else if (str == L"mediumSpringGreen") { RGB = 0x00FA9A; bSet = true; break; } // (Medium Spring Color)			Specifies a color with RGB value (0,250,154)
-					else if (str == L"mediumTurquoise") { RGB = 0x48D1CC; bSet = true; break; } // (Medium Turquoise Preset Color) Specifies a color with RGB value (72,209,204)
-					else if (str == L"mediumVioletRed") { RGB = 0xC71585; bSet = true; break; } // (Medium Violet Red Preset Color)Specifies a color with RGB value (199,21,133)
-					else if (str == L"medOrchid") { RGB = 0xBA55D3; bSet = true; break; } // (Medium Orchid Preset Color)	Specifies a color with RGB value (186,85,211)
-					else if (str == L"medPurple") { RGB = 0x9370DB; bSet = true; break; } // (Medium Purple Preset Color)	Specifies a color with RGB value (147,112,219)
-					else if (str == L"medSeaGreen") { RGB = 0x3CB371; bSet = true; break; } // (Medium Sea Green Preset Color) Specifies a color with RGB value (60,179,113)
-					else if (str == L"medSlateBlue") { RGB = 0x7B68EE; bSet = true; break; } // (Medium Slate Blue Preset Color)Specifies a color with RGB value (123,104,238)
-					else if (str == L"medSpringGreen") { RGB = 0x00FA9A; bSet = true; break; } // (Medium Spring Preset Color)	Specifies a color with RGB value (0,250,154)
-					else if (str == L"medTurquoise") { RGB = 0x48D1CC; bSet = true; break; } // (Medium Turquoise Preset Color) Specifies a color with RGB value (72,209,204)
-					else if (str == L"medVioletRed") { RGB = 0xC71585; bSet = true; break; } // (Medium Violet Red Preset Color)Specifies a color with RGB value (199,21,133)
-					else if (str == L"midnightBlue") { RGB = 0x191970; bSet = true; break; } // (Midnight Blue Preset Color)	Specifies a color with RGB value (25,25,112)
-					else if (str == L"mintCream") { RGB = 0xF5FFFA; bSet = true; break; } // (Mint Cream Preset Color)		Specifies a color with RGB value (245,255,250)
-					else if (str == L"mistyRose") { RGB = 0xFFE4FF; bSet = true; break; } // (Misty Rose Preset Color)		Specifies a color with RGB value (255,228,225)
-					else if (str == L"moccasin") { RGB = 0xFFE4B5; bSet = true; break; } // (Moccasin Preset Color)			Specifies a color with RGB value (255,228,181)
-					else if (str == L"menuText") { RGB = 0x000000; bSet = true; break; }
-					break;
-				case 'n':
-					if (str == L"navajoWhite") { RGB = 0xFFDEAD; bSet = true; break; } // (Navajo White Preset Color)		Specifies a color with RGB value (255,222,173)
-					else if (str == L"navy") { RGB = 0x000080; bSet = true; break; } // (Navy Preset Color)				Specifies a color with RGB value (0,0,128)
-					break;
-				case 'o':
-					if (str == L"oldLace") { RGB = 0xFDF5E6; bSet = true; break; } // (Old Lace Preset Color)			Specifies a color with RGB value (253,245,230)
-					else if (str == L"olive") { RGB = 0x808000; bSet = true; break; } // (Olive Preset Color)			Specifies a color with RGB value (128,128,0)
-					else if (str == L"oliveDrab") { RGB = 0x6B8E23; bSet = true; break; } // (Olive Drab Preset Color)		Specifies a color with RGB value (107,142,35)
-					else if (str == L"orange") { RGB = 0xFFA500; bSet = true; break; } // (Orange Preset Color)			Specifies a color with RGB value (255,165,0)
-					else if (str == L"orangeRed") { RGB = 0xFF4500; bSet = true; break; } // (Orange Red Preset Color)		Specifies a color with RGB value (255,69,0)
-					else if (str == L"orchid") { RGB = 0xDA70D6; bSet = true; break; } // (Orchid Preset Color)			Specifies a color with RGB value (218,112,214)
-					break;
-				case 'p':
-					if (str == L"paleGoldenrod") { RGB = 0xEEE8AA; bSet = true; break; } // (Pale Goldenrod Preset Color)	Specifies a color with RGB value (238,232,170)
-					else if (str == L"paleGreen") { RGB = 0x98FB98; bSet = true; break; } // (Pale Green Preset Color)		Specifies a color with RGB value (152,251,152)
-					else if (str == L"paleTurquoise") { RGB = 0xAFEEEE; bSet = true; break; } // (Pale Turquoise Preset Color)	Specifies a color with RGB value (175,238,238)
-					else if (str == L"paleVioletRed") { RGB = 0xDB7093; bSet = true; break; } // (Pale Violet Red Preset Color)  Specifies a color with RGB value (219,112,147)
-					else if (str == L"papayaWhip") { RGB = 0xFFEFD5; bSet = true; break; } // (Papaya Whip Preset Color)		Specifies a color with RGB value (255,239,213)
-					else if (str == L"peachPuff") { RGB = 0xFFDAB9; bSet = true; break; } // (Peach Puff Preset Color)		Specifies a color with RGB value (255,218,185)
-					else if (str == L"peru") { RGB = 0xCD853F; bSet = true; break; } // (Peru Preset Color)				Specifies a color with RGB value (205,133,63)
-					else if (str == L"pink") { RGB = 0xFFC0CB; bSet = true; break; } // (Pink Preset Color)				Specifies a color with RGB value (255,192,203)
-					else if (str == L"plum") { RGB = 0xD3A0D3; bSet = true; break; } // (Plum Preset Color)				Specifies a color with RGB value (221,160,221)
-					else if (str == L"powderBlue") { RGB = 0xB0E0E6; bSet = true; break; } // (Powder Blue Preset Color)		Specifies a color with RGB value (176,224,230)
-					else if (str == L"purple") { RGB = 0x800080; bSet = true; break; } // (Purple Preset Color)			Specifies a color with RGB value (128,0,128)
-					break;
-				case 'r':
-					if (str == L"red") { RGB = 0xFF0000; bSet = true; break; } // (Red Preset Color)				Specifies a color with RGB value (255,0,0)
-					else if (str == L"rosyBrown") { RGB = 0xBC8F8F; bSet = true; break; } // (Rosy Brown Preset Color)		Specifies a color with RGB value (188,143,143)
-					else if (str == L"royalBlue") { RGB = 0x4169E1; bSet = true; break; } // (Royal Blue Preset Color)		Specifies a color with RGB value (65,105,225)
-					break;
-				case 's':
-					if (str == L"saddleBrown") { RGB = 0x8B4513; bSet = true; break; } // (Saddle Brown Preset Color)		Specifies a color with RGB value (139,69,19)
-					else if (str == L"salmon") { RGB = 0xFA8072; bSet = true; break; } // (Salmon Preset Color)			Specifies a color with RGB value (250,128,114)
-					else if (str == L"sandyBrown") { RGB = 0xF4A460; bSet = true; break; } // (Sandy Brown Preset Color)		Specifies a color with RGB value (244,164,96)
-					else if (str == L"seaGreen") { RGB = 0x2E8B57; bSet = true; break; } // (Sea Green Preset Color)		Specifies a color with RGB value (46,139,87)
-					else if (str == L"seaShell") { RGB = 0xFFF5EE; bSet = true; break; } // (Sea Shell Preset Color)		Specifies a color with RGB value (255,245,238)
-					else if (str == L"sienna") { RGB = 0xA0522D; bSet = true; break; } // (Sienna Preset Color)			Specifies a color with RGB value (160,82,45)
-					else if (str == L"silver") { RGB = 0xC0C0C0; bSet = true; break; } // (Silver Preset Color)			Specifies a color with RGB value (192,192,192)
-					else if (str == L"skyBlue") { RGB = 0x87CEEB; bSet = true; break; } // (Sky Blue Preset Color)			Specifies a color with RGB value (135,206,235)
-					else if (str == L"slateBlue") { RGB = 0x6A5AEB; bSet = true; break; } // (Slate Blue Preset Color)		Specifies a color with RGB value (106,90,205)
-					else if (str == L"slateGray") { RGB = 0x708090; bSet = true; break; } // (Slate Gray Preset Color)		Specifies a color with RGB value (112,128,144)
-					else if (str == L"slateGrey") { RGB = 0x708090; bSet = true; break; } // (Slate Gray Preset Color)		Specifies a color with RGB value (112,128,144)
-					else if (str == L"snow") { RGB = 0xFFFAFA; bSet = true; break; } // (Snow Preset Color)				Specifies a color with RGB value (255,250,250)
-					else if (str == L"springGreen") { RGB = 0x00FF7F; bSet = true; break; } // (Spring Green Preset Color)		Specifies a color with RGB value (0,255,127)
-					else if (str == L"steelBlue") { RGB = 0x4682B4; bSet = true; break; } // (Steel Blue Preset Color)		Specifies a color with RGB value (70,130,180)
-					break;
-				case 't':
-					if (str == L"tan") { RGB = 0xD2B48C; bSet = true; break; } // (Tan Preset Color)				Specifies a color with RGB value (210,180,140)
-					else if (str == L"teal") { RGB = 0x008080; bSet = true; break; } // (Teal Preset Color)				Specifies a color with RGB value (0,128,128)
-					else if (str == L"thistle") { RGB = 0xD8BFD8; bSet = true; break; } // (Thistle Preset Color)			Specifies a color with RGB value (216,191,216)
-					else if (str == L"tomato") { RGB = 0xFF7347; bSet = true; break; } // (Tomato Preset Color)			Specifies a color with RGB value (255,99,71)
-					else if (str == L"turquoise") { RGB = 0x40E0D0; bSet = true; break; } // (Turquoise Preset Color)		Specifies a color with RGB value (64,224,208)
-					break;
-				case 'v':
-					if (str == L"violet") { RGB = 0xEE82EE; bSet = true; break; } // (Violet Preset Color)			Specifies a color with RGB value (238,130,238)
-					break;
-				case 'w':
-					if (str == L"wheat") { RGB = 0xF5DEB3; bSet = true; break; } // (Wheat Preset Color)			Specifies a color with RGB value (245,222,179)
-					else if (str == L"white") { RGB = 0xFFFFFF; bSet = true; break; } // (White Preset Color)			Specifies a color with RGB value (255,255,255)
-					else if (str == L"whiteSmoke") { RGB = 0xF5F5F5; bSet = true; break; } // (White Smoke Preset Color)		Specifies a color with RGB value (245,245,245)
-					else if (str == L"windowsText") { RGB = 0x000000; bSet = true; break; } // (White Smoke Preset Color)		Specifies a color with RGB value (245,245,245)
-					break;
-				case 'y':
-					if (str == L"yellow") { RGB = 0xFFFF00; bSet = true; break; } // (Yellow Preset Color)			Specifies a color with RGB value (255,255,0)
-					else if (str == L"yellowGreen") { RGB = 0x9ACD32; bSet = true; break; } // (Yellow Green Preset Color)		Specifies a color with RGB value (154,205,50)
-					break;
-				}
-			}
-			if (bSet)
-			{
-				color.R = (BYTE)(RGB >> 16);
-				color.G = (BYTE)(RGB >> 8);
-				color.B = (BYTE)(RGB);
-				color.A = 0;
-			}
+		}
+		if (bSet)
+		{
+			color.R = (BYTE)(RGB >> 16);
+			color.G = (BYTE)(RGB >> 8);
+			color.B = (BYTE)(RGB);
+			color.A = 0;
 		}
 		return bSet;
 	}
@@ -1239,11 +1241,10 @@ CDrawingConverter::CDrawingConverter()
     m_lCurrentObjectTop     = 0;
     m_pOOXToVMLRenderer     = NULL;
     m_bIsUseConvertion2007  = true;
-	m_bNeedMainProps		= false;
-    m_pBinaryWriter         = new NSBinPptxRW::CBinaryFileWriter();
-    m_pReader               = new NSBinPptxRW::CBinaryFileReader();
-    m_pImageManager         = new NSBinPptxRW::CImageManager2();
-    m_pXmlWriter            = new NSBinPptxRW::CXmlWriter();
+    m_pBinaryWriter			= new NSBinPptxRW::CBinaryFileWriter();
+    m_pBinaryReader			= new NSBinPptxRW::CBinaryFileReader();
+    m_pImageManager			= new NSBinPptxRW::CImageManager2();
+    m_pXmlWriter			= new NSBinPptxRW::CXmlWriter();
    
 	m_pTheme                = new NSCommon::smart_ptr<PPTX::Theme>();
 	m_pClrMap               = new NSCommon::smart_ptr<PPTX::Logic::ClrMap>;
@@ -1253,30 +1254,30 @@ CDrawingConverter::~CDrawingConverter()
 	Clear();
 	RELEASEOBJECT(m_pOOXToVMLRenderer);
 	RELEASEOBJECT(m_pBinaryWriter);
-	RELEASEOBJECT(m_pReader);
+	RELEASEOBJECT(m_pBinaryReader);
 	RELEASEOBJECT(m_pImageManager);
 	RELEASEOBJECT(m_pXmlWriter);
 	RELEASEOBJECT(m_pTheme);
 	RELEASEOBJECT(m_pClrMap);
 }
-void CDrawingConverter::SetMainDocument(BinDocxRW::CDocxSerializer* pDocument)
+void CDrawingConverter::SetDocxSerializer(BinDocxRW::CDocxSerializer* pDocxSerializer)
 {
 	m_pBinaryWriter->ClearNoAttack();
 	m_pBinaryWriter->m_pCommon->m_pMediaManager->Clear();
 	
-	m_pBinaryWriter->SetMainDocument(pDocument);
-	m_pReader->SetMainDocument(pDocument);
+	m_pBinaryWriter->m_pDocxSerializer = pDocxSerializer;
+	m_pBinaryReader->m_pDocxSerializer = pDocxSerializer;
 	m_lNextId = 1;
 
-	m_pImageManager->m_nDocumentType = m_pReader->m_nDocumentType = XMLWRITER_DOC_TYPE_DOCX;
+	m_pImageManager->m_nDocumentType = m_pBinaryReader->m_nDocumentType = XMLWRITER_DOC_TYPE_DOCX;
 }
 
 void CDrawingConverter::SetSrcPath(const std::wstring& sPath, int nDocType)
 {
 	OOX::CPath path(sPath);
     
-	m_pReader->m_pRels->m_pManager  = m_pImageManager;
-    m_pReader->m_strFolder          = path.GetPath();
+	m_pBinaryReader->m_pRels->m_pManager  = m_pImageManager;
+    m_pBinaryReader->m_strFolder          = path.GetPath();
 
     m_pImageManager->m_nDocumentType = nDocType;
 }
@@ -1344,7 +1345,7 @@ void CDrawingConverter::AddShapeType(XmlUtils::CXmlNode& oNode)
 		m_mapShapeTypes.insert(std::make_pair(strId, pS));			
 	}
 }
-HRESULT CDrawingConverter::AddShapeType(const std::wstring& bsXml)
+void CDrawingConverter::AddShapeType(const std::wstring& bsXml)
 {
     std::wstring strXml = L"<main ";
 
@@ -1385,381 +1386,9 @@ HRESULT CDrawingConverter::AddShapeType(const std::wstring& bsXml)
 
 		AddShapeType(oNodeST);
     }
-
-	return S_OK;
 }
 
-PPTX::Logic::SpTreeElem CDrawingConverter::ObjectFromXml(const std::wstring& sXml, 	std::wstring** ppMainProps)
-{
-	PPTX::Logic::SpTreeElem oElem;
-    std::wstring sBegin(L"<main xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" \
-xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
-xmlns:p=\"urn:schemas-microsoft-com:office:powerpoint\" \
-xmlns:v=\"urn:schemas-microsoft-com:vml\" \
-xmlns:x=\"urn:schemas-microsoft-com:office:excel\" \
-xmlns:o=\"urn:schemas-microsoft-com:office:office\" \
-xmlns:w10=\"urn:schemas-microsoft-com:office:word\" \
-xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" \
-xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" \
-xmlns:ve=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
-xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" \
-xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" \
-xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" \
-xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" \
-xmlns:w15=\"http://schemas.microsoft.com/office/word/2012/wordml\" \
-xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" \
-xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" \
-xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" \
-xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\" \
-xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" \
-xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\" \
-xmlns:pic=\"http://schemas.openxmlformats.org/drawingml/2006/picture\" \
-xmlns:xdr=\"http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing\">");
-    
-    std::wstring sEnd(L"</main>");
-    std::wstring strXml = sBegin + sXml + sEnd;
-
-	XmlUtils::CXmlNode oMainNode;
-	if (!oMainNode.FromXmlString(strXml))
-		return oElem;
-
-	std::vector<XmlUtils::CXmlNode> oNodes;
-    if (!oMainNode.GetNodes(L"*", oNodes))
-		return oElem;
-
-	for (size_t i = 0; i < oNodes.size(); ++i)
-	{
-		XmlUtils::CXmlNode & oParseNode = oNodes[i];
-
-		std::wstring strFullName = oParseNode.GetName();
-        std::wstring strNS       = XmlUtils::GetNamespace(strFullName);
-        std::wstring strName     = XmlUtils::GetNameNoNS(strFullName);
-
-        while (true)
-		{
-            if (strName == L"drawing")
-			{
-				ConvertDrawing(&oElem, oParseNode, ppMainProps, true);
-				break;
-			}
-            else if (strName == L"background")
-            {
-				ConvertShape(&oElem, oParseNode, ppMainProps, false);
-                break;
-             }
-            else if (strName == L"pict" || strName == L"object")
-			{
-				//сначала shape type
-				XmlUtils::CXmlNode oNodeST;
-				if (oParseNode.GetNode(L"v:shapetype", oNodeST))
-				{
-					AddShapeType(oNodeST);
-				}
-
-				std::vector<XmlUtils::CXmlNode> oChilds;
-                if (oParseNode.GetNodes(L"*", oChilds))
-				{
-					size_t lChildsCount = oChilds.size();
-                    bool bIsFound = false;
-					PPTX::Logic::SpTreeElem* pElem = NULL;
-					PPTX::Logic::COLEObject* pOle = NULL;
-					for (size_t k = 0; k < oChilds.size(); k++)
-					{
-						XmlUtils::CXmlNode & oNodeP = oChilds[k];
-
-						std::wstring strNameP = XmlUtils::GetNameNoNS(oNodeP.GetName());
-                        if (L"shape"     == strNameP ||
-                            L"rect"      == strNameP ||
-                            L"oval"      == strNameP ||
-                            L"line"      == strNameP ||
-                            L"background"== strNameP ||
-                            L"roundrect" == strNameP ||
-                            L"polyline"  == strNameP)
-						{
-
-							if(NULL == pElem)
-							{
-								pElem = new PPTX::Logic::SpTreeElem;	
-								ConvertShape(pElem, oNodeP, ppMainProps, true);
-
-#ifdef AVS_OFFICE_DRAWING_DUMP_XML_TEST
-								NSBinPptxRW::CXmlWriter oXmlW(m_pReader->m_nDocumentType);
-								pElem->toXmlWriter(&oXmlW);
-								std::wstring strXmlTemp = oXmlW.GetXmlString();
-#endif
-							}
-						}
-						else if (L"binData" == strNameP)
-						{
-							AddBinData(oNodeP);
-						}
-                        else if (L"OLEObject" == strNameP || L"objectEmbed" == strNameP)
-						{
-							pOle = new PPTX::Logic::COLEObject();
-							pOle->fromXML(oNodeP);
-						}
-                        else if (L"group" == strNameP)
-						{
-							if(NULL == pElem)
-							{
-								pElem = new PPTX::Logic::SpTreeElem;
-								ConvertGroup(pElem, oNodeP, ppMainProps, true);
-
-#ifdef AVS_OFFICE_DRAWING_DUMP_XML_TEST
-								NSBinPptxRW::CXmlWriter oXmlW(m_pReader->m_nDocumentType);
-								pElem->toXmlWriter(&oXmlW);
-								std::wstring strXmlTemp = oXmlW.GetXmlString();
-#endif
-							}
-						}
-						else if (L"drawing" == strNameP)
-						{
-							ConvertDrawing(pElem, oNodeP, ppMainProps, true);
-						}
-						else
-						{
-							continue;
-						}
-
-						if (bIsFound)
-							break;
-					}
-					if(NULL != pElem)
-					{
-						if(NULL != pOle && pOle->m_sProgId.IsInit() && (pOle->m_oId.IsInit() || pOle->m_OleObjectFile.IsInit()))
-						{
-							PPTX::Logic::Shape* pShape = dynamic_cast<PPTX::Logic::Shape*>(pElem->GetElem().operator ->());
-							if(NULL != pShape && pShape->spPr.Fill.Fill.IsInit())
-							{
-								bool bImageOle = false;
-
-								if (pShape->spPr.Fill.m_type == PPTX::Logic::UniFill::blipFill) bImageOle = true;
-								
-								PPTX::Logic::BlipFill oBlipFillNew;
-
-								if (!bImageOle)
-									oBlipFillNew.blip = new PPTX::Logic::Blip();
-
-								const PPTX::Logic::BlipFill& oBlipFill = bImageOle ? pShape->spPr.Fill.Fill.as<PPTX::Logic::BlipFill>() : oBlipFillNew;
-								
-								if(oBlipFill.blip.IsInit())
-								{
-									if (pOle->m_OleObjectFile.IsInit())
-									{
-										oBlipFill.blip->oleFilepathBin = pOle->m_OleObjectFile->filename().GetPath();
-									}
-									else if (pOle->m_oId.IsInit())
-									{
-										oBlipFill.blip->oleRid = pOle->m_oId.get().ToString();
-									}
-                                    if(strName == L"object")
-									{
-                                        int nDxaOrig = oParseNode.ReadAttributeInt(L"w:dxaOrig");
-                                        int nDyaOrig = oParseNode.ReadAttributeInt(L"w:dyaOrig");
-										if (nDxaOrig > 0 && nDyaOrig > 0)
-										{
-											pOle->m_oDxaOrig = nDxaOrig;
-											pOle->m_oDyaOrig = nDyaOrig;
-										}
-									}
-
-									PPTX::Logic::Pic *newElem = new PPTX::Logic::Pic();
-
-									newElem->blipFill	= oBlipFill;
-									newElem->spPr		= pShape->spPr;
-									newElem->style		= pShape->style;
-									newElem->oleObject.reset(pOle);
-									pOle = NULL;								
-									
-									pElem->InitElem(newElem);
-								}
-							}
-						}
-						m_pBinaryWriter->WriteRecord1(1, *pElem);
-					}
-					RELEASEOBJECT(pElem)
-					RELEASEOBJECT(pOle)
-				}
-
-				break;
-			}
-			else if (strName == L"oleObj")
-			{
-				nullable<PPTX::Logic::Pic> pic = oParseNode.ReadNode(_T("p:pic"));
-				if (pic.is_init())
-				{
-					pic->fromXMLOle(oParseNode); // todooo сделать норальный объект 
-
-					m_pBinaryWriter->WriteRecord2(1, pic);
-				}
-				break;
-			}
-			else if (strName == L"AlternateContent")
-			{
-				XmlUtils::CXmlNode oNodeDr;
-                if (oParseNode.GetNode(L"w:drawing", oNodeDr))
-				{
-                    strName = L"drawing";
-					oParseNode = oNodeDr;
-					continue;
-				}
-
-                if (oParseNode.GetNode(L"mc:Choice", oNodeDr))
-				{
-					oParseNode = oNodeDr;
-					continue;
-				}
-
-                if (oParseNode.GetNode(L"w:pict", oNodeDr))
-				{
-                    strName = L"pict";
-					oParseNode = oNodeDr;
-					continue;
-				}
-
-                if (oParseNode.GetNode(L"w:object", oNodeDr))
-				{
-                    strName = L"object";
-					oParseNode = oNodeDr;
-					continue;
-				}
-
-                if (oParseNode.GetNode(L"xdr:sp", oNodeDr))
-				{
-                    strName = L"sp";
-					oParseNode = oNodeDr;
-					continue;
-				}
-
-                if (oParseNode.GetNode(L"mc:Fallback", oNodeDr))
-				{
-					oParseNode = oNodeDr;
-					continue;
-				}				
-
-				break;
-			}
-			else
-			{
-				oElem = oParseNode;
-				break;
-			}
-		}
-	}
-	return oElem;
-}
-
-std::wstring CDrawingConverter::ObjectToDrawingML(const std::wstring& sXml, int nDocType)
-{
-	std::wstring *pMainProps	= new std::wstring();
-
-	PPTX::Logic::SpTreeElem oElem = ObjectFromXml(sXml, &pMainProps);
-	
-	if (oElem.is_init() == false) return L"";
-
-	NSBinPptxRW::CXmlWriter oXmlWriter(nDocType);
-	oXmlWriter.m_bIsUseOffice2007 = false;
-
-	oXmlWriter.m_bIsTop = true;
-	
-	oXmlWriter.WriteString(L"<w:drawing>");
-
-	bool bIsInline = false;
-	
-	std::wstring strMainProps = *pMainProps;
-	std::wstring strMainPropsTail;
-    
-	int nIndexF = (int)strMainProps.find(L"</wp:inline>");
-	if (-1 != nIndexF)
-	{
-		bIsInline = true;
-		strMainProps = strMainProps.substr(0, nIndexF);
-	}
-	else
-	{
-        nIndexF = (int)strMainProps.find(L"</wp:anchor>");
-		strMainProps = strMainProps.substr(0, nIndexF);
-	}
-
-	if (-1 == nIndexF)
-	{
-		oElem.toXmlWriter(&oXmlWriter);
-		return oXmlWriter.GetXmlString();
-	}
-
-    int nIndexTail = (int)strMainProps.find(L"<wp14:sizeRel");
-	if(-1 != nIndexTail)
-	{
-        strMainPropsTail    = strMainProps.substr( nIndexTail );
-        strMainProps        = strMainProps.substr(0, nIndexTail);
-	}
-
-	oXmlWriter.WriteString(strMainProps);
-
-	if (oElem.is<PPTX::Logic::SpTree>())
-	{
-        oXmlWriter.WriteString(L"<a:graphic xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\">\
-<a:graphicData uri=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\">");
-	}
-	else if (oElem.is<PPTX::Logic::Pic>())
-	{
-        oXmlWriter.WriteString(L"<a:graphic xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\">\
-<a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">");
-	}
-	else
-	{
-        oXmlWriter.WriteString(L"<a:graphic xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\">\
-<a:graphicData uri=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\">");
-	}
-	oElem.toXmlWriter(&oXmlWriter);
-    oXmlWriter.WriteString(L"</a:graphicData></a:graphic>");
-
-	oXmlWriter.WriteString(strMainPropsTail);
-    oXmlWriter.WriteString(bIsInline ? L"</wp:inline>" : L"</wp:anchor>");
-
-    oXmlWriter.WriteString(L"</w:drawing>");
-
-	delete pMainProps;
-
-	return oXmlWriter.GetXmlString();
-}
-
-std::wstring CDrawingConverter::ObjectToVML	(const std::wstring& sXml)
-{
-	std::wstring *pMainProps	= new std::wstring();
-	
-	PPTX::Logic::SpTreeElem oElem = ObjectFromXml(sXml, &pMainProps);
-	
-	if (oElem.is_init() == false) return L"";
-	
-	NSBinPptxRW::CXmlWriter oXmlWriter(m_pReader->m_nDocumentType);
-	oXmlWriter.m_bIsUseOffice2007 = true;
-
-	oXmlWriter.m_bIsTop = true;
-	
-	if (NULL == m_pOOXToVMLRenderer)
-		m_pOOXToVMLRenderer = new COOXToVMLGeometry();
-	oXmlWriter.m_pOOXToVMLRenderer = m_pOOXToVMLRenderer;
-
-	oXmlWriter.WriteString(L"<w:pict>");
-
-	if (oElem.is<PPTX::Logic::SpTree>())
-	{
-		ConvertGroupVML(oElem, *pMainProps, oXmlWriter);
-	}
-	else if (oElem.is<PPTX::Logic::Shape>())
-	{
-		ConvertShapeVML(oElem, *pMainProps, oXmlWriter);
-	}
-
-    oXmlWriter.WriteString(L"</w:pict>");
-
-	delete pMainProps;
-
-	return oXmlWriter.GetXmlString();
-}
-
-HRESULT CDrawingConverter::AddObject(const std::wstring& bsXml, std::wstring** pMainProps)
+bool CDrawingConverter::AddObject(const std::wstring& bsXml, std::wstring* pMainProps)
 {
     std::wstring strXml = _start_xml_object + bsXml + _end_xml_object;
     
@@ -1769,7 +1398,7 @@ HRESULT CDrawingConverter::AddObject(const std::wstring& bsXml, std::wstring** p
     bool bResult = ParceObject(strXml, pMainProps);
     --m_lCurrentObjectTop;
 
-	return bResult ? S_OK : S_FALSE;
+	return bResult;
 }
 void CDrawingConverter::ConvertVml(const std::wstring& sXml, std::vector<nullable<PPTX::Logic::SpTreeElem>> &elements, NSCommon::nullable<OOX::WritingElement>& anchor)
 {
@@ -1783,8 +1412,7 @@ void CDrawingConverter::ConvertVml(const std::wstring& sXml, std::vector<nullabl
 	if (!oMainNode.GetNodes(L"*", oNodes))
 		return;
 
-	std::wstring* mainProps = NULL;
-	std::wstring** ppMainProps = &mainProps;
+	std::wstring* pMainProps = NULL;
 
 	for (size_t i = 0; i < oNodes.size(); ++i)
 	{
@@ -1801,7 +1429,7 @@ void CDrawingConverter::ConvertVml(const std::wstring& sXml, std::vector<nullabl
 				nullable<PPTX::Logic::SpTreeElem> elem;
 				elem.Init();
 
-				ConvertShape(elem.GetPointer(), oParseNode, ppMainProps, false);
+				ConvertShape(elem.GetPointer(), oParseNode, pMainProps, false);
 				elements.push_back(elem);
 				break;
 			}
@@ -1841,7 +1469,7 @@ void CDrawingConverter::ConvertVml(const std::wstring& sXml, std::vector<nullabl
 							if (false == pElem.IsInit())
 							{
 								pElem = new PPTX::Logic::SpTreeElem;
-								ConvertShape(pElem.GetPointer(), oNodeP, ppMainProps, true);
+								ConvertShape(pElem.GetPointer(), oNodeP, pMainProps, true);
 							}
 						}
 						else if (L"OLEObject" == strNameP || L"objectEmbed" == strNameP)
@@ -1858,7 +1486,7 @@ void CDrawingConverter::ConvertVml(const std::wstring& sXml, std::vector<nullabl
 							if (false == pElem.IsInit())
 							{
 								pElem = new PPTX::Logic::SpTreeElem;
-								ConvertGroup(pElem.GetPointer(), oNodeP, ppMainProps, true);
+								ConvertGroup(pElem.GetPointer(), oNodeP, pMainProps, true);
 							}
 						}
 						else if (L"drawing" == strNameP)
@@ -1866,7 +1494,7 @@ void CDrawingConverter::ConvertVml(const std::wstring& sXml, std::vector<nullabl
 							if (false == pElem.IsInit())
 							{
 								pElem = new PPTX::Logic::SpTreeElem;
-								ConvertDrawing(pElem.GetPointer(), oNodeP, ppMainProps, true);
+								ConvertDrawing(pElem.GetPointer(), oNodeP, pMainProps, true);
 							}
 						}
 						else
@@ -1934,9 +1562,9 @@ void CDrawingConverter::ConvertVml(const std::wstring& sXml, std::vector<nullabl
 		}
 	}
 
-	if (mainProps)
+	if (pMainProps)
 	{
-		strXml = _start_xml_object + *mainProps + _end_xml_object;
+		strXml = _start_xml_object + *pMainProps + _end_xml_object;
 
 		XmlUtils::CXmlLiteReader oReader;
 		oReader.FromString(strXml);
@@ -1956,21 +1584,21 @@ void CDrawingConverter::ConvertVml(const std::wstring& sXml, std::vector<nullabl
 				anchor->fromXML(oReader);
 			}
 		}
-		RELEASEOBJECT(mainProps);
+		RELEASEOBJECT(pMainProps);
 	}
 }
-bool CDrawingConverter::ParceObject(const std::wstring& strXml, std::wstring** pMainProps)
+bool CDrawingConverter::ParceObject(const std::wstring& strXml, std::wstring* pMainProps)
 {
 	XmlUtils::CXmlNode oMainNode;
 	if (!oMainNode.FromXmlString(strXml))
-		return NULL;
+		return false;
 
 	std::vector<XmlUtils::CXmlNode> oNodes;
     if (!oMainNode.GetNodes(L"*", oNodes))
-		return NULL;
+		return false;
 
 	m_pBinaryWriter->StartRecord(0);
-	m_pBinaryWriter->ClearCurShapePositionAndSizes();
+	m_pBinaryWriter->ClearCurShapeSize();
 
 	size_t lCount = oNodes.size();
 	for (size_t i = 0; i < lCount; ++i)
@@ -2080,11 +1708,6 @@ bool CDrawingConverter::ParceObject(const std::wstring& strXml, std::wstring** p
 						}
 						if ((pPicture) && (pPicture->blipFill.blip.IsInit()))
 						{
-							if (pPicture->spPr.xfrm.IsInit())
-							{// for bad replacemant image for ole
-								m_pBinaryWriter->m_dCxCurShape = pPicture->spPr.xfrm->extX.get_value_or(0);
-								m_pBinaryWriter->m_dCyCurShape = pPicture->spPr.xfrm->extY.get_value_or(0);
-							}
 							if (pOle->m_OleObjectFile.IsInit())
 							{
 								pPicture->blipFill.blip->oleFilepathBin = pOle->m_OleObjectFile->filename().GetPath();
@@ -2107,8 +1730,12 @@ bool CDrawingConverter::ParceObject(const std::wstring& strXml, std::wstring** p
 							pOle = NULL;								
 						}
 					}
+					//std::wstring test;
 					if (pElem)
+					{
 						m_pBinaryWriter->WriteRecord1(1, *pElem);
+						//test = pElem->toXML();
+					}
 
 					RELEASEOBJECT(pElem)
 					RELEASEOBJECT(pOle)
@@ -2130,108 +1757,11 @@ bool CDrawingConverter::ParceObject(const std::wstring& strXml, std::wstring** p
 	}
 
 	m_pBinaryWriter->EndRecord();
+	
 	return true;
 }
 
-void CDrawingConverter::ConvertDiagram(PPTX::Logic::SpTreeElem *result, XmlUtils::CXmlNode& oNode, std::wstring**& pMainProps, bool bIsTop)
-{
-	if (!result) return;
-
-	nullable<OOX::RId>		id_data;
-	nullable<OOX::RId>		id_drawing;
-
-	smart_ptr<OOX::File>	oFileData;
-	smart_ptr<OOX::File>	oFileDrawing;
-
-	OOX::CDiagramData*		pDiagramData	= NULL;
-	OOX::CDiagramDrawing*	pDiagramDrawing	= NULL;
-
-    XmlMacroReadAttributeBase(oNode, L"r:dm", id_data);
-	
-	if (id_data.IsInit())
-	{
-		oFileData = m_pBinaryWriter->GetRels()->Find(*id_data);
-		
-		if (oFileData.is_init())
-		{
-			pDiagramData = dynamic_cast<OOX::CDiagramData*>(oFileData.GetPointer());										
-			if ((pDiagramData) && (pDiagramData->m_oDataModel.IsInit()))
-			{
-				for (size_t i = 0; (pDiagramData->m_oDataModel->m_oExtLst.IsInit()) && i < pDiagramData->m_oDataModel->m_oExtLst->m_arrExt.size(); i++)
-				{
-					if (pDiagramData->m_oDataModel->m_oExtLst->m_arrExt[i]->m_oDataModelExt.IsInit())
-					{
-						id_drawing = pDiagramData->m_oDataModel->m_oExtLst->m_arrExt[i]->m_oDataModelExt->m_oRelId;
-						break;
-					}
-				}
-			}
-		}
-		if (id_drawing.is_init())
-		{
-			oFileDrawing = m_pBinaryWriter->GetRels()->Find(*id_drawing);
-			pDiagramDrawing = dynamic_cast<OOX::CDiagramDrawing*>(oFileDrawing.GetPointer());
-		}
-		if (!pDiagramDrawing && pDiagramData)
-		{
-		   OOX::CPath pathDiagramData = pDiagramData->m_strFilename;
-
-			int a1 = (int)pathDiagramData.GetFilename().find(L".");
-			std::wstring strId = pathDiagramData.GetFilename().substr(4, pathDiagramData.GetFilename().length() - 8);
-			
-			OOX::CPath pathDiagramDrawing = pathDiagramData.GetDirectory() + FILE_SEPARATOR_STR + L"drawing" + strId + L".xml";	
-
-			if (NSFile::CFileBinary::Exists(pathDiagramDrawing.GetPath()))
-			{
-				oFileDrawing = smart_ptr<OOX::File>(dynamic_cast<OOX::File*>(new OOX::CDiagramDrawing(NULL, pathDiagramDrawing)));
-				if (oFileDrawing.IsInit())
-					pDiagramDrawing = dynamic_cast<OOX::CDiagramDrawing*>(oFileDrawing.GetPointer());
-			}
-		}
-	}
-
-	if ((pDiagramDrawing) && (pDiagramDrawing->m_oShapeTree.IsInit()))
-	{
-		result->InitElem(new PPTX::Logic::SpTree(*pDiagramDrawing->m_oShapeTree));
-		//to correct write blipFill rId to binary
-		SetRels(pDiagramDrawing);
-	}
-	else
-	{//BG-FSC1.docx
-		//parse pDiagramData !!
-	}
-	if (result->is<PPTX::Logic::SpTree>())
-	{
-		PPTX::Logic::SpTree& _pElem = result->as<PPTX::Logic::SpTree>();
-		if (!_pElem.grpSpPr.xfrm.is_init())
-		{
-			_pElem.grpSpPr.xfrm = new PPTX::Logic::Xfrm();
-
-			_pElem.grpSpPr.xfrm->offX = m_pBinaryWriter->m_dXCurShape;
-			_pElem.grpSpPr.xfrm->offY = m_pBinaryWriter->m_dYCurShape;
-			_pElem.grpSpPr.xfrm->extX = m_pBinaryWriter->m_dCxCurShape;
-			_pElem.grpSpPr.xfrm->extY = m_pBinaryWriter->m_dCyCurShape;
-			_pElem.grpSpPr.xfrm->chOffX = (int)0;
-			_pElem.grpSpPr.xfrm->chOffY = (int)0;
-			_pElem.grpSpPr.xfrm->chExtX = m_pBinaryWriter->m_dCxCurShape;
-			_pElem.grpSpPr.xfrm->chExtY = m_pBinaryWriter->m_dCyCurShape;
-		}
-		else
-		{
-			if (!_pElem.grpSpPr.xfrm->offX.is_init())	_pElem.grpSpPr.xfrm->offX = m_pBinaryWriter->m_dXCurShape;
-			if (!_pElem.grpSpPr.xfrm->offY.is_init())	_pElem.grpSpPr.xfrm->offY = m_pBinaryWriter->m_dYCurShape;
-			if (!_pElem.grpSpPr.xfrm->extX.is_init())	_pElem.grpSpPr.xfrm->extX = m_pBinaryWriter->m_dCxCurShape;
-			if (!_pElem.grpSpPr.xfrm->extY.is_init())	_pElem.grpSpPr.xfrm->extY = m_pBinaryWriter->m_dCyCurShape;
-			
-			if (!_pElem.grpSpPr.xfrm->chOffX.is_init())	_pElem.grpSpPr.xfrm->chOffX = (int)0;
-			if (!_pElem.grpSpPr.xfrm->chOffY.is_init())	_pElem.grpSpPr.xfrm->chOffY = (int)0;
-			if (!_pElem.grpSpPr.xfrm->chExtX.is_init())	_pElem.grpSpPr.xfrm->chExtX = m_pBinaryWriter->m_dCxCurShape;
-			if (!_pElem.grpSpPr.xfrm->chExtY.is_init())	_pElem.grpSpPr.xfrm->chExtY = m_pBinaryWriter->m_dCyCurShape;
-		}
-					
-	}								
-}
-void CDrawingConverter::ConvertDrawing(PPTX::Logic::SpTreeElem *elem, XmlUtils::CXmlNode& oNodeShape, std::wstring**& pMainProps, bool bIsTop)
+void CDrawingConverter::ConvertDrawing(PPTX::Logic::SpTreeElem *elem, XmlUtils::CXmlNode& oNodeShape, std::wstring* pMainProps, bool bIsTop)
 {
 	if (!elem) return;
 
@@ -2245,13 +1775,12 @@ void CDrawingConverter::ConvertDrawing(PPTX::Logic::SpTreeElem *elem, XmlUtils::
 	{
 		XmlUtils::CXmlNode oNodeExt;
 
-		m_pBinaryWriter->m_dXCurShape = 0;
-		m_pBinaryWriter->m_dYCurShape = 0;
-
 		if (oNodeAnchorInline.GetNode(L"wp:extent", oNodeExt))
 		{
-			m_pBinaryWriter->m_dCxCurShape = oNodeExt.ReadAttributeInt(L"cx");
-			m_pBinaryWriter->m_dCyCurShape = oNodeExt.ReadAttributeInt(L"cy");
+			double cx = oNodeExt.ReadAttributeInt(L"cx");
+			double cy = oNodeExt.ReadAttributeInt(L"cy");
+		
+			m_pBinaryWriter->SetCurShapeSize(cx, cy);
 		}
 		XmlUtils::CXmlNode oNodeDocPr;
 		if (oNodeAnchorInline.GetNode(L"wp:docPr", oNodeDocPr))
@@ -2259,7 +1788,10 @@ void CDrawingConverter::ConvertDrawing(PPTX::Logic::SpTreeElem *elem, XmlUtils::
 			oNodeDocPr.SetAttributeInt(L"id", m_lNextId++);
 
 		}
-		SendMainProps(oNodeAnchorInline.GetXml(), pMainProps);
+		if (bIsTop)
+		{
+			SendMainProps(oNodeAnchorInline.GetXml(), pMainProps);
+		}
 
 		XmlUtils::CXmlNode oNodeGraphic = oNodeAnchorInline.ReadNodeNoNS(L"graphic");
 		XmlUtils::CXmlNode oNodeGraphicData = oNodeGraphic.ReadNodeNoNS(L"graphicData");
@@ -2273,19 +1805,9 @@ void CDrawingConverter::ConvertDrawing(PPTX::Logic::SpTreeElem *elem, XmlUtils::
 			{
 				XmlUtils::CXmlNode &oNodeContent = oChilds[0];
 
-/*				if (L"dgm:relIds" == oNodeContent.GetName() && m_pBinaryWriter->m_pCurrentContainer->is_init())
-				{
-					ConvertDiagram(elem, oNodeContent, pMainProps, true);
-				}
-				else */if (L"wpc:wpc" == oNodeContent.GetName())
+				if (L"wpc:wpc" == oNodeContent.GetName())
 				{
 					PPTX::Logic::SpTree* pTree = new PPTX::Logic::SpTree();
-
-					pTree->grpSpPr.xfrm = new PPTX::Logic::Xfrm();
-					pTree->grpSpPr.xfrm->offX = m_pBinaryWriter->m_dXCurShape;
-					pTree->grpSpPr.xfrm->offY = m_pBinaryWriter->m_dYCurShape;
-					pTree->grpSpPr.xfrm->extX = m_pBinaryWriter->m_dCxCurShape;
-					pTree->grpSpPr.xfrm->extY = m_pBinaryWriter->m_dCyCurShape;
 
 					pTree->fromXML(oNodeContent);
 					elem->InitElem(pTree);
@@ -2298,7 +1820,7 @@ void CDrawingConverter::ConvertDrawing(PPTX::Logic::SpTreeElem *elem, XmlUtils::
 		}
 	}
 }
-void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CXmlNode& oNodeShape, std::wstring**& pMainProps, bool bIsTop)
+void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CXmlNode& oNodeShape, std::wstring* pMainProps, bool bIsTop)
 {
 	if (!elem) return;
 
@@ -2344,7 +1866,10 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 			}
 			else
 			{
-				pPPTShape->SetAdjustment(0, value.GetValue() / 10.);
+				if (value.GetValue() < 1)
+					pPPTShape->SetAdjustment(0, value.GetValue() * 10000);
+				else
+					pPPTShape->SetAdjustment(0, value.GetValue() / 10.);
 			}
 		}
 		pPPTShape->ReCalculate();
@@ -2554,7 +2079,10 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 	if (pPPTShape != NULL)
 	{	
 		if (!bSetShape)
+		{
 			oShapeElem.m_pShape->setBaseShape(CBaseShapePtr(pPPTShape));
+			bSetShape = true;
+		}
 		if (bIsNeedCoordSizes)
 		{
 			LoadCoordSize(oNodeShape, oShapeElem.m_pShape);
@@ -2592,6 +2120,8 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 		
 		if (bPicture && false == pPPTShape->m_oSignatureLine.IsInit())
 		{
+			bStroked = false;
+
 			pPicture = new PPTX::Logic::Pic();
 			elem->InitElem(pPicture);
 
@@ -2822,10 +2352,10 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 			{
 				std::wstring sId = oNodeTextData.GetAttribute(L"id");
 
-				if (sId.length() > 0 && m_pBinaryWriter->GetRels().IsInit())
+				if (sId.length() > 0 && m_pBinaryWriter->GetRelsPtr())
 				{
 					OOX::RId rId(sId);
-					smart_ptr<PPTX::LegacyDiagramText> pExt = m_pBinaryWriter->GetRels()->Get<PPTX::LegacyDiagramText>(rId);
+					smart_ptr<PPTX::LegacyDiagramText> pExt = m_pBinaryWriter->GetRelsPtr()->Get<PPTX::LegacyDiagramText>(rId);
 
 					if (pExt.IsInit())
 					{
@@ -2921,17 +2451,9 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 			{
 				pSpPr->xfrm = new PPTX::Logic::Xfrm();
 
-				if (*pMainProps)
-				{//oProps.X выставлять не надо, они учтены в pMainProps
+				pSpPr->xfrm->offX = oProps.X;
+				pSpPr->xfrm->offY = oProps.Y;
 
-					pSpPr->xfrm->offX = 0;
-					pSpPr->xfrm->offY = 0;
-				}
-				else
-				{
-					pSpPr->xfrm->offX = oProps.X;
-					pSpPr->xfrm->offY = oProps.Y;
-				}
 				pSpPr->xfrm->extX = oProps.Width;
 				pSpPr->xfrm->extY = oProps.Height;
 			}
@@ -2959,12 +2481,6 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 		}
 		else
 		{
-			m_pBinaryWriter->m_dXCurShape = 0;
-			m_pBinaryWriter->m_dYCurShape = 0;
-
-			m_pBinaryWriter->m_dCxCurShape = 0;
-			m_pBinaryWriter->m_dCyCurShape = 0;
-
 			pSpPr->xfrm = new PPTX::Logic::Xfrm();
 			pSpPr->xfrm->offX = oProps.X;
 			pSpPr->xfrm->offY = oProps.Y;
@@ -3014,13 +2530,13 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 		}
 		
 		CheckBrushShape(elem, oNodeShape, pPPTShape);
-
 		CheckBorderShape(elem, oNodeShape, pPPTShape);
+		CheckEffectShape(elem, oNodeShape, pPPTShape);
 
 ////test
-		NSBinPptxRW::CXmlWriter oXml;
-		elem->toXmlWriter(&oXml);
-		std::wstring test = oXml.GetXmlString();
+		//NSBinPptxRW::CXmlWriter oXml;
+		//elem->toXmlWriter(&oXml);
+		//std::wstring test = oXml.GetXmlString();
 
 		
 	}
@@ -3696,7 +3212,7 @@ void CDrawingConverter::ConvertWordArtShape(PPTX::Logic::SpTreeElem* elem, XmlUt
 		// bottom: Descent
 	}
 }
-void CDrawingConverter::ConvertGroup(PPTX::Logic::SpTreeElem *result, XmlUtils::CXmlNode& oNode, std::wstring**& pMainProps, bool bIsTop)
+void CDrawingConverter::ConvertGroup(PPTX::Logic::SpTreeElem *result, XmlUtils::CXmlNode& oNode, std::wstring* pMainProps, bool bIsTop)
 {
 	if (!result) return;
 
@@ -3723,7 +3239,15 @@ void CDrawingConverter::ConvertGroup(PPTX::Logic::SpTreeElem *result, XmlUtils::
 			}
 		}
 	}
-	
+	std::wstring strStyle = oNode.GetAttribute(L"style");
+
+	PPTX::CCSS oCSSParser;
+	oCSSParser.LoadFromString2(strStyle);
+
+	CSpTreeElemProps oProps;
+	oProps.IsTop = bIsTop;
+	std::wstring strMainPos = GetDrawingMainProps(oNode, oCSSParser, oProps);
+
 	if (oNode.GetNodes(L"*", oNodes))
 	{
 		size_t nCount = oNodes.size();
@@ -3763,15 +3287,6 @@ void CDrawingConverter::ConvertGroup(PPTX::Logic::SpTreeElem *result, XmlUtils::
 				continue;
 		}
 	}
-
-    std::wstring strStyle = oNode.GetAttribute(L"style");
-
-	PPTX::CCSS oCSSParser;
-	oCSSParser.LoadFromString2(strStyle);
-
-	CSpTreeElemProps oProps;
-	oProps.IsTop = bIsTop;
-	std::wstring strMainPos = GetDrawingMainProps(oNode, oCSSParser, oProps);
 
 	LONG lCoordOriginX = 0;
 	LONG lCoordOriginY = 0;
@@ -4048,11 +3563,6 @@ std::wstring CDrawingConverter::GetDrawingMainProps(XmlUtils::CXmlNode& oNode, P
 	LONG width	= 0;
 	LONG height = 0;
 
-    pFind = oCssStyles.m_mapSettings.find(L"polyline_correct");
-	bool bIsPolyCorrect = (oCssStyles.m_mapSettings.end() != pFind) ? true : false;
-	if (bIsPolyCorrect)
-		dKoefSize = 1;
-
 	if (!bIsInline)
 	{
         pFind = oCssStyles.m_mapSettings.find(L"margin-left");
@@ -4162,11 +3672,10 @@ std::wstring CDrawingConverter::GetDrawingMainProps(XmlUtils::CXmlNode& oNode, P
 	oProps.Width	= width;
 	oProps.Height	= height;
 
-	m_pBinaryWriter->m_dXCurShape = left;
-	m_pBinaryWriter->m_dYCurShape = top;
-
-	m_pBinaryWriter->m_dCxCurShape = width;
-	m_pBinaryWriter->m_dCyCurShape = height;
+	if (oProps.IsTop)
+	{
+		m_pBinaryWriter->SetCurShapeSize(width, height); 
+	}
 
  	bool bExtendedSize = false;
 	XmlUtils::CXmlNode oNodeShadow = oNode.ReadNode(L"v:shadow");
@@ -4602,240 +4111,112 @@ std::wstring CDrawingConverter::GetDrawingMainProps(XmlUtils::CXmlNode& oNode, P
 	return oWriter.GetXmlString();
 }
 
-
-std::wstring CDrawingConverter::GetVMLShapeXml(PPTX::Logic::SpTreeElem& oElem)
+void CDrawingConverter::SendMainProps(const std::wstring& strMainProps, std::wstring* pMainProps)
 {
-	CPPTXShape* pShapePPTX = NULL;
-	if (oElem.is<PPTX::Logic::Shape>())
+	if (pMainProps && ((m_pBinaryWriter) && (m_pBinaryWriter->m_pDocxSerializer)) || !m_pBinaryWriter)
 	{
-		const PPTX::Logic::Shape& lpOriginShape = oElem.as<PPTX::Logic::Shape>();
+		*pMainProps = strMainProps;
+	}
+}
+void CDrawingConverter::CheckEffectShape(PPTX::Logic::SpTreeElem* oElem, XmlUtils::CXmlNode& oNode, CPPTShape* pPPTShape)
+{
+	if (!oElem) return;
 
-		if (lpOriginShape.spPr.Geometry.is<PPTX::Logic::PrstGeom>())
-		{
-			const PPTX::Logic::PrstGeom lpGeom = lpOriginShape.spPr.Geometry.as<PPTX::Logic::PrstGeom>();
+	PPTX::Logic::Shape* pShape = dynamic_cast<PPTX::Logic::Shape*>	(oElem->GetElem().operator ->());
+	PPTX::Logic::Pic* pPicture = dynamic_cast<PPTX::Logic::Pic*>	(oElem->GetElem().operator ->());
 
-			OOXMLShapes::ShapeType _lspt = PPTX2EditorAdvanced::GetShapeTypeFromStr(lpGeom.prst.get());
-			if(_lspt != OOXMLShapes::sptNil) 
-			{
-				pShapePPTX = new CPPTXShape();
-				pShapePPTX->SetType(NSBaseShape::pptx, _lspt);
+	PPTX::Logic::SpPr* pSpPr = NULL;
 
-				std::wstring strAdjustValues = lpGeom.GetODString();
-				pShapePPTX->LoadAdjustValuesList(strAdjustValues);
-			}
-		}
-		else if(lpOriginShape.spPr.Geometry.is<PPTX::Logic::CustGeom>())
-		{
-			const PPTX::Logic::CustGeom lpGeom = lpOriginShape.spPr.Geometry.as<PPTX::Logic::CustGeom>();
-			std::wstring strShape = lpGeom.GetODString();
-			pShapePPTX = new CPPTXShape();
-			pShapePPTX->LoadFromXML(strShape);
-		}
+	if (pShape)		pSpPr = &pShape->spPr;
+	if (pPicture)	pSpPr = &pPicture->spPr;
+
+	if (!pSpPr) return;
+
+	XmlUtils::CXmlNode oNodeShadow = oNode.ReadNode(L"v:shadow");
+	SimpleTypes::CTrueFalse bShadowEnabled = SimpleTypes::booleanFalse;
+
+	if (oNodeShadow.IsValid())
+	{
+		XmlMacroReadAttributeBase(oNodeShadow, L"on", bShadowEnabled);
+	}
+	if (bShadowEnabled.GetBool())
+	{
+		nullable<SimpleTypes::CColorType> oColor;
+		nullable<SimpleTypes::CColorType> oColor2;
+		nullable_string											oId;
+		nullable<SimpleTypes::Vml::CVml_Matrix>					oMatrix;
+		nullable<SimpleTypes::CTrueFalse>						oObscured;
+		nullable<SimpleTypes::Vml::CVml_Vector2D_Units_Or_Percentage> oOffset;
+		nullable<SimpleTypes::Vml::CVml_Vector2D_Units_Or_Percentage> oOffset2;
+		nullable<SimpleTypes::Vml::CVml_1_65536>				oOpacity;
+		nullable<SimpleTypes::Vml::CVml_Vector2D_Percentage>	oOrigin;
+		SimpleTypes::CShadowType								oType;
+
+		XmlMacroReadAttributeBase(oNodeShadow, L"id", oId);
+		XmlMacroReadAttributeBase(oNodeShadow, L"type", oType);
+		XmlMacroReadAttributeBase(oNodeShadow, L"color", oColor);
+		XmlMacroReadAttributeBase(oNodeShadow, L"opacity", oOpacity);
+		XmlMacroReadAttributeBase(oNodeShadow, L"offset", oOffset);
+		XmlMacroReadAttributeBase(oNodeShadow, L"origin", oOrigin);
+		XmlMacroReadAttributeBase(oNodeShadow, L"obscured", oObscured);
+		XmlMacroReadAttributeBase(oNodeShadow, L"color2", oColor2);
+		XmlMacroReadAttributeBase(oNodeShadow, L"offset2", oOffset2);
+		XmlMacroReadAttributeBase(oNodeShadow, L"matrix", oMatrix);
+
+		if (false == pSpPr->EffectList.is_init())
+			pSpPr->EffectList.List = new PPTX::Logic::EffectLst();
+
+		PPTX::Logic::EffectLst* pEffectLst = dynamic_cast<PPTX::Logic::EffectLst*>(pSpPr->EffectList.List.GetPointer());
+
+		pEffectLst->outerShdw.Init();
+
+		pEffectLst->outerShdw->Color.Color = new PPTX::Logic::SrgbClr();
+
+		if (oColor.IsInit())
+			pEffectLst->outerShdw->Color.Color->SetRGB(oColor->Get_R(), oColor->Get_G(), oColor->Get_B());
 		else
+			pEffectLst->outerShdw->Color.Color->SetRGB(0x80, 0x80, 0x80);
+
+		if (oOpacity.is_init())
 		{
-			pShapePPTX = new CPPTXShape();
-			pShapePPTX->SetType(NSBaseShape::pptx, (int)OOXMLShapes::sptCRect);
-		}								
-	}
+			BYTE lAlpha = oOpacity->GetValue() * 255;
 
-	if (NULL != pShapePPTX)
-	{
-		NSGuidesVML::CConverterPPTXPPT oConverterPPTX_2_PPT;
-		oConverterPPTX_2_PPT.Convert(pShapePPTX);
-
-		std::wstring sDumpXml = GetVMLShapeXml(oConverterPPTX_2_PPT.GetConvertedShape());
-
-		return sDumpXml;
-	}
-
-    return L"";
-}
-
-std::wstring CDrawingConverter::GetVMLShapeXml(CPPTShape* pPPTShape)
-{
-	NSBinPptxRW::CXmlWriter oXmlWriter;
-    oXmlWriter.StartNode(L"v:shape");
-	oXmlWriter.StartAttributes();
-
-    std::wstring strCoordSize;
-	LONG lCoordW = 21600;
-	LONG lCoordH = 21600;
-	if (0 < pPPTShape->m_oPath.m_arParts.size())
-	{
-		lCoordW = pPPTShape->m_oPath.m_arParts[0].width;
-		lCoordH = pPPTShape->m_oPath.m_arParts[0].height;
-	}
-    strCoordSize = std::to_wstring(lCoordW) + L"," + std::to_wstring(lCoordH);
-    oXmlWriter.WriteAttribute(L"coordsize", strCoordSize);
-
-	int nAdjCount = (int)pPPTShape->m_arAdjustments.size();
-	if (nAdjCount > 0)
-	{
-        oXmlWriter.WriteString(L" adj=\"");
-
-		for (int i = 0; i < nAdjCount; ++i)
-		{
-			if (0 != i)
-			{
-                std::wstring s = L"," + std::to_wstring(pPPTShape->m_arAdjustments[i]);
-				oXmlWriter.WriteString(s);
-			}
-			else
-			{
-                oXmlWriter.WriteString(std::to_wstring(pPPTShape->m_arAdjustments[i]));
-			}
+			PPTX::Logic::ColorModifier oMod;
+			oMod.name = L"alpha";
+			int nA = (int)(lAlpha * 100000.0 / 255.0);
+			oMod.val = nA;
+			pEffectLst->outerShdw->Color.Color->Modifiers.push_back(oMod);
 		}
 
-        oXmlWriter.WriteString(L"\"");
-	}
-
-    oXmlWriter.WriteAttribute(L"path", pPPTShape->m_strPath);
-	oXmlWriter.EndAttributes();
-
-	std::vector<CFormula>& arGuides = pPPTShape->m_oManager.m_arFormulas;
-	int nGuides = (int)arGuides.size();
-	if (nGuides != 0)
-	{
-        oXmlWriter.StartNode(L"v:formulas");
-		oXmlWriter.StartAttributes();
-		oXmlWriter.EndAttributes();
-
-		for (int i = 0; i < nGuides; ++i)
+		if (oOffset.IsInit())
 		{
-			CFormula& oGuide = arGuides[i];
-			if ((int)oGuide.m_eFormulaType >= VML_GUIDE_COUNT)
-				break;
+			double offsetX = oOffset->IsXinPoints() ? oOffset->GetX() : 0;
+			double offsetY = oOffset->IsYinPoints() ? oOffset->GetY() : 0;
 
-            oXmlWriter.WriteString(L"<v:f eqn=\"");
-			
-            oXmlWriter.WriteString(VML_GUIDE_TYPE[(int)oGuide.m_eFormulaType]);
-			
-			BYTE nParams = VML_GUIDE_PARAM_COUNT[(int)oGuide.m_eFormulaType];
-			if (nParams > 0)
-			{
-                std::wstring str;
-				if (oGuide.m_eType1 == ptAdjust)
-				{
-                    str = L" #";
-				}
-				else if (oGuide.m_eType1 == ptFormula)
-				{
-                    str = L" @";
-				}
-				else
-				{
-                    str = L" ";
-				}
-                str += std::to_wstring(oGuide.m_lParam1);
-                oXmlWriter.WriteString(str);
-			}
-			if (nParams > 1)
-			{
-                std::wstring str;
-				if (oGuide.m_eType2 == ptAdjust)
-				{
-                     str = L" #";
-				}
-				else if (oGuide.m_eType2 == ptFormula)
-				{
-                     str = L" @";
-				}
-				else
-				{
-                     str = L" ";
-				}
-                str += std::to_wstring(oGuide.m_lParam2);
-                oXmlWriter.WriteString(str);
-			}
-			if (nParams > 2)
-			{
-                std::wstring str ;
-				if (oGuide.m_eType3 == ptAdjust)
-				{
-                    str = L" #";
-				}
-				else if (oGuide.m_eType3 == ptFormula)
-				{
-                    str = L" @";
-				}
-				else
-				{
-                    str = L" ";
-				}
-                str += std::to_wstring(oGuide.m_lParam3);
-				oXmlWriter.WriteString(str);
-			}
+			double dist = sqrt(offsetX * offsetX + offsetY * offsetY);
+			double dir = ((offsetX != 0) ? atan(offsetY / offsetX) : 1) * 180. / 3.1415926;
+			if (offsetX < 0) dir += 180;
+			if (dir < 0) dir += 360;
 
-            oXmlWriter.WriteString(L"\"/>");
+			pEffectLst->outerShdw->dist = dist * (635 * 20);
+			pEffectLst->outerShdw->dir = (int)(dir * 60000);
 		}
 
-        oXmlWriter.EndNode(L"v:formulas");
+		pEffectLst->outerShdw->rotWithShape = false;
 
-		size_t nTextRectCount = pPPTShape->m_arStringTextRects.size();
-		if (0 < nTextRectCount)
+		if (oMatrix.IsInit())
 		{
-            oXmlWriter.WriteString(L"<v:path textboxrect=\"");
-
-			for (size_t i = 0; i < nTextRectCount; ++i)
-			{
-				if (0 != i)
-                    oXmlWriter.WriteString(L",");
-
-				oXmlWriter.WriteString(pPPTShape->m_arStringTextRects[i]);
-			}
-
-            oXmlWriter.WriteString(L"\"/>");
-		}
-
-		int nHandles = (int)pPPTShape->m_arHandles.size();
-		if (0 < nHandles)
-		{
-            oXmlWriter.StartNode(L"v:handles");
-			oXmlWriter.StartAttributes();
-			oXmlWriter.EndAttributes();
-
-			for (int i = 0; i < nHandles; ++i)
-			{
-                oXmlWriter.StartNode(L"v:h");
-				
-				CHandle_& oH = pPPTShape->m_arHandles[i];
-
-                if (oH.position != L"")
-                    oXmlWriter.WriteAttribute(L"position", oH.position);
-
-                if (oH.xrange != L"")
-                    oXmlWriter.WriteAttribute(L"xrange", oH.xrange);
-
-                if (oH.yrange != L"")
-                    oXmlWriter.WriteAttribute(L"yrange", oH.yrange);
-
-                if (oH.polar != L"")
-                    oXmlWriter.WriteAttribute(L"polar", oH.polar);
-
-                if (oH.radiusrange != L"")
-                    oXmlWriter.WriteAttribute(L"radiusrange", oH.radiusrange);
-
-                if (oH.switchHandle != L"")
-                    oXmlWriter.WriteAttribute(L"switch", oH.switchHandle);
-
-                oXmlWriter.WriteString(L"/>");
-			}
-
-            oXmlWriter.EndNode(L"v:handles");
+			if (oMatrix->m_dSxx > 1.001 || oMatrix->m_dSxx < 0.999)
+				pEffectLst->outerShdw->sx = (int)(oMatrix->m_dSxx / 65535. * 100000);
+			if (oMatrix->m_dSyy > 1.001 || oMatrix->m_dSyy < 0.999)
+				pEffectLst->outerShdw->sy = (int)(oMatrix->m_dSyy / 65535. * 100000);
+			if (oMatrix->m_dSxy > 0.001 || oMatrix->m_dSxy < 0)
+				pEffectLst->outerShdw->ky = (int)(oMatrix->m_dSxy / 65535. * 100000);
+			if (oMatrix->m_dSyx > 0.001 || oMatrix->m_dSyx < 0)
+				pEffectLst->outerShdw->kx = (int)(oMatrix->m_dSyx / 65535. * 100000);
 		}
 	}
 
-    oXmlWriter.EndNode(L"v:shape");
-	return oXmlWriter.GetXmlString();
-}
-
-void CDrawingConverter::SendMainProps(const std::wstring& strMainProps, std::wstring**& pMainProps)
-{
-	if (((m_pBinaryWriter) && (m_pBinaryWriter->m_pMainDocument)) || !m_pBinaryWriter || m_bNeedMainProps)
-	{
-		*pMainProps = new std::wstring();
-		**pMainProps = strMainProps;
-	}
 }
 void CDrawingConverter::CheckBorderShape(PPTX::Logic::SpTreeElem* oElem, XmlUtils::CXmlNode& oNode, CPPTShape* pPPTShape)
 {
@@ -5092,10 +4473,15 @@ void CDrawingConverter::CheckBrushShape(PPTX::Logic::SpTreeElem* oElem, XmlUtils
 		}
 
 		nullable_string sRid;
-		XmlMacroReadAttributeBase(oNodeFill, L"r:id", sRid);
+		XmlMacroReadAttributeBase(oNodeFill, L"o:relid", sRid);
+
 		if (false == sRid.IsInit())
 		{
 			XmlMacroReadAttributeBase(oNodeFill, L"relationships:id", sRid);
+		}
+		if (false == sRid.IsInit())
+		{
+			XmlMacroReadAttributeBase(oNodeFill, L"o:relid", sRid);
 		}
 		if (sRid.is_init())
 		{
@@ -5337,7 +4723,7 @@ void CDrawingConverter::CheckBrushShape(PPTX::Logic::SpTreeElem* oElem, XmlUtils
 			nullable_string sPictId;
 			XmlMacroReadAttributeBase(oNodeFillID, L"r:pict", sPictId);
 
-			if (sRid.is_init() || sRelid.is_init() || sPictId.is_init() || oElem->m_binaryData.IsInit() || sTitle.IsInit())
+			if (sRid.is_init() || sRelid.is_init() || sPictId.is_init() || oElem->m_binaryData.IsInit() || (sTitle.IsInit() && !sTitle->empty()))
 			{
 				nullable_string sType;
 				XmlMacroReadAttributeBase(oNodeFillID, L"type", sType);
@@ -5783,7 +5169,7 @@ HRESULT CDrawingConverter::LoadClrMap(const std::wstring& bsXml)
 	return S_OK;
 }
 
-HRESULT CDrawingConverter::SaveObject(LONG lStart, LONG lLength, const std::wstring& bsMainProps, std::wstring & sXml)
+void CDrawingConverter::SaveObject(LONG lStart, LONG lLength, const std::wstring& bsMainProps, std::wstring & sXml)
 {
 	bool bIsInline = false;
 	std::wstring strMainProps = bsMainProps;
@@ -5801,7 +5187,7 @@ HRESULT CDrawingConverter::SaveObject(LONG lStart, LONG lLength, const std::wstr
 	}
 
 	if (-1 == nIndexF)
-		return S_FALSE;
+		return;
 
     int nIndexTail = (int)strMainProps.find(L"<wp14:sizeRel");
 	if(-1 != nIndexTail)
@@ -5812,33 +5198,33 @@ HRESULT CDrawingConverter::SaveObject(LONG lStart, LONG lLength, const std::wstr
 
 	/*
     std::wstring strId = L"");
-    strId.Format(L"<wp:docPr id=\"%d\" name=\"\"/>"), m_pReader->GenerateNextId());
+    strId.Format(L"<wp:docPr id=\"%d\" name=\"\"/>"), m_pBinaryReader->GenerateNextId());
 	strMainProps += strId;
 	*/
 
     //strMainProps += L"<wp:cNvGraphicFramePr/>");
 
-	m_pReader->Seek(lStart);
+	m_pBinaryReader->Seek(lStart);
 	
 	++m_nCurrentIndexObject;
 
-	BYTE typeRec1 = m_pReader->GetUChar(); // must be 0;
-	LONG szRec1 = m_pReader->GetRecordSize();
-	LONG _e = m_pReader->GetPos() + szRec1 + 4;
+	BYTE typeRec1 = m_pBinaryReader->GetUChar(); // must be 0;
+	LONG szRec1 = m_pBinaryReader->GetRecordSize();
+	LONG _e = m_pBinaryReader->GetPos() + szRec1 + 4;
 
 	if (typeRec1 == 0 && szRec1 > 0)
 	{
-		BYTE typeRec2 = m_pReader->GetUChar(); // must be 1;
-		LONG szRec2 = m_pReader->GetLong();
+		BYTE typeRec2 = m_pBinaryReader->GetUChar(); // must be 1;
+		LONG szRec2 = m_pBinaryReader->GetLong();
 
 		if (typeRec2 == 1 && szRec2 > 0)
 		{
 			PPTX::Logic::SpTreeElem oElem;
 
-			if (m_pReader->m_nDocumentType == 0)
-				m_pReader->m_nDocumentType = XMLWRITER_DOC_TYPE_DOCX;
+			if (m_pBinaryReader->m_nDocumentType == 0)
+				m_pBinaryReader->m_nDocumentType = XMLWRITER_DOC_TYPE_DOCX;
 
-			oElem.fromPPTY(m_pReader);
+			oElem.fromPPTY(m_pBinaryReader);
 			bool bOle = false;
 			if (oElem.is<PPTX::Logic::Pic>())
 			{
@@ -5865,7 +5251,7 @@ HRESULT CDrawingConverter::SaveObject(LONG lStart, LONG lLength, const std::wstr
 					bSignatureLine = true;
 				}
 			}
-			NSBinPptxRW::CXmlWriter oXmlWriter(m_pReader->m_nDocumentType);
+			NSBinPptxRW::CXmlWriter oXmlWriter(m_pBinaryReader->m_nDocumentType);
 
 			oXmlWriter.m_lObjectIdVML = m_pXmlWriter->m_lObjectIdVML;
 			oXmlWriter.m_lObjectIdOle = m_pXmlWriter->m_lObjectIdOle;
@@ -5931,7 +5317,59 @@ HRESULT CDrawingConverter::SaveObject(LONG lStart, LONG lLength, const std::wstr
 					oXmlWriter.WriteString(L"<a:graphic xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\">\
 		<a:graphicData uri=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\">");
 				}
-				oElem.toXmlWriter(&oXmlWriter); 
+
+				if (m_pBinaryReader->m_nDocumentType == XMLWRITER_DOC_TYPE_DOCX)
+				{
+					PPTX::Logic::Xfrm *pXfrm = NULL;
+					if (oElem.getType() == OOX::et_pic)
+					{
+						PPTX::Logic::Pic& s = oElem.as<PPTX::Logic::Pic>();
+						if (s.spPr.xfrm.IsInit() == false)
+						{
+							//s.spPr.xfrm.Init(); pXfrm = s.spPr.xfrm.GetPointer();
+						}
+					}
+					else if (oElem.getType() == OOX::et_graphicFrame)
+					{
+						PPTX::Logic::GraphicFrame& s = oElem.as<PPTX::Logic::GraphicFrame>();
+						if (s.xfrm.IsInit() == false)
+						{
+							s.xfrm.Init(); pXfrm = s.xfrm.GetPointer();
+						}
+					}
+					else if (oElem.getType() == OOX::et_p_ShapeTree)
+					{
+						PPTX::Logic::SpTree& s = oElem.as<PPTX::Logic::SpTree>();
+						if (s.grpSpPr.xfrm.IsInit() == false)
+						{
+							s.grpSpPr.xfrm.Init(); pXfrm = s.grpSpPr.xfrm.GetPointer();
+						}
+					}
+					else if (oElem.getType() == OOX::et_a_Shape)
+					{
+						PPTX::Logic::Shape& s = oElem.as<PPTX::Logic::Shape>();
+						if (s.spPr.xfrm.IsInit() == false)
+						{
+							s.spPr.xfrm.Init(); pXfrm = s.spPr.xfrm.GetPointer();
+						}
+					}
+					else if (oElem.getType() == OOX::et_cxnSp)
+					{
+						PPTX::Logic::CxnSp& s = oElem.as<PPTX::Logic::CxnSp>();
+						if (s.spPr.xfrm.IsInit() == false)
+						{
+							s.spPr.xfrm.Init(); pXfrm = s.spPr.xfrm.GetPointer();
+						}
+					}
+					if (pXfrm)
+					{
+						pXfrm->extX = 0;
+						pXfrm->extY = 0;
+						pXfrm->offX = 0;
+						pXfrm->offY = 0;
+					}
+				}
+				oElem.toXmlWriter(&oXmlWriter);
 				
 				if (bAddGraphicData)
 					oXmlWriter.WriteString(L"</a:graphicData></a:graphic>");
@@ -5970,8 +5408,7 @@ HRESULT CDrawingConverter::SaveObject(LONG lStart, LONG lLength, const std::wstr
 		}
 	}
 
-	m_pReader->Seek(_e);
-	return S_OK;
+	m_pBinaryReader->Seek(_e);
 }
 void CDrawingConverter::SaveObjectExWriterInit(NSBinPptxRW::CXmlWriter& oXmlWriter, int nDocType)
 {
@@ -5991,33 +5428,33 @@ void CDrawingConverter::SaveObjectExWriterRelease(NSBinPptxRW::CXmlWriter& oXmlW
 	m_pXmlWriter->m_lObjectIdVML = oXmlWriter.m_lObjectIdVML;
 	m_pXmlWriter->m_lObjectIdOle = oXmlWriter.m_lObjectIdOle;
 }
-HRESULT CDrawingConverter::SaveObjectEx(LONG lStart, LONG lLength, const std::wstring& bsMainProps, int nDocType, std::wstring & sXml)
+void CDrawingConverter::SaveObjectEx(long lStart, long lLength, const std::wstring& sMainProps, int nDocType, std::wstring& sXml)
 {
 	m_pImageManager->m_nDocumentType = nDocType;
 	
 	if (XMLWRITER_DOC_TYPE_DOCX == nDocType || 
 		XMLWRITER_DOC_TYPE_DOCX_GLOSSARY == nDocType)	//docx
 	{
-		m_pReader->m_nDocumentType = nDocType;
-		return SaveObject(lStart, lLength, bsMainProps, sXml);
+		m_pBinaryReader->m_nDocumentType = nDocType;
+		return SaveObject(lStart, lLength, sMainProps, sXml);
 	}
 	else
 	{
 		PPTX::Logic::SpTreeElem oElem;
 
-		m_pReader->Seek(lStart);
+		m_pBinaryReader->Seek(lStart);
 
-		m_pReader->m_nDocumentType = nDocType;	
+		m_pBinaryReader->m_nDocumentType = nDocType;	
 		++m_nCurrentIndexObject;
 		
-		BYTE typeRec1   = m_pReader->GetUChar();    // must be 0;
-		LONG _e         = m_pReader->GetPos()   + m_pReader->GetLong() + 4;
-		
+		BYTE typeRec1 = m_pBinaryReader->GetUChar();    // must be 0;
+		LONG _e = m_pBinaryReader->GetPos() + m_pBinaryReader->GetLong() + 4;
+
 		try
 		{
-			m_pReader->Skip(5); // type record (must be 1) + 4 byte - len record
+			m_pBinaryReader->Skip(5); // type record (must be 1) + 4 byte - len record
 
-			oElem.fromPPTY(m_pReader);			
+			oElem.fromPPTY(m_pBinaryReader);			
 		}
 		catch(...)
 		{
@@ -6034,14 +5471,14 @@ HRESULT CDrawingConverter::SaveObjectEx(LONG lStart, LONG lLength, const std::ws
 			}
 		}
 		
-		m_pReader->m_nDocumentType = XMLWRITER_DOC_TYPE_PPTX;
+		m_pBinaryReader->m_nDocumentType = XMLWRITER_DOC_TYPE_PPTX;
 
 		NSBinPptxRW::CXmlWriter oXmlWriter;
 		SaveObjectExWriterInit(oXmlWriter, nDocType);
 
 		if(bOle)
 		{
-			ConvertPicVML(oElem, bsMainProps, oXmlWriter);
+			ConvertPicVML(oElem, sMainProps, oXmlWriter);
 		}
 		else
 		{
@@ -6053,26 +5490,25 @@ HRESULT CDrawingConverter::SaveObjectEx(LONG lStart, LONG lLength, const std::ws
 		SaveObjectExWriterRelease(oXmlWriter);
 		sXml = oXmlWriter.GetXmlString();
 	
-		m_pReader->Seek(_e);
+		m_pBinaryReader->Seek(_e);
 	}
-	return S_OK;
 }
 std::wstring CDrawingConverter::SaveObjectBackground(LONG lStart, LONG lLength)
 {
 	if (lLength < 1) return L"";
 
-	m_pReader->Seek(lStart);
+	m_pBinaryReader->Seek(lStart);
 
 	++m_nCurrentIndexObject;
-	BYTE typeRec1 = m_pReader->GetUChar(); // must be 0;
-	LONG _e = m_pReader->GetPos() + m_pReader->GetRecordSize() + 4;
+	BYTE typeRec1 = m_pBinaryReader->GetUChar(); // must be 0;
+	LONG _e = m_pBinaryReader->GetPos() + m_pBinaryReader->GetRecordSize() + 4;
 	
 	PPTX::Logic::SpTreeElem oElem;
 	try
 	{
-		m_pReader->Skip(5); // type record (must be 1) + 4 byte - len record
+		m_pBinaryReader->Skip(5); // type record (must be 1) + 4 byte - len record
 
-		oElem.fromPPTY(m_pReader);
+		oElem.fromPPTY(m_pBinaryReader);
 	}
 	catch(...)
 	{
@@ -6080,22 +5516,23 @@ std::wstring CDrawingConverter::SaveObjectBackground(LONG lStart, LONG lLength)
 	}
 
 	NSBinPptxRW::CXmlWriter oXmlWriter;
-	SaveObjectExWriterInit(oXmlWriter, m_pReader->m_nDocumentType);
+	SaveObjectExWriterInit(oXmlWriter, m_pBinaryReader->m_nDocumentType);
 
-	m_pReader->m_nDocumentType = XMLWRITER_DOC_TYPE_PPTX;
+	m_pBinaryReader->m_nDocumentType = XMLWRITER_DOC_TYPE_PPTX;
 
 	if (oElem.is<PPTX::Logic::Shape>())
 	{
 		oXmlWriter.m_bIsTop = true; // не забыть скинуть в самом шейпе
 
 		PPTX::Logic::Shape& oShape = oElem.as<PPTX::Logic::Shape>();
-		oShape.toXmlWriterVMLBackground(&oXmlWriter, *m_pTheme, *m_pClrMap);
+		OOX::IFileContainer* rels = GetRelsPtr();
+		oShape.toXmlWriterVMLBackground(&oXmlWriter, *m_pTheme, *m_pClrMap, rels);
 	}
 	--m_nCurrentIndexObject;
 
 	SaveObjectExWriterRelease(oXmlWriter);
 
-	m_pReader->Seek(_e);
+	m_pBinaryReader->Seek(_e);
 	return oXmlWriter.GetXmlString();
 }
 
@@ -6117,7 +5554,8 @@ void CDrawingConverter::ConvertShapeVML(PPTX::Logic::SpTreeElem& oElem, const st
 		oWriter.m_bIsTop = true; // не забыть скинуть в самом шейпе
 		
 		PPTX::Logic::Shape& oShape = oElem.as<PPTX::Logic::Shape>();
-		oShape.toXmlWriterVML(&oWriter, *m_pTheme, *m_pClrMap, false, bSignature);
+		OOX::IFileContainer* rels = GetRelsPtr();
+		oShape.toXmlWriterVML(&oWriter, *m_pTheme, *m_pClrMap, rels, false, bSignature);
 	}
 }
 
@@ -6130,7 +5568,110 @@ void CDrawingConverter::ConvertGroupVML(PPTX::Logic::SpTreeElem& oElem, const st
 		oWriter.m_bIsTop = true; // не забыть скинуть в самом шейпе (вместе с остальными параметрами)
 		
 		PPTX::Logic::SpTree& oGroup = oElem.as<PPTX::Logic::SpTree>();
-		oGroup.toXmlWriterVML(&oWriter, *m_pTheme, *m_pClrMap);
+		OOX::IFileContainer* rels = GetRelsPtr();
+		oGroup.toXmlWriterVML(&oWriter, *m_pTheme, *m_pClrMap, rels);
+	}
+}
+void CDrawingConverter::ConvertParaVML(XmlUtils::CXmlNode& node, PPTX::Logic::Paragraph *p)
+{
+	if (!p) return;
+
+	std::wstring strStyle = node.GetAttribute(L"style");
+	PPTX::CCSS oCSSParser;
+	oCSSParser.LoadFromString2(strStyle);
+
+	//todooo oCSSParser->pPr
+
+	std::vector<XmlUtils::CXmlNode> nodesDiv1 = node.GetNodes(L"*");
+	for (auto node1 : nodesDiv1)
+	{
+		if (node1.IsValid())
+		{
+			PPTX::Logic::Run* run = new PPTX::Logic::Run();
+
+			std::wstring name = node1.GetName();
+			if (name == L"p" || name == L"div")
+			{
+				ConvertParaVML(node1, p);
+			}
+			else if (name == L"font")
+			{
+				run->rPr = new PPTX::Logic::RunProperties();
+
+				std::wstring text = node1.GetText();
+
+				if (true == text.empty())
+				{
+					std::vector<XmlUtils::CXmlNode> nodesDiv2 = node1.GetNodes(L"*");
+					for (auto node2 : nodesDiv2)
+					{
+						name = node2.GetName();
+						std::wstring text2 = node2.GetText();
+
+						if (name == L"b")
+							run->rPr->b = true;
+						else if (name == L"i")
+							run->rPr->i = true;
+
+						if (false == text2.empty())
+						{
+							text += text2;
+						}
+
+						std::vector<XmlUtils::CXmlNode> nodesDiv3 = node2.GetNodes(L"*");
+						for (auto node3 : nodesDiv3)
+						{
+							name = node3.GetName();
+
+							if (name == L"b")
+								run->rPr->b = true;
+							else if (name == L"i")
+								run->rPr->i = true;
+
+							text += node3.GetText();
+						}
+					}
+				}
+				run->SetText(text);
+
+				std::vector<std::wstring > attNames, attValues;
+				node1.GetAllAttributes(attNames, attValues);
+
+				if (attNames.size() > 0)
+				{
+					for (size_t r = 0; r < attNames.size(); r++)
+					{
+						if (attNames[r] == L"color" && attValues[r].length() == 7)
+						{
+							XmlUtils::replace_all(attValues[r], L"#", L"");
+
+							PPTX::Logic::SolidFill* fill = new PPTX::Logic::SolidFill();
+							PPTX::Logic::SrgbClr* color = new PPTX::Logic::SrgbClr();
+
+							color->SetHexString(attValues[r]);
+							fill->Color.Color = color;
+
+							run->rPr->Fill.Fill = fill;
+							run->rPr->Fill.m_type = PPTX::Logic::UniFill::solidFill;
+						}
+						else if (attNames[r] == L"size")
+						{
+							run->rPr->sz = XmlUtils::GetInteger(attValues[r]) * 5;
+						}
+						else if (attNames[r] == L"face")
+						{
+							run->rPr->latin = new PPTX::Logic::TextFont();
+							run->rPr->latin->typeface = attValues[r];
+							run->rPr->latin->m_name = L"a:latin";
+						}
+					}
+				}
+				PPTX::Logic::RunElem elm;
+				p->RunElems.push_back(elm);
+
+				p->RunElems.back().InitRun(run);
+			}
+		}
 	}
 }
 void CDrawingConverter::ConvertTextVML(XmlUtils::CXmlNode &nodeTextBox, PPTX::Logic::Shape* pShape)
@@ -6152,66 +5693,9 @@ void CDrawingConverter::ConvertTextVML(XmlUtils::CXmlNode &nodeTextBox, PPTX::Lo
 			{
 				PPTX::Logic::Paragraph p;
 
-                std::wstring strStyle = node.GetAttribute(L"style");
-				PPTX::CCSS oCSSParser;
-				oCSSParser.LoadFromString2(strStyle);
+				ConvertParaVML(node, &p);
 
-				//todooo oCSSParser->pPr
-
-                std::vector<XmlUtils::CXmlNode> nodesDiv = node.GetNodes(L"*");
-				for (size_t j = 0 ; j < nodesDiv.size(); j++)
-				{
-					XmlUtils::CXmlNode node1 = nodesDiv[j];
-					if (node1.IsValid())
-					{
-						name = node1.GetName();
-                        if (name == L"font")
-						{
-							PPTX::Logic::Run  *run = new PPTX::Logic::Run();
-							
-							run->SetText(node1.GetText());
-							
-							std::vector<std::wstring > attNames, attValues;
-                            node1.GetAllAttributes(attNames,attValues);
-
-							if (attNames.size() > 0)
-							{
-								run->rPr = new PPTX::Logic::RunProperties();							
-									
-								for (size_t r = 0; r < attNames.size(); r++)
-								{
-                                    if (attNames[r] == L"color" && attValues[r].length() == 7)
-									{
-                                        XmlUtils::replace_all(attValues[r], L"#", L"");
-
-                                        PPTX::Logic::SolidFill	*fill	= new PPTX::Logic::SolidFill();
-										PPTX::Logic::SrgbClr	*color	= new PPTX::Logic::SrgbClr();
-										
-										color->SetHexString(attValues[r]);
-										fill->Color.Color = color;
-										
-										run->rPr->Fill.Fill = fill;
-										run->rPr->Fill.m_type = PPTX::Logic::UniFill::solidFill;
-									}
-                                    else if (attNames[r] == L"size")
-									{
-                                        run->rPr->sz = XmlUtils::GetInteger(attValues[r]) * 5;
-									}
-                                    else if (attNames[r] == L"face")
-									{	
-										run->rPr->latin = new PPTX::Logic::TextFont();
-										run->rPr->latin->typeface = attValues[r];
-									}
-								}
-							}
-							PPTX::Logic::RunElem elm;
-							p.RunElems.push_back(elm);
-							
-							p.RunElems.back().InitRun(run);
-						}
-					}
-				}
-				pShape->txBody->Paragrs.push_back(p);
+			pShape->txBody->Paragrs.push_back(p);
 			}
 		}
 	}
@@ -6482,236 +5966,26 @@ void CDrawingConverter::ConvertMainPropsToVML(const std::wstring& bsMainProps, N
 	outWriter.m_strStyleMain = oWriter.GetXmlString();
 }
 
-//HRESULT CDrawingConverter::GetTxBodyBinary(const std::wstring& bsXml)
-//{
-//	XmlUtils::CXmlNode oNode;
-//	if (!oNode.FromXmlString((std::wstring)bsXml))
-//		return S_FALSE;
-//	
-//	PPTX::Logic::TxBody oTxBody(oNode);
-//
-//	//m_pBinaryWriter->ClearNoAttack();
-//	//ULONG lOldPos = m_pBinaryWriter->GetPosition();
-//	m_pBinaryWriter->m_pCommon->CheckFontPicker();
-//	//m_pBinaryWriter->m_pCommon->m_pNativePicker->Init(m_strFontDirectory);
-//
-//	m_pBinaryWriter->WriteRecord1(0, oTxBody);
-//
-//	//m_pBinaryWriter->SetPosition(lOldPos);
-//
-//	//m_pBinaryWriter->ClearNoAttack();
-//	return S_OK;
-//}
-
-//HRESULT CDrawingConverter::GetTxBodyXml(LONG lStart, std::wstring& sXml)
-//{
-//	m_pReader->Seek(lStart);
-//
-//	BYTE type = m_pReader->GetUChar();
-//    if (0 != type)
-//		return S_FALSE;
-//
-//	PPTX::Logic::TxBody oTxBody;
-//	oTxBody.fromPPTY(m_pReader);
-//
-//	NSBinPptxRW::CXmlWriter oWriter;
-//	oTxBody.toXmlWriterExcel(&oWriter);
-//
-//    sXml = oWriter.GetXmlString();
-//
-//	return S_OK;
-//}
-
-HRESULT CDrawingConverter::SetFontDir(const std::wstring& bsFontDir)
+void CDrawingConverter::SetFontDir(const std::wstring& bsFontDir)
 {
 	m_strFontDirectory = bsFontDir;
-	return S_OK;
-}
-
-HRESULT CDrawingConverter::GetRecordBinary(LONG lRecordType, const std::wstring& sXml)
-{
-    if (sXml.empty())
-		return S_FALSE;
-
-    std::wstring strXml = L"<main ";
-
-    strXml += L"\
-xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" \
-xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
-xmlns:o=\"urn:schemas-microsoft-com:office:office\" \
-xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" \
-xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" \
-xmlns:v=\"urn:schemas-microsoft-com:vml\" \
-xmlns:ve=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
-xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" \
-xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" \
-xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" \
-xmlns:w10=\"urn:schemas-microsoft-com:office:word\" \
-xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" \
-xmlns:w15=\"http://schemas.microsoft.com/office/word/2012/wordml\" \
-xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" \
-xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" \
-xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" \
-xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\" \
-xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" \
-xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\" \
-xmlns:pic=\"http://schemas.openxmlformats.org/drawingml/2006/picture\" \
-xmlns:xdr=\"http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing\" \
-xmlns:c=\"http://schemas.openxmlformats.org/drawingml/2006/chart\"";
-
-    strXml += L">";
-    strXml += sXml;
-    strXml += L"</main>";
-
-	XmlUtils::CXmlNode oNodeMain;
-	if (!oNodeMain.FromXmlString(strXml))
-		return S_FALSE;
-
-	std::vector<XmlUtils::CXmlNode> oNodes;
-    if (!oNodeMain.GetNodes(L"*", oNodes))
-		return S_FALSE;
-
-	if (1 != oNodes.size())
-		return S_FALSE;
-
-	XmlUtils::CXmlNode & oNode = oNodes[0];
-
-	PPTX::WrapperWritingElement* pWritingElem = NULL;
-	switch (lRecordType)
-	{
-	case XMLWRITER_RECORD_TYPE_SPPR:
-		{
-			PPTX::Logic::SpPr* pSpPr = new PPTX::Logic::SpPr();
-			*pSpPr = oNode;
-
-			pWritingElem = (PPTX::WrapperWritingElement*)pSpPr;
-			break;
-		}
-	case XMLWRITER_RECORD_TYPE_CLRMAPOVR:
-		{
-			PPTX::Logic::ClrMap* pClrMap = new PPTX::Logic::ClrMap();
-			*pClrMap = oNode;
-
-			pWritingElem = (PPTX::WrapperWritingElement*)pClrMap;
-			break;
-		}
-	case XMLWRITER_RECORD_TYPE_TEXT_OUTLINE:
-		{
-			PPTX::Logic::Ln* pLn = new PPTX::Logic::Ln();
-			*pLn = oNode;
-
-			pWritingElem = (PPTX::WrapperWritingElement*)pLn;
-			break;
-		}
-	case XMLWRITER_RECORD_TYPE_TEXT_FILL:
-		{
-			PPTX::Logic::UniFill* pUniFill = new PPTX::Logic::UniFill();
-			pUniFill->GetFillFrom(oNode);
-
-			pWritingElem = (PPTX::WrapperWritingElement*)pUniFill;
-			break;
-		}
-	default:
-		break;
-	}
-
-	if (NULL == pWritingElem)
-		return S_FALSE;
-
-	//m_pBinaryWriter->ClearNoAttack();
-	m_pBinaryWriter->m_pCommon->CheckFontPicker();
-
-	//ULONG lOldPos = m_pBinaryWriter->GetPosition();
-
-	m_pBinaryWriter->WriteRecord1(0, *pWritingElem);
-	
-	
-	RELEASEOBJECT(pWritingElem);
-
-	//m_pBinaryWriter->SetPosition(lOldPos);
-
-	return S_OK;	
-}
-
-HRESULT CDrawingConverter::GetRecordXml(LONG lStart, LONG lLength, LONG lRecType, int nDocType, std::wstring & sXml)
-{
-	if (NULL == m_pReader)
-		return S_FALSE;
-
-	m_pReader->m_pRels->m_pManager->m_nDocumentType = nDocType;
-
-	m_pReader->Seek(lStart);
-	
-	BYTE typeRec1 = m_pReader->GetUChar();
-	
-	PPTX::WrapperWritingElement* pWritingElem = NULL;
-
-	switch (lRecType)
-	{
-	case XMLWRITER_RECORD_TYPE_SPPR:
-		{
-			pWritingElem = (PPTX::WrapperWritingElement*)(new PPTX::Logic::SpPr());
-			pWritingElem->fromPPTY(m_pReader);
-			break;
-		}
-	case XMLWRITER_RECORD_TYPE_CLRMAPOVR:
-		{
-			PPTX::Logic::ClrMap* pClrMap = new  PPTX::Logic::ClrMap();
-            pClrMap->m_name = L"a:clrMapOvr";
-			pWritingElem = (PPTX::WrapperWritingElement*)(pClrMap);
-			pWritingElem->fromPPTY(m_pReader);
-			break;
-		}
-	case XMLWRITER_RECORD_TYPE_TEXT_OUTLINE:
-		{
-			PPTX::Logic::Ln* pLn = new  PPTX::Logic::Ln();
-			pWritingElem = (PPTX::WrapperWritingElement*)(pLn);
-			pWritingElem->fromPPTY(m_pReader);
-			break;
-		}
-	case XMLWRITER_RECORD_TYPE_TEXT_FILL:
-		{
-			PPTX::Logic::UniFill* pUniFill = new  PPTX::Logic::UniFill();
-			pWritingElem = (PPTX::WrapperWritingElement*)(pUniFill);
-			pWritingElem->fromPPTY(m_pReader);
-			break;
-		}
-	default:
-		break;
-	}
-
-	if (NULL == pWritingElem)
-		return S_FALSE;
-
-	NSBinPptxRW::CXmlWriter oXmlWriter;
-	oXmlWriter.m_lDocType = (BYTE)nDocType;
-    oXmlWriter.m_bIsUseOffice2007 = false;
-	oXmlWriter.m_bIsTop = true;
-
-	pWritingElem->toXmlWriter(&oXmlWriter);
-
-    sXml = oXmlWriter.GetXmlString();
-
-	RELEASEOBJECT(pWritingElem);
-
-	return S_OK;
 }
 
 void CDrawingConverter::SetDstContentRels()
 {
-	 m_pReader->SetDstContentRels();
+	 m_pBinaryReader->SetDstContentRels();
 }
 void CDrawingConverter::SaveDstContentRels(const std::wstring& bsRelsPath)
 {
-	m_pReader->SaveDstContentRels(bsRelsPath);
+	m_pBinaryReader->SaveDstContentRels(bsRelsPath);
 }
 void CDrawingConverter::WriteRels (const std::wstring& bsType, const std::wstring& bsTarget, const std::wstring& bsTargetMode, unsigned int* lId)
 {
 	if (NULL == lId)				return;
-	if (NULL == m_pReader)			return;
-	if (NULL == m_pReader->m_pRels)	return;
+	if (NULL == m_pBinaryReader)			return;
+	if (NULL == m_pBinaryReader->m_pRels)	return;
 
-	*lId = m_pReader->m_pRels->WriteRels(bsType, bsTarget, bsTargetMode);
+	*lId = m_pBinaryReader->m_pRels->WriteRels(bsType, bsTarget, bsTargetMode);
 }
 void CDrawingConverter::Registration (const std::wstring& sType, const std::wstring& oDirectory, const std::wstring& oFilename)
 {
@@ -6721,13 +5995,12 @@ void CDrawingConverter::Registration (const std::wstring& sType, const std::wstr
 	m_pImageManager->m_pContentTypes->Registration(sType, OOX::CPath(oDirectory), OOX::CPath(oFilename));
 }
 
-HRESULT CDrawingConverter::SetFontPicker(COfficeFontPicker* pFontPicker)
+void CDrawingConverter::SetFontPicker(COfficeFontPicker* pFontPicker)
 {
 	m_pBinaryWriter->m_pCommon->CreateFontPicker(pFontPicker);
-	return S_OK;
 }
 
-HRESULT CDrawingConverter::SetAdditionalParam(const std::wstring& ParamName, BYTE *pArray, size_t szCount)
+void CDrawingConverter::SetAdditionalParam(const std::wstring& ParamName, BYTE *pArray, size_t szCount)
 {
     std::wstring name = ParamName;
     if (name == L"xfrm_override" && pArray)
@@ -6736,43 +6009,19 @@ HRESULT CDrawingConverter::SetAdditionalParam(const std::wstring& ParamName, BYT
 		
         m_oxfrm_override = new PPTX::Logic::Xfrm(*pXfrm);
     }
-    return S_OK;
-
 }
-HRESULT CDrawingConverter::GetAdditionalParam(const std::wstring& ParamName, BYTE **pArray, size_t& szCount)
-{
-    //std::wstring name = ParamName;
-    //if (name == L"SerializeImageManager")
-    //{
-    //    NSBinPptxRW::CBinaryFileWriter oWriter;
-
-    //    return oWriter.Serialize(m_pBinaryWriter->m_pCommon->m_pImageManager, pArray, szCount) ? S_OK : S_FALSE;
-    //}
-    //else if (name == L"SerializeImageManager2")
-    //{
-    //    NSBinPptxRW::CBinaryFileWriter oWriter;
-
-    //    return oWriter.Serialize(m_pImageManager, pArray, szCount) ? S_OK : S_FALSE;
-    //}
-    return S_OK;
-}
-
 OOX::CContentTypes* CDrawingConverter::GetContentTypes()
 {
 	return m_pImageManager->m_pContentTypes;
 }
 
-void CDrawingConverter::SetRels(smart_ptr<OOX::IFileContainer> container)
+void CDrawingConverter::SetRelsPtr(OOX::IFileContainer *container)
 {
-	m_pBinaryWriter->SetRels(container);
+	m_pBinaryWriter->SetRelsPtr(container);
 }
-void CDrawingConverter::SetRels(OOX::IFileContainer *container)
+OOX::IFileContainer* CDrawingConverter::GetRelsPtr()
 {
-	m_pBinaryWriter->SetRels(container);
-}
-smart_ptr<OOX::IFileContainer> CDrawingConverter::GetRels()
-{
-	return m_pBinaryWriter->GetRels();
+	return m_pBinaryWriter->GetRelsPtr();
 }
 void CDrawingConverter::SetFontManager(NSFonts::IFontManager* pFontManager)
 {

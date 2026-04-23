@@ -1,4 +1,4 @@
-/*
+﻿/*
  * (c) Copyright Ascensio System SIA 2010-2023
  *
  * This program is a free software product. You can redistribute it and/or
@@ -33,6 +33,7 @@
 
 #include "../WritingElement.h"
 #include "../../Base/Nullable.h"
+#include "../../../MsBinaryFile/XlsFile/Format/Binary/CFStreamCacheWriter.h"
 
 namespace SimpleTypes
 {
@@ -81,6 +82,7 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType() const;
 
 			void ReadAttributes(XLS::BaseObjectPtr& obj);
@@ -111,6 +113,7 @@ namespace OOX
 
 			void fromBin(std::vector<XLS::BaseObjectPtr>& obj);
 			std::vector<XLS::BaseObjectPtr> toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType() const;
 		};
 
@@ -173,6 +176,8 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+			void toXLS(XLS::BaseObjectPtr setupPtr);
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:
@@ -204,6 +209,8 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toXLS();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			XLS::BaseObjectPtr toBinCs();
 			virtual EElementType getType () const;
 
@@ -247,7 +254,9 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+			void toXLS(XLS::BaseObjectPtr pageSetupPtr);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:
@@ -277,6 +286,8 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toXLS();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			void fromBin(XLS::BaseObjectPtr& obj);
 			virtual EElementType getType () const;
 
@@ -304,6 +315,7 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:
@@ -337,6 +349,7 @@ namespace OOX
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
 			void fromBin(XLS::BaseObjectPtr& obj);
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			XLS::BaseObjectPtr toBin();
 			virtual EElementType getType () const;
 
@@ -368,6 +381,8 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toXLS();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:
@@ -400,12 +415,15 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toXLS();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			XLS::BaseObjectPtr toBinCs();
 			virtual EElementType getType () const;
 
 		private:
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 			void ReadAttributes(XLS::BaseObjectPtr& obj);
+            void writeAttributes(XLS::CFRecordPtr& record);
 
 		public:
 				nullable<CPane>										m_oPane;
@@ -447,6 +465,8 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+			std::vector<XLS::BaseObjectPtr> toXLS();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			XLS::BaseObjectPtr toBinCs();
 			virtual EElementType getType () const;
 		};
@@ -523,6 +543,7 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			XLS::BaseObjectPtr toBinCs();
 			virtual EElementType getType () const;
 
@@ -583,7 +604,9 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);
 
+			void toXLS(XLS::BaseObjectPtr pageSetupPtr);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			void fromBin(XLS::BaseObjectPtr& obj);
 			virtual EElementType getType () const;
 
@@ -622,6 +645,7 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:
@@ -666,6 +690,7 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:
@@ -692,6 +717,7 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:
@@ -724,6 +750,8 @@ namespace OOX
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBinColumn();
 			XLS::BaseObjectPtr toBinRow();
+            void toBinRow(XLS::StreamCacheWriterPtr& writer);
+            void toBinColumn(XLS::StreamCacheWriterPtr& writer);
 
 			virtual EElementType getType () const;
 
@@ -734,6 +762,8 @@ namespace OOX
 		public:
 			nullable<SimpleTypes::CUnsignedDecimalNumber>	m_oCount;
 			nullable<SimpleTypes::CUnsignedDecimalNumber>	m_oManualBreakCount;
+
+			bool m_fRowBreak = true;
 		};
 
 		class CSheetProtection : public WritingElement
@@ -752,7 +782,10 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+			XLS::BaseObjectPtr toXLS();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			XLS::BaseObjectPtr toBinCS();
+            void toBinCS(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
@@ -799,6 +832,8 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
+			XLS::BaseObjectPtr toXLS();
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XLS::BaseObjectPtr& obj);
@@ -826,6 +861,7 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
 			virtual EElementType getType () const;
 
 		private:
@@ -851,6 +887,8 @@ namespace OOX
 
 			void fromBin(XLS::BaseObjectPtr& obj);
 			XLS::BaseObjectPtr toBin();
+            void toBin(XLS::StreamCacheWriterPtr& writer);
+			XLS::BaseObjectPtr toXLS();
 			virtual EElementType getType () const;
 
 			void ReadAttributes(XLS::BaseObjectPtr& obj);

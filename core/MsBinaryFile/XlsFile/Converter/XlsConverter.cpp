@@ -2544,10 +2544,13 @@ void XlsConverter::convert(XLS::Obj * obj)
 			std::wstring objectId_bin = xlsx_context->get_mediaitems().add_control_activeX(target_bin);
 
 			NSFile::CFileBinary file;
-			if ( file.CreateFileW(xlsx_context->get_mediaitems().activeX_path() + target_bin) )
-			{		
-				file.WriteFile(xls_global_info->controls_data.first.get() + obj->pictFmla.lPosInCtlStm, obj->pictFmla.cbBufInCtlStm);
-				file.CloseFile();
+			if(xls_global_info->controls_data.second >= obj->pictFmla.lPosInCtlStm + obj->pictFmla.cbBufInCtlStm)
+			{
+				if ( file.CreateFileW(xlsx_context->get_mediaitems().activeX_path() + target_bin) )
+				{
+					file.WriteFile(xls_global_info->controls_data.first.get() + obj->pictFmla.lPosInCtlStm, obj->pictFmla.cbBufInCtlStm);
+					file.CloseFile();
+				}
 			}
 			std::wstring objectId_xml = xlsx_context->start_activeX();	
 			xlsx_context->get_drawing_context().set_control_activeX(objectId_xml);
@@ -2608,12 +2611,16 @@ void XlsConverter::convert(XLS::Obj * obj)
 		xlsx_context->get_drawing_context().set_object_x_max(obj->sbs.iMax);
 		xlsx_context->get_drawing_context().set_object_x_inc(obj->sbs.dInc);
 		xlsx_context->get_drawing_context().set_object_x_page(obj->sbs.dPage);
+		xlsx_context->get_drawing_context().set_object_3D(!obj->sbs.fNo3d);
+		xlsx_context->get_drawing_context().set_object_hscroll(obj->sbs.fHoriz);
+		xlsx_context->get_drawing_context().set_object_dx(obj->sbs.dxScroll);
 	}
 	if (obj->list.fExist)
 	{
 		xlsx_context->get_drawing_context().set_object_x_sel(obj->list.iSel);
 		xlsx_context->get_drawing_context().set_object_x_sel_type(obj->list.wListSelType);
 		xlsx_context->get_drawing_context().set_object_lct(obj->list.lct);
+		xlsx_context->get_drawing_context().set_object_3D(!obj->list.fNo3d);
 
 		if (obj->list.fmla.bFmlaExist)
 		{
@@ -2628,9 +2635,9 @@ void XlsConverter::convert(XLS::Obj * obj)
 	}
 	if (obj->checkBox.fExist)
 	{
-	//unsigned short fChecked;
-	//unsigned short accel;
-	//bool fNo3d;
+		xlsx_context->get_drawing_context().set_object_checked(obj->checkBox.fChecked);
+		xlsx_context->get_drawing_context().set_object_3D(!obj->checkBox.fNo3d);
+		//unsigned short accel;
 	}
 	if (obj->radioButton.fExist)
 	{
@@ -2639,10 +2646,10 @@ void XlsConverter::convert(XLS::Obj * obj)
 	}
 	if (obj->edit.fExist)
 	{
-	//unsigned short ivtEdit;
-	//Boolean<unsigned short> fMultiLine;
-	//unsigned short fVScroll;
-	//unsigned short id;
+		xlsx_context->get_drawing_context().set_object_multiLine(obj->edit.fMultiLine);
+		xlsx_context->get_drawing_context().set_object_vscroll(obj->edit.fVScroll);
+		//unsigned short ivtEdit;
+		//unsigned short id;
 	}
 	bool full_ref = false;
 	if (obj->cmo.ot > 0x06) full_ref = true;

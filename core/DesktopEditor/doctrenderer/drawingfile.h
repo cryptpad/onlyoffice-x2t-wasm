@@ -120,7 +120,7 @@ public:
 	}
 
 public:
-	bool OpenFile(const std::wstring& sFile, const std::wstring& sPassword)
+	bool OpenFile(const std::wstring& sFile, const wchar_t* sPassword)
 	{
 		CloseFile();
 
@@ -171,8 +171,7 @@ public:
 
 		return m_pFile ? true : false;
 	}
-
-	bool OpenFile(BYTE* data, LONG size, const std::wstring& sPassword)
+	bool OpenFile(BYTE* data, LONG size, const wchar_t* sPassword)
 	{
 		CloseFile();
 
@@ -246,7 +245,18 @@ public:
 
 		return 0;
 	}
-
+	bool CheckOwnerPassword(const wchar_t* sPassword)
+	{
+		if (m_nType == 0)
+			return ((CPdfFile*)m_pFile)->CheckOwnerPassword(sPassword);
+		return true;
+	}
+	bool CheckPerm(int nPerm)
+	{
+		if (m_nType == 0)
+			return ((CPdfFile*)m_pFile)->CheckPerm(nPerm);
+		return true;
+	}
 	BYTE* GetInfo()
 	{
 		NSWasm::CData oRes;
@@ -283,6 +293,56 @@ public:
 		if (!m_pFile)
 			return NULL;
 		return m_pFile->ConvertToPixels(nPageIndex, nRasterW, nRasterH, true, m_pFontManager, nBackgroundColor, (nBackgroundColor == 0xFFFFFF) ? false : true);
+	}
+	BYTE* SplitPages(int* arrPageIndex, int nLength, BYTE* data, LONG size)
+	{
+		if (m_nType == 0)
+			return ((CPdfFile*)m_pFile)->SplitPages(arrPageIndex, nLength, data, size);
+		return NULL;
+	}
+	bool MergePages(BYTE* data, LONG size, int nMaxID, const std::string& sPrefixForm, bool bCopy = false)
+	{
+		if (m_nType == 0)
+		{
+			// Память из CDrawingFileEmbed освобождается сразу после вызова функции, поэтому копируем
+			if (bCopy)
+			{
+				BYTE* pCopy = (BYTE*)malloc(size);
+				memcpy(pCopy, data, size);
+				data = pCopy;
+			}
+			// Захватывает полученную память, будет освобождена либо в деструкторе MemStream, либо free в случае неудачи
+			return ((CPdfFile*)m_pFile)->MergePages(data, size, nMaxID, sPrefixForm);
+		}
+		return false;
+	}
+	bool UnmergePages()
+	{
+		if (m_nType == 0)
+			return ((CPdfFile*)m_pFile)->UnmergePages();
+		return false;
+	}
+	bool RedactPage(int nPageIndex, double* arrRedactBox, int nLengthX8, BYTE* data, int size, bool bCopy = false)
+	{
+		if (m_nType == 0)
+		{
+			// Память из CDrawingFileEmbed освобождается сразу после вызова функции, поэтому копируем
+			if (bCopy)
+			{
+				BYTE* pCopy = (BYTE*)malloc(size);
+				memcpy(pCopy, data, size);
+				data = pCopy;
+			}
+			// Захватывает полученную память data
+			return ((CPdfFile*)m_pFile)->RedactPage(nPageIndex, arrRedactBox, nLengthX8, data, size);
+		}
+		return false;
+	}
+	bool UndoRedact()
+	{
+		if (m_nType == 0)
+			return ((CPdfFile*)m_pFile)->UndoRedact();
+		return false;
 	}
 
 	BYTE* GetGlyphs(int nPageIndex)
@@ -394,6 +454,20 @@ public:
 		if (m_nType == 0)
 			((CPdfFile*)m_pFile)->SetCMapMemory(data, size);
 	}
+	void SetScanPageFonts(int nPageIndex)
+	{
+		if (NULL == m_pImageStorage)
+			m_pImageStorage = NSDocxRenderer::CreateWasmImageStorage();
+
+		CDocxRenderer oRenderer(m_pApplicationFonts);
+		oRenderer.SetExternalImageStorage(m_pImageStorage);
+		oRenderer.SetTextAssociationType(NSDocxRenderer::TextAssociationType::tatParagraphToShape);
+
+		oRenderer.ScanPageBin(m_pFile, nPageIndex);
+
+		if (m_nType == 0)
+			((CPdfFile*)m_pFile)->SetPageFonts(nPageIndex);
+	}
 	BYTE* ScanPage(int nPageIndex, int mode)
 	{
 		if (NULL == m_pImageStorage)
@@ -403,22 +477,35 @@ public:
 		oRenderer.SetExternalImageStorage(m_pImageStorage);
 		oRenderer.SetTextAssociationType(NSDocxRenderer::TextAssociationType::tatParagraphToShape);
 
-		std::vector<std::wstring> arShapes;
-		if (0 == mode)
-			arShapes = oRenderer.ScanPage(m_pFile, nPageIndex);
-		else
-			arShapes = oRenderer.ScanPagePptx(m_pFile, nPageIndex);
-
-		int nLen = (int)arShapes.size();
-
 		NSWasm::CData oRes;
-		oRes.SkipLen();
-		oRes.AddInt(nLen);
+		switch (mode)
+		{
+			case 0:
+			case 1:
+			{
+				std::vector<std::wstring> arShapes = (0 == mode) ? oRenderer.ScanPage(m_pFile, nPageIndex) : oRenderer.ScanPagePptx(m_pFile, nPageIndex);
+				int nLen = (int)arShapes.size();
 
-		for (int i = 0; i < nLen; ++i)
-			oRes.WriteString(arShapes[i]);
+				oRes.SkipLen();
+				oRes.AddInt(nLen);
 
-		oRes.WriteLen();
+				for (int i = 0; i < nLen; ++i)
+					oRes.WriteString(arShapes[i]);
+
+				oRes.WriteLen();
+				break;
+			}
+			case 2:
+			{
+				oRes = oRenderer.ScanPageBin(m_pFile, nPageIndex);
+				break;
+			}
+			default:
+				return NULL;
+		}
+
+		if (m_nType == 0)
+			((CPdfFile*)m_pFile)->SetPageFonts(nPageIndex);
 
 		BYTE* res = oRes.GetBuffer();
 		oRes.ClearWithoutAttack();
@@ -507,6 +594,19 @@ public:
 			}
 		}
 		return NULL;
+	}
+	BYTE* GetGIDByUnicode(const std::string& sPathA)
+	{
+		if (m_nType != 0)
+			return NULL;
+		std::wstring sFontName = UTF8_TO_U(sPathA);
+		return ((CPdfFile*)m_pFile)->GetGIDByUnicode(sFontName);
+	}
+	BYTE* GetGIDByUnicode(const std::wstring& wsPathA)
+	{
+		if (m_nType != 0)
+			return NULL;
+		return ((CPdfFile*)m_pFile)->GetGIDByUnicode(wsPathA);
 	}
 
 	std::wstring GetFontBinaryNative(const std::wstring& sName)

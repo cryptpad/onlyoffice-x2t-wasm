@@ -153,8 +153,35 @@ const bool ATTACHEDLABEL::loadContent(BinProcessor& proc)
 	
 	proc.optional<CRTMLFRT>();
 
-	proc.mandatory<End>();			elements_.pop_back();
+	if(proc.mandatory<End>())
+		elements_.pop_back();
 
+	return true;
+}
+
+const bool ATTACHEDLABEL::saveContent(BinProcessor& proc)
+{
+	if(m_TextProperties == nullptr)
+		return false;
+	proc.mandatory(*m_TextProperties);
+	proc.mandatory<Begin>();
+	if(m_Pos != nullptr)
+		proc.mandatory(*m_Pos);
+	if(m_FontX != nullptr)
+		proc.mandatory(*m_FontX);
+	if(m_AlRuns != nullptr)
+		proc.mandatory(*m_AlRuns);
+	if(m_AI != nullptr)
+		proc.mandatory(*m_AI);
+	if(m_FRAME != nullptr)
+		proc.mandatory(*m_FRAME);
+	if(m_ObjectLink)
+		proc.mandatory(*m_ObjectLink);
+	if(m_DataLabExtContents != nullptr)
+		proc.mandatory(*m_DataLabExtContents);
+	if(m_CrtLayout12 != nullptr)
+		proc.mandatory(*m_CrtLayout12);
+	proc.mandatory<End>();
 	return true;
 }
 

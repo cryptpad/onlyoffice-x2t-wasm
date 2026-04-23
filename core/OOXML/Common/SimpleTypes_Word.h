@@ -832,7 +832,8 @@ namespace SimpleTypes
 	{
 		complexFormTypeCustom    = 0,
 		complexFormTypeTelephone = 1,
-		complexFormTypeEmail     = 2
+		complexFormTypeEmail     = 2,
+		complexFormTypeLabeledCheckBox = 3
 	};	
 
 	DEFINE_SIMPLE_TYPE_START(CComplexFormType, EComplexFormType, complexFormTypeCustom)
@@ -847,7 +848,9 @@ namespace SimpleTypes
 	enum EHexColor
 	{
 		hexcolorAuto = 0,
-		hexcolorRGB  = 1
+		hexcolorRGB  = 1,
+		hexcolorARGB = 2
+
 	};
 
 	//--------------------------------------------------------------------------------
@@ -877,10 +880,11 @@ namespace SimpleTypes
 
 	DEFINE_SIMPLE_TYPE_START(CHexColor, EHexColor, hexcolorAuto)
 	public:
-		CHexColor(unsigned char r, unsigned char g, unsigned char b);
+		CHexColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255);
 
-		std::wstring   ToStringNoAlpha  () const;
+		std::wstring ToStringNoAlpha  () const;
 
+		void Set_A(unsigned char R);
 		void Set_R(unsigned char R);
 		void Set_G(unsigned char G);
 		void Set_B(unsigned char B);
@@ -890,12 +894,13 @@ namespace SimpleTypes
 		unsigned char Get_A() const;
 
 	private:
-		void Parse();
-		void Parse3();
-		int	HexToInt(int nHex);
+		bool Parse();
+		bool Parse3();
+		int	HexToInt(int nHex, bool& bResult);
 
 		std::wstring m_sValue;
 
+		unsigned char m_unA = 255;
 		unsigned char m_unR = 0;
 		unsigned char m_unG = 0;
 		unsigned char m_unB = 0;
@@ -1074,7 +1079,6 @@ namespace SimpleTypes
 	DEFINE_SIMPLE_TYPE_START(CLongHexNumber, unsigned int, 0)
 	private:
 		bool Parse(const std::wstring &sValue);
-		int	HexToInt(int nHex, bool &bResult);
 	};
 
 	//--------------------------------------------------------------------------------

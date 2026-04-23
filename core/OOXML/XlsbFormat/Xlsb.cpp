@@ -112,6 +112,22 @@ XLS::StreamCacheReaderPtr OOX::Spreadsheet::CXlsb::GetFileReader(const CPath& oF
     XLS::StreamCacheReaderPtr reader(new XLS::BinaryStreamCacheReader(m_binaryReader, xls_global_info));
     return reader;
 }
+XLS::StreamCacheWriterPtr OOX::Spreadsheet::CXlsb::GetFileWriter(const CPath& oFilePath)
+{
+    if (m_binaryWriter->CreateFileW(oFilePath.GetPath()) == false)
+        return nullptr;
+
+    XLS::StreamCacheWriterPtr writer(new XLS::BinaryStreamCacheWriter(m_binaryWriter, xls_global_info));
+    return writer;
+}
+bool OOX::Spreadsheet::CXlsb::WriteSreamCache(XLS::StreamCacheWriterPtr writer)
+{
+    auto writeSucced = m_binaryWriter->WriteFile(m_binaryWriter->GetBuffer(), (static_cast<NSBinPptxRW::CBinaryFileWriter*>(m_binaryWriter.get()))->GetPosition());
+    if(writeSucced)
+        (static_cast<NSBinPptxRW::CBinaryFileWriter*>(m_binaryWriter.get()))->SetPosition(0);
+    m_binaryWriter->CloseFile();
+    return writeSucced;
+}
 bool OOX::Spreadsheet::CXlsb::WriteBin(const CPath& oDirPath, OOX::CContentTypes& oContentTypes)
 {
     if (NULL == m_pWorkbook)
@@ -212,6 +228,25 @@ void OOX::Spreadsheet::CXlsb::PrepareSi()
     }
 }
 
+// подготовка гиперссылок для записи в xls
+void OOX::Spreadsheet::CXlsb::PrepareHlinks()
+{
+	for(auto i : m_arWorksheets)
+	{
+		if(i->m_oHyperlinks.IsInit())
+		{
+			for(auto hlink : i->m_oHyperlinks->m_arrItems)
+			{
+				if(!hlink->m_oLink.IsInit() && hlink->m_oRid.IsInit())
+				{
+					auto rel = static_cast<OOX::External*>(i->Find(hlink->m_oRid->GetValue()).GetPointer());
+					if(rel != nullptr)
+						hlink->m_oLink = rel->Uri().GetFilename();
+				}
+			}
+		}
+	}
+}
 //подготовка шрифтов в richString для конвертации в xlsb
 void OOX::Spreadsheet::CXlsb::PrepareRichStr()
 {
@@ -342,6 +377,8 @@ void OOX::Spreadsheet::CXlsb::PrepareTableFormula()
                         formula.replace(formula.find(str), str.size(), L"#NAME?");
                     }
                 }
+				else
+					break;
                 str = STR::guidFromStr(formula);
             }
         };

@@ -55,9 +55,9 @@ public:
     virtual ~CDjVuFile();
 
     virtual bool LoadFromFile(const std::wstring& file, const std::wstring& options = L"",
-                                    const std::wstring& owner_password = L"", const std::wstring& user_password = L"");
+							  const wchar_t* owner_password = NULL, const wchar_t* user_password = NULL);
     virtual bool LoadFromMemory(BYTE* data, DWORD length, const std::wstring& options = L"",
-                                const std::wstring& owner_password = L"", const std::wstring& user_password = L"");
+								const wchar_t* owner_password = NULL, const wchar_t* user_password = NULL);
 
     virtual void Close();
     virtual NSFonts::IApplicationFonts* GetFonts();
@@ -76,4 +76,11 @@ public:
 
     virtual BYTE* GetStructure();
     virtual BYTE* GetLinks (int nPageIndex);
+
+    virtual unsigned char* ConvertToPixels(
+        int nPageIndex,
+        int nRasterW, int nRasterH, bool bIsFlip = false,
+        NSFonts::IFontManager* pFonts = NULL,
+        int nBackgroundColor = 0xFFFFFF, bool bIsDarkMode = false,
+        int nBackgroundOpacity = 0xFF);
 };

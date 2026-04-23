@@ -40,6 +40,7 @@ enum OfficeDrawingFileType
     odftPDF = 0,
     odftXPS = 1,
     odftDJVU = 2,
+    odftOFD = 3,
     odftUndefined = 255
 };
 
@@ -62,9 +63,9 @@ public:
 
     // Open
     virtual bool LoadFromFile(const std::wstring& file, const std::wstring& options = L"",
-                                const std::wstring& owner_password = L"", const std::wstring& user_password = L"") = 0;
+								const wchar_t* owner_password = NULL, const wchar_t* user_password = NULL) = 0;
     virtual bool LoadFromMemory(unsigned char* data, unsigned long length, const std::wstring& options = L"",
-                                const std::wstring& owner_password = L"", const std::wstring& user_password = L"") = 0;
+								const wchar_t* owner_password = NULL, const wchar_t* user_password = NULL) = 0;
 
     // Close
     virtual void Close() = 0;
