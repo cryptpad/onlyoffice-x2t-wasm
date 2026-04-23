@@ -5,8 +5,7 @@
 #include <algorithm>
 #include <numeric>
 
-// CryptPad: Use globally installed katana parser
-#include "/katana-parser/src/selector.h"
+#include "../../katana-parser/src/selector.h"
 #include "../../../../../DesktopEditor/common/File.h"
 #include "StaticFunctions.h"
 

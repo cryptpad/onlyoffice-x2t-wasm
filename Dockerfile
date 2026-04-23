@@ -63,6 +63,18 @@ RUN python fetch.py
 
 
 
+FROM base AS html
+COPY core/Common/3dParty/html /core/Common/3dParty/html
+COPY --from=build-tools /build_tools/scripts/base.py /build_tools/scripts/
+COPY --from=build-tools /build_tools/scripts/config.py /build_tools/scripts/
+WORKDIR /core/Common/3dParty/html
+RUN python fetch.py
+RUN sed -i -e 's/b->yy_is_interactive = file ? (isatty( fileno(file) ) > 0) : 0;/b->yy_is_interactive = 0;/' \
+    katana-parser/src/katana.lex.c
+# Outputs: /core/Common/3dParty/html
+
+
+
 FROM base AS heif
 COPY core/Common/3dParty/heif /core/Common/3dParty/heif
 COPY --from=build-tools /build_tools /build_tools
@@ -113,45 +125,6 @@ RUN . /emsdk/emsdk_env.sh \
  && emmake make install
 # outputs
 # - /core/Common/3dParty/openssl/openssl/include/openssl/
-
-
-
-FROM base AS gumbo
-RUN git clone https://github.com/google/gumbo-parser.git
-WORKDIR /gumbo-parser
-RUN git checkout aa91b2
-RUN ./autogen.sh
-# For some reason ./configure wants to add `-lc` to the linker args. Use the config.cache to tell ./configure we do not want this.
-RUN echo 'lt_cv_archive_cmds_need_lc=${lt_cv_archive_cmds_need_lc=no}' > config.cache
-RUN . /emsdk/emsdk_env.sh \
- && emconfigure ./configure --config-cache
-RUN . /emsdk/emsdk_env.sh \
- && emmake make
-RUN . /emsdk/emsdk_env.sh \
- && emmake make install
-# Outputs:
-# - /usr/local/lib/libgumbo.a
-# - /usr/local/include/gumbo.h
-
-
-
-FROM base AS katana
-WORKDIR /
-RUN git clone https://github.com/jasenhuang/katana-parser.git
-WORKDIR /katana-parser
-RUN git checkout be6df4
-RUN ./autogen.sh
-# For some reason ./configure wants to add `-lc` to the linker args. Use the config.cache to tell ./configure we do not want this.
-RUN echo 'lt_cv_archive_cmds_need_lc=${lt_cv_archive_cmds_need_lc=no}' > config.cache
-RUN . /emsdk/emsdk_env.sh \
- && emconfigure ./configure --config-cache
-RUN . /emsdk/emsdk_env.sh \
-&& emmake make
-RUN . /emsdk/emsdk_env.sh \
-&& emmake make install
-# Outputs:
-# - /usr/local/lib/libkatana.a
-# - /usr/local/include/katana.h
 
 
 
@@ -223,11 +196,11 @@ COPY core/Common/3dParty/harfbuzz /core/Common/3dParty/harfbuzz
 COPY core/OdfFile/ /core/OdfFile/
 COPY --from=harfbuzz /core/Common/3dParty/harfbuzz/ /core/Common/3dParty/harfbuzz/
 COPY --from=common /core/build/lib/linux_64/ /core/build/lib/linux_64/
-COPY --from=katana /katana-parser /katana-parser
 COPY --from=hyphen /core/Common/3dParty/hyphen/hyphen /core/Common/3dParty/hyphen/hyphen
 COPY --from=heif /core/Common/3dParty/heif /core/Common/3dParty/heif
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 COPY --from=brotli /core/Common/3dParty/brotli /core/Common/3dParty/brotli
+COPY --from=html /core/Common/3dParty/html /core/Common/3dParty/html
 WORKDIR /core
 RUN sed -i -e 's,$$PWD/src/[^ ]*\.cpp,,' \
     Common/3dParty/html/css/CssCalculator.pri
@@ -248,7 +221,7 @@ COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s TxtFile/Projects/Linux
+    embuild.sh TxtFile/Projects/Linux
 # Outputs /core/build/lib/linux_64/libTxtXmlFormatLib.a
 
 
@@ -269,7 +242,7 @@ COPY core/TxtFile /core/TxtFile
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s OOXML/Projects/Linux/BinDocument
+    embuild.sh OOXML/Projects/Linux/BinDocument
 # Outputs /core/build/lib/linux_64/libBinDocument.a
 
 
@@ -302,7 +275,7 @@ COPY core/OdfFile /core/OdfFile
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s OOXML/Projects/Linux/PPTXFormatLib
+    embuild.sh OOXML/Projects/Linux/PPTXFormatLib
 # Outputs /core/build/lib/linux_64/libPPTXFormatLib.a
 
 
@@ -536,15 +509,14 @@ COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64
 COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
 COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-COPY --from=gumbo /gumbo-parser /gumbo-parser
-COPY --from=katana /katana-parser /katana-parser
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 COPY --from=md /core/Common/3dParty/md /core/Common/3dParty/md
+COPY --from=html /core/Common/3dParty/html /core/Common/3dParty/html
 WORKDIR /core
 RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
     DesktopEditor/graphics/pro/freetype.pri
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s HtmlFile2
+    embuild.sh HtmlFile2
 # Outputs /core/build/lib/linux_64/libHtmlFile2.a
 
 
@@ -628,7 +600,7 @@ COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linu
 COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s HwpFile
+    embuild.sh HwpFile
 # Outputs /core/build/lib/linux_64/libHWPFile.a
 
 
@@ -644,7 +616,7 @@ COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /cor
 COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s DocxRenderer
+    embuild.sh DocxRenderer
 # Outputs /core/build/lib/linux_64/libDocxRenderer.a
 
 
@@ -721,8 +693,6 @@ WORKDIR /core
 COPY pre-js.js /pre-js.js
 COPY wrap-main.cpp /wrap-main.cpp
 
-COPY --from=gumbo /usr/local/lib/libgumbo.a /core/build/lib/linux_64/
-COPY --from=katana /usr/local/lib/libkatana.a /core/build/lib/linux_64/
 COPY --from=vbaformatlib /core/build/lib/linux_64/libVbaFormatLib.a /core/build/lib/linux_64/
 COPY --from=odffile /core/build/lib/linux_64/libOdfFormatLib.a /core/build/lib/linux_64/
 COPY --from=docformatlib /core/build/lib/linux_64/libDocFormatLib.a /core/build/lib/linux_64/
@@ -757,8 +727,6 @@ RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 # ENV DEV_MODE=1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh \
-    -l "-lgumbo" \
-    -l "-lkatana" \
     -l "-looxmlsignature" \
     -l "-L/usr/local/lib" \
     -l "--pre-js /pre-js.js" \

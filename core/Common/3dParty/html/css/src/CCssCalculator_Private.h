@@ -6,8 +6,7 @@
 #include <set>
 #include "CElement.h"
 #include "StyleProperties.h"
-// CryptPad: Use globally installed katana parser
-#include "/katana-parser/src/katana.h"
+#include "../../katana-parser/src/selector.h"
 
 #ifdef CSS_CALCULATOR_WITH_XHTML
 #include "CCompiledStyle.h"
