@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "gumbo-parser/src/gumbo.h"
+#include "/gumbo-parser/src/gumbo.h" // CryptPad: load our gumbo build
 #include "../../../DesktopEditor/common/File.h"
 #include "../../../DesktopEditor/common/Directory.h"
 #include "../../../DesktopEditor/common/StringBuilder.h"
