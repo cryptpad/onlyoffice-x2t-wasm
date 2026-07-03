@@ -125,7 +125,7 @@ struct SPublishInfo
 };
 */
 
-void replace_all(std::wstring& s, const std::wstring& s1, const std::wstring& s2)
+static void replace_all(std::wstring& s, const std::wstring& s1, const std::wstring& s2)
 {
 	size_t pos = s.find(s1);
 	size_t l = s2.length();

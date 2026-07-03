@@ -52,7 +52,7 @@ bool CMDWriter::WriteText(std::wstring wsText, const std::vector<NSCSS::CNode>& 
 {
 	bool bPreformatted{InPreformatted()};
 
-	const NSCSS::CCompiledStyle* pCompiledStyle{arSelectors.back().m_pCompiledStyle};
+	const NSCSS::CCompiledStyle* pCompiledStyle{arSelectors.empty() ? nullptr : arSelectors.back().m_pCompiledStyle};
 
 	if (!bPreformatted && nullptr != pCompiledStyle)
 	{
@@ -129,7 +129,7 @@ bool CMDWriter::WriteText(std::wstring wsText, const std::vector<NSCSS::CNode>& 
 	if (bNeedStrike)
 		WriteString(L"~~");
 
-	if (L'\n' == wsText.back())
+	if (!wsText.empty() && L'\n' == wsText.back())
 		m_arStates.top().m_bNeedBreakLine = false;
 
 	return true;

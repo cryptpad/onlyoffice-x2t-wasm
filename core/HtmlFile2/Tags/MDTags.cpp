@@ -7,6 +7,11 @@
 
 namespace HTML
 {
+static const NSCSS::CNode* LastSelector(const std::vector<NSCSS::CNode>& arSelectors)
+{
+	return arSelectors.empty() ? nullptr : &arSelectors.back();
+}
+
 CAnchor<CMDWriter>::CAnchor(CMDWriter* pWriter)
 	: CTag(pWriter)
 {}
@@ -28,9 +33,12 @@ void CAnchor<CMDWriter>::Close(const std::vector<NSCSS::CNode>& arSelectors)
 	m_pWriter->WriteString(L"]");
 
 	std::wstring wsHref, wsTitle;
+	const NSCSS::CNode* pSelector = LastSelector(arSelectors);
+	if (nullptr == pSelector)
+		return;
 
-	arSelectors.back().GetAttributeValue(L"href", wsHref);
-	arSelectors.back().GetAttributeValue(L"title", wsTitle);
+	pSelector->GetAttributeValue(L"href", wsHref);
+	pSelector->GetAttributeValue(L"title", wsTitle);
 
 	m_pWriter->WriteString(L'(' + wsHref);
 
@@ -203,7 +211,11 @@ bool CHeader<CMDWriter>::Open(const std::vector<NSCSS::CNode>& arSelectors, cons
 	if (!ValidWriter())
 		return false;
 
-	switch(arSelectors.back().m_wsName[1])
+	const NSCSS::CNode* pSelector = LastSelector(arSelectors);
+	if (nullptr == pSelector || pSelector->m_wsName.size() < 2)
+		return false;
+
+	switch(pSelector->m_wsName[1])
 	{
 		case L'1' : m_pWriter->WriteString(L"# ",      true); break;
 		case L'2' : m_pWriter->WriteString(L"## ",     true); break;
@@ -234,12 +246,15 @@ bool CImage<CMDWriter>::Open(const std::vector<NSCSS::CNode>& arSelectors, const
 		return false;
 
 	std::wstring wsAlt, wsSrc, wsTitle;
-
-	if (!arSelectors.back().GetAttributeValue(L"src", wsSrc) &&
-	    !arSelectors.back().GetAttributeValue(L"alt", wsAlt))
+	const NSCSS::CNode* pSelector = LastSelector(arSelectors);
+	if (nullptr == pSelector)
 		return false;
 
-	arSelectors.back().GetAttributeValue(L"title", wsTitle);
+	if (!pSelector->GetAttributeValue(L"src", wsSrc) &&
+	    !pSelector->GetAttributeValue(L"alt", wsAlt))
+		return false;
+
+	pSelector->GetAttributeValue(L"title", wsTitle);
 
 	m_pWriter->WriteString(L"![" + wsAlt + L"](" + wsSrc);
 
@@ -432,15 +447,19 @@ bool CList<CMDWriter>::Open(const std::vector<NSCSS::CNode>& arSelectors, const 
 	if (!ValidWriter())
 		return false;
 
+	const NSCSS::CNode* pSelector = LastSelector(arSelectors);
+	if (nullptr == pSelector)
+		return false;
+
 	m_pWriter->WriteBreakLine();
-	m_pWriter->EnteredList(L"ol" == arSelectors.back().m_wsName);
+	m_pWriter->EnteredList(L"ol" == pSelector->m_wsName);
 
 	if (!m_pWriter->InOrederedList())
 		return true;
 
 	std::wstring wsIndex;
 
-	if (arSelectors.back().GetAttributeValue(L"start", wsIndex))
+	if (pSelector->GetAttributeValue(L"start", wsIndex))
 		m_pWriter->SetIndexOrderedList(NSStringFinder::ToInt(wsIndex, 1));
 
 	return true;
@@ -496,9 +515,10 @@ bool CCode<CMDWriter>::Open(const std::vector<NSCSS::CNode>& arSelectors, const 
 
 	if (m_pWriter->InPreformatted())
 	{
-		if (!arSelectors.back().m_wsClass.empty() && arSelectors.back().m_wsClass.size() >= 9 &&
-		    0 == arSelectors.back().m_wsClass.compare(0, 9, L"language-"))
-			m_pWriter->WriteString(arSelectors.back().m_wsClass.substr(9, arSelectors.back().m_wsClass.size() - 9));
+		const NSCSS::CNode* pSelector = LastSelector(arSelectors);
+		if (nullptr != pSelector && !pSelector->m_wsClass.empty() && pSelector->m_wsClass.size() >= 9 &&
+		    0 == pSelector->m_wsClass.compare(0, 9, L"language-"))
+			m_pWriter->WriteString(pSelector->m_wsClass.substr(9, pSelector->m_wsClass.size() - 9));
 		m_pWriter->WriteBreakLine(false);
 	}
 	else

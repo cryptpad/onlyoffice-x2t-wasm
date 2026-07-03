@@ -120,6 +120,7 @@ namespace XmlUtils
 		std::wstring	GetInnerXml();
 
 		int GetAttributesCount();
+		bool GetAttribute(const std::wstring& sName, std::wstring& sValue);
 		bool MoveToFirstAttribute();
 		bool MoveToNextAttribute();
 		bool MoveToElement();

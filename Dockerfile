@@ -31,9 +31,19 @@ RUN ./emsdk install $emversion
 RUN ./emsdk activate $emversion
 
 RUN . /emsdk/emsdk_env.sh && qtchooser -install qt6 $(which qmake6)
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    . /emsdk/emsdk_env.sh \
+    && printf 'int main() { return 0; }\n' > /tmp/icu-warmup.cpp \
+    && em++ -sUSE_ICU=1 -sUSE_BOOST_HEADERS=0 -c /tmp/icu-warmup.cpp -o /tmp/icu-warmup.o
 ENV QT_SELECT=qt6
 WORKDIR /
 COPY embuild.sh /bin/embuild.sh
+RUN wget -q https://archives.boost.io/release/1.84.0/source/boost_1_84_0.tar.gz -O /tmp/boost_1_84_0.tar.gz \
+ && mkdir -p /tmp/boost-headers /boost/libs/functional/include /usr/local/include \
+ && tar -xzf /tmp/boost_1_84_0.tar.gz -C /tmp/boost-headers --strip-components=1 boost_1_84_0/boost \
+ && cp -R /tmp/boost-headers/boost /boost/libs/functional/include/boost \
+ && cp -R /tmp/boost-headers/boost /usr/local/include/boost \
+ && rm -rf /tmp/boost_1_84_0.tar.gz /tmp/boost-headers
 
 
 
@@ -118,11 +128,15 @@ COPY core/Common/3dParty/openssl /core/Common/3dParty/openssl
 WORKDIR /core/Common/3dParty/openssl/
 RUN git clone --depth=1 --branch OpenSSL_1_1_1f https://github.com/openssl/openssl.git  # see build_tools/scripts/core_common/modules/openssl.py
 WORKDIR /core/Common/3dParty/openssl/openssl
-RUN ./config enable-md2 no-shared no-asm --prefix=/core/Common/3dParty/openssl/build/linux_64/ --openssldir=/core/Common/3dParty/openssl/build/linux_64/
+RUN python -c "from pathlib import Path; p=Path('crypto/rand/rand_lib.c'); s=p.read_text(); start=s.index('/*\\n * This function is not part of RAND_METHOD'); end=s.index('#if OPENSSL_API_COMPAT', start); replacement='#include \"emscripten.h\"\\nEM_JS(int, js_random, (unsigned char* buf, int num), {\\n    var byteArray = new Uint8Array(num);\\n    var engine = self.crypto || self.msCrypto;\\n    engine.getRandomValues(byteArray);\\n    Module[\"HEAP8\"].set(byteArray, buf);\\n    return 1;\\n});\\nint RAND_priv_bytes(unsigned char *buf, int num)\\n{\\n    return js_random(buf, num);\\n}\\n\\nint RAND_bytes(unsigned char *buf, int num)\\n{\\n    return js_random(buf, num);\\n}\\n\\n'; p.write_text(s[:start] + replacement + s[end:])"
 RUN . /emsdk/emsdk_env.sh \
- && emmake make
-RUN . /emsdk/emsdk_env.sh \
- && emmake make install
+ && emconfigure ./config enable-md2 no-shared no-asm no-threads no-dso --prefix=/core/Common/3dParty/openssl/build/linux_64/ --openssldir=/core/Common/3dParty/openssl/build/linux_64/ \
+ && sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile \
+ && emmake make build_generated libssl.a libcrypto.a
+RUN python -c "from pathlib import Path; p=Path('include/openssl/opensslconf.h'); s=p.read_text(); s=s.replace('#ifndef OPENSSL_NO_MD2\\n# define OPENSSL_NO_MD2\\n#endif', '#ifndef OPENSSL_MD2_ENABLED\\n#ifndef OPENSSL_NO_MD2\\n# define OPENSSL_NO_MD2\\n#endif\\n#endif'); p.write_text(s)"
+RUN mkdir -p /core/Common/3dParty/openssl/build/linux_64/lib /core/Common/3dParty/openssl/build/linux_64/include \
+ && cp libssl.a libcrypto.a /core/Common/3dParty/openssl/build/linux_64/lib/ \
+ && cp -R include/openssl /core/Common/3dParty/openssl/build/linux_64/include/
 # outputs
 # - /core/Common/3dParty/openssl/openssl/include/openssl/
 
@@ -142,18 +156,36 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 FROM base AS boost
 # emscriptens boost does not work because of missing symbols
 WORKDIR /
-RUN git clone https://github.com/boostorg/boost.git
+RUN rm -rf /boost \
+ && git clone --depth=1 --branch boost-1.84.0 https://github.com/boostorg/boost.git boost \
+ && cp -R /usr/local/include/boost /boost/boost
 WORKDIR /boost
-RUN git fetch && git checkout boost-1.84.0
-RUN git submodule update --init --recursive
+RUN git submodule update --init --depth=1 \
+    tools/build \
+    tools/boost_install \
+    libs/config \
+    libs/date_time \
+    libs/filesystem \
+    libs/headers \
+    libs/regex \
+    libs/system \
+ && python -c 'from functools import reduce; from pathlib import Path; p=Path("tools/build/src/tools/emscripten.jam"); s=p.read_text(); replacements=[("type.set-generated-target-suffix OBJ : <toolset>emscripten : \"bc\" ;", "type.set-generated-target-suffix OBJ : <toolset>emscripten : \"o\" ;"), ("type.set-generated-target-suffix STATIC_LIB : <toolset>emscripten : \"bc\" ;", "type.set-generated-target-suffix STATIC_LIB : <toolset>emscripten : \"a\" ;"), ("actions archive\n{\n    \"$(CONFIG_COMMAND)\" $(AROPTIONS) -r -o \"$(<)\" \"$(>)\"\n}", "actions archive\n{\n    \"emar\" cr \"$(<)\" \"$(>)\"\n    \"emranlib\" \"$(<)\"\n}")]; missing=[old for old, _ in replacements if old not in s]; assert not missing, missing; p.write_text(reduce(lambda acc, pair: acc.replace(pair[0], pair[1]), replacements, s))'
 RUN . /emsdk/emsdk_env.sh \
- && CXXFLAGS=-fms-extensions emcmake cmake '-DBOOST_EXCLUDE_LIBRARIES=context;cobalt;coroutine;fiber;log;thread;wave;type_erasure;serialization;locale;contract;graph'
-RUN . /emsdk/emsdk_env.sh \
- && emmake make
-RUN . /emsdk/emsdk_env.sh \
- && emmake make install
-RUN  cp -r /emsdk/upstream/emscripten/cache/sysroot/include/boost /usr/local/include/
-RUN  cp /emsdk/upstream/emscripten/cache/sysroot/lib/libboost* /usr/local/lib/
+ && ./bootstrap.sh \
+ && printf 'using emscripten : : em++ ;\n' > /boost/user-config.jam \
+ && ./b2 \
+    --user-config=/boost/user-config.jam \
+    toolset=emscripten \
+    variant=release \
+    link=static \
+    runtime-link=static \
+    threading=single \
+    cxxflags=-fms-extensions \
+    --with-date_time \
+    --with-filesystem \
+    --with-regex \
+    --with-system \
+    stage --stagedir=/usr/local
 # Outputs
 # - /usr/local/include/boost
 # - /usr/local/lib/libboost_*.a
@@ -197,15 +229,15 @@ COPY core/OdfFile/ /core/OdfFile/
 COPY --from=harfbuzz /core/Common/3dParty/harfbuzz/ /core/Common/3dParty/harfbuzz/
 COPY --from=common /core/build/lib/linux_64/ /core/build/lib/linux_64/
 COPY --from=hyphen /core/Common/3dParty/hyphen/hyphen /core/Common/3dParty/hyphen/hyphen
-COPY --from=heif /core/Common/3dParty/heif /core/Common/3dParty/heif
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 COPY --from=brotli /core/Common/3dParty/brotli /core/Common/3dParty/brotli
 COPY --from=html /core/Common/3dParty/html /core/Common/3dParty/html
 WORKDIR /core
 RUN sed -i -e 's,$$PWD/src/[^ ]*\.cpp,,' \
     Common/3dParty/html/css/CssCalculator.pri
+RUN sed -i -e 's/!build_xp {/!build_xp:!x2t_wasm {/' \
+    DesktopEditor/graphics/pro/raster.pri
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -c "-Wno-register" DesktopEditor/graphics/pro
+    embuild.sh -q "CONFIG+=x2t_wasm" -c "-Wno-register" DesktopEditor/graphics/pro
 # Outputs /core/build/lib/linux_64/libgraphics.a
 
 
@@ -218,7 +250,6 @@ COPY core/OOXML /core/OOXML
 COPY core/MsBinaryFile /core/MsBinaryFile
 COPY core/OdfFile /core/OdfFile
 COPY core/OfficeCryptReader /core/OfficeCryptReader
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh TxtFile/Projects/Linux
@@ -239,7 +270,6 @@ COPY core/HtmlFile2 /core/HtmlFile2
 COPY core/RtfFile /core/RtfFile
 COPY core/OdfFile /core/OdfFile
 COPY core/TxtFile /core/TxtFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OOXML/Projects/Linux/BinDocument
@@ -255,7 +285,6 @@ COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/OdfFile/ /core/OdfFile/
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh  OOXML/Projects/Linux/DocxFormatLib
@@ -272,7 +301,6 @@ COPY core/OfficeUtils /core/OfficeUtils
 COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OdfFile /core/OdfFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OOXML/Projects/Linux/PPTXFormatLib
@@ -287,7 +315,6 @@ COPY core/MsBinaryFile /core/MsBinaryFile
 COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OdfFile /core/OdfFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh OOXML/Projects/Linux/XlsbFormatLib
@@ -303,7 +330,6 @@ COPY core/DesktopEditor/ /core/DesktopEditor/
 COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OdfFile /core/OdfFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh MsBinaryFile/Projects/VbaFormatLib/Linux
@@ -320,7 +346,6 @@ COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/OdfFile /core/OdfFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh MsBinaryFile/Projects/DocFormatLib/Linux
@@ -337,7 +362,6 @@ COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/OdfFile /core/OdfFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh MsBinaryFile/Projects/PPTFormatLib/Linux
@@ -354,7 +378,6 @@ COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/OdfFile /core/OdfFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh MsBinaryFile/Projects/XlsFormatLib/Linux
@@ -372,7 +395,6 @@ COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/MsBinaryFile /core/MsBinaryFile
 COPY core/PdfFile /core/PdfFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 # ENV DEV_MODE=1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
@@ -393,7 +415,6 @@ COPY core/OfficeCryptReader /core/OfficeCryptReader
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/MsBinaryFile /core/MsBinaryFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh RtfFile/Projects/Linux
@@ -420,7 +441,6 @@ COPY core/OfficeCryptReader/ /core/OfficeCryptReader/
 COPY core/MsBinaryFile /core/MsBinaryFile
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/OdfFile /core/OdfFile
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Common/3dParty/cryptopp/project
@@ -458,9 +478,27 @@ RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
 # Outputs /core/build/lib/linux_64/libPdfFile.a
 
 
+FROM base AS ofdfile
+COPY core/OFDFile /core/OFDFile
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY core/OfficeUtils /core/OfficeUtils
+COPY core/OOXML /core/OOXML
+COPY core/PdfFile /core/PdfFile
+COPY core/UnicodeConverter /core/UnicodeConverter
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
+COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
+COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.a /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh OFDFile
+# Outputs /core/build/lib/linux_64/libOFDFile.a
+
+
 FROM base AS doctrenderer
 COPY core/DesktopEditor/ /core/DesktopEditor/
-RUN cp /core/DesktopEditor/doctrenderer/doctrenderer_empty.cpp /core/DesktopEditor/doctrenderer/doctrenderer.cpp
+RUN cp /core/DesktopEditor/doctrenderer/doctrenderer_wasm_stub.cpp /core/DesktopEditor/doctrenderer/doctrenderer.cpp
 RUN cp /core/DesktopEditor/doctrenderer/docbuilder_empty.cpp /core/DesktopEditor/doctrenderer/docbuilder.cpp
 RUN cp /core/DesktopEditor/doctrenderer/docbuilder_p_empty.cpp /core/DesktopEditor/doctrenderer/docbuilder_p.cpp
 COPY core/Common /core/Common
@@ -471,7 +509,7 @@ COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
 WORKDIR /core
 # RUN find . -name sha.h ; exit 1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -c "-ICommon/3dParty/openssl/openssl/include" DesktopEditor/doctrenderer
+    embuild.sh -q "CONFIG+=x2t_wasm_stub" -c "-ICommon/3dParty/openssl/openssl/include" DesktopEditor/doctrenderer
 # Outputs /core/build/lib/linux_64/libdoctrenderer.a
 
 
@@ -480,12 +518,13 @@ COPY core/Fb2File/ /core/Fb2File/
 COPY core/Common /core/Common
 COPY core/DesktopEditor /core/DesktopEditor
 COPY core/HtmlFile2 /core/HtmlFile2
+COPY core/OdfFile /core/OdfFile
 COPY core/OfficeUtils /core/OfficeUtils
 COPY core/UnicodeConverter /core/UnicodeConverter
 COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
 COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-COPY --from=gumbo /gumbo-parser /gumbo-parser
+COPY --from=html /core/Common/3dParty/html /core/Common/3dParty/html
 WORKDIR /core
 # RUN find /gumbo-parser -type f | xargs grep RemoveEmptyTag
 # RUN find . -type f | xargs grep RemoveEmptyTag
@@ -496,6 +535,18 @@ WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Fb2File
 # Outputs /core/build/lib/linux_64/libFb2File.a
+
+
+FROM base AS starmathconverter
+COPY core/OdfFile/Reader/Converter/StarMath2OOXML /core/OdfFile/Reader/Converter/StarMath2OOXML
+COPY core/OOXML /core/OOXML
+COPY core/Common /core/Common
+COPY core/DesktopEditor /core/DesktopEditor
+COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
+WORKDIR /core
+RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
+    embuild.sh OdfFile/Reader/Converter/StarMath2OOXML/StarMath2OOXML.pro
+# Outputs /core/build/lib/linux_64/libStarMathConverter.a
 
 
 
@@ -509,7 +560,6 @@ COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64
 COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
 COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 COPY --from=md /core/Common/3dParty/md /core/Common/3dParty/md
 COPY --from=html /core/Common/3dParty/html /core/Common/3dParty/html
 WORKDIR /core
@@ -576,9 +626,6 @@ COPY core/Common /core/Common
 COPY core/DesktopEditor /core/DesktopEditor
 COPY core/OfficeUtils /core/OfficeUtils
 COPY --from=apple3rdparty /core/Common/3dParty/apple /core/Common/3dParty/apple
-COPY --from=boost /boost/libs/serialization/include/boost/archive/iterators/ /boost/libs/functional/include/boost/archive/iterators/
-COPY --from=boost /boost/libs/serialization/include/boost/serialization/throw_exception.hpp /boost/libs/functional/include/boost/serialization/throw_exception.hpp
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64/
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 WORKDIR /core
@@ -598,6 +645,7 @@ COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linux_64/
 COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
+COPY --from=starmathconverter /core/build/lib/linux_64/libStarMathConverter.a /core/build/lib/linux_64/
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh HwpFile
@@ -636,7 +684,6 @@ COPY --from=txtfile /core/build/lib/linux_64/libTxtXmlFormatLib.a /core/build/li
 COPY --from=bindocument /core/build/lib/linux_64/libBinDocument.a /core/build/lib/linux_64/
 COPY --from=pptxformatlib /core/build/lib/linux_64/libPPTXFormatLib.a /core/build/lib/linux_64/
 COPY --from=docxformatlib /core/build/lib/linux_64/libDocxFormatLib.a /core/build/lib/linux_64/
-COPY --from=boost /usr/local/include/boost /usr/local/include/boost
 COPY --from=xlsbformatlib /core/build/lib/linux_64/libXlsbFormatLib.a /core/build/lib/linux_64/
 COPY --from=xlsformatlib /core/build/lib/linux_64/libXlsFormatLib.a /core/build/lib/linux_64/
 COPY --from=cryptopp /core/build/lib/linux_64/libCryptoPPLib.a /core/build/lib/linux_64/
@@ -651,11 +698,13 @@ COPY --from=fb2file /core/build/lib/linux_64/libFb2File.a /core/build/lib/linux_
 COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.a /core/build/lib/linux_64/
 COPY --from=epubfile /core/build/lib/linux_64/libEpubFile.a /core/build/lib/linux_64/
 COPY --from=xpsfile /core/build/lib/linux_64/libXpsFile.a /core/build/lib/linux_64/
+COPY --from=ofdfile /core/build/lib/linux_64/libOFDFile.a /core/build/lib/linux_64/
 COPY --from=djvufile /core/build/lib/linux_64/libDjVuFile.a /core/build/lib/linux_64/
 COPY --from=apple /core/build/lib/linux_64/libIWorkFile.a /core/build/lib/linux_64/
 COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.a /core/build/lib/linux_64/
 COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.a /core/build/lib/linux_64/
 COPY --from=doctrenderer /core/build/lib/linux_64/libdoctrenderer.a /core/build/lib/linux_64/
+COPY --from=starmathconverter /core/build/lib/linux_64/libStarMathConverter.a /core/build/lib/linux_64/
 RUN . /emsdk/emsdk_env.sh \
  && for i in $(ls *.a); do /emsdk/upstream/bin/llvm-nm $i > /out/$i.sym ; done
 
@@ -711,28 +760,35 @@ COPY --from=common /core/build/lib/linux_64/libkernel.a /core/build/lib/linux_64
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 COPY --from=network /core/build/lib/linux_64/libkernel_network.a /core/build/lib/linux_64/
 COPY --from=pdffile /core/build/lib/linux_64/libPdfFile.a /core/build/lib/linux_64/
-COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 COPY --from=cfcpp /core/build/lib/linux_64/libCompoundFileLib.a /core/build/lib/linux_64/
+COPY --from=fb2file /core/build/lib/linux_64/libFb2File.a /core/build/lib/linux_64/
 COPY --from=htmlfile2 /core/build/lib/linux_64/libHtmlFile2.a /core/build/lib/linux_64/
 COPY --from=epubfile /core/build/lib/linux_64/libEpubFile.a /core/build/lib/linux_64/
 COPY --from=xpsfile /core/build/lib/linux_64/libXpsFile.a /core/build/lib/linux_64/
+COPY --from=ofdfile /core/build/lib/linux_64/libOFDFile.a /core/build/lib/linux_64/
 COPY --from=djvufile /core/build/lib/linux_64/libDjVuFile.a /core/build/lib/linux_64/
 COPY --from=apple /core/build/lib/linux_64/libIWorkFile.a /core/build/lib/linux_64/
 COPY --from=hwpfile /core/build/lib/linux_64/libHWPFile.a /core/build/lib/linux_64/
 COPY --from=docxrenderer /core/build/lib/linux_64/libDocxRenderer.a /core/build/lib/linux_64/
 COPY --from=doctrenderer /core/build/lib/linux_64/libdoctrenderer.a /core/build/lib/linux_64/
 COPY --from=ooxmlsignature /core/build/lib/linux_64/libooxmlsignature.a /core/build/lib/linux_64/
+COPY --from=starmathconverter /core/build/lib/linux_64/libStarMathConverter.a /core/build/lib/linux_64/
+COPY --from=openssl /core/Common/3dParty/openssl/build/linux_64/lib/libssl.a /core/build/lib/linux_64/
+COPY --from=openssl /core/Common/3dParty/openssl/build/linux_64/lib/libcrypto.a /core/build/lib/linux_64/
 
 RUN cat /wrap-main.cpp >> /core/X2tConverter/src/main.cpp
 # ENV DEV_MODE=1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh \
     -l "-looxmlsignature" \
+    -l "-lssl" \
+    -l "-lcrypto" \
     -l "-L/usr/local/lib" \
     -l "--pre-js /pre-js.js" \
     -l "-sEXPORTED_RUNTIME_METHODS=ccall,FS" \
     -l "-sEXPORTED_FUNCTIONS=_main1" \
     -l "-sALLOW_MEMORY_GROWTH" \
+    -l "-sSTACK_SIZE=5MB" \
     X2tConverter/build/Qt/X2tConverter.pro
 
 WORKDIR /core/build/bin/linux_64/

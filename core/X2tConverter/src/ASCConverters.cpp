@@ -636,6 +636,21 @@ namespace NExtractTools
 
 			nRes = fromDocument(wsTempFile, AVS_OFFICESTUDIO_FILE_DOCUMENT_HTML, params, convertParams);
 		}
+		else if (AVS_OFFICESTUDIO_FILE_DOCUMENT_HTML == nFormatFrom &&
+		         AVS_OFFICESTUDIO_FILE_DOCUMENT_HTML == nFormatTo)
+		{
+			nRes = html2html(sFrom, sTo, params, convertParams);
+		}
+		else if (AVS_OFFICESTUDIO_FILE_DOCUMENT_HTML == nFormatFrom &&
+		         AVS_OFFICESTUDIO_FILE_DOCUMENT_EPUB == nFormatTo)
+		{
+			nRes = html2epub(sFrom, sTo, params, convertParams);
+		}
+		else if (AVS_OFFICESTUDIO_FILE_DOCUMENT_HTML == nFormatFrom &&
+		         AVS_OFFICESTUDIO_FILE_DOCUMENT_FB2 == nFormatTo)
+		{
+			nRes = html2fb(sFrom, sTo, params, convertParams);
+		}
 		else if (AVS_OFFICESTUDIO_FILE_DOCUMENT_MD   == nFormatTo &&
 		         (0 != (AVS_OFFICESTUDIO_FILE_DOCUMENT & nFormatFrom)))
 		{

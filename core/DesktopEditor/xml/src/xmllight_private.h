@@ -651,6 +651,20 @@ namespace XmlUtils
 
             return xmlTextReaderAttributeCount(reader);
         }
+        inline bool GetAttribute(const std::wstring& sName, std::wstring& sValue)
+        {
+            if (!IsValid())
+                return false;
+
+            const std::string sNameA = NSFile::CUtf8Converter::GetUtf8StringFromUnicode2(sName.c_str(), (LONG)sName.length());
+            xmlChar* pValue = xmlTextReaderGetAttribute(reader, (const xmlChar*)sNameA.c_str());
+            if (NULL == pValue)
+                return false;
+
+            sValue = NSFile::CUtf8Converter::GetUnicodeStringFromUTF8((BYTE*)pValue, (LONG)strlen((const char*)pValue));
+            xmlFree(pValue);
+            return true;
+        }
         inline bool MoveToFirstAttribute()
         {
             if (!IsValid())

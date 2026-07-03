@@ -221,6 +221,10 @@ namespace XmlUtils
 	{
 		return m_pInternal->GetAttributesCount();
 	}
+	bool CXmlLiteReader::GetAttribute(const std::wstring& sName, std::wstring& sValue)
+	{
+		return m_pInternal->GetAttribute(sName, sValue);
+	}
 	bool CXmlLiteReader::MoveToFirstAttribute()
 	{
 		return m_pInternal->MoveToFirstAttribute();

@@ -33,7 +33,7 @@
 
 #include "../../../Common/3dParty/pole/pole.h"
 #include "../../../EpubFile/CEpubFile.h"
-// #include "../../../Fb2File/Fb2File.h"
+#include "../../../Fb2File/Fb2File.h"
 #include "../../../HtmlFile2/htmlfile2.h"
 #include "../../../Common/3dParty/md/md2html.h"
 #include "common.h"
@@ -73,6 +73,29 @@ namespace NExtractTools
 	_UINT32 html2docx(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{
 		return NSCommon::format2ooxml(sFrom, sTo, params, convertParams, L"docx", html2docx_dir);
+	}
+	_UINT32 html2html(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
+	{
+		return NSFile::CFileBinary::Copy(sFrom, sTo) ? S_OK : AVS_FILEUTILS_ERROR_CONVERT;
+	}
+	_UINT32 html2epub(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
+	{
+		CEpubFile oFile;
+		std::wstring sEpubTemp = combinePath(convertParams.m_sTempDir, L"tmp");
+		NSDirectory::CreateDirectory(sEpubTemp);
+		oFile.SetTempDirectory(sEpubTemp);
+
+		return S_OK == oFile.FromHtml(sFrom, sTo, params.m_sTitle ? *params.m_sTitle : L"")
+			? S_OK
+			: AVS_FILEUTILS_ERROR_CONVERT;
+	}
+	_UINT32 html2fb(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
+	{
+		CFb2File fb2File;
+		fb2File.SetTmpDirectory(convertParams.m_sTempDir);
+		return S_OK == fb2File.FromHtml(sFrom, sTo, params.m_sTitle ? *params.m_sTitle : L"")
+			? S_OK
+			: AVS_FILEUTILS_ERROR_CONVERT;
 	}
 	_UINT32 html_zip2docx(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{
@@ -147,15 +170,13 @@ namespace NExtractTools
 	}
 	_UINT32 fb2docx_dir(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{
-		// CFb2File fb2File;
-		// fb2File.SetTmpDirectory(convertParams.m_sTempDir);
-		// return S_OK == fb2File.Open(sFrom, sTo) ? S_OK : AVS_FILEUTILS_ERROR_CONVERT;
-		return 0;
+		CFb2File fb2File;
+		fb2File.SetTmpDirectory(convertParams.m_sTempDir);
+		return S_OK == fb2File.Open(sFrom, sTo) ? S_OK : AVS_FILEUTILS_ERROR_CONVERT;
 	}
 	_UINT32 fb2docx(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{
-		// return NSCommon::format2ooxml(sFrom, sTo, params, convertParams, L"docx", fb2docx_dir);
-		return 0;
+		return NSCommon::format2ooxml(sFrom, sTo, params, convertParams, L"docx", fb2docx_dir);
 	}
 
 	// doct_bin => html
@@ -219,19 +240,18 @@ namespace NExtractTools
 	// doct_bin -> fb2
 	_UINT32 doct_bin2fb(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)
 	{
-		// _UINT32 nRes = doct_bin2html_internal(sFrom, sTo, params, convertParams);
-		// if (0 != nRes)
-		// 	return nRes;
+		_UINT32 nRes = doct_bin2html_internal(sFrom, sTo, params, convertParams);
+		if (0 != nRes)
+			return nRes;
 
-		// std::wstring sHtmlFile = combinePath(convertParams.m_sTempDir, L"index.html");
+		std::wstring sHtmlFile = combinePath(convertParams.m_sTempDir, L"index.html");
 
-		// CFb2File fb2File;
-		// fb2File.SetTmpDirectory(convertParams.m_sTempDir);
-		// if (S_FALSE == fb2File.FromHtml(sHtmlFile, sTo, params.m_sTitle ? *params.m_sTitle : L""))
-		// 	nRes = AVS_FILEUTILS_ERROR_CONVERT;
+		CFb2File fb2File;
+		fb2File.SetTmpDirectory(convertParams.m_sTempDir);
+		if (S_FALSE == fb2File.FromHtml(sHtmlFile, sTo, params.m_sTitle ? *params.m_sTitle : L""))
+			nRes = AVS_FILEUTILS_ERROR_CONVERT;
 
-		// return nRes;
-		return 0;
+		return nRes;
 	}
 	// doct_bin -> html
 	_UINT32 doct_bin2html(const std::wstring& sFrom, const std::wstring& sTo, InputParams& params, ConvertParams& convertParams)

@@ -22,20 +22,33 @@ ADD_DEPENDENCY(graphics, kernel, UnicodeConverter, kernel_network)
 #CONFIG += v8_version_60
 core_android:DEFINES += DISABLE_MEMORY_LIMITATION
 
-HEADERS += \
-	$$PWD_CUR/config.h \
-	$$PWD_CUR/editors.h \
-	$$PWD_CUR/doctrenderer.h \
-	$$PWD_CUR/docbuilder.h
+x2t_wasm_stub {
+	HEADERS += \
+		$$PWD_CUR/doctrenderer.h \
+		$$PWD_CUR/docbuilder.h
 
-SOURCES += \
-	$$PWD_CUR/editors.cpp \
-	$$PWD_CUR/nativecontrol.cpp \
-	$$PWD_CUR/doctrenderer.cpp \
-	$$PWD_CUR/docbuilder.cpp \
-	$$PWD_CUR/docbuilder_p.cpp \
-	$$PWD_CUR/graphics.cpp \
-	$$PWD_CUR/hash.cpp
+	SOURCES += \
+		$$PWD_CUR/doctrenderer.cpp \
+		$$PWD_CUR/docbuilder.cpp \
+		$$PWD_CUR/docbuilder_p.cpp
+} else {
+	HEADERS += \
+		$$PWD_CUR/config.h \
+		$$PWD_CUR/editors.h \
+		$$PWD_CUR/doctrenderer.h \
+		$$PWD_CUR/docbuilder.h
+
+	SOURCES += \
+		$$PWD_CUR/editors.cpp \
+		$$PWD_CUR/nativecontrol.cpp \
+		$$PWD_CUR/doctrenderer.cpp \
+		$$PWD_CUR/docbuilder.cpp \
+		$$PWD_CUR/docbuilder_p.cpp \
+		$$PWD_CUR/graphics.cpp \
+		$$PWD_CUR/hash.cpp
+
+	include($$PWD_CUR/js_internal/js_base.pri)
+}
 
 # SOURCES += \
 # 	$$PWD_CUR/../../Common/OfficeFileFormatChecker2.cpp \
@@ -84,8 +97,6 @@ SOURCES += \
 # SOURCES += \
 # 	$$PWD_CUR/json/json.cpp \
 # 	$$PWD_CUR/json/json_values.cpp
-
-include($$PWD_CUR/js_internal/js_base.pri)
 
 # !use_javascript_core {
 # 	build_xp:DESTDIR=$$DESTDIR/xp

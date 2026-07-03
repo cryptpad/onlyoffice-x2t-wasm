@@ -25,9 +25,13 @@ namespace NSCSS
 		#endif
 	public:
 		CNode();
+		explicit CNode(bool bCreateCompiledStyle);
 		CNode(const CNode& oNode);
-		CNode(const std::wstring& wsName, const std::wstring& wsClass, const std::wstring& wsId);
+		CNode(CNode&& oNode) noexcept;
+		CNode(const std::wstring& wsName, const std::wstring& wsClass, const std::wstring& wsId, bool bCreateCompiledStyle = true);
 		~CNode();
+		CNode& operator=(const CNode& oNode);
+		CNode& operator=(CNode&& oNode) noexcept;
 
 		bool Empty() const;
 

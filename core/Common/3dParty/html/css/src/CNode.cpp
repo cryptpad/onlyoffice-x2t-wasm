@@ -1,5 +1,7 @@
 #include "CNode.h"
 
+#include <utility>
+
 #ifdef CSS_CALCULATOR_WITH_XHTML
 #include "CCompiledStyle.h"
 #endif
@@ -12,19 +14,35 @@ namespace NSCSS
     #endif
 	{}
 
+	CNode::CNode(bool bCreateCompiledStyle)
+	#ifdef CSS_CALCULATOR_WITH_XHTML
+		: m_pCompiledStyle(bCreateCompiledStyle ? new CCompiledStyle() : nullptr)
+	#endif
+	{}
+
 	CNode::CNode(const CNode& oNode)
 		: m_wsName(oNode.m_wsName), m_wsClass(oNode.m_wsClass), m_wsId(oNode.m_wsId),
 	      m_wsStyle(oNode.m_wsStyle), m_mAttributes(oNode.m_mAttributes)
 	{
 		#ifdef CSS_CALCULATOR_WITH_XHTML
-		m_pCompiledStyle = new CCompiledStyle(*oNode.m_pCompiledStyle);
+		m_pCompiledStyle = nullptr != oNode.m_pCompiledStyle ? new CCompiledStyle(*oNode.m_pCompiledStyle) : nullptr;
 		#endif
 	}
 
-	CNode::CNode(const std::wstring& wsName, const std::wstring& wsClass, const std::wstring& wsId)
+	CNode::CNode(CNode&& oNode) noexcept
+		: m_wsName(std::move(oNode.m_wsName)), m_wsClass(std::move(oNode.m_wsClass)), m_wsId(std::move(oNode.m_wsId)),
+	      m_wsStyle(std::move(oNode.m_wsStyle)), m_mAttributes(std::move(oNode.m_mAttributes))
+	{
+		#ifdef CSS_CALCULATOR_WITH_XHTML
+		m_pCompiledStyle = oNode.m_pCompiledStyle;
+		oNode.m_pCompiledStyle = nullptr;
+		#endif
+	}
+
+	CNode::CNode(const std::wstring& wsName, const std::wstring& wsClass, const std::wstring& wsId, bool bCreateCompiledStyle)
 		: m_wsName(wsName), m_wsClass(wsClass), m_wsId(wsId)
 	    #ifdef CSS_CALCULATOR_WITH_XHTML
-	    , m_pCompiledStyle(new CCompiledStyle())
+	    , m_pCompiledStyle(bCreateCompiledStyle ? new CCompiledStyle() : nullptr)
 		#endif
 	{}
 
@@ -34,6 +52,49 @@ namespace NSCSS
 		if (nullptr != m_pCompiledStyle)
 			delete m_pCompiledStyle;
 		#endif
+	}
+
+	CNode& CNode::operator=(const CNode& oNode)
+	{
+		if (this == &oNode)
+			return *this;
+
+		m_wsName       = oNode.m_wsName;
+		m_wsClass      = oNode.m_wsClass;
+		m_wsId         = oNode.m_wsId;
+		m_wsStyle      = oNode.m_wsStyle;
+		m_mAttributes  = oNode.m_mAttributes;
+
+		#ifdef CSS_CALCULATOR_WITH_XHTML
+		if (nullptr != m_pCompiledStyle)
+			delete m_pCompiledStyle;
+
+		m_pCompiledStyle = nullptr != oNode.m_pCompiledStyle ? new CCompiledStyle(*oNode.m_pCompiledStyle) : nullptr;
+		#endif
+
+		return *this;
+	}
+
+	CNode& CNode::operator=(CNode&& oNode) noexcept
+	{
+		if (this == &oNode)
+			return *this;
+
+		m_wsName       = std::move(oNode.m_wsName);
+		m_wsClass      = std::move(oNode.m_wsClass);
+		m_wsId         = std::move(oNode.m_wsId);
+		m_wsStyle      = std::move(oNode.m_wsStyle);
+		m_mAttributes  = std::move(oNode.m_mAttributes);
+
+		#ifdef CSS_CALCULATOR_WITH_XHTML
+		if (nullptr != m_pCompiledStyle)
+			delete m_pCompiledStyle;
+
+		m_pCompiledStyle = oNode.m_pCompiledStyle;
+		oNode.m_pCompiledStyle = nullptr;
+		#endif
+
+		return *this;
 	}
 
 	bool CNode::Empty() const
@@ -64,8 +125,13 @@ namespace NSCSS
 		if (nullptr != m_pCompiledStyle)
 			delete m_pCompiledStyle;
 
-		m_pCompiledStyle = new CCompiledStyle();
-		*m_pCompiledStyle = *pCompiledStyle;
+		if (nullptr == pCompiledStyle)
+		{
+			m_pCompiledStyle = nullptr;
+			return;
+		}
+
+		m_pCompiledStyle = new CCompiledStyle(*pCompiledStyle);
 	}
 	#endif
 

@@ -547,10 +547,15 @@ void CHTMLReader::ReadStyle()
 			// Стиль по ссылке
 			if(sName == L"link")
 			{
+				bool bMovedToAttribute = false;
 				while(m_oLightReader.MoveToNextAttribute())
+				{
+					bMovedToAttribute = true;
 					ReadStyleFromNetwork();
+				}
 
-				m_oLightReader.MoveToElement();
+				if (bMovedToAttribute)
+					m_oLightReader.MoveToElement();
 			}
 			// тэг style содержит стили для styles.xml
 			else if(sName == L"style")
@@ -567,9 +572,14 @@ void CHTMLReader::ReadStyle2()
 	// Стиль по ссылке
 	if(wsName == L"link")
 	{
+		bool bMovedToAttribute = false;
 		while(m_oLightReader.MoveToNextAttribute())
+		{
+			bMovedToAttribute = true;
 			ReadStyleFromNetwork();
-		m_oLightReader.MoveToElement();
+		}
+		if (bMovedToAttribute)
+			m_oLightReader.MoveToElement();
 	}
 	// тэг style содержит стили для styles.xml
 	else if(wsName == L"style")
@@ -637,15 +647,15 @@ void CHTMLReader::ReadHead()
 		if (L"base" == wsName)
 			m_wsBaseDirectory = GetArgumentValue(m_oLightReader, L"href");
 	}
-
-	m_oLightReader.MoveToElement();
 }
 
 void CHTMLReader::ReadBody()
 {
 	std::vector<NSCSS::CNode> arSelectors;
+	arSelectors.reserve(64);
+	const bool bMarkdownWriter{nullptr != dynamic_cast<CMDWriter*>(m_pWriter)};
 
-	arSelectors.push_back(NSCSS::CNode(L"html", L"", L""));
+	arSelectors.emplace_back(L"html", L"", L"", !bMarkdownWriter);
 
 	GetSubClass(arSelectors);
 
@@ -657,11 +667,10 @@ void CHTMLReader::ReadBody()
 	if (arSelectors.back().m_mAttributes.end() != itFound)
 		arSelectors.back().m_mAttributes.erase(itFound);
 
-	m_oLightReader.MoveToElement();
-
 	ReadStream(arSelectors);
 
 	m_mTags[HTML_TAG(HTML)]->Close(arSelectors);
+	arSelectors.clear();
 }
 
 bool CHTMLReader::ReadStream(std::vector<NSCSS::CNode>& arSelectors, bool bInsertEmptyP)
@@ -698,7 +707,9 @@ bool CHTMLReader::ReadInside(std::vector<NSCSS::CNode>& arSelectors)
 	const std::wstring wsName{m_oLightReader.GetName()};
 
 	if(wsName == L"#text")
+	{
 		return ReadText(arSelectors);
+	}
 
 	//TODO:: обработать все варианты return'а
 	if (UnreadableNode(wsName) || TagIsUnprocessed(wsName))
@@ -831,11 +842,11 @@ bool CHTMLReader::ReadInside(std::vector<NSCSS::CNode>& arSelectors)
 		case HTML_TAG(TITLE):
 		case HTML_TAG(STYLE):
 		case HTML_TAG(SCRIPT):
-		{
-			//Если встретили не обрабатываемые теги, то просто пропускаем
-			arSelectors.pop_back();
-			return false;
-		}
+			{
+				//Если встретили не обрабатываемые теги, то просто пропускаем
+				arSelectors.pop_back();
+				return false;
+			}
 		case HTML_TAG(SPAN):
 		{
 			bResult = ReadDefaultTag(HTML_TAG(SPAN), arSelectors);
@@ -1438,61 +1449,79 @@ bool CHTMLReader::ReadDefaultTag(UINT unTag, std::vector<NSCSS::CNode>& arSelect
 
 void CHTMLReader::GetSubClass(std::vector<NSCSS::CNode>& arSelectors)
 {
-	NSCSS::CNode oNode;
+	const bool bMarkdownWriter{nullptr != dynamic_cast<CMDWriter*>(m_pWriter)};
+	arSelectors.emplace_back(!bMarkdownWriter);
+	NSCSS::CNode& oNode = arSelectors.back();
 
 	oNode.m_wsName = m_oLightReader.GetName();
 	// Стиль по атрибуту
 	std::wstring wsAttributeName;
+	bool bMovedToAttribute{false};
 
-	if (m_oLightReader.MoveToFirstAttribute())
+	const auto ApplyAttribute = [&](const std::wstring& wsName, const std::wstring& wsValue)
 	{
-		do
+		if(wsName == L"class")
+			oNode.m_wsClass = EncodeXmlString(wsValue);
+		else if(wsName == L"id")
 		{
-			wsAttributeName = m_oLightReader.GetName();
-			if(wsAttributeName == L"class")
-				oNode.m_wsClass  = EncodeXmlString(m_oLightReader.GetText());
-			else if(wsAttributeName == L"id")
-			{
-				oNode.m_wsId = EncodeXmlString(m_oLightReader.GetText());
-				// WriteEmptyBookmark(oXml, oNode.m_wsId);
+			oNode.m_wsId = EncodeXmlString(wsValue);
+			// WriteEmptyBookmark(oXml, oNode.m_wsId);
 
-				// if (!m_oStylesCalculator.HaveStylesById(oNode.m_wsId))
-					// oNode.m_wsId.clear();
-			}
-			else if(wsAttributeName == L"style")
-				oNode.m_wsStyle += m_oLightReader.GetText();
-			else
+			// if (!m_oStylesCalculator.HaveStylesById(oNode.m_wsId))
+				// oNode.m_wsId.clear();
+		}
+		else if(wsName == L"style")
+			oNode.m_wsStyle += wsValue;
+		else if (CheckArgumentMath(oNode.m_wsName, wsName))
+			oNode.m_mAttributes[wsName] = wsValue;
+	};
+
+	if (L"#text" != oNode.m_wsName)
+	{
+		if (bMarkdownWriter)
+		{
+			const wchar_t* arMarkdownAttributes[] =
 			{
-				if (CheckArgumentMath(oNode.m_wsName, wsAttributeName))
-					oNode.m_mAttributes[wsAttributeName] = m_oLightReader.GetText();
+				L"class", L"id", L"style", L"href", L"title", L"src", L"alt",
+				L"border", L"cellpadding", L"cellspacing", L"rules", L"frame",
+				L"colspan", L"rowspan", L"start", L"type", L"width", L"height",
+				L"align", L"bgcolor"
+			};
+
+			for (const wchar_t* wsMarkdownAttribute : arMarkdownAttributes)
+			{
+				std::wstring wsValue;
+				if (m_oLightReader.GetAttribute(wsMarkdownAttribute, wsValue))
+					ApplyAttribute(wsMarkdownAttribute, wsValue);
 			}
-		}while(m_oLightReader.MoveToNextAttribute());
+		}
+		else
+		{
+			if (m_oLightReader.GetAttributesCount() > 0 && m_oLightReader.MoveToFirstAttribute())
+			{
+				bMovedToAttribute = true;
+				do
+				{
+					wsAttributeName = m_oLightReader.GetName();
+					ApplyAttribute(wsAttributeName, m_oLightReader.GetText());
+				}while(m_oLightReader.MoveToNextAttribute());
+			}
+
+			if (bMovedToAttribute)
+			{
+				m_oLightReader.MoveToElement();
+			}
+		}
 	}
 
-	m_oLightReader.MoveToElement();
-	arSelectors.push_back(oNode);
-
-	m_oCSSCalculator.CalculateCompiledStyle(arSelectors);
+	if (!bMarkdownWriter)
+		m_oCSSCalculator.CalculateCompiledStyle(arSelectors);
 }
 
 inline std::wstring GetArgumentValue(XmlUtils::CXmlLiteReader& oLiteReader, const std::wstring& wsArgumentName, const std::wstring& wsDefaultValue)
 {
-	if (!oLiteReader.MoveToFirstAttribute())
-		return wsDefaultValue;
-
-	std::wstring wsValue{wsDefaultValue};
-
-	do
-	{
-		if (wsArgumentName == oLiteReader.GetName())
-		{
-			wsValue = oLiteReader.GetText();
-			break;
-		}
-	} while (oLiteReader.MoveToNextAttribute());
-
-	oLiteReader.MoveToElement();
-	return wsValue;
+	std::wstring wsValue;
+	return oLiteReader.GetAttribute(wsArgumentName, wsValue) ? wsValue : wsDefaultValue;
 }
 
 // Так как CSS калькулятор не знает для какой ноды производится расчет стиля
