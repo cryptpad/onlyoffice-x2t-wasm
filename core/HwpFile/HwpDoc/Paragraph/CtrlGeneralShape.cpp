@@ -92,7 +92,7 @@ void CCtrlGeneralShape::ParseChildren(CXMLReader& oReader, EHanType eType)
 
 	const std::string sChildNodeName{oReader.GetName()};
 
-	//TODO:: выглядит не очень. Нужно вернуться и подумать как лучше иначе сделать
+	//TODO:: doesn't look very good. Revisit and find a better approach.
 	if (EHanType::HWPML == eType && "DRAWINGOBJECT" == sChildNodeName)
 	{
 		WHILE_READ_NEXT_NODE_WITH_NAME(oReader)

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -49,33 +42,33 @@ class CApplicationFontsWorker_private;
 class GRAPHICS_DECL CApplicationFontsWorker
 {
 public:
-	// использовать ли системные шрифты
+	// whether to use system fonts
 	bool                        m_bIsUseSystemFonts;
 	bool                        m_bIsUseSystemUserFonts;
 
-	// дополнительные папки с шрифтами
+	// additional font folders
 	std::vector<std::wstring>   m_arAdditionalFolders;
 
-	// рабоча директория (сюда скидываем все артефакты)
+	// working directory (put all artifacts here)
 	std::wstring                m_sDirectory;
 
-	// поддерживать ли opentype шрифты
+	// whether to support opentype fonts
 	bool                        m_bIsUseOpenType;
 
-	// поддерживать ли все версии AllFonts.js
+	// whether to support all versions of AllFonts.js
 	bool                        m_bIsUseAllVersions;
 
-	// нужны ли табнейлы
+	// are thumbnails needed?
 	bool                        m_bIsNeedThumbnails;
-	// какой-то табнейл уже есть - нудно ли все равно удалить и перегенерировать?
+	// A thumbnail already exists; should it still be deleted and regenerated?
 	bool                        m_bIsRemoveOldThumbnails;
-	// генерим табнейлы отдельно
+	// generate thumbnails separately
 	bool                        m_bSeparateThumbnails;
-	// какие масштабы нужны для табнейлов
+	// what scales are needed for thumbnails
 	std::vector<double>         m_arThumbnailsScales;
 	bool                        m_bIsGenerateThumbnailsEA;
 
-	// WEB версия ----
+	// WEB version ----
 	std::wstring                m_sThumbnailsDirectory;
 
 	std::wstring                m_sAllFontsJSPath;

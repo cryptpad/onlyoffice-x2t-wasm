@@ -1,0 +1,13 @@
+diff --git a/src/internal/sio_client_impl.cpp b/src/internal/sio_client_impl.cpp
+index 02ccead..e869e0c 100644
+--- a/src/internal/sio_client_impl.cpp
++++ b/src/internal/sio_client_impl.cpp
+@@ -66,6 +66,8 @@ namespace sio
+         m_packet_mgr.set_decode_callback(std::bind(&client_impl::on_decode,this,_1));
+ 
+         m_packet_mgr.set_encode_callback(std::bind(&client_impl::on_encode,this,_1,_2));
++
++        m_client.set_close_handshake_timeout(1);
+     }
+     
+     client_impl::~client_impl()

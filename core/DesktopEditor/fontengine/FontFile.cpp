@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -563,8 +556,8 @@ int CFontFile::IsUnicodeRangeAvailable(unsigned long ulBit, unsigned int un4Byte
 	case 5: if ( pOs2->ulCodePageRange2 & ulMult ) nResult = 1; break;
 	}
 
-	// Специальная ветка для случаев, когда charset может быть задан не через значения
-	// ulCodePageRange, а непосредственно через тип Cmap.
+	// Special branch for cases when charset can be specified not through values
+	// ulCodePageRange, but directly through the Cmap type.
 
 	//  Charset Name       Charset Value(hex)  Codepage number   Platform_ID   Encoding_ID   Description
 	//  -------------------------------------------------------------------------------------------------
@@ -631,42 +624,42 @@ void CFontFile::UpdateStyles(const INT& bBold, const INT& bItalic)
 {
 	std::string sStyle = GetStyleName();
 
-	// Смотрим какой стиль у исходного шрифта
+	// Check the original font style
 	INT bSrcBold   = (-1 != sStyle.find("Bold"));
 	INT bSrcItalic = (-1 != sStyle.find("Italic"));
 
-	if (!bBold) // Нам нужен не жирный шрифт
+	if (!bBold) // Need a non-bold font
 	{
 		m_bNeedDoBold = false;
 	}
-	else if (bBold) // Нам нужно сделать шрифт жирным
+	else if (bBold) // Make the font bold
 	{
 		if (bSrcBold)
 		{
-			// Исходный шрифт уже жирный, поэтому ничего дополнительного делать не надо
+			// The original font is already bold, so there is no need to do anything additional.
 			m_bNeedDoBold = false;
 		}
 		else
 		{
-			// Иходный шрифт не жирный, поэтому жирность делаем сами
+			// The original font isn't bold, so synthesize bold
 			m_bNeedDoBold = true;
 		}
 	}
 
-	if (!bItalic) // Нам нужен не наклонный шрифт
+	if (!bItalic) // Need a non-italic font
 	{
 		SetItalic(false);
 	}
-	else if (bItalic) // Нам нужно сделать наклонный шрифт
+	else if (bItalic) // Make the font italic
 	{
 		if (bSrcItalic)
 		{
-			// Исходный шрифт уже наклонный, поэтому ничего дополнительного делать не надо
+			// The original font is already italic, so no additional work is needed
 			SetItalic(false);
 		}
 		else
 		{
-			// Иходный шрифт не наклонный, поэтому делаем его наклонным сами
+			// The original font isn't italic, so synthesize italic
 			SetItalic(true);
 		}
 	}
@@ -833,14 +826,14 @@ TFontCacheSizes CFontFile::CacheGlyph(const int& code, const bool& isRaster, CVe
 
 		if (!m_bStringGID)
 		{
-			// пробуем подобрать нужный шрифт
+			// trying to find the right font
 			CFontFile* pPickFile = m_pFontManager->GetFontFileBySymbol(this, code);
 			if (!pPickFile)
 				return oSizes;
 
 			TFontCacheSizes oSizesCheck = pPickFile->CacheGlyph(code, isRaster, pWorker, true);
 
-			// файл - в кэше. а тут нужно удалить
+			// the file is in the cache, so delete it here
 			RELEASEINTERFACE(pPickFile);
 
 			if (oSizesCheck.eState == glyphstateNormal)
@@ -953,7 +946,7 @@ TFontCacheSizes CFontFile::CacheGlyph(const int& code, const bool& isRaster, CVe
 	else
 		pBitmap->pData = NULL;
 
-	// Все удаляется в кэше (во время очистки или замены)
+	// Everything in the cache is deleted (during flush or replacement)
 	pBitmap->bFreeData = FALSE;
 
 	int nIndex2;
@@ -1373,12 +1366,12 @@ static int GlyphPathConicTo(const FT_Vector *pControlPoint, const FT_Vector *pEn
 	double dX3 = (double)pEndPoint->x / 64.0;
 	double dY3 = (double)pEndPoint->y / 64.0;
 
-	// Строим кривую Безье второго порядка, с помощью кривой Безье третего порядка. Если p0, pC, p3 -
-	// начальная, контрольная и конечная точки, соответственно, для кривой Безье второго порядка. Тогда
-	// для этой же кривой, рассматриваемой как кривая Безье третьего порядка, точки p0, p1, p2, p3 будут
-	// начальной, две контрольные, конечная точки. Где p1 и p2 рассчитываются по следующим формулам:
-	//     p1 = (1/3) * (p0 + 2pС)
-	//     p2 = (1/3) * (2pС + p3)
+	// Construct a quadratic Bezier curve using a cubic Bezier curve. If p0, pC, p3 -
+	// the start, control, and end points, respectively, for a second-order Bezier curve. Then
+	// for the same curve, considered as a third-order Bezier curve, the points p0, p1, p2, p3 will be
+	// starting point, two control points, end point. Where p1 and p2 are calculated using the following formulas:
+	//     p1 = (1/3) * (p0 + 2pC)
+	//     p2 = (1/3) * (2pC + p3)
 
 	double dX1 = (double)(1.0 / 3.0) * (dX0 + (double)2 * dXc);
 	double dY1 = (double)(1.0 / 3.0) * (dY0 + (double)2 * dYc);

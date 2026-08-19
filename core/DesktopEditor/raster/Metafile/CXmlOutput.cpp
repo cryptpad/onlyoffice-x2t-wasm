@@ -805,7 +805,7 @@ namespace MetaFile
 		*this >> oTEmfAlphaBlend.nYDest;
 		*this >> oTEmfAlphaBlend.nCxDest;
 		*this >> oTEmfAlphaBlend.nCyDest;
-		//TODO: закончить реализацию при встрече примера
+		//TODO: finish implementation when a sample is encountered
 
 	}
 

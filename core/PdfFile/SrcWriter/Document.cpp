@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -180,7 +173,7 @@ namespace PdfWriter
 	}
     void CDocument::Close()
 	{
-		// Все объекты удаляются внутри CXref
+		// All objects are deleted inside CXref
 		RELEASEOBJECT(m_pXref);
 
 		m_pLastXref         = NULL;
@@ -257,7 +250,7 @@ namespace PdfWriter
 	{
 		m_pCatalog->AddMetadata(m_pXref, m_pInfo);
 
-		// Пишем заголовок
+		// Writing the header
 		if (IsPDFA())
 			pStream->WriteStr(c_sPdfAHeader);
 		else
@@ -269,11 +262,11 @@ namespace PdfWriter
 			pStream->WriteStr(sDocumentID.c_str());
 		}
 
-		// Добавляем в Trailer необходимые элементы 
+		// Adding the necessary elements to the Trailer
 		m_pTrailer->Add("Root", m_pCatalog);
 		m_pTrailer->Add("Info", m_pInfo);
 
-		// Шифруем документ, если это необходимо
+		// Encrypt the document if necessary
 		CEncrypt* pEncrypt = NULL;
 		if (m_bEncrypt)
 		{
@@ -940,7 +933,7 @@ namespace PdfWriter
 		if (!pFont)
 			return NULL;
 
-		// 0 GID всегда используется для .notdef символа, не используем данный код для настоящих символов
+		// 0 GID is always used for .notdef symbol, don't use this code for real symbols
 		unsigned int unUnicode = 0;
 		pFont->EncodeGID(0, &unUnicode, 1);
 
@@ -1053,7 +1046,7 @@ namespace PdfWriter
 	{
 		if (m_pJbig2 && m_pJbig2->GetImagesCount() > 4)
 		{
-			// Удалять не надо, т.к. объект удалится в CXref
+			// There is no need to delete, because the object will be deleted in CXref
 			m_pJbig2->FlushStreams();
 			m_pJbig2 = NULL;
 		}
@@ -1091,7 +1084,7 @@ namespace PdfWriter
 				return CreateRadialShading(pPattern[0], pPattern[1], pPattern[2], pPattern[3], pPattern[4], pPattern[5], pColors, pPoints, nCount);
 		}
 
-		// Создаем 2 shading-объекта, один цветной RGB, второй серый со значениями альфа-канала
+		// Create 2 shading objects, one RGB color, the second gray with alpha channel values
 		CShading* pColorShading = NULL;
 		CShading* pAlphaShading = NULL;
 
@@ -1122,7 +1115,7 @@ namespace PdfWriter
 		double dWidth  = pPage->GetWidth();
 		double dHeight = pPage->GetHeight();
 
-		// Создаем графический объект, который будет альфа-маской
+		// Create a graphic object that will be an alpha mask
 		CDictObject* pXObject = new CDictObject(m_pXref);
 		pXObject->Add("Type", "XObject");
 		pXObject->Add("Subtype", "Form");
@@ -1142,7 +1135,7 @@ namespace PdfWriter
 		pStream->WriteReal(dHeight);
 		pStream->WriteStr(" re\012W\012\n\012/S1 sh\012");
 
-		// Создаем обект-маску для графического состояние
+		// Create a mask object for the graphic state
 		CDictObject* pMask = new CDictObject();
 		m_pXref->Add(pMask);
 		pMask->Add("Type", "Mask");
@@ -1151,7 +1144,7 @@ namespace PdfWriter
 
 		if (!IsPDFA())
 		{
-			// Создаем ExtGState объект, в который мы запишем альфа-маску
+			// Create an ExtGState object into which we will write the alpha mask
 			pExtGrState = new CExtGrState(m_pXref);
 			pExtGrState->Add("BM", "Normal");
 			pExtGrState->Add("ca", 1);
@@ -1212,7 +1205,7 @@ namespace PdfWriter
 	}
 	CImageTilePattern*CDocument::CreateHatchPattern(double dW, double dH, const BYTE& nR1, const BYTE& nG1, const BYTE& nB1, const BYTE& nAlpha1, const BYTE& nR2, const BYTE& nG2, const BYTE& nB2, const BYTE& nAlpha2, const std::wstring& wsHatch)
 	{
-		// TODO: Надо бы сделать мап, чтобы не создавать одинаковых паттернов
+		// TODO: It would be necessary to make a map so as not to create identical patterns
 
 		CImageDict* pImage = CreateImage();
 		BYTE* pBuffer = new BYTE[3 * HATCH_TX_SIZE * HATCH_TX_SIZE];
@@ -1901,7 +1894,7 @@ namespace PdfWriter
 		pXref->SetPrev(m_pLastXref);
 		m_pLastXref = pXref;
 
-		// Вторая часть идентификатора должна обновляться
+		// The second part of the identifier must be updated
 		CObjectBase* pID = m_pTrailer->Get("ID");
 		if ((pID && pID->GetType() == object_type_ARRAY) || !m_vMetaOForms.empty())
 		{
@@ -1931,7 +1924,7 @@ namespace PdfWriter
 		if (m_bEncrypt)
 			pEncrypt = m_pEncryptDict->GetEncrypt();
 
-		// Если m_pTrailer поток перекрестных ссылок, то при дозаписи тоже должен быть поток
+		// If m_pTrailer is a stream of cross-references, then the appended trailer should also be a stream
 		m_pTrailer->Remove("XRefStm");
 		bool bNeedStreamXRef = false;
 		pStream->WriteChar('\n');
@@ -1967,8 +1960,8 @@ namespace PdfWriter
 	}
 	bool CDocument::PrepareSignature(const std::wstring& wsPath)
 	{
-		// Сначала нужно сохранить основной файл
-		// Это должно быть сделано в AddToFile или SaveToFile ПЕРЕД вызовом этого метода
+		// First need to save the main file
+		// This must be done in AddToFile or SaveToFile BEFORE calling this method
 
 		if (m_vSignatures.empty() || wsPath.empty())
 			return false;
@@ -1978,7 +1971,7 @@ namespace PdfWriter
 		unsigned int nSizeXRef = pSI->nSizeXRef;
 		bool bNeedStreamXRef = pSI->bNeedStreamXRef;
 
-		// Создаем новый XRef для этой подписи
+		// Create a new XRef for this signature
 		CXref* pXrefBefore = m_pXref;
 		m_pXref = new CXref(this, nSizeXRef);
 		if (!m_pXref)
@@ -1990,7 +1983,7 @@ namespace PdfWriter
 			pSI->nPrevAddr = pXrefBefore->GetPrevAddr();
 		m_pXref->SetPrevAddr(pSI->nPrevAddr);
 
-		// Создаем поле подписи
+		// Create a signature field
 		CSignatureField* pField = CreateSignatureField();
 		if (!pField)
 		{
@@ -1999,7 +1992,7 @@ namespace PdfWriter
 			return false;
 		}
 
-		// Настраиваем поле
+		// Setting up the field
 		pSI->pField = pField;
 		m_pAcroForm->Add("SigFlags", 3);
 		pField->SetDate();
@@ -2017,7 +2010,7 @@ namespace PdfWriter
 		if (!pSI->wsLocation.empty())
 			pField->SetLocation(pSI->wsLocation);
 
-		// Открываем файл для дозаписи
+		// Opening the file for appending
 		CFileStream* pStream = new CFileStream();
 		if (!pStream || !pStream->OpenFile(wsPath, false))
 		{
@@ -2027,7 +2020,7 @@ namespace PdfWriter
 		}
 		pSI->nFileSizeBefore = pStream->Size();
 
-		// Вычисляем размер для Contents
+		// Calculating the size for Contents
 		unsigned int nContentsSize = 7000 + pStream->Size() / 1000 + 1000;
 		if (nContentsSize < 5000)
 			nContentsSize = 5000;
@@ -2035,7 +2028,7 @@ namespace PdfWriter
 			nContentsSize = 20000;
 		pField->GetSignatureDict()->SetContentsSize(nContentsSize);
 
-		// Записываем XRef и получаем информацию о расположении
+		// Write XRef and get location information
 		CXref* pXrefCatalog = new CXref(this, m_pCatalog->GetObjId());
 		if (pXrefCatalog)
 		{
@@ -2067,7 +2060,7 @@ namespace PdfWriter
 
 		pField->GetSignatureDict()->WriteToStream(pStream, pStream->Size());
 
-		// Восстанавливаем XRef
+		// Restoring XRef
 		m_pXref = pXrefBefore;
 
 		delete pStream;
@@ -2085,12 +2078,12 @@ namespace PdfWriter
 		if (wsPath.empty() || !pSI->pField)
 			return false;
 
-		// Если подписание не удалось
+		// If signing fails
 		if (!pSignedData || dwDataLength == 0)
 		{
 			unsigned int nFileSizeBefore = pSI->nFileSizeBefore;
 
-			// Обрезаем файл
+			// Trimming the file
 			NSFile::CFileBinary::Truncate(wsPath, nFileSizeBefore);
 
 			CXref* pXref = pSI->pXref;
@@ -2114,7 +2107,7 @@ namespace PdfWriter
 				}
 			}
 
-			// Продолжаем со следующей подписью
+			// Continue with the next signature
 			if (!m_vSignatures.empty())
 			{
 				CXref* pPrev = pXref;
@@ -2126,7 +2119,7 @@ namespace PdfWriter
 			delete pSI;
 			delete pXref;
 
-			return true; // Успешно откатили
+			return true; // Successfully rolled back
 		}
 
 		CFileStream* pStream = new CFileStream();

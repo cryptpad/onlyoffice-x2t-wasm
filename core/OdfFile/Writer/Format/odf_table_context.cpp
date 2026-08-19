@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -138,17 +131,17 @@ public:
 	_CP_OPT(odf_types::length) default_cell_padding_top;
 	_CP_OPT(odf_types::length) default_cell_padding_bottom;
 
-	std::wstring default_cell_properties; // для предустановки ..
+	std::wstring default_cell_properties; // for preset..
 
 private:
-	std::vector<odf_table_state> tables_;//типо current level ... для вложенных таблиц
+	std::vector<odf_table_state> tables_;//like current level ... for nested tables
 
 };
 
 ////////////////////////////////////////////////////////////////////////////
 odf_table_context::odf_table_context(odf_conversion_context *odf_context)  
 	: impl_(new  odf_table_context::Impl(odf_context))
-	//for embedded need styles_context ??? todooo
+	//for embedded need styles_context ??? TODO
 {
 }
 
@@ -205,7 +198,7 @@ void odf_table_context::start_table(office_element_ptr &elm, bool styled)
 }
 void odf_table_context::end_table()
 {
-	//последние объединенные ячейки ..
+	//last merged cells..
 	if (impl_->current_table().columns.empty())
 	{
 	}
@@ -288,7 +281,7 @@ void odf_table_context::end_row()
 
 	//for (int i = impl_->current_table().current_column ; i < impl_->current_table().columns.size() ; i++)
 	//{
-	//	office_element_ptr cell; //потом на default ???
+	//	office_element_ptr cell; //then to default ???
 	//	create_element(L"table", L"table-cell",cell , impl_->odf_context_);
 	//	start_cell(cell,false);
 	//	end_cell();

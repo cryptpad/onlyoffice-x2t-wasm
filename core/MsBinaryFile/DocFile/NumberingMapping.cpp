@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -134,7 +127,7 @@ namespace DocFileFormat
 				//end abstractNum
                 m_pXmlWriter->WriteNodeEnd( L"w:abstractNum" );
 			}
-			//write old style numbering (сложносоставных не сущестует)
+			//write old style numbering (compounds don't exist)
 			for (size_t i = 0;  i < rglst->listNumbering.size();  ++i)
 			{
 				//start abstractNum
@@ -253,7 +246,7 @@ namespace DocFileFormat
 				{
 					wchar_t xchBullet = lvl->xst[0];
 
-					// В символьном шрифте обрезать надо, в других случаях - нет
+					// In a symbolic font need to trim, in other cases - not
 					if (true == bIsSymbol && (xchBullet & 0xF000) != 0)
 					{
 						xchBullet &= 0x0FFF;
@@ -306,7 +299,7 @@ namespace DocFileFormat
 			{
 				wchar_t xchBullet = lvl->xst[0];
 
-				// В символьном шрифте обрезать надо, в других случаях - нет
+				// In a symbolic font need to trim, in other cases - not
 				if (bIsSymbol && (xchBullet & 0xF000) != 0)
 				{
 					xchBullet &= 0x0FFF;
@@ -565,13 +558,13 @@ namespace DocFileFormat
 	{
 		if (!lvl) return;
 
-		XMLTools::CStringXmlWriter oWriterTemp;	//Временный writer,что не нарушать последовательность записи
+		XMLTools::CStringXmlWriter oWriterTemp;	//Temporary writer, so as not to break the write sequence
 //rPr
 		RevisionData rev(lvl->grpprlChpx);
 		CharacterPropertiesMapping cpMapping(&oWriterTemp, m_document, &rev, lvl->grpprlPapx, false);
 		lvl->grpprlChpx->Convert(&cpMapping);
 
-// Проверяем шрифт
+// Checking the font
 
         m_pXmlWriter->WriteNodeBegin( L"w:lvl", TRUE );
         m_pXmlWriter->WriteAttribute( L"w:ilvl", FormatUtils::IntToWideString(level));
@@ -630,7 +623,7 @@ namespace DocFileFormat
 		ParagraphPropertiesMapping oppMapping(m_pXmlWriter, m_context, m_document, NULL, isBidi, NULL, -1, false);
 		lvl->grpprlPapx->Convert(&oppMapping);
 
-// пишем rPr
+// write rPr
 
 		m_pXmlWriter->WriteString(oWriterTemp.GetXmlString());
 

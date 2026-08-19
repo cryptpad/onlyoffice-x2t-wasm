@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -140,7 +133,7 @@ private:
 	void Draw(PDFDoc* pdfDoc, Object* oAP, int nRasterH, int nBackgroundColor, Object* oAnnotRef, const char* sView);
 	void Clear();
 
-	unsigned int m_unRefNum; // Номер ссылки на объект
+	unsigned int m_unRefNum; // Object reference number
 	double m_dx1, m_dy1, m_dx2, m_dy2;
 	double m_dCropX, m_dCropY;
 	double m_dWScale, m_dHScale;
@@ -192,22 +185,22 @@ protected:
 
 	unsigned int m_unAFlags;
 	unsigned int m_unFlags;
-	double m_dHeight; // Высота холста, для Y трансформации
-	double m_dX; // Смещение по X для трансформации
-	double m_pRect[4]; // Координаты
-	std::vector<double> m_arrC; // Специальный цвет
+	double m_dHeight; // Canvas height, for Y transformation
+	double m_dX; // X offset for transformation
+	double m_pRect[4]; // Coordinates
+	std::vector<double> m_arrC; // Special color
 
 private:
-	unsigned int m_unAnnotFlag; // Флаг аннотации - F
-	unsigned int m_unRefNum; // Номер ссылки на объект
-	unsigned int m_unPage; // Страница
-	std::pair<BYTE, double> m_pBE; // Эффекты границы
-	std::string m_sContents; // Отображаемый текст
-	std::string m_sNM; // Уникальное имя
-	std::string m_sM; // Дата последнего изменения
+	unsigned int m_unAnnotFlag; // Annotation flag - F
+	unsigned int m_unRefNum; // Object reference number
+	unsigned int m_unPage; // Page
+	std::pair<BYTE, double> m_pBE; // Border effects
+	std::string m_sContents; // Display text
+	std::string m_sNM; // Unique name
+	std::string m_sM; // Last modified date
 	std::string m_sOUserID; // OO User ID
-	std::string m_sOMetadata; // OO метаданные формы
-	CBorderType* m_pBorder; // Граница
+	std::string m_sOMetadata; // OpenOffice form metadata
+	CBorderType* m_pBorder; // Border
 };
 
 //------------------------------------------------------------------------
@@ -236,30 +229,30 @@ protected:
 
 	std::string FieldLookupString(AcroFormField* pField, const char* sName, int nByte);
 
-	BYTE m_nType; // Тип - FT + флаги
-	unsigned int m_unFieldFlag; // Флаг - Ff
+	BYTE m_nType; // Type - FT + flags
+	unsigned int m_unFieldFlag; // Flag - Ff
 
 private:
-	unsigned int m_unR; // Поворот аннотации относительно страницы - R
-	unsigned int m_unRefNumParent; // Номер ссылки на объект родителя
-	unsigned int m_unFontStyle; // Стиль шрифта - из DA
+	unsigned int m_unR; // Rotate annotation relative to page - R
+	unsigned int m_unRefNumParent; // Parent object reference number
+	unsigned int m_unFontStyle; // Font style - from DA
 	unsigned int m_unMEOptions; // MEOptions
-	double m_dFontSize; // Размер шрифта - из DA
-	std::vector<double> m_arrTC; // Цвет текста - из DA
-	std::vector<double> m_arrBC; // Цвет границ - BC
-	std::vector<double> m_arrBG; // Цвет фона - BG
-	std::vector<CAction*> m_arrAction; // Действия - A&AA
-	BYTE m_nQ; // Выравнивание текста - Q
-	BYTE m_nH; // Режим выделения - H
-	std::string m_sTU; // Альтернативное имя поля, используется во всплывающей подсказке и сообщениях об ошибке - TU
-	std::string m_sDS; // Строка стиля по умолчанию - DS
-	std::string m_sDV; // Значение по-умолчанию - DV
-	std::string m_sT; // Частичное имя поля - T
-	std::string m_sFontKey; // Уникальный идентификатор шрифта
-	std::string m_sFullName; // Полное имя поля
-	std::string m_sFontName; // Имя шрифта - из DA
-	std::string m_sActualFontName; // Имя замененного шрифта
-	std::string m_sButtonFontName; // Имя шрифта кнопки
+	double m_dFontSize; // Font size - from DA
+	std::vector<double> m_arrTC; // Text color - from DA
+	std::vector<double> m_arrBC; // Border color - BC
+	std::vector<double> m_arrBG; // Background color - BG
+	std::vector<CAction*> m_arrAction; // Actions - A&AA
+	BYTE m_nQ; // Text alignment - Q
+	BYTE m_nH; // Selection Mode - H
+	std::string m_sTU; // Alternative field name, used in tooltip and error messages - TU
+	std::string m_sDS; // Default style string is DS
+	std::string m_sDV; // The default value is DV
+	std::string m_sT; // Partial field name - T
+	std::string m_sFontKey; // Unique font identifier
+	std::string m_sFullName; // Full field name
+	std::string m_sFontName; // Font name - from DA
+	std::string m_sActualFontName; // Replaced font name
+	std::string m_sButtonFontName; // Button font name
 };
 
 class CAnnotWidgetBtn final : public CAnnotWidget
@@ -334,7 +327,7 @@ public:
 
 private:
 	unsigned int m_unFlags;
-	unsigned int m_unRefNumParent; // Номер ссылки на объект родителя
+	unsigned int m_unRefNumParent; // Parent object reference number
 };
 
 //------------------------------------------------------------------------
@@ -350,10 +343,10 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	BYTE m_nH; // Режим выделения - H
-	std::vector<double> m_arrQuadPoints; // Координаты - QuadPoints
-	CAction* m_pAction; // Действие - A&Dest
-	CAction* m_pPA; // URI действие - PA
+	BYTE m_nH; // Selection Mode - H
+	std::vector<double> m_arrQuadPoints; // Coordinates - QuadPoints
+	CAction* m_pAction; // Action - A&Dest
+	CAction* m_pPA; // URI action - PA
 };
 
 //------------------------------------------------------------------------
@@ -367,7 +360,7 @@ public:
 	{
 		bool bFind;
 		BYTE nAlign;
-		unsigned int unFontFlags; // 0 Bold, 1 Italic, 3 зачеркнутый, 4 подчеркнутый, 5 vertical-align, 6 actual font, 7 RTL
+		unsigned int unFontFlags; // 0 Bold, 1 Italic, 3 strikethrough, 4 underlined, 5 vertical-align, 6 actual font, 7 RTL
 		double dFontSise;
 		double dVAlign;
 		double dColor[3];
@@ -389,16 +382,16 @@ protected:
 
 	virtual void ToWASM(NSWasm::CData& oRes) override;
 
-	std::vector<CFontData*> m_arrRC; // Форматированный текст
+	std::vector<CFontData*> m_arrRC; // Rich text
 
 private:
-	BYTE m_nRT; // Тип аннотации-ответа
-	unsigned int m_unRefNumPopup; // Номер ссылки на всплывающую аннотацию
-	unsigned int m_unRefNumIRT; // Номер ссылки на аннотацию-ответ
-	double m_dCA; // Значение непрозрачности
-	std::string m_sT; // Текстовая метка, пользователь добавивший аннотацию
-	std::string m_sCreationDate; // Дата создания
-	std::string m_sSubj; // Краткое описание
+	BYTE m_nRT; // Answer-annotation type
+	unsigned int m_unRefNumPopup; // Popup Annotation Reference Number
+	unsigned int m_unRefNumIRT; // Answer annotation reference number
+	double m_dCA; // Opacity value
+	std::string m_sT; // Text label, user who added the annotation
+	std::string m_sCreationDate; // Creation date
+	std::string m_sSubj; // Brief description
 };
 
 //------------------------------------------------------------------------
@@ -412,9 +405,9 @@ public:
 
 	void ToWASM(NSWasm::CData& oRes) override;
 private:
-	BYTE m_nName; // Иконка
-	BYTE m_nState; // Состояние
-	BYTE m_nStateModel; // Модель состояния
+	BYTE m_nName; // Icon
+	BYTE m_nState; // Condition
+	BYTE m_nStateModel; // State Model
 };
 
 //------------------------------------------------------------------------
@@ -429,7 +422,7 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	std::vector< std::vector<double> > m_arrInkList; // Путь
+	std::vector< std::vector<double> > m_arrInkList; // Path
 };
 
 //------------------------------------------------------------------------
@@ -444,16 +437,16 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	BYTE m_nIT; // Назначение аннотации
-	BYTE m_nCP; // Расположение заголовка аннотации
-	double m_dLL; // Длина линий выноски
-	double m_dLLE; // Продолжение линий выноски
-	double m_dLLO; // Длина смещения выноски
-	BYTE m_nLE[2]; // Стили окончания линии
-	double m_pL[4]{}; // Координаты линии
-	double m_pCO[2]; // Смещение текста подписи
-	std::vector<double> m_arrIC; // Цвет окончаний линии
-	// TODO Measure Показатели масштаба, единиц измерения
+	BYTE m_nIT; // Purpose of annotation
+	BYTE m_nCP; // Annotation title location
+	double m_dLL; // Leader line length
+	double m_dLLE; // Extending leader lines
+	double m_dLLO; // Leader offset length
+	BYTE m_nLE[2]; // Line ending styles
+	double m_pL[4]{}; // Line coordinates
+	double m_pCO[2]; // Signature text offset
+	std::vector<double> m_arrIC; // Line ending color
+	// TODO Measure Scale indicators, units of measurement
 };
 
 //------------------------------------------------------------------------
@@ -468,8 +461,8 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	BYTE m_nSubtype; // Подтип TextMarkup аннотации
-	std::vector<double> m_arrQuadPoints; // Координаты
+	BYTE m_nSubtype; // TextMarkup annotation subtype
+	std::vector<double> m_arrQuadPoints; // Coordinates
 };
 
 //------------------------------------------------------------------------
@@ -484,9 +477,9 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	BYTE m_nSubtype; // Подтип Square или Circle аннотации
-	double m_pRD[4]{}; // Различия Rect и фактического размера
-	std::vector<double> m_arrIC; // Цвет заполнения
+	BYTE m_nSubtype; // Square or Circle annotation subtype
+	double m_pRD[4]{}; // Differences between Rect and Actual Size
+	std::vector<double> m_arrIC; // Fill color
 };
 
 //------------------------------------------------------------------------
@@ -501,12 +494,12 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	BYTE m_nIT; // Назначение аннотации
-	BYTE m_nSubtype; // Подтип Polygon или Polyline аннотации
-	BYTE m_nLE[2]; // Стили окончания линии
-	std::vector<double> m_arrIC; // Цвет заполнения
-	std::vector<double> m_arrVertices; // Координаты вершин
-	// TODO Measure Показатели масштаба, единиц измерения
+	BYTE m_nIT; // Purpose of annotation
+	BYTE m_nSubtype; // Polygon or Polyline annotation subtype
+	BYTE m_nLE[2]; // Line ending styles
+	std::vector<double> m_arrIC; // Fill color
+	std::vector<double> m_arrVertices; // Vertex coordinates
+	// TODO Measure Scale indicators, units of measurement
 };
 
 //------------------------------------------------------------------------
@@ -521,14 +514,14 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	BYTE m_nQ; // Выравнивание текста - Q
-	BYTE m_nIT; // Назначение аннотации
-	BYTE m_nLE; // Стиль окончания линии
+	BYTE m_nQ; // Text alignment - Q
+	BYTE m_nIT; // Purpose of annotation
+	BYTE m_nLE; // Line ending style
 	int m_nRotate;
-	std::string m_sDS; // Строка стиля по умолчанию - DS
-	double m_pRD[4]{}; // Различия Rect и фактического размера
-	std::vector<double> m_arrCFromDA; // Цвет границы
-	std::vector<double> m_arrCL; // Координаты выноски
+	std::string m_sDS; // Default style string is DS
+	double m_pRD[4]{}; // Differences between Rect and Actual Size
+	std::vector<double> m_arrCFromDA; // Border color
+	std::vector<double> m_arrCL; // Leader coordinates
 };
 
 //------------------------------------------------------------------------
@@ -543,8 +536,8 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	BYTE m_nSy; // Связанный символ - Sy
-	double m_pRD[4]{}; // Различия Rect и фактического размера
+	BYTE m_nSy; // Associated symbol - Sy
+	double m_pRD[4]{}; // Differences between Rect and Actual Size
 };
 
 //------------------------------------------------------------------------
@@ -589,18 +582,18 @@ public:
 	};
 
 private:
-	std::string m_sName; // Иконка
-	std::string m_sFS;   // Файловая система
-	std::string m_sDesc; // Описание файла
-	std::string m_sF;    // Спецификация файла (обратная совместимость)
-	std::string m_sUF;   // Спецификация файла (кросс-платформенная и межъязыковая совместимость)
-	std::string m_sDOS;  // Спецификация файла DOS
-	std::string m_sMac;  // Спецификация файла Mac
-	std::string m_sUnix; // Спецификация файла Unix
-	std::pair<std::string, std::string> m_sID; // Идентификатор файла
-	CEmbeddedFiles* m_pEF; // EF содержит F/UF/DOS/Mac/Unix со ссылками на встроенные файловые потоки по соответствующим спецификациях
-	// TODO RF содержит F/UF/DOS/Mac/Unix с массивами связанных файлов по соответствующим спецификациях
-	// TODO Cl коллекция для создания пользовательского интерфейса
+	std::string m_sName; // Icon
+	std::string m_sFS;   // File system
+	std::string m_sDesc; // File Description
+	std::string m_sF;    // File Specification (Backwards Compatible)
+	std::string m_sUF;   // File specification (cross-platform and cross-language compatibility)
+	std::string m_sDOS;  // DOS File Specification
+	std::string m_sMac;  // Mac File Specification
+	std::string m_sUnix; // Unix File Specification
+	std::pair<std::string, std::string> m_sID; // File ID
+	CEmbeddedFiles* m_pEF; // EF contains F/UF/DOS/Mac/Unix with links to embedded file streams according to the relevant specifications
+	// TODO RF contains F/UF/DOS/Mac/Unix with arrays of related files according to the corresponding specifications
+	// TODO CI collection for creating the user interface
 };
 
 //------------------------------------------------------------------------
@@ -615,7 +608,7 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	std::string m_sName; // Иконка
+	std::string m_sName; // Icon
 	double m_dRotate;
 	double m_dX1, m_dY1, m_dX2, m_dY2, m_dX3, m_dY3, m_dX4, m_dY4;
 };
@@ -634,15 +627,15 @@ public:
 	void ToWASM(NSWasm::CData& oRes) override;
 
 private:
-	BYTE m_nQ; // Выравнивание текста
-	unsigned int m_unFontStyle; // Стиль шрифта - из DA
-	double m_dFontSize; // Размер шрифта - из DA
-	std::string m_sFontName; // Имя шрифта - из DA
-	std::string m_sActualFontName; // Имя замененного шрифта
-	std::string m_sOverlayText; // Текст наложения
-	std::vector<double> m_arrQuadPoints; // Координаты
-	std::vector<double> m_arrIC; // Цвет заполнения
-	std::vector<double> m_arrCFromDA; // Цвет текста
+	BYTE m_nQ; // Text alignment
+	unsigned int m_unFontStyle; // Font style - from DA
+	double m_dFontSize; // Font size - from DA
+	std::string m_sFontName; // Font name - from DA
+	std::string m_sActualFontName; // Replaced font name
+	std::string m_sOverlayText; // Overlay text
+	std::vector<double> m_arrQuadPoints; // Coordinates
+	std::vector<double> m_arrIC; // Fill color
+	std::vector<double> m_arrCFromDA; // Text color
 };
 
 //------------------------------------------------------------------------
@@ -680,15 +673,15 @@ private:
 
 		bool bChangeFullName;
 		unsigned int unFlags;
-		unsigned int unRefNum; // Номер ссылки на объект
-		unsigned int unMaxLen; // Ограничение на максимальную длину text field
-		unsigned int unFieldFlag; // Флаг Ff
+		unsigned int unRefNum; // Object reference number
+		unsigned int unMaxLen; // Limit on maximum text field length
+		unsigned int unFieldFlag; // Flag Ff
 		unsigned int unMEOptions; // MEOptions
-		unsigned int unRefNumParent; // Номер ссылки на объект родителя
+		unsigned int unRefNumParent; // Parent object reference number
 		std::vector<int> arrI;
 		std::vector<std::string> arrV;
 		std::vector< std::pair<std::string, std::string> > arrOpt;
-		std::vector<CAction*> arrAction; // Действия
+		std::vector<CAction*> arrAction; // Actions
 		std::string sT;
 		std::string sV;
 		std::string sDV;
@@ -698,8 +691,8 @@ private:
 
 	void getParents(PDFDoc* pdfDoc, Object* oFieldRef, int nStartRefID);
 
-	std::vector<int> m_arrCO; // Порядок вычислений - CO
-	std::vector<CAnnotParent*> m_arrParents; // Родительские Fields
+	std::vector<int> m_arrCO; // Calculation order - CO
+	std::vector<CAnnotParent*> m_arrParents; // Parent Fields
 	std::vector<CAnnotWidget*> m_arrAnnots;
 };
 

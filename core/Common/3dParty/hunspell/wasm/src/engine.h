@@ -86,7 +86,7 @@ public:
             char* pRealloc = (char*)realloc(m_pData, m_lSize * sizeof(char));
             if (NULL != pRealloc)
             {
-                // реаллок сработал
+                // realloc worked
                 m_pData		= pRealloc;
                 m_pDataCur	= m_pData + m_lSizeCur;
             }

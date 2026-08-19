@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -176,7 +169,7 @@ namespace Draw
 	{
 		for (size_t i = 0; i < m_arrItems.size(); ++i)
 		{
-			int type = 0xff;					 //todooo predefine type for ???
+			int type = 0xff;					 //TODO predefine type for ???
 			switch (m_arrItems[i]->getType())
 			{
 			case et_dr_PublishedPage: type = 0; break;
@@ -325,7 +318,7 @@ namespace Draw
 		pWriter->WriteAttribute2(L"FooterRight", FooterRight);
 		pWriter->WriteAttribute2(L"HeaderFooterColor", HeaderFooterColor);
 		pWriter->EndAttributes();
-// todooo color, font
+// TODO color, font
 		pWriter->WriteNodeEnd(L"HeaderFooter");
 	}
 	EElementType CDocumentSheet::getType() const
@@ -391,7 +384,7 @@ namespace Draw
 
 		for (size_t i = 0; i < m_arrItems.size(); ++i)
 		{
-			int type = 0xff;					 //todooo predefine type for ???
+			int type = 0xff;					 //TODO predefine type for ???
 			switch (m_arrItems[i]->getType())
 			{
 				case et_dr_Cell: type = 0; break;
@@ -700,7 +693,7 @@ namespace Draw
 
 		for (size_t i = 0; i < m_arrItems.size(); ++i)
 		{
-			int type = 0xff;					 //todooo predefine type for ???
+			int type = 0xff;					 //TODO predefine type for ???
 			switch (m_arrItems[i]->getType())
 			{
 				case et_dr_Cell: type = 0; break;
@@ -1756,7 +1749,7 @@ namespace Draw
 			}
 		}
 		if (false == bThemes)
-		{//некорректный контейнер ???
+		{//incorrect container???
 			OOX::Draw::CVsdx *vsdx = dynamic_cast<OOX::Draw::CVsdx*>(((OOX::File*)this)->m_pMainDocument);
 
 			if (vsdx && vsdx->m_pContentTypes.IsInit())

@@ -73,7 +73,7 @@ WASM_EXPORT CDrawingFile* Open(BYTE* data, LONG size, const char* password)
 	if (!g_applicationFonts)
 		g_applicationFonts = NSFonts::NSApplication::Create();
 
-	// всегда пересоздаем сторадж
+	// Always recreate storage
 	CDrawingFile::InitFontsGlobalStorage();
 
 	CDrawingFile* pFile = new CDrawingFile(g_applicationFonts);

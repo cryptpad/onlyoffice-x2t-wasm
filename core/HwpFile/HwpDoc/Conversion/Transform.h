@@ -31,7 +31,7 @@ namespace Transform
 
 	inline short LineWidth2Pt(short shHWPThick)
 	{
-		//TODO:: проверить
+		//TODO:: check
 		// return (short)std::ceil((double)shHWPThick * 4 * 25.4 / 72.);
 
 		switch(shHWPThick)

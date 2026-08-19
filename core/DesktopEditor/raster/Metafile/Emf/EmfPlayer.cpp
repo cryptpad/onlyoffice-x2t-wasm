@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -211,7 +204,7 @@ namespace MetaFile
 	}
 	void CEmfPlayer::DeleteObject(unsigned int ulIndex)
 	{
-		// TODO: Сделать поиск по DC_BRUSH и DC_PEN
+		// TODO: Search for DC_BRUSH and DC_PEN
 
 		CEmfObjectMap::const_iterator oPos = m_mObjects.find(ulIndex);
 		if (m_mObjects.end() != oPos)
@@ -254,9 +247,9 @@ namespace MetaFile
 		InitStockPen(false, 0xff, 0xff, 0xff, 0x80000006);
 		InitStockPen(false, 0x00, 0x00, 0x00, 0x80000007);
 		InitStockPen(true, 0x00, 0x00, 0x00, 0x80000008);
-		// TODO: Сделать шрифты
+		// TODO: Make fonts
 
-		// DC_BRUSH и DC_PEN не надо выставлять
+		// DC_BRUSH and DC_PEN don't need to be set
 	}
 	void CEmfPlayer::InitStockBrush(bool bNull, unsigned char r, unsigned char g, unsigned char b, unsigned int ulIndex)
 	{
@@ -467,7 +460,7 @@ namespace MetaFile
 	{
 		m_oTransform.Multiply(oForm, ulMode);
 
-		// Обновляем обратную матрицу
+		// Update the inverse matrix
 		TEmfXForm* pT = &m_oTransform;
 		const double dDet = pT->M11 * pT->M22 - pT->M12 * pT->M21;
 		if (Equals(0., dDet, 0.0001))

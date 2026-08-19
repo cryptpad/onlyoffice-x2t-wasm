@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -93,21 +86,21 @@ void BopPopCustomPiesIndices::load(CFRecord& record)
 
 void BopPopCustomPiesIndices::save(CFRecord& record)
 {
-   // 1. Сохраняем количество точек
+   // 1. Save the number of points
     record << cxi;
 
     const unsigned short padding = (8 - (cxi % 8)) % 8;
     const unsigned short total_bits = padding + cxi + 1; // +1 = final flag bit
     const unsigned short total_bytes = (total_bits + 7) / 8;
 
-    // 2. Создаем массив нулевых байтов
+    // 2. Create an array of zero bytes
     std::vector<unsigned char> rggrbit(total_bytes, 0);
 
-    // 3. Устанавливаем биты точек
+    // 3. Set the dot bits
     for (unsigned short idx : pie_indices)
     {
         if (idx >= cxi)
-            continue; // игнорируем некорректные индексы
+            continue; // ignore incorrect indexes
 
         unsigned short bit_pos = padding + idx;
         unsigned short byte_index = bit_pos / 8;
@@ -116,14 +109,14 @@ void BopPopCustomPiesIndices::save(CFRecord& record)
         rggrbit[byte_index] |= (1 << bit_in_byte);
     }
 
-    // 4. Устанавливаем финальный бит (последний бит последнего байта)
+    // 4. Set the final bit (the last bit of the last byte)
     bool no_secondary = pie_indices.empty();
     if (no_secondary)
     {
         rggrbit.back() |= 0x01; // LSB = 1
     }
 
-    // 5. Пишем все байты в поток
+    // 5. Write all the bytes to the stream
     for (unsigned char b : rggrbit)
     {
         record << b;

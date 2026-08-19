@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -585,7 +578,7 @@ namespace PdfWriter
 
 		Add("BS", pBorderStyleDict);
 
-		// PDF ридеры воспринимают только целочисленные значения толщины линии
+		// PDF readers only accept integer line width values
 		int nWidth = (int)(dWidth + 0.5);
 		if (nWidth < 1)
 			nWidth = 1;
@@ -1144,7 +1137,7 @@ namespace PdfWriter
 				return;
 			}
 
-			// Если текст плейсхолдера не добавить как опцию, тогда AdobeAcrobat не дает выставлять такое текстовое значение
+			// If placeholder text isn't added as an option, then AdobeAcrobat doesn't allow setting such a text value
 			AddOption(wsText, false);
 
 			sFocus = "event.target.textColor = [\"RGB\", " +
@@ -1620,7 +1613,7 @@ namespace PdfWriter
 	//----------------------------------------------------------------------------------------
 	CSignatureField::CSignatureField(CXref* pXref, CDocument* pDocument) : CFieldBase(pXref, pDocument)
 	{
-		// Словарь сигнатур
+		// Dictionary of signatures
 		m_pSig = new CSignatureDict(pXref);
 		if (!m_pSig)
 			return;
@@ -3196,7 +3189,7 @@ namespace PdfWriter
 		double dCX = dW / 2.0, dCY = dH / 2.0;
 		double dR = std::min(dW, dH) / 2.0;
 
-		// Задний фон
+		// Background
 		std::string sBG;
 		if (!bN && nBorderType != EBorderType::Beveled)
 		{
@@ -3223,7 +3216,7 @@ namespace PdfWriter
 			m_pStream->WriteStr("f\012Q\012");
 		}
 
-		// Граница
+		// Border
 		if (pAnnot->HaveBC())
 		{
 			if (dBorder != 1)
@@ -3279,7 +3272,7 @@ namespace PdfWriter
 			}
 		}
 
-		// Установлен
+		// Installed
 		if (!bSet)
 			return;
 		double dShift = dBorder / 2.0;
@@ -3313,7 +3306,7 @@ namespace PdfWriter
 		if (nRotate == 90 || nRotate == 270)
 			std::swap(dW, dH);
 
-		// Задний фон
+		// Background
 		m_pStream->WriteStr("q\012");
 		std::string sBG;
 		if (!bN && nBorderType != EBorderType::Beveled)
@@ -3332,7 +3325,7 @@ namespace PdfWriter
 			m_pStream->WriteStr("f\012");
 		}
 
-		// Граница
+		// Border
 		if (pAnnot->HaveBC())
 		{
 			if (nBorderType == EBorderType::Beveled || nBorderType == EBorderType::Inset)
@@ -3390,7 +3383,7 @@ namespace PdfWriter
 			m_pStream->WriteStr("s\012Q\012");
 		}
 
-		// Установлен
+		// Installed
 		if (!bSet)
 			return;
 		double dDiff = std::abs(dW - dH) / 2.0;

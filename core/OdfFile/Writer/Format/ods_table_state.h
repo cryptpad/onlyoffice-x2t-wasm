@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -538,7 +531,7 @@ private:
 		_INT32 start_col = 0;
 		_INT32 count_cols = 0;
 
-		_INT32 count_rows = 0; // от текущей строки
+		_INT32 count_rows = 0; // from current line
 	};
 	std::vector<_covered_info> current_covered_rows_;
 	_INT32 current_covered_cols_;
@@ -546,7 +539,7 @@ private:
     odf_conversion_context *context_;   
 	
 	office_element_ptr	office_table_;
-	style*				office_table_style_ = NULL;//??? может хранить как office_element_ptr ???
+	style*				office_table_style_ = NULL;//??? can be stored as office_element_ptr???
 	office_element_ptr	table_defined_expressions_;
 	
 	std::wstring row_default_cell_style_name_;
@@ -563,7 +556,7 @@ private:
 //            row          column
 	std::map<_INT32, std::map<_INT32, _spanned_info>> map_merged_cells;
 	
-	std::vector<office_element_ptr> current_level_;//постоянно меняющийся список уровней ("0-й элемент - сама таблица)
+	std::vector<office_element_ptr> current_level_;//constantly changing list of levels (the 0th element is the table itself)
 	
 	std::vector<ods_cell_state>	cells_;
 	

@@ -22,7 +22,7 @@ CLineSeg::CLineSeg(int nTagNum, int nLevel, int nSize, CHWPStream& oBuffer, int 
 
 CLineSeg::CLineSeg(CXMLReader& oReader)
 {
-	//TODO:: реализовать
+	//TODO::implement
 
 	START_READ_ATTRIBUTES(oReader)
 	{

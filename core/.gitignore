@@ -25,6 +25,8 @@ Thumbs.db
 **/*.build/
 *.dat
 *.txt
+# Keep CMakeLists.txt
+!CMakeLists.txt
 *.log
 
 *.ipch
@@ -48,3 +50,5 @@ DesktopEditor/fontengine/js/common/freetype-2.10.4
 Common/3dParty/openssl/openssl/
 
 msvc_make.bat
+
+third_party/

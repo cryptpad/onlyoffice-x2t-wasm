@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -86,9 +79,9 @@ static std::wstring GetCorrectSfntName(const char* name)
 class TFontCacheSizes
 {
 public:
-	int			Unicode; // Значение символа в юникоде
-	EGlyphState eState;     // Есть ли символ в шрифте/стандартном шрифте
-	int			nCMapIndex; // Номер таблицы 'cmap', в которой был найден данный символ
+	int			Unicode; // Unicode value of the character
+	EGlyphState eState;     // Is there a character in the font/standard font
+	int			nCMapIndex; // Number of the 'cmap' table in which this symbol was found
 
 	int			GID;
 
@@ -114,7 +107,7 @@ public:
 
 #define LOAD_MODE FT_LOAD_NO_HINTING | FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_BITMAP | FT_LOAD_LINEAR_DESIGN
 
-#define FONT_ITALIC_ANGLE  0.3090169943749 // Синус 18 градусов (подбиралось под Word 2007)
+#define FONT_ITALIC_ANGLE  0.3090169943749 // Sine 18 degrees (selected for Word 2007)
 
 #define MAX_UNICODE_VALUE 0x10FFFF
 #define MAX_UNICODE_COUNT  0x110000
@@ -138,8 +131,8 @@ public:
 	std::map<int, TFontCacheSizes> m_mapGids;
 	std::map<int, TFontCacheSizes> m_mapUnicodes;
 
-	// потом гиды поменять на массив из индексов.
-	// особенно если не так много глифов. быстрота доступа важнее.
+	// then change the GIDs to an array of indices.
+	// especially if there aren't many glyphs. speed of access is more important.
 
 	CFontFile* m_pFile;
 
@@ -166,9 +159,9 @@ public:
 	bool m_bAntiAliasing;
 	bool m_bUseKerning;
 
-	double m_dSize;			// Размер шрифта
-	double m_unHorDpi;		// Горизонтальное разрешение
-	double m_unVerDpi;		// Вертикальное разрешение
+	double m_dSize;			// Font size
+	double m_unHorDpi;		// Horizontal resolution
+	double m_unVerDpi;		// Vertical resolution
 
 	INT m_bNeedDoItalic;
 	INT m_bNeedDoBold;

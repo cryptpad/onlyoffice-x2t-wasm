@@ -79,7 +79,7 @@ void CRecordCreator::on_selectButton_clicked()
         m_nSelectedRecord = ui->recordsBox->currentIndex();
         ClearData();
 
-        switch (m_nSelectedRecord) //TODO: исправить пустые виджеты
+        switch (m_nSelectedRecord) //TODO: fix empty widgets
         {
                 case 0: CreatePointWidgets("EMR_POLYBEZIER");                           break;
                 case 1: CreatePointWidgets("EMR_POLYGON");                              break;

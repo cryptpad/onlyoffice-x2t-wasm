@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -48,39 +41,39 @@
 
 // AVSOfficeUniversalConverter 0x0050 - 0x0075
 #define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST						(AVS_ERROR_FIRST + 0x0050) 
-#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_XML_FORMAT					(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0001) //Входная XML имеет неправильный формат
-#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_CREATE_TEMP_DIR			(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0002) //Ошибка при создании темповой директории
-#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_REMOVE_TEMP_DIR			(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0003) //Ошибка при удалении темповой директории
-#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_CONVERT_THIS_FORMATS		(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0004) //Не поддерживается конвертация данных типов файлов
-#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_LOAD_FILE					(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0004) //Не поддерживается конвертация данных типов файлов
-#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_SAVE_FILE					(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0004) //Не поддерживается конвертация данных типов файлов
-#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_ADVERTISE					(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0005) //при добавлении рекламы
-#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_COPY						(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0006) //ошибка при копировании source в destination( копируются когда их тип совпадает )
-#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_CREATE_EXTR_DIR			(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0007) //ошибка при копировании source в destination( копируются когда их тип совпадает )
+#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_XML_FORMAT					(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0001) //Input XML isn't in the correct format
+#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_CREATE_TEMP_DIR			(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0002) //Error creating temp directory
+#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_REMOVE_TEMP_DIR			(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0003) //Error when deleting temp directory
+#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_CONVERT_THIS_FORMATS		(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0004) //Conversion of these file types isn't supported
+#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_LOAD_FILE					(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0004) //Conversion of these file types isn't supported
+#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_SAVE_FILE					(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0004) //Conversion of these file types isn't supported
+#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_ADVERTISE					(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0005) //when adding a watermark
+#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_COPY						(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0006) //error when copying source to destination (copied when their type matches)
+#define AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_CREATE_EXTR_DIR			(AVS_UNIVERSALDOCUMENTCONVERTER_ERROR_FIRST + 0x0007) //error when copying source to destination (copied when their type matches)
 
 
 // AVSOfficeFile 0x0075 - 0x00100
 #define AVS_OFFICEFILE_ERROR_FIRST										(AVS_ERROR_FIRST + 0x0075) 
-#define AVS_OFFICEFILE_ERROR_CREATE_TEMP								(AVS_OFFICEFILE_ERROR_FIRST + 0x0001) //Ошибка при создании темповой директории или файла
-#define AVS_OFFICEFILE_ERROR_UNSUPPORTED_LOAD_FORMAT					(AVS_OFFICEFILE_ERROR_FIRST + 0x0002) //Формат файла не поддерживается
-#define AVS_OFFICEFILE_ERROR_UNSUPPORTED_SAVE_FORMAT					(AVS_OFFICEFILE_ERROR_FIRST + 0x0003) //Формат файла не поддерживается
-#define AVS_OFFICEFILE_ERROR_SAVE_EMPTY									(AVS_OFFICEFILE_ERROR_FIRST + 0x0004) //Формат файла не поддерживается
-#define AVS_OFFICEFILE_ERROR_PRINT_OUT_OF_AREA							(AVS_OFFICEFILE_ERROR_FIRST + 0x0005) //печать за границами области печати
+#define AVS_OFFICEFILE_ERROR_CREATE_TEMP								(AVS_OFFICEFILE_ERROR_FIRST + 0x0001) //Error when creating temp directory or file
+#define AVS_OFFICEFILE_ERROR_UNSUPPORTED_LOAD_FORMAT					(AVS_OFFICEFILE_ERROR_FIRST + 0x0002) //File format not supported
+#define AVS_OFFICEFILE_ERROR_UNSUPPORTED_SAVE_FORMAT					(AVS_OFFICEFILE_ERROR_FIRST + 0x0003) //File format not supported
+#define AVS_OFFICEFILE_ERROR_SAVE_EMPTY									(AVS_OFFICEFILE_ERROR_FIRST + 0x0004) //File format not supported
+#define AVS_OFFICEFILE_ERROR_PRINT_OUT_OF_AREA							(AVS_OFFICEFILE_ERROR_FIRST + 0x0005) //printing outside the print area
 
 //AVSOfficeMsFile
 #define AVS_MSFILE_ERROR_OLDER			(AVS_ERROR_FIRST + 0x0090)
 
 
 // AVSOdfFile	0x0100 - 0x0200
-#define AVS_ODTFILE_ERROR_INPUT_FILE	(AVS_ERROR_FIRST + 0x0100)	// Ошибка в входном файле
-#define AVS_ODTFILE_ERROR_ORIGIN_FILE	(AVS_ERROR_FIRST + 0x0101)	// Ошибка в шаблоном файле
-#define AVS_ODTFILE_ERROR_CONVERT		(AVS_ERROR_FIRST + 0x0102)	// Ошибка при конвертации
+#define AVS_ODTFILE_ERROR_INPUT_FILE	(AVS_ERROR_FIRST + 0x0100)	// Error in input file
+#define AVS_ODTFILE_ERROR_ORIGIN_FILE	(AVS_ERROR_FIRST + 0x0101)	// Error in template file
+#define AVS_ODTFILE_ERROR_CONVERT		(AVS_ERROR_FIRST + 0x0102)	// Error during conversion
 
 
 // AVSTxtFile 0x0200 - 0x0300
-#define AVS_TXTFILE_ERROR_INPUT_FILE	(AVS_ERROR_FIRST + 0x0200)	// Ошибка в входном файле
-#define AVS_TXTFILE_ERROR_ORIGIN_FILE	(AVS_ERROR_FIRST + 0x0201)	// Ошибка в шаблоном файле
-#define AVS_TXTFILE_ERROR_CONVERT		(AVS_ERROR_FIRST + 0x0202)	// Ошибка при конвертации
+#define AVS_TXTFILE_ERROR_INPUT_FILE	(AVS_ERROR_FIRST + 0x0200)	// Error in input file
+#define AVS_TXTFILE_ERROR_ORIGIN_FILE	(AVS_ERROR_FIRST + 0x0201)	// Error in template file
+#define AVS_TXTFILE_ERROR_CONVERT		(AVS_ERROR_FIRST + 0x0202)	// Error during conversion
 
 // AVSOfficePDFWriter 0x0300 - 0x0400
 

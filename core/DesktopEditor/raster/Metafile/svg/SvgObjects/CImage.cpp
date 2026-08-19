@@ -25,7 +25,7 @@ namespace SVG
 		else if ("height" == sName)
 			m_oRect.m_oHeight.SetValue(oReader.GetText());
 		else if ("href" == sName || "xlink:href" == sName)
-			m_wsHref = oReader.GetText(); // TODO:: В дальнейшем возможно стоит реализовать отдельный класс CHref для всех типов ссылок
+			m_wsHref = oReader.GetText(); // TODO:: In the future, it might be worth implementing a separate CHref class for all types of links
 		else
 			CRenderedObject::SetAttribute(sName, oReader);
 	}

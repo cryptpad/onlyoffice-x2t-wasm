@@ -618,7 +618,7 @@ namespace NSCSS
 			if (!arSelectors[i].m_wsStyle.empty())
 				arSelectors[i].m_pCompiledStyle->AddStyle(arSelectors[i].m_wsStyle, i + 1, true);
 
-			// Скидываем некоторые внешние стили, которые внутри таблицы переопределяются
+			// Discard some external styles that are redefined inside the table
 			if (bInTable && i < arSelectors.size() - 1)
 			{
 				arSelectors[i].m_pCompiledStyle->m_oFont.GetLineHeight().Clear();
@@ -637,7 +637,7 @@ namespace NSCSS
 
 	void CCssCalculator_Private::SetPageData(NSProperties::CPage &oPage, const std::map<std::wstring, std::wstring> &mData, unsigned int unLevel, bool bHardMode)
 	{
-		//TODO:: пересмотреть данный метод
+		//TODO:: revise this method
 		m_oStyleStorage.SetPageData(oPage, mData, unLevel, bHardMode);
 	}
 

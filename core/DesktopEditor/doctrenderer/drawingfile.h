@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -304,14 +297,14 @@ public:
 	{
 		if (m_nType == 0)
 		{
-			// Память из CDrawingFileEmbed освобождается сразу после вызова функции, поэтому копируем
+			// Memory from CDrawingFileEmbed is freed immediately after calling the function, so we copy
 			if (bCopy)
 			{
 				BYTE* pCopy = (BYTE*)malloc(size);
 				memcpy(pCopy, data, size);
 				data = pCopy;
 			}
-			// Захватывает полученную память, будет освобождена либо в деструкторе MemStream, либо free в случае неудачи
+			// Captures the received memory, will be freed either in the MemStream destructor or free in case of failure
 			return ((CPdfFile*)m_pFile)->MergePages(data, size, nMaxID, sPrefixForm);
 		}
 		return false;
@@ -326,14 +319,14 @@ public:
 	{
 		if (m_nType == 0)
 		{
-			// Память из CDrawingFileEmbed освобождается сразу после вызова функции, поэтому копируем
+			// Memory from CDrawingFileEmbed is freed immediately after calling the function, so we copy
 			if (bCopy)
 			{
 				BYTE* pCopy = (BYTE*)malloc(size);
 				memcpy(pCopy, data, size);
 				data = pCopy;
 			}
-			// Захватывает полученную память data
+			// Captures received memory data
 			return ((CPdfFile*)m_pFile)->RedactPage(nPageIndex, arrRedactBox, nLengthX8, data, size);
 		}
 		return false;

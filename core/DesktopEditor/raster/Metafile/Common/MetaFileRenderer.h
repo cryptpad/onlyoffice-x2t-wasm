@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -66,12 +59,12 @@ namespace MetaFile
 		IMetaFileBase* m_pFile;
 
 		int            m_lDrawPathType;
-		double         m_dX;      // Координаты левого верхнего угла
+		double         m_dX;      // Upper left corner coordinates
 		double         m_dY;      //
 		double         m_dW;      //
 		double         m_dH;      //
-		double         m_dScaleX; // Коэффициенты сжатия/растяжения, чтобы
-		double         m_dScaleY; // результирующая картинка была нужных размеров.
+		double         m_dScaleX; // Compression/extension ratios so that
+		double         m_dScaleY; // the resulting image is the correct size.
 		bool           m_bStartedPath;
 	};
 
@@ -433,7 +426,7 @@ namespace MetaFile
 				{
 					if (NULL != pDx && wsString.length())
 					{
-						// Тогда мы складываем все pDx кроме последнего символа, последний считаем отдельно
+						// Then add up all pDx except the last symbol, counting the last one separately
 						double dTempTextW = 0;
 						for (unsigned int unCharIndex = 0; unCharIndex < wsString.length() - 1; unCharIndex++)
 						{
@@ -477,7 +470,7 @@ namespace MetaFile
 
 					if (NULL != pDx && unCharsCount > 1)
 					{
-						// Тогда мы складываем все pDx кроме последнего символа, последний считаем отдельно
+						// Then add up all pDx except the last symbol, counting the last one separately
 						double dTempTextW = 0;
 						for (unsigned int unCharIndex = 0; unCharIndex < unCharsCount - 1; unCharIndex++)
 						{
@@ -504,7 +497,7 @@ namespace MetaFile
 						fW = (float)dMmToPt * (oBox.fMaxX - oBox.fMinX);
 					}
 
-					// Просчитаем положение подчеркивания
+					// Calculate the position of the underline
 					pFontManager->GetUnderline(&fUndX1, &fUndY1, &fUndX2, &fUndY2, &fUndSize);
 					fUndY1   *= (float)dMmToPt;
 					fUndY2   *= (float)dMmToPt;
@@ -523,7 +516,7 @@ namespace MetaFile
 
 				dSkipY += dLogicalFontHeight * m_dScaleY * 1.5;
 
-				// Найдем начальную точку текста
+				// Find the starting point of the text
 				unsigned int ulTextAlign = m_pFile->GetTextAlign() & TA_MASK;
 
 				unsigned int ulVTextAlign = m_pFile->GetTextAlign() >> 8;
@@ -535,7 +528,7 @@ namespace MetaFile
 				if (ulTextAlign & TA_BASELINE)
 				{
 					ulTextAlign -= TA_BASELINE;
-					// Ничего не делаем
+					// Do nothing
 				}
 				else if (ulTextAlign & TA_BOTTOM || ulVTextAlign == VTA_BOTTOM)
 				{
@@ -574,7 +567,7 @@ namespace MetaFile
 				}
 				else //if (ulTextAlign & TA_LEFT)
 				{
-					// Ничего не делаем
+					// Do nothing
 				}
 
 				if (pFont->IsUnderline())
@@ -626,7 +619,7 @@ namespace MetaFile
 
 				if (0 != pFont->GetEscapement())
 				{
-					// TODO: тут реализован только параметр shEscapement, еще нужно реализовать параметр Orientation
+					// TODO: only shEscapement is implemented here; Orientation still needs to be implemented
 					m_pRenderer->GetTransform(&dM11, &dM12, &dM21, &dM22, &dRx, &dRy);
 
 					double dOldX = dX;
@@ -642,7 +635,7 @@ namespace MetaFile
 					bChangeCTM = true;
 				}
 
-				// Для начала нарисуем фон текста
+				// First, draw the text background
 				if (OPAQUE == m_pFile->GetTextBgMode())
 				{
 					m_pRenderer->put_BrushType(c_BrushTypeSolid);
@@ -660,7 +653,7 @@ namespace MetaFile
 					m_pRenderer->PathCommandEnd();
 				}
 
-				// Нарисуем подчеркивание
+				// Draw the underline
 				if (pFont->IsUnderline())
 				{
 					m_pRenderer->put_PenSize((double)fUndSize);
@@ -676,7 +669,7 @@ namespace MetaFile
 					m_pRenderer->PathCommandEnd();
 				}
 
-				// Установим цвет текста
+				// Set the text color
 				m_pRenderer->put_BrushType(c_BrushTypeSolid);
 				m_pRenderer->put_BrushColor1(m_pFile->GetTextColor());
 				m_pRenderer->put_BrushAlpha1(255);
@@ -684,7 +677,7 @@ namespace MetaFile
 				if (bUseGID)
 					m_pRenderer->put_FontStringGID(TRUE);
 
-				// Рисуем сам текст
+				// Drawing the text itself
 				if (NULL == pDx)
 					m_pRenderer->CommandDrawText(wsString, dX, dY, 0, 0);
 				else
@@ -1082,7 +1075,7 @@ namespace MetaFile
 					default: break;
 				}
 
-				// TODO: Непонятно почему, но в Hatch все цвета идут не как RGB, а как BGR
+				// TODO: It's not clear why, but in Hatch all colors aren't RGB, but BGR
 				if (TRANSPARENT == m_pFile->GetTextBgMode())
 					m_pRenderer->put_BrushAlpha2(0);
 				else
@@ -1226,7 +1219,7 @@ namespace MetaFile
 
 			double dWidth = pPen->GetWidth();
 
-			// Повторение кода из Graphics для вычисления минимальной ширины пера
+			// Repeating code from Graphics to calculate minimum pen width
 			double dM11, dM12, dM21, dM22, dDx, dDy;
 			m_pRenderer->GetTransform(&dM11, &dM12, &dM21, &dM22, &dDx, &dDy);
 
@@ -1235,8 +1228,8 @@ namespace MetaFile
 			oMatrix.SetElements(dM11, dM12, dM21, dM22, dDx, dDy);
 			oMatrix.Scale(1. / m_dScaleX, 1. / m_dScaleY);
 
-			// Вычисление минимально возможной ширины пера
-			// # Код явялется дублированным из Graphics
+			// Calculating the minimum possible pen width
+			// # The code is duplicated from Graphics
 			const double dSqrtDet = sqrt(fabs(oMatrix.Determinant()));
 			const double dWidthMinSize = (dSqrtDet != 0) ? (1.0 / dSqrtDet) : dWidth;
 
@@ -1344,9 +1337,9 @@ namespace MetaFile
 			m_pRenderer->put_PenAlpha(pPen->GetAlpha());
 			m_pRenderer->put_PenMiterLimit(dMiterLimit);
 
-			// TO DO: С текущим интерфейсом AVSRenderer, остальные случаи ushROPMode
-			//        реализовать невозможно. Потому что данный параметр нужно протаскивать
-			//        как параметр Pen'a, и тот кто рисует сам должен разруливать все случаи.
+			// TO DO: With the current AVSRenderer interface, other cases ushROPMode
+			//        impossible to implement. Because this parameter needs to be passed
+			//        as a Pen parameter, and the drawing routine itself must handle all cases.
 
 			switch (m_pFile->GetRop2Mode())
 			{
@@ -1364,12 +1357,12 @@ namespace MetaFile
 		IRenderer*     m_pRenderer;
 		IMetaFileBase* m_pFile;
 		int            m_lDrawPathType;
-		double         m_dX;      // Координаты левого верхнего угла
+		double         m_dX;      // Upper left corner coordinates
 		double         m_dY;      //
 		double         m_dW;      //
 		double         m_dH;      //
-		double         m_dScaleX; // Коэффициенты сжатия/растяжения, чтобы
-		double         m_dScaleY; // результирующая картинка была нужных размеров.
+		double         m_dScaleX; // Compression/extension ratios so that
+		double         m_dScaleY; // the resulting image is the correct size.
 		bool           m_bStartedPath;
 		bool           m_bUpdatedClip;
 		

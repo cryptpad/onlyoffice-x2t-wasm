@@ -551,7 +551,7 @@ void CxImage::AddAveragingCont(RGBQUAD const &color, float const surf, float &rr
 /**
  * This method is similar to GetPixelColorInterpolated, but this method also properly handles 
  * subsampling.
- * If you need to sample original image with interval of more than 1 pixel (as when shrinking an image), 
+ * If the original image must be sampled with interval of more than 1 pixel (as when shrinking an image),
  * you should use this method instead of GetPixelColorInterpolated or aliasing will occur.
  * When area width and height are both less than pixel, this method gets pixel color by interpolating
  * color of frame center with selected (inMethod) interpolation by calling GetPixelColorInterpolated. 
@@ -685,7 +685,7 @@ float CxImage::KernelBSpline(const float x)
 
 	return (0.16666666666666666667f * (a - (4.0f * b) + (6.0f * c) - (4.0f * d)));
 
-	/* equivalent <Vladimнr Kloucek>
+	/* equivalent <Vladimír Kloucek>
 	if (x < -2.0)
 		return(0.0f);
 	if (x < -1.0)
@@ -718,7 +718,7 @@ float CxImage::KernelLinear(const float t)
 //  if (-1<=t && t<0) return 1+t;
 //  return 0;
 	
-	//<Vladimнr Kloucek>
+	//<Vladimír Kloucek>
 	if (t < -1.0f)
 		return 0.0f;
 	if (t < 0.0f)

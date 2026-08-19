@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -458,7 +451,7 @@ namespace XPS
 					}
                     else
                     {
-                        // шрифт не odttf - надо добавить его во внешний сторадж шрифтов, если нужно
+                        // the font isn't odttf - need to add it to the external font storage if necessary
                         if (IFolder::iftZip == m_wsRootPath->getType() && NSFonts::NSApplicationFontStream::GetGlobalMemoryStorage())
                         {
                             IFolder::CBuffer* buffer = NULL;
@@ -615,9 +608,9 @@ namespace XPS
 			return;
 		}
 
-		// Сначала задается матрица преобразования, потом клип, потому что даже
-		// если преобразование задано в дочерней ноде, а клип задан в атрибутах данной ноды,
-		// то преобразование влияется на клип все равно.
+		// The transformation matrix is specified first, then the clip, because even
+		// if the transformation is specified in a child node, and the clip is specified in the attributes of this node,
+		// then the transformation affects the clip anyway.
 		if (!wsTransform.empty())
 		{
 			bTransform = TransformToRenderer(wsTransform.c_str(), pState);
@@ -986,7 +979,7 @@ namespace XPS
 							oTransform.TransformPoint(x3, y3);
 						}
 					}
-					// Верхний левый угол
+					// Upper left corner
                     oLink.X = x1 == x2 ? fmin(x1, x3) : fmin(x1, x2);
                     oLink.Y = y1 == y2 ? fmin(y1, y3) : fmin(y1, y2);
                     oLink.H = x1 == x2 ? abs(y1 - y2) : abs(y1 - y3);
@@ -1000,7 +993,7 @@ namespace XPS
 					}
 					else
 					{
-						// координата назначения на странице назначения
+						// destination coordinate on destination page
 						size_t nSharp = wsNameTarget.find(L'#');
 						if (nSharp != std::wstring::npos)
 						{
@@ -1029,7 +1022,7 @@ namespace XPS
 			{
 				size_t nFindEndY = wsPath.find(L' ', ++nFindY);
 				if (nFindEndY != std::wstring::npos)
-					// координата назначения на странице назначения
+					// destination coordinate on destination page
 					find->dY = GetDouble(wsPath.substr(nFindY, nFindEndY - nFindY));
 			}
 		}
@@ -1097,9 +1090,9 @@ namespace XPS
 				RELEASEOBJECT(pBrush);
 		}
 
-		// Сначала задается матрица преобразования, потом клип, потому что даже
-		// если преобразование задано в дочерней ноде, а клип задан в атрибутах данной ноды,
-		// то преобразование влияется на клип все равно.
+		// The transformation matrix is specified first, then the clip, because even
+		// if the transformation is specified in a child node, and the clip is specified in the attributes of this node,
+		// then the transformation affects the clip anyway.
 		if (!wsTransform.empty())
 		{
 			bTransform = TransformToRenderer(wsTransform.c_str(), pState);

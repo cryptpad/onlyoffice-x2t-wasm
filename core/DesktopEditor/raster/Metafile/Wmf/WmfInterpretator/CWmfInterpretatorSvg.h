@@ -97,14 +97,14 @@ namespace MetaFile
 		//-----------------------------------------------------------
 		void HANDLE_META_ESCAPE(unsigned short ushEscapeFunction, unsigned short ushByteCount) override {};
 		//-----------------------------------------------------------
-		// Неизвестные записи
+		// Unknown entries
 		//-----------------------------------------------------------
 		void HANDLE_META_UNKNOWN(CDataStream& oDataStream) override {};
 
 	public:
 		void DrawBitmap(double dX, double dY, double dW, double dH, BYTE* pBuffer, unsigned int unWidth, unsigned int unHeight, unsigned int unBlendMode) override;
 
-		//Следующие методы ничего не делают
+		//The following methods do nothing
 		void Begin() override {};
 		void End() override {};
 

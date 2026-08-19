@@ -168,7 +168,7 @@ namespace NSWasm
 		}
 		void AddDouble(double value)
 		{
-			// такой точности хватит
+			// such precision is enough
 			int nV = value * 100;
 			AddInt(nV);
 		}
@@ -341,9 +341,9 @@ namespace NSWasm
 
 	struct CHChar
 	{
-		int unicode; // юникодное значение
-		double x; // сдвиг по baseline
-		double width; // ширина символа (сдвиг до след буквы)
+		int unicode; // Unicode value
+		double x; // shift by baseline
+		double width; // character width (shift to next letter)
 
 		CHChar() : unicode(0), x(0), width(0) {}
 		CHChar(const CHChar& oSrc) { *this = oSrc; }
@@ -381,8 +381,8 @@ namespace NSWasm
 		bool m_bIsConstX;
 
 		// symbols
-		// не менять на списки. постоянное создание объектов и их удаление -
-		// плохо влияет на скорость
+		// don't change to lists. continuous creation and deletion of objects
+		// negatively affects performance
 		CHChar* m_pChars;
 		LONG m_lSizeChars;
 		LONG m_lCharsTail;

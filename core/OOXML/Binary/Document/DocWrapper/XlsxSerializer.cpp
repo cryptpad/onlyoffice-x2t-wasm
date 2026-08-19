@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -62,7 +55,7 @@ namespace BinXlsxRW{
         OOX::CPath pathMediaDir = sDstPath + FILE_SEPARATOR_STR + _T("xl") + FILE_SEPARATOR_STR + _T("media");
 		OOX::CPath pathEmbedDir = sDstPath + FILE_SEPARATOR_STR + _T("xl") + FILE_SEPARATOR_STR + _T("embeddings");
 		
-        //создавать папку надо даже при сохранении в csv, потому что когда читаем из бинарника тему, она записывается в файл.
+        //Need to create a folder even when saving as CSV, because reading a theme from a binary writes it to a file.
         OOX::CPath pathXlDir = sDstPath + FILE_SEPARATOR_STR + _T("xl");
 
         OOX::CPath pathThemeDir = pathXlDir + FILE_SEPARATOR_STR + OOX::FileTypes::Theme.DefaultDirectory().GetPath();
@@ -118,17 +111,17 @@ namespace BinXlsxRW{
 			pFontPicker->SetEmbeddedFontsDirectory(m_sEmbeddedFontsDir);
 			pEmbeddedFontsManager = pFontPicker->GetNativeCutter();
 
-			//добавим мега шрифт
+			//add a mega font
 			pEmbeddedFontsManager->CheckFont(_T("Wingdings 3"), pFontManager);
 			pEmbeddedFontsManager->CheckFont(_T("Arial"), pFontManager);
-			//pEmbeddedFontsManager добавляются все цифры
-			//для заголовков
+			//pEmbeddedFontsManager adds all digits
+			//for headings
 			pEmbeddedFontsManager->CheckFont(_T("Calibri"), pFontManager);
 			pEmbeddedFontsManager->CheckString(std::wstring(_T("ABCDEFGHIJKLMNOPQRSTUVWXYZ")));
 
-			//дополнение для ошибок "#NULL!", "#DIV/0!"...
+			//addition for errors "#NULL!", "#DIV/0!"...
 			pEmbeddedFontsManager->CheckString(std::wstring(_T("#!/?")));
-			//дополнение для num форматов по умолчанию с id от 0 до 49
+			//addition for default num formats with id from 0 to 49
 			pEmbeddedFontsManager->CheckString(std::wstring(_T(".%E+-():")));
 		}
 
@@ -296,18 +289,18 @@ namespace BinXlsxRW{
 		NSCommon::smart_ptr<OOX::Spreadsheet::CChartFile> oChart = file.smart_dynamic_cast<OOX::Spreadsheet::CChartFile>();
 
 		if (oChart.IsInit() == false) return false;
-	//анализируем chart
+	//analyze the chart
 		BinXlsxRW::ChartWriter helper;
 		helper.parseChart(oChart->m_oChartSpace.m_chart);
-	//создаем temp
+	//create temp
 		std::wstring sTempDir = NSSystemPath::GetDirectoryName(sDstFile) + FILE_SEPARATOR_STR + NSSystemPath::GetFileName(sDstFile) + L"_TEMP";
 		NSDirectory::CreateDirectory(sTempDir);
 		OOX::CPath oPath(sTempDir.c_str());
-	//шиблонные папки
+	//template folders
         std::wstring sMediaPath;// will be filled by 'CreateXlsxFolders' method
         std::wstring sEmbedPath; // will be filled by 'CreateXlsxFolders' method
 		CreateXlsxFolders (sTempDir, sMediaPath, sEmbedPath);
-	//заполняем Xlsx
+	//fill out Xlsx
 		OOX::Spreadsheet::CXlsx oXlsx;
 		helper.toXlsx(oXlsx);
 	//write

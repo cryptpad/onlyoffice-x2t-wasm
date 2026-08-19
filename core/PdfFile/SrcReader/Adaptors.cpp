@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -210,7 +203,7 @@ bool GlobalParamsAdaptor::InRedact(double dX, double dY)
 			continue;
 		}
 
-		// Проверяем знаки векторных произведений для всех сторон
+		// Checking the signs of vector products for all sides
 		double cross1 = crossProduct(x1, y1, x2, y2, dX, dY);
 		double cross2 = crossProduct(x2, y2, x3, y3, dX, dY);
 		double cross3 = crossProduct(x3, y3, x4, y4, dX, dY);
@@ -219,7 +212,7 @@ bool GlobalParamsAdaptor::InRedact(double dX, double dY)
 		bool allPositive = (cross1 >= 0 && cross2 >= 0 && cross3 >= 0 && cross4 >= 0);
 		bool allNegative = (cross1 <= 0 && cross2 <= 0 && cross3 <= 0 && cross4 <= 0);
 
-		// Точка внутри, если все векторные произведения имеют одинаковый знак
+		// Dot inside if all cross products have the same sign
 		if ((allPositive || allNegative) && !(cross1 == 0 && cross2 == 0 && cross3 == 0 && cross4 == 0))
 			return true;
 	}
@@ -520,7 +513,7 @@ void XMLConverter::ObjectToXml(Object *pObject, bool isSkipCheck)
 		}
 		case objStream:
 			m_wsXml += L"<stream/>";
-			// TODO: Запись стрима
+			// TODO: Writing a stream
 			break;
 		case objRef:
 			m_wsXml += std::to_wstring(pObject->getRefNum());

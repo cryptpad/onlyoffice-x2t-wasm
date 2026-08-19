@@ -4,7 +4,7 @@
 
     //polyfill
 
-    //string_utf8
+    {{{ STRING_UTF8 }}}
 
     function toBase64(buf)
 	{
@@ -203,7 +203,11 @@
 
 	window.cryptoJS = new CryptoJS();
 
-    //module
+    {{{ MODULE }}}
+
+    Module.onRuntimeInitialized = function () {
+        window.cryptoJS.onLoad();
+    };
 
 })(window, undefined);
 

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -36,7 +29,7 @@
 namespace OOX
 {
 
-//в файле VmlDrawing могут быть как отобразительная часть комментариев Xlsx, так и просто обычные объекты 
+//the VmlDrawing file can contain both the display part of Xlsx comments and just ordinary objects
 
 	void CVmlDrawing::ClearShapeTypes()
 	{
@@ -63,7 +56,7 @@ namespace OOX
 			ReadAttributes( oReader );
 
 			std::wstring elementContent;
-            bool bReadyElement  = false;//собираем все до нахождения собственно элемента
+            bool bReadyElement  = false;//Collect everything until the element itself is found
 
 			if ( !oReader.IsEmptyNode() )
 			{
@@ -77,7 +70,7 @@ namespace OOX
 					strXml += NodeContent;
 					strXml += L"</xml>";
 							
-					XmlUtils::CXmlLiteReader oSubReader;//нам нужны xml и сами объекты 
+					XmlUtils::CXmlLiteReader oSubReader;//we need xml and the objects themselves
 					
 					if (oSubReader.FromString(strXml) == false) continue;						
 					oSubReader.ReadNextNode();
@@ -88,7 +81,7 @@ namespace OOX
 					while ( oSubReader.ReadNextSiblingNode( nStylesDepth1 ) )//
 					{
 						std::wstring sName = oSubReader.GetName();
-						switch (sName[0])// вынесены только объекты .. 
+						switch (sName[0])// only objects are taken out..
 						{
 						case 'v':
 							{
@@ -234,7 +227,7 @@ namespace OOX
 		m_oReadPath = oPath;
 		IFileContainer::Read( oRootPath, oPath );
 
-		//так как это не совсем xml - поправим
+		//since this isn't exactly xml - let's fix it
 
 		NSFile::CFileBinary file;
 		if (file.OpenFile(oPath.GetPath()))
@@ -255,12 +248,12 @@ namespace OOX
 
 		if (false == m_sFileContent.empty())
 		{
-			// элементы вида <br> без </br>
+			// elements like <br> without </br>
 			// test_vml4.xlsx
 			XmlUtils::replace_all(m_sFileContent, L"<br>", L"");
 
 
-			// элементы вида <![if ...]>, <![endif]>
+			// elements of the form <![if ...]>, <![endif]>
 			// Zigmunds.pptx
 			while(true)
 			{

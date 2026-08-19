@@ -43,10 +43,10 @@ namespace NSDocxRenderer
 		{
 			oWriter.WriteString(L" w:line=\"");
 			oWriter.AddInt(static_cast<int>(m_dLineHeight * c_dMMToDx));
-			oWriter.WriteString(L"\" w:lineRule=\"exact\""); // exact - точный размер строки
+			oWriter.WriteString(L"\" w:lineRule=\"exact\""); // exact - exact line height
 		}
 
-		oWriter.WriteString(L"/>"); //конец w:spacing
+		oWriter.WriteString(L"/>"); //end w:spacing
 
 		oWriter.WriteString(L"<w:ind");
 		if (m_dLeftBorder > 0)
@@ -58,7 +58,7 @@ namespace NSDocxRenderer
 		if (m_dRightBorder > 0)
 		{
 			oWriter.WriteString(L" w:right=\"");
-			oWriter.AddInt(static_cast<int>(m_dRightBorder * c_dMMToDx)); //здесь m_dRight - расстояние от правого края
+			oWriter.AddInt(static_cast<int>(m_dRightBorder * c_dMMToDx)); //here m_dRight is the distance from the right edge
 			oWriter.WriteString(L"\"");
 		}
 		if (m_bIsNeedFirstLineIndent)
@@ -76,7 +76,7 @@ namespace NSDocxRenderer
 				oWriter.WriteString(L"\"");
 			}
 		}
-		oWriter.WriteString(L"/>"); //конец w:ind
+		oWriter.WriteString(L"/>"); //end w:ind
 
 		switch (m_eTextAlignmentType)
 		{
@@ -93,7 +93,7 @@ namespace NSDocxRenderer
 			oWriter.WriteString(L"<w:jc w:val=\"begin\"/>");
 			break;
 		case tatUnknown:
-		default: //по умолчанию выравнивание по левому краю - можно ничего не добавлять
+		default: //By default, left alignment - nothing needs to be added
 			break;
 		}
 

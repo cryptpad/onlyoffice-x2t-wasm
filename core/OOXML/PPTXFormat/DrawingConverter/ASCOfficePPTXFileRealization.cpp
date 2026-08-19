@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -37,7 +30,7 @@
     #include <shlobj.h>
     #include <shlwapi.h>
     #pragma comment( lib, "Rpcrt4.lib" )
-    #pragma comment( lib, "shell32.lib" ) // добавить shell32.lib
+    #pragma comment( lib, "shell32.lib" ) // add shell32.lib
     #pragma comment( lib, "Shlwapi.lib" )
 #else
 #endif
@@ -248,9 +241,9 @@ _UINT32 CPPTXFile::OpenDirectoryToPPTY(std::wstring bsInput, std::wstring bsOutp
 	return S_OK;
 }
 
-_UINT32 CPPTXFile::ConvertPPTYToPPTX(std::wstring bsInput, std::wstring bsOutput, std::wstring bsThemesFolder)//bsOutput и файл и директория может быть 
+_UINT32 CPPTXFile::ConvertPPTYToPPTX(std::wstring bsInput, std::wstring bsOutput, std::wstring bsThemesFolder)//bsOutput can be either a file or a directory
 {
-	OOX::CPath pathLocalTempDirectory = bsOutput; //выходной файл - папка
+	OOX::CPath pathLocalTempDirectory = bsOutput; //output file - folder
 	
 	NSBinPptxRW::CPPTXWriter oWriter;
 	oWriter.Init(pathLocalTempDirectory.GetPath(), m_bIsMacro);

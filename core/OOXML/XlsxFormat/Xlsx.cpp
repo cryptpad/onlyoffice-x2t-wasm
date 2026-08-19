@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -408,7 +401,7 @@ void OOX::Spreadsheet::CXlsx::PrepareWorkbook()
 		
 		m_pWorkbook->m_oBookViews->m_arrItems.push_back(pWorkbookView);
 	}
-	//добавляем sheet, если нет ни одного
+	//add sheet if there is none
 	if (m_arWorksheets.empty())
 	{
 		OOX::Spreadsheet::CWorksheet* pWorksheet = new OOX::Spreadsheet::CWorksheet(this);
@@ -457,7 +450,7 @@ void OOX::Spreadsheet::CXlsx::PrepareWorkbook()
 		
 		m_pWorkbook->m_oSheets->m_arrItems.push_back(pSheet);
 	}
-	//делаем так чтобы всегда были нулевые стили и первый font всегда имел шрифт и размер
+	//Make sure that there are always zero styles and the first font always has the font and size
 	if( m_pStyles )
 	{
 		//Fonts
@@ -538,12 +531,12 @@ void OOX::Spreadsheet::CXlsx::PrepareWorkbook()
 			pXfs->m_oNumFmtId->SetValue(0);
 		}
 	}
-	//переносим теги <is> и ячейки с типом str в sharedString если они не перенеслисьпричтении
+	//Transfer <is> tags and cells with type str to sharedString if they weren't transferred when read
 	for (size_t i = 0; i < m_arWorksheets.size(); ++i)
 	{
 		PrepareWorksheet(m_arWorksheets[i]);
 	}
-	//todo парсим даты в формате iso 8601
+	//todo parses dates in iso 8601 format
 }
 void OOX::Spreadsheet::CXlsx::PrepareWorksheet(CWorksheet* pWorksheet)
 {
@@ -577,10 +570,10 @@ void OOX::Spreadsheet::CXlsx::PrepareWorksheet(CWorksheet* pWorksheet)
 						if(NULL != pSi)
 						{
 							int nIndex = m_pSharedStrings->AddSi(pSi);
-							//меняем значение ячейки
+							//change the cell value
 							pCell->m_oValue.Init();
                             pCell->m_oValue->m_sText = std::to_wstring(nIndex);
-							//меняем тип ячейки
+							//change cell type
 							pCell->m_oType.Init();
 							pCell->m_oType->SetValue(SimpleTypes::Spreadsheet::celltypeSharedString);
 						}
@@ -591,17 +584,17 @@ void OOX::Spreadsheet::CXlsx::PrepareWorksheet(CWorksheet* pWorksheet)
 						{
 							if(!m_pSharedStrings) CreateSharedStrings();
 
-							//добавляем в SharedStrings
+							//add to SharedStrings
 							CSi* pSi = new CSi();
 							CText* pText =  new CText();
 							pText->m_sText = pCell->m_oValue->ToString();
 							pSi->m_arrItems.push_back(pText);
 
 							int nIndex = m_pSharedStrings->AddSi(pSi);
-							//меняем значение ячейки
+							//change the cell value
 							pCell->m_oValue.Init();
 							pCell->m_oValue->m_sText = std::to_wstring(nIndex);
-							//меняем тип ячейки
+							//change cell type
 							if(SimpleTypes::Spreadsheet::celltypeStr == pCell->m_oType->GetValue())
 							{
 								pCell->m_oType.Init();
@@ -616,7 +609,7 @@ void OOX::Spreadsheet::CXlsx::PrepareWorksheet(CWorksheet* pWorksheet)
 					}
 					else if(SimpleTypes::Spreadsheet::celltypeBool == pCell->m_oType->GetValue())
 					{
-						//обычно пишется 1/0, но встречается, что пишут true/false
+						//Usually it is written 1/0, but sometimes it is written true/false
 						if(pCell->m_oValue.IsInit())
 						{
 							SimpleTypes::COnOff oOnOff;

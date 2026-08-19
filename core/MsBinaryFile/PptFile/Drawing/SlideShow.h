@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -37,14 +30,14 @@ namespace PPT
 	class CTransition
 	{
 	public:
-		bool	m_bAudioPresent;		// есть ли аудио
-		CAudioElement m_oAudio;			// аудио
+		bool	m_bAudioPresent;		// is there audio
+		CAudioElement m_oAudio;			// audio
 
-		BYTE	m_nEffectDirection;		// направление эффекта
-		BYTE	m_nEffectType;			// тип перехода
+		BYTE	m_nEffectDirection;		// direction of effect
+		BYTE	m_nEffectType;			// transition type
 
-		bool	m_bLoopSound;			// зациклить аудио
-                bool	m_bStopSound;			// перед транзишном перестать играть все аудио до этого
+		bool	m_bLoopSound;			// loop audio
+                bool	m_bStopSound;			// stop playing all audio before the transition
 
 //                bool            m_bAdvClick;            // Attributes for true transition
 //                int             m_nAdvTm;
@@ -93,13 +86,13 @@ namespace PPT
 	class CSlideShowInfo
 	{
 	public:
-		double	m_dSlideDuration;	// длительность слайда (без учета перехода)
-		bool	m_bHidden;			// нужно ли НЕ показывать слайд при проигрывании
+		double	m_dSlideDuration;	// slide duration (excluding transition)
+		bool	m_bHidden;			// Should I NOT show the slide when playing?
 
-		CTransition	m_oTransition;	// переход
+		CTransition	m_oTransition;	// transition
 
-                bool	m_bAdvClick;        // разрешить автопереход по времени
-                bool    m_bManulClick;      // переход на следующий по щелчку
+                bool	m_bAdvClick;        // allow auto-time transition
+                bool    m_bManulClick;      // go to next on click
 
 		CSlideShowInfo() : m_oTransition()
 		{

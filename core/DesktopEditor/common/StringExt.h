@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -125,7 +118,7 @@ public:
 		SINGLE_BYTE_ENCODING_CP874 = 0xDE,	 // THAI_CHARSET            222 (xDE)
 		SINGLE_BYTE_ENCODING_CP1361 = 0x82,	 // JOHAB_CHARSET	        130 (x82)
 		SINGLE_BYTE_ENCODING_CP1258 = 0xA3,	 // VIETNAMESE_CHARSET      163 (xA3)
-		SINGLE_BYTE_ENCODING_CP866 = 0xFF	 // OEM_CHARSET             255 (xFF) // Проверить, что OEM соответствует CP866
+		SINGLE_BYTE_ENCODING_CP866 = 0xFF	 // OEM_CHARSET 255 (xFF) // Check that OEM matches CP866
 	} ESingleByteEncoding;
 
 	static std::wstring GetUnicodeFromSingleByteString(const unsigned char* pData, long lCount, ESingleByteEncoding eType = SINGLE_BYTE_ENCODING_DEFAULT);

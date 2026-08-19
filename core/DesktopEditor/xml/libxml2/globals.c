@@ -223,8 +223,13 @@ static int xmlDoValidityCheckingDefaultValueThrDef = 0;
  * Global setting, indicate that the parser should provide warnings.
  * Activated by default.
  */
+#ifdef BUILDING_WASM_MODULE
+int xmlGetWarningsDefaultValue = 0;
+static int xmlGetWarningsDefaultValueThrDef = 0;
+#else
 int xmlGetWarningsDefaultValue = 1;
 static int xmlGetWarningsDefaultValueThrDef = 1;
+#endif
 /**
  * xmlLoadExtDtdDefaultValue:
  *

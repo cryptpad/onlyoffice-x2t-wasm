@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -186,7 +179,7 @@ namespace XmlUtils
 			}
 			else
 			{
-				// это m_pCurrentNode
+				// this is m_pCurrentNode
 				CXmlNodeBase* pNewBase = new CXmlNodeBase();
 				pNewBase->m_pDocument = this;
 				pNewBase->m_pDocument->AddRef();
@@ -242,7 +235,7 @@ namespace XmlUtils
 				XmlNodeType eNodeType = XmlNodeType_None;
 
 				int nCurDepth = -1;
-				// У закрывающего тэга глубина на 1 больше, чем у открывающего
+				// The closing tag has a depth of 1 greater than the opening tag
 				while (true)
 				{
 					if (1 != xmlTextReaderRead(reader))
@@ -333,9 +326,9 @@ namespace XmlUtils
 			delete m_pDocument;
 			return false;
 		}
-		// присваиваем m_pBase без AddRef, чтобы при удалении CXmlNode начался удаляться m_pBase(после конструктора RefCount==1, а если сделать AddRef то не удалится)
+		// Assign m_pBase without AddRef, so that when CXmlNode is deleted, m_pBase is deleted (after the constructor RefCount==1, and if AddRef is added it won't be deleted)
 		m_pBase = m_pDocument->m_pNode;
-		// после Parse все Node из m_pDocument сделали ему AddRef, поэтому можем вызвать Release(потому что напрямую нигде его не используем), а окончательно он удалится после удаления всех Node
+		// after Parse, all Nodes from m_pDocument have called AddRef on it, so Release can be called (because it isn't used directly anywhere), and it is finally deleted after all Nodes are removed
 		m_pDocument->Release();
 
 		return true;
@@ -359,9 +352,9 @@ namespace XmlUtils
 			delete m_pDocument;
 			return false;
 		}
-		// присваиваем m_pBase без AddRef, чтобы при удалении CXmlNode начался удаляться m_pBase(после конструктора RefCount==1, а если сделать AddRef то не удалится)
+		// Assign m_pBase without AddRef, so that when CXmlNode is deleted, m_pBase is deleted (after the constructor RefCount==1, and if AddRef is added it won't be deleted)
 		m_pBase = m_pDocument->m_pNode;
-		// после Parse все Node из m_pDocument сделали ему AddRef, поэтому можем вызвать Release(потому что напрямую нигде его не используем), а окончательно он удалится после удаления всех Node
+		// after Parse, all Nodes from m_pDocument have called AddRef on it, so Release can be called (because it isn't used directly anywhere), and it is finally deleted after all Nodes are removed
 		m_pDocument->Release();
 		return true;
 	}

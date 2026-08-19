@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -345,7 +338,7 @@ void ods_conversion_context::add_hyperlink(const std::wstring & ref, const std::
 	boost::algorithm::split(ref_cells, ref, boost::algorithm::is_any_of(L":"), boost::algorithm::token_compress_on);
 	if (ref_cells.size() > 1)
 	{
-	//в ооx можно воткнуть на диапазон одну ссылку, в оо нельзя - ссылку вствляем, текст не меням
+	//in oox one link per range can be inserted, but in oo it can't - we insert the link and don't change the text
 		int start_col = -1, start_row = -1;
 		int end_col = -1, end_row = -1;
 		
@@ -357,7 +350,7 @@ void ods_conversion_context::add_hyperlink(const std::wstring & ref, const std::
 			for (long row = start_row; row <= end_row; row++)
 			{
 				current_table()->add_hyperlink(ref, col, row, link, location);
-				//ссылка одна, а вот отображаемый текст - разный
+				//the link is the same, but the displayed text is different
 			}
 		}
 	}
@@ -409,7 +402,7 @@ void ods_conversion_context::add_merge_cells(const std::wstring & ref)
  	std::vector<std::wstring> ref_cells;
 	boost::algorithm::split(ref_cells, ref, boost::algorithm::is_any_of(L":"), boost::algorithm::token_compress_on);
 
-	if (ref_cells.size() != 2) return;//тута однозначно .. по правилам оохml
+	if (ref_cells.size() != 2) return;//Definitely here .. according to OOXML rules
 
 	int start_col = -1, start_row = -1;
 	int end_col = -1, end_row = -1;
@@ -498,8 +491,8 @@ void ods_conversion_context::start_columns()
 }
 void ods_conversion_context::end_columns()
 {
-	//add default last column  - ЕСЛИ они не прописаны в исходном (1024 - от  балды)
-	//вопрос - если и добавлять то  с каким стилем???
+	//add default last column - IF they aren't registered in the source (1024 - at random)
+	//The question is - if adding it, then with what style???
 	//if (current_table()->current_column() < 1 )
 	//	add_column(current_table()->current_column() + 1,1024, 0, true);
 	//else
@@ -543,7 +536,7 @@ void ods_conversion_context::add_default_row(int repeated)
 			}
 		}
 		if (row_split > current_table()->current_row() && row_split_repeated != repeated)
-		{//делим на 3 - до, с --, после;			
+		{//divide by 3 - before, with --, after;
 			int r = current_table()->current_row();
 
 			add_default_row(row_split - r - 1);
@@ -624,8 +617,8 @@ void ods_conversion_context::add_column(int start_column, int repeated, int leve
 	}
 	else
 	{
-		//по сути в этом стиле раличные опции ширины колонок тока .. а если свойства совпадают - можно сгенерить один, хотя выше и указано что стили разные.
-		//то есть в оо разделяют оох стиль на 2 (для колонки собственно, и описалово ячеек в колонки)
+		//In fact, in this style there are only different column-width options .. and if the properties match, one can be generated, although it is indicated above that the styles are different.
+		//that is, in oo they divide the oox style into 2 (for the column itself, and to describe the cells in the columns)
 		styles_context()->create_style(L"", style_family::TableColumn, true, false, -1);
 		style_elm = styles_context()->last_state()->get_office_element();
 		
@@ -731,8 +724,8 @@ void ods_conversion_context::start_cell_text()
 		text_a_->common_xlink_attlist_.type_ = xlink_type(xlink_type::Simple);
 		text_a_->common_xlink_attlist_.href_ = state.link;
 		
-		text_context()->start_element(text_a_elm); // может быть стоит сделать собственый???
-		// libra дурит если в табличках будет вложенный span в гиперлинк ... оО (хотя это разрешено в спецификации!!!)
+		text_context()->start_element(text_a_elm); // maybe it's worth making its own???
+		// LibreOffice acts up if the tables have a nested span in the hyperlink... oO (although this is allowed in the specification!!!)
 
 		text_context()->single_paragraph_ = true;
 	}

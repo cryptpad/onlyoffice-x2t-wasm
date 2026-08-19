@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -39,49 +32,49 @@
 #include "DigitReader.h"
 
 
-/// @brief класс определяющий и корректирующий тип данных, помещаемых в ячейки таблицы
+/// @brief class defining and adjusting the type of data placed in table cells
 class CellFormatController
 {
 
 public:
-    /// @brief конструктор
-    /// @param styles стили из таблицы
+    /// @brief constructor
+    /// @param styles styles from table
     CellFormatController(OOX::Spreadsheet::CStyles *styles, _INT32 lcid);
 
-    /// @brief обрабатывает вставляемые в ячейку таблицы данные, переводя их в нужный тип, и заполняет ими ячейку
-    /// @param pCell указатель на ячейку
-    /// @param value вставляемые в ячейку данные в строковом типе
+    /// @brief processes data inserted into a table cell, converting it to the desired type, and filling the cell with it
+    /// @param pCell pointer to cell
+    /// @param value data inserted into the cell in string type
     int ProcessCellType(OOX::Spreadsheet::CCell *pCell, const std::wstring &value, bool bIsWrap = false);
 
 
-	/// @brief указатель на лист документа
+	/// @brief pointer to a document sheet
 	OOX::Spreadsheet::CWorksheet *m_pWorksheet = nullptr;
 
 private:
     bool isFormula(const std::wstring& formula);
     std::wstring ConvertFormulaArguments(const std::wstring& formula);
-    /// @brief создание стиля для указанного формата
-    /// @param format формат значения
+    /// @brief creating a style for the specified format
+    /// @param format value format
     void createFormatStyle(const std::wstring &format);
 
-	/// @brief Добавление кастомной ширины столбца для ячейки
-	/// @param pCell ячейка для которой будет добавлена ширина
-	/// @param width значение ширины которое будет установлено для столбца, если оно больше текущего
+	/// @brief Adding a custom column width for a cell
+	/// @param pCell the cell for which the width will be added
+	/// @param width the width value that will be set for the column if it is larger than the current one
 	void addCustomColWidth(OOX::Spreadsheet::CCell *pCell, double width);
 
-    /// @brief указатель на ячейку с которой ведется работа
+    /// @brief pointer to the cell being worked on
     OOX::Spreadsheet::CCell *pCell_;
 
-    /// @brief map с форматами данных
+    /// @brief map with data formats
     std::map<std::wstring, unsigned int> mapDataNumber_;
 
-    /// @brief указатель на стили документа
+    /// @brief pointer to document styles
 	OOX::Spreadsheet::CStyles *m_pStyles;
 
-    /// @brief указатель на полученное строковое значение
+    /// @brief pointer to the resulting string value
     const std::wstring *value_;
 
-    /// @brief идентификатор локали
+    /// @brief locale identifier
     _INT32 lcid_;
 
     DigitReader digitReader_;

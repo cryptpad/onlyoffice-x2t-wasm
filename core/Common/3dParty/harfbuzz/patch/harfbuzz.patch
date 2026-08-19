@@ -1,0 +1,64 @@
+diff --git a/src/hb-ft.cc b/src/hb-ft.cc
+index 955a9081e..b88660fc2 100644
+--- a/src/hb-ft.cc
++++ b/src/hb-ft.cc
+@@ -346,6 +346,40 @@ hb_ft_font_unlock_face (hb_font_t *font)
+ }
+ 
+ 
++static FT_UInt
++hb_ft_get_index_by_unicode(FT_Face face, FT_ULong charcode)
++{
++  FT_CharMap charmap;
++  FT_UInt gindex = 0;
++  FT_Int charmap_index = 0;
++  FT_Encoding cur_encoding = FT_ENCODING_NONE;
++  bool is_symbol = false;
++  if (face && face->charmap)
++    cur_encoding = face->charmap->encoding;
++
++  while (charmap_index < face->num_charmaps)
++  {
++    charmap = face->charmaps[charmap_index];
++    is_symbol = (0 == charmap->encoding_id && 3 == charmap->platform_id) ? true : false;
++
++    if (0 == FT_Set_Charmap(face, charmap))
++    {
++      gindex = FT_Get_Char_Index(face, charcode);
++
++      if (!gindex && is_symbol)
++        gindex = FT_Get_Char_Index(face, 0xF000);
++
++      if (gindex)
++        return gindex;
++    }
++
++    charmap_index++;
++  }
++
++  FT_Select_Charmap(face, cur_encoding);
++  return gindex;
++}
++
+ static hb_bool_t
+ hb_ft_get_nominal_glyph (hb_font_t *font,
+ 			 void *font_data,
+@@ -382,13 +416,14 @@ hb_ft_get_nominal_glyph (hb_font_t *font,
+       default:
+ 	break;
+       }
+-      if (!g)
+-	return false;
+     }
+-    else
+-      return false;
+   }
+ 
++  if (!g)
++    g = hb_ft_get_index_by_unicode(ft_font->ft_face, unicode);
++  if (!g)
++    return false;
++
+   *glyph = g;
+   return true;
+ }

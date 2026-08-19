@@ -315,7 +315,7 @@ int CHWPSection::ParseRecurse(CHWPPargraph* pCurrPara, int nRunLevel, CHWPStream
 					}
 					else
 					{
-						if (1 == nRunLevel) //TODO:: проверить
+						if (1 == nRunLevel) //TODO:: check
 						{
 							oBuffer.Skip(nSize);
 							return oBuffer.GetDistanceToLastPos(true);
@@ -517,7 +517,7 @@ int CHWPSection::ParseCtrlRecurse(CCtrl* pCurrCtrl, int nRunLevel, CHWPStream& o
 						CCtrlTable *pCtrlTable = (CCtrlTable*)pCtrl;
 						if (pCtrlTable->HaveCells())
 						{
-							//TODO:: проверить
+							//TODO:: check
 							break;
 						}
 
@@ -657,7 +657,7 @@ int CHWPSection::ParseCtrlRecurse(CCtrl* pCurrCtrl, int nRunLevel, CHWPStream& o
 					}
 					else
 					{
-						//TODO:: проверить
+						//TODO:: check
 						CHWPPargraph *pNewPara = CHWPPargraph::Parse(nTagNum, nLevel, nSize, oBuffer, 0, nVersion);
 						oBuffer.Skip(nSize);
 						ParseRecurse(pNewPara, nLevel, oBuffer, 0, nVersion);
@@ -736,7 +736,7 @@ int CHWPSection::ParseCtrlRecurse(CCtrl* pCurrCtrl, int nRunLevel, CHWPStream& o
 						else
 							pParentPara->AddCtrl(pNewCtrl);
 
-						//TODO:: проверить
+						//TODO:: check
 						pCtrl = pNewCtrl;
 					}
 

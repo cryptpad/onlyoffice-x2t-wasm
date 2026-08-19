@@ -85,7 +85,7 @@ LIST<CCtrl*> CHWPRecordParaText::Parse(int nTagNum, int nLevel, int nSize, CHWPS
 						unInfoLength = 4;
 					else if (sText.length() > unIndex + 7 && sText[unIndex] == sText[unIndex + 7] && sText[unIndex + 1] >= 0x20)
 						unInfoLength = 5;
-					else if (6 >= unIndex && unIndex > 2) //Случай, когда запись в самом начале
+					else if (6 >= unIndex && unIndex > 2) //The case when writing is at the very beginning
 					{
 						nStartText = -1;
 						sCurrentText.clear();

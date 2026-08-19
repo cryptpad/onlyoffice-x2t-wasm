@@ -1654,7 +1654,7 @@ bool CxImage::FFT2(CxImage* srcReal, CxImage* srcImag, CxImage* dstReal, CxImage
 	free(imag2);
 
 	/* converting from double to byte, there is a HUGE loss in the dynamics
-	  "nn" tries to keep an acceptable SNR, but 8bit=48dB: don't ask more */
+	  "nn" tries to keep an acceptable SNR, but 8bit=48dB: do not ask more */
 	double nn=pow((double)2,(double)log((double)max(w,h))/(double)log((double)2)-4);
 	//reversed gain for reversed transform
 	if (direction==-1) nn=1/nn;
@@ -2162,7 +2162,7 @@ int32_t CxImage::gen_convolve_matrix (float radius, float **cmatrix_p)
 	*cmatrix_p = new float[matrix_length];
 	cmatrix = *cmatrix_p;
 	
-	/*  Now we fill the matrix by doing a numeric integration approximation
+	/*  Now fill the matrix by doing a numeric integration approximation
 	* from -2*std_dev to 2*std_dev, sampling 50 points per pixel.
 	* We do the bottom half, mirror it to the top half, then compute the
 	* center point.  Otherwise asymmetric quantization errors will occur.
@@ -2252,7 +2252,7 @@ void CxImage::blur_line (float *ctable, float *cmatrix, int32_t cmatrix_length, 
 	float *ctable_p;
 	
 	/* this first block is the same as the non-optimized version --
-	* it is only used for very small pictures, so speed isn't a
+	* it is only used for very small images, so speed isn't a
 	* big concern.
 	*/
 	if (cmatrix_length > y)
@@ -3367,7 +3367,7 @@ int32_t  CxImage::OptimalThreshold(int32_t method, RECT * pBox, CxImage* pContra
 		}
 
 		//potential difference (based on Electrostatic Binarization method by J. Acharya & G. Sreechakra)
-		// L=-fabs(vdiff/vsum); и molto selettivo, sembra che L=-fabs(vdiff) o L=-(vsum)
+		// L=-fabs(vdiff/vsum); and molto selettivo, sembra che L=-fabs(vdiff) o L=-(vsum)
 		// abbiano lo stesso valore di soglia... il che semplificherebbe molto la routine
 		double vdiff = 0;
 		for (k=gray_min;k<=i;k++)

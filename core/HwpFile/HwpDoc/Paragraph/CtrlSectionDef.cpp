@@ -195,7 +195,7 @@ CCtrlSectionDef::CCtrlSectionDef(const HWP_STRING& sCtrlID, CXMLReader& oReader,
 			m_arBorderFills.push_back(new CPageBorderFill(oReader, eType));
 		else if (GetNodeName(ENode::MasterPage, eType) == sNodeName)
 		{
-			//TODO:: добавить реализацию
+			//TODO::add implementation
 		}
 	}
 	END_WHILE

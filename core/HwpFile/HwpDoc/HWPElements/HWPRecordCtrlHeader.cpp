@@ -57,7 +57,7 @@ CCtrl* CHWPRecordCtrlHeader::Parse(int nTagNum, int nLevel, int nSize, CHWPStrea
 	}
 	else if (L"cot%" == sCtrlID)
 	{
-		// Когда содержимое считывается как UTF_16LE, следующее содержимое остается тем же самым
+		// When content is read as UTF_16LE, the following content remains the same
 		// ¥TableOfContents:set:140:ContentsMake:uint:17 ContentsStyles:wstring:0: ContentsLevel:int:5 ContentsAutoTabRight:int:0 ContentsLeader:int:3 ContentsHyperlink:bool:1
 
 		int nTempSize = nSize - oBuffer.GetDistanceToLastPos();

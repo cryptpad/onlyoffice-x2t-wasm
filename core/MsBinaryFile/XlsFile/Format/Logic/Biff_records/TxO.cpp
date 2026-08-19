@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -130,7 +123,7 @@ void TxO::readFields(CFRecord& record)
 			{
 				XLUnicodeStringNoCch val;
 				
-				unsigned char fHighByte;	//todooo втащить в BufferString
+				unsigned char fHighByte;	//TODO move into BufferString
 				record >> fHighByte;
 				bool is_wide = ((fHighByte & 1) != 0);
 
@@ -269,7 +262,7 @@ int TxO::serialize_vml (std::wostream & _stream)
 
 					if (run->formatRun.ich > str_.length())
 					{
-						//ошибка
+						//error
 						run->formatRun.ich = 0;
 					}
 
@@ -327,7 +320,7 @@ int TxO::serialize (std::wostream & _stream)
 
 					if (run->formatRun.ich > str_.length())
 					{
-						//ошибка
+						//error
 						run->formatRun.ich = 0;
 					}
 

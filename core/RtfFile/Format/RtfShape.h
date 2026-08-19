@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -168,7 +161,7 @@ public:
 	int m_nConnectorStyle;			//cxstyle Connector style
 
 //Picture Effects
-	int m_nCropFromTop;				//cropFromTop	Top cropping percentage. Измеряется в fraction 1 /65536
+	int m_nCropFromTop;				//cropFromTop Top cropping percentage. Measured in fraction 1 /65536
 	int m_nCropFromBottom;			//cropFromBottom	Bottom cropping percentage.
 	int m_nCropFromLeft;			//cropFromLeft	Left cropping percentage.
 	int m_nCropFromRight;			//cropFromRight	Right cropping percentage.
@@ -199,7 +192,7 @@ public:
 	int m_nFillToLeft;
 	int m_nFillShadeType;
     std::vector< std::pair<int, double> >	m_aFillShadeColors;
-	//int m_bFillShape;				//есть копия заливки картинкой	
+	//int m_bFillShape;				//there is a copy of the image fill
 //Line
 	int m_bLine;					//fLine Has a line
 	int m_nLineColor;
@@ -231,7 +224,7 @@ public:
 	std::wstring	m_sSigSetupSuggSigner2;
 	std::wstring	m_sSigSetupSuggSignerEmail;
 
-	RtfCharProperty	m_oCharProperty; // тут могут быть track changes ....
+	RtfCharProperty	m_oCharProperty; // there may be track changes...
 
 //pWrapPolygonVertices	Points of the text wrap polygon.
 	std::vector< std::pair<__int64, __int64> >	m_aWrapPoints;

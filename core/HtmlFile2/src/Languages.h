@@ -7,66 +7,66 @@
 
 const static std::map<std::wstring, std::wstring> m_Languages_HTML
 {
-	//Язык, Регион
-	{L"en", L"US"}, // Английский - США
-	{L"ru", L"RU"}, // Русский - Россия
-	{L"es", L"ES"}, // Испанский - Испания
-	{L"de", L"DE"}, // Немецкий - Германия
-	{L"fr", L"FR"}, // Французский - Франция
-	{L"it", L"IT"}, // Итальянский - Италия
-	{L"pt", L"PT"}, // Португальский - Португалия
-	{L"pl", L"PL"}, // Польский - Польша
-	{L"nl", L"NL"}, // Нидерландский - Нидерланды
-	{L"sv", L"SE"}, // Шведский - Швеция
-	{L"nb", L"NO"}, // Норвежский - Новегия
-	{L"da", L"DK"}, // Датский - Дания
-	{L"fi", L"FI"}, // Финский - Финляндия
-	{L"el", L"GR"}, // Греческий - Греция
-	{L"tr", L"TR"}, // Турецкий - Турция
-	{L"ar", L"SA"}, // Арабский - Саудовская Аравия
-	{L"he", L"IL"}, // Иврит - Израиль
-	{L"ja", L"JP"}, // Японский - Япония
-	{L"zh", L"CN"}, // Китайский (упрощенный) - Китай
-	{L"hu", L"HU"}, // Венгерский - Венгрия
-	{L"cs", L"CZ"}, // Чешский  - Чехия
-	{L"ro", L"RO"}, // Румынский - Румыния
-	{L"bg", L"BG"}, // Болгарский - Болгария
-	{L"hr", L"HR"}, // Хорватский - Хорватия
-	{L"sr", L"Latn-RS"}, //Сербский - Сербия
-	{L"sl", L"SI"}, // Словенский - Словения
-	{L"lt", L"LT"}, // Литовский - Литва
-	{L"lv", L"LV"}, // Латышский - Латвия
-	{L"et", L"EE"}, // Эстонский - Эстония
-	{L"uk", L"UA"}, // Украинский - Украина
-	{L"be", L"BY"}, // Белорусский - Беларусь
-	{L"kk", L"KZ"}, // Казахский - Казахстан
-	{L"hi", L"IN"}, // Хинди - Индия
-	{L"th", L"TH"}, // Тайский - Таиланд
-	{L"vi", L"VN"}, // Вьетнамский - Вьетнам
-	{L"id", L"ID"}, // Индонезийский - Индонезия
-	{L"ms", L"MY"}, // Малайский - Малайзия
-	{L"fil", L"PH"}, // Филиппинский - Филиппины
-	{L"ko", L"KR"}, // Корейский - Южная Корея
-	{L"is", L"IS"}, // Исландский - Исландия
-	{L"ga", L"IE"}, // Ирландский - Ирландия
-	{L"cy", L"GB"}, // Валлийский - Великобритания
-	{L"ca", L"ES"}, // Каталанский - Испания
-	{L"eu", L"ES"}, // Баскский - Испания
-	{L"gl", L"ES"}, // Галисийский - Испания
-	{L"af", L"ZA"}, // Африкаанс - Южная Африка
-	{L"zu", L"ZA"}, // Зулу - Южная Африка
-	{L"ha", L"Latn-NG"}, // Хауса - Нигерия
-	{L"yo", L"NG"}, // Йоруба - Нигерия
-	{L"sw", L"KE"}, // Суахили - Кения
-	{L"am", L"ET"}, // Амхарский - Эфиопия
-	{L"ti", L"ET"}, // Тигринья - Эфиопия
-	{L"ur", L"PK"}, // Урду - Пакистан
-	{L"pa", L"IN"}, // Панджаби - Индия
-	{L"gu", L"IN"}, // Гуджарати - Индия
-	{L"ta", L"IN"}, // Тамильский - Индия
-	{L"te", L"IN"}, // Телугу - Индия
-	{L"ml", L"IN"}, // Малаялам - Индия
-	{L"kn", L"IN"}  // Каннада - Индия
+	//Language, Region
+	{L"en", L"US"}, // English - USA
+	{L"ru", L"RU"}, // Russian - Russia
+	{L"es", L"ES"}, // Spanish - Spain
+	{L"de", L"DE"}, // German - Germany
+	{L"fr", L"FR"}, // French - France
+	{L"it", L"IT"}, // Italian - Italy
+	{L"pt", L"PT"}, // Portuguese - Portugal
+	{L"pl", L"PL"}, // Polish - Poland
+	{L"nl", L"NL"}, // Dutch - Netherlands
+	{L"sv", L"SE"}, // Swedish - Sweden
+	{L"nb", L"NO"}, // Norwegian - Norway
+	{L"da", L"DK"}, // Danish - Denmark
+	{L"fi", L"FI"}, // Finnish - Finland
+	{L"el", L"GR"}, // Greek - Greece
+	{L"tr", L"TR"}, // Turkish - Turkey
+	{L"ar", L"SA"}, // Arabic - Saudi Arabia
+	{L"he", L"IL"}, // Hebrew - Israel
+	{L"ja", L"JP"}, // Japanese - Japan
+	{L"zh", L"CN"}, // Chinese (simplified) - China
+	{L"hu", L"HU"}, // Hungarian - Hungary
+	{L"cs", L"CZ"}, // Czech - Czech Republic
+	{L"ro", L"RO"}, // Romanian - Romania
+	{L"bg", L"BG"}, // Bulgarian - Bulgaria
+	{L"hr", L"HR"}, // Croatian - Croatia
+	{L"sr", L"Latn-RS"}, //Serbian - Serbia
+	{L"sl", L"SI"}, // Slovenian - Slovenia
+	{L"lt", L"LT"}, // Lithuanian - Lithuania
+	{L"lv", L"LV"}, // Latvian - Latvia
+	{L"et", L"EE"}, // Estonian - Estonia
+	{L"uk", L"UA"}, // Ukrainian - Ukraine
+	{L"be", L"BY"}, // Belarusian - Belarus
+	{L"kk", L"KZ"}, // Kazakh - Kazakhstan
+	{L"hi", L"IN"}, // Hindi - India
+	{L"th", L"TH"}, // Thai - Thailand
+	{L"vi", L"VN"}, // Vietnamese - Vietnam
+	{L"id", L"ID"}, // Indonesian - Indonesia
+	{L"ms", L"MY"}, // Malay - Malaysia
+	{L"fil", L"PH"}, // Filipino - Philippines
+	{L"ko", L"KR"}, // Korean - South Korea
+	{L"is", L"IS"}, // Icelandic - Iceland
+	{L"ga", L"IE"}, // Irish - Ireland
+	{L"cy", L"GB"}, // Welsh - UK
+	{L"ca", L"ES"}, // Catalan - Spain
+	{L"eu", L"ES"}, // Basque - Spain
+	{L"gl", L"ES"}, // Galician - Spain
+	{L"af", L"ZA"}, // Afrikaans - South Africa
+	{L"zu", L"ZA"}, // Zulu - South Africa
+	{L"ha", L"Latn-NG"}, // Hausa - Nigeria
+	{L"yo", L"NG"}, // Yoruba - Nigeria
+	{L"sw", L"KE"}, // Swahili - Kenya
+	{L"am", L"ET"}, // Amharic - Ethiopia
+	{L"ti", L"ET"}, // Tigrinya - Ethiopia
+	{L"ur", L"PK"}, // Urdu - Pakistan
+	{L"pa", L"IN"}, // Punjabi - India
+	{L"gu", L"IN"}, // Gujarati - India
+	{L"ta", L"IN"}, // Tamil - India
+	{L"te", L"IN"}, // Telugu - India
+	{L"ml", L"IN"}, // Malayalam - India
+	{L"kn", L"IN"}  // Kannada - India
 };
 
 static std::wstring IndentifyLanguage(std::wstring wsLanguage)

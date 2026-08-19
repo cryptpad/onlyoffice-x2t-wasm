@@ -13,7 +13,7 @@
 #include <sstream>
 #include <random>
 
-// Заменяет в строке s все символы s1 на s2
+// Replaces all occurrences of s1 in string s with s2
 void replace_all(std::wstring& s, const std::wstring& s1, const std::wstring& s2)
 {
     size_t pos = s.find(s1);
@@ -367,7 +367,7 @@ HRESULT CEpubFile::FromHtml(const std::wstring& sHtmlFile, const std::wstring& s
     // index.html
     std::wstring sIndexHtml;
     NSFile::CFileBinary::ReadAllTextUtf8(sHtmlFile, sIndexHtml);
-    // картинки в файл
+    // images to file
     size_t nImage = sIndexHtml.find(L"data:image/png;base64, ");
     int nNumImage = 1;
     while (nImage != std::wstring::npos)
@@ -390,14 +390,14 @@ HRESULT CEpubFile::FromHtml(const std::wstring& sHtmlFile, const std::wstring& s
         sIndexHtml.replace(nImage, nImageEnd - nImage, L"images/img" + std::to_wstring(nNumImage++) + L".png");
         nImage = sIndexHtml.find(L"data:image/png;base64, ", nImage);
     }
-    // удаляем &nbsp;
+    // delete &nbsp;
     nImage = sIndexHtml.find(L"&nbsp;");
     while (nImage != std::wstring::npos)
     {
         sIndexHtml.replace(nImage, 6, L"&#160;");
         nImage = sIndexHtml.find(L"&nbsp;", nImage);
     }
-    // заменяем <s> на style=text-decoration:line-through
+    // replace <s> with style=text-decoration:line-through
     nImage = sIndexHtml.find(L"<s>");
     while (nImage != std::wstring::npos)
     {
@@ -409,7 +409,7 @@ HRESULT CEpubFile::FromHtml(const std::wstring& sHtmlFile, const std::wstring& s
         sIndexHtml.insert(nEndTag, L";text-decoration:line-through");
         nImage = sIndexHtml.find(L"<s>", nImage);
     }
-    // удаляем атрибут width у <td>
+    // remove the width attribute from <td>
     nImage = sIndexHtml.find(L"<td");
     while (nImage != std::wstring::npos)
     {
@@ -422,7 +422,7 @@ HRESULT CEpubFile::FromHtml(const std::wstring& sHtmlFile, const std::wstring& s
         }
         nImage = sIndexHtml.find(L"<td", nImage);
     }
-    // удаляем атрибут clear у <br/>
+    // remove the clear attribute from <br/>
     nImage = sIndexHtml.find(L"<br");
     while (nImage != std::wstring::npos)
     {
@@ -461,7 +461,7 @@ HRESULT CEpubFile::FromHtml(const std::wstring& sHtmlFile, const std::wstring& s
     replace_all(sTitle, L"\r", L"&#xD;");
     replace_all(sTitle, L"\t", L"&#x9;");
 
-    // Разделение html по <br>
+    // Splitting html by <br>
     int nFile = 0;
     nImage = sIndexHtml.find(L"<br");
     sIndexHtml.replace(0, 6, L"<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">");

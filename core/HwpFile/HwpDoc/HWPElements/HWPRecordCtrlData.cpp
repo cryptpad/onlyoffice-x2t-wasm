@@ -33,8 +33,8 @@ CHWPRecordCtrlData::CHWPRecordCtrlData(int nTagNum, int nLevel, int nSize)
 
 int CHWPRecordCtrlData::ParseCtrl(CCtrl& oCtrl, int nSize, CHWPStream& oBuffer, int nOff, int nVersion)
 {
-	// TODO:: Вернуться к этому моменту
-	// Само по себе содержание документа Hankom не позволяет понять, как его интерпретировать.
+	// TODO:: Return to this point
+	// The contents of the Hancom document alone make it difficult to understand how to interpret it.
 
 	oBuffer.SavePosition();
 

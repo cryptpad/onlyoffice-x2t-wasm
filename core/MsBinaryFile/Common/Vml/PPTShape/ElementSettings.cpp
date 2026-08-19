@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -39,8 +32,8 @@
 
 #include "../../../PptFile/Records/Drawing/ArtBlip.h"
 
-// это класс, использующийся для передачи свойств объектов,
-// например - указатель на картинку... (по PID'у)
+// this is a class used to transfer properties of objects,
+// for example, a pointer to an image... (by PID)
 
 CProperty::CProperty()
 {
@@ -59,9 +52,9 @@ CProperty::~CProperty()
 }
 void CProperty::FromStream(POLE::Stream* pStream)
 {
-	// читаем из стрима...
-	// только пока без учета bComplex
-	// т.к. Complex - учитывается в контейнере, хранящем все проперти
+	// read from the stream...
+	// only for now excluding bComplex
+	// because Complex - taken into account in the container storing all properties
 	USHORT lMem = StreamUtils::ReadWORD(pStream);
 	m_ePID = (ODRAW::ePropertyId)(lMem & 0x3FFF);
 
@@ -174,8 +167,8 @@ void CProperties::FromStream(POLE::Stream* pStream, long lCount)
 		m_arProperties.push_back(elem);
 		m_arProperties[lIndex].FromStream(pStream);
 	}
-	// теперь читаем дополнительную информацию
-	// сортировано по pid'ам (но у нас пока просто по-порядку)
+	// now read more information
+	// sorted by pid (currently just in order)
 	for (size_t lIndex = 0; lIndex < m_lCount; ++lIndex)
 	{
 		m_arProperties[lIndex].ComplexFromStream(pStream);

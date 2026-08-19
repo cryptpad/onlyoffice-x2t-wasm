@@ -200,7 +200,7 @@ namespace NSDocxRenderer
 
 	void CUnicodeRanges::CheckRange(const int& symbol, BYTE& Range, BYTE& RangeNum)
 	{
-		// определяем range и двигаем его в начало.
+		// define the range and move it to the beginning.
 		std::list<CUnicodeRange>::iterator iter = m_arRanges.begin();
 		while (iter != m_arRanges.end())
 		{
@@ -329,7 +329,7 @@ namespace NSDocxRenderer
 
 		for(auto it = m_arParamsCache.begin(); it != m_arParamsCache.end(); it++)
 		{
-			// нашли в кэше, ничего не подбираем, выкинем наверх
+			// Found in the cache, don't select anything, return it
 			if(it->oFontSelectParams == oFontSelectParams && it->lRange == lRange && it->lRangeNum == lRangeNum)
 			{
 				m_bIsSelectedBold = it->bIsSelectedBold;
@@ -345,7 +345,7 @@ namespace NSDocxRenderer
 			}
 		}
 
-		// не нашли...
+		// didn't find...
 		CFontSelectInfo oInfoCache;
 		oInfoCache.oFontSelectParams = oFontSelectParams;
 		oInfoCache.lRange = lRange;
@@ -374,7 +374,7 @@ namespace NSDocxRenderer
 		}
 		else if (((lRangeNum == 2) && (lRange == 3)) || ((lRangeNum == 1) && (lRange == 31)) || ((lRangeNum == 0) && (lRange == 13)))
 		{
-			// арабский язык!!!
+			// Arabic!!!
 			dwR1 = 1 << 13;
 			dwR2 = 1 << 31;
 			dwR3 = 1 << 3;
@@ -435,7 +435,7 @@ namespace NSDocxRenderer
 		m_bIsSelectedItalic = pInfo->m_bItalic;
 		m_wsSelectedName = pInfo->m_wsFontName;
 
-		// закинем в кэш, чтобы потом не подбирать
+		// put it in the cache so it doesn't need to be selected later
 		oInfoCache.bIsSelectedBold = m_bIsSelectedBold;
 		oInfoCache.bIsSelectedItalic = m_bIsSelectedItalic;
 		oInfoCache.wsSelectedName = m_wsSelectedName;
@@ -643,7 +643,7 @@ namespace NSDocxRenderer
 		dBoxWidth	= (double)(bbox.fMaxX - bbox.fMinX);
 		dBoxHeight	= (double)(bbox.fMaxY - bbox.fMinY);
 
-		// переводим в миллиметры
+		// convert to millimeters
 		dBoxX		*= c_dPixToMM;
 		dBoxY		*= c_dPixToMM;
 		dBoxWidth	*= c_dPixToMM;
@@ -679,7 +679,7 @@ namespace NSDocxRenderer
 		dBoxWidth	= (double)(bbox.fMaxX - bbox.fMinX);
 		dBoxHeight	= (double)(bbox.fMaxY - bbox.fMinY);
 
-		// переводим в миллиметры
+		// convert to millimeters
 		dBoxX		*= c_dPixToMM;
 		dBoxY		*= c_dPixToMM;
 		dBoxWidth	*= c_dPixToMM;

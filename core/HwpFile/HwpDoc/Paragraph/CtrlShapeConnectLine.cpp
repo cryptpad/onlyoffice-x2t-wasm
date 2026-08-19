@@ -83,7 +83,7 @@ void CCtrlShapeConnectLine::ReadFromHWPML(CXMLReader &oReader)
 	START_READ_ATTRIBUTES(oReader)
 	{
 		if ("Type" == sAttributeName)
-			// TODO:: реализовать при встрече
+			// TODO:: implement when encountered
 			m_eType = EConnectLineType::STRAIGHT_NOARROW;
 		else if ("StartX" == sAttributeName)
 			m_oStartPt.m_nX = oReader.GetInt();

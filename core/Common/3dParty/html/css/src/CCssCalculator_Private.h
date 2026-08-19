@@ -6,7 +6,7 @@
 #include <set>
 #include "CElement.h"
 #include "StyleProperties.h"
-#include "../../katana-parser/src/selector.h"
+#include "katana.h"
 
 #ifdef CSS_CALCULATOR_WITH_XHTML
 #include "CCompiledStyle.h"

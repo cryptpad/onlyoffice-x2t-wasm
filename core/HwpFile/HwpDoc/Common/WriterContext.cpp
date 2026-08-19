@@ -371,7 +371,7 @@ bool CWriterContext::GetBinBytes(const HWP_STRING& sId, CHWPStream& oBuffer, HWP
 
 HWP_STRING CWriterContext::GetBinFormat(const HWP_STRING& sId)
 {
-	//TODO::реализовать
+	//TODO::implement
 	return HWP_STRING();
 }
 }

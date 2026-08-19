@@ -645,7 +645,7 @@ enum class EAttribute
 
 #define MAX_ATTRIBUTES 202
 
-//TODO:: добавить все аргументы
+//TODO:: add all arguments
 static constexpr const char* ATTRUBUTE_NAMES[MAX_TYPES][MAX_ATTRIBUTES] = 
 {
 // HWPX
@@ -1082,7 +1082,7 @@ inline bool Equals(EAttribute eAttribute, EHanType eType, const std::string& sAt
 	}
 }
 
-// TODO:: пока всё в одном месте. Возможно стоит лучше разделить по соответствующим классам
+// TODO:: for now everything is in one place. Perhaps it would be better to divide it into appropriate classes
 enum class EValue
 {
 	None,

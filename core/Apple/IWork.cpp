@@ -53,7 +53,7 @@ bool GetRVNGInputStream(const DATA_TYPE_INPUTFILE& sFile, std::shared_ptr<librev
 
 IWorkFileType CIWorkFile::GetType(const std::wstring& sFile) const
 {
-	//TODO:: так как на данный момент мы работает только напрямую с файлом, то работа с директорией нам пока не нужна
+	//TODO:: since at the moment only direct file handling is supported, directory handling isn't needed yet
 	if (NSDirectory::PathIsDirectory(sFile))
 		return IWorkFileType::None;
 
@@ -107,7 +107,7 @@ int Convert(const std::wstring& wsOutputFile, std::shared_ptr<librevenge::RVNGIn
 
 int CIWorkFile::Convert2Odf(const std::wstring& sFile, const std::wstring& sOutputFile) const
 {
-	//TODO:: так как на данный момент мы работает только напрямую с файлом, то работа с директорией нам пока не нужна
+	//TODO:: since at the moment only direct file handling is supported, directory handling isn't needed yet
 	if (NSDirectory::PathIsDirectory(sFile))
 		return -1;
 

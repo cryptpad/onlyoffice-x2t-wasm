@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -158,7 +151,7 @@ void paragraph_format_properties::docx_convert(oox::docx_conversion_context & Co
 				Context.set_rtl(false);
 			}
 		}
-		if (Context.get_rtl()) //может быть он установился от стиля родителя !!
+		if (Context.get_rtl()) //maybe it was installed from the parent's style!!
 		{
 			_pPr << L"<w:bidi/>";
 		}
@@ -372,8 +365,8 @@ void paragraph_format_properties::docx_convert(oox::docx_conversion_context & Co
             w_after = docx_process_margin(fo_margin_bottom_, 20.0);
             w_before = docx_process_margin(fo_margin_top_, 20.0);
 
-			// TODO :   здесь 240 берется из корневого стиля? надо не константу использовать а брать оттуда
-			//          в xsl преобразованиях так же написано 
+			// TODO: is 240 taken from the root style here? shouldn't use a constant but take it from there
+			//          in xsl transformations it is also written
 			if (fo_line_height_)
 			{
 				if (fo_line_height_->get_type() == line_width::Percent)
@@ -416,7 +409,7 @@ void paragraph_format_properties::docx_convert(oox::docx_conversion_context & Co
 			}
 		}
 		_CP_OPT(odf_types::length_or_percent) curr_margin_left_ = fo_margin_left_;
-		if (curr_margin_left_ || //? + буквица
+		if (curr_margin_left_ || //? + drop cap
 			fo_margin_right_ || 
 			(fo_text_indent_ && Context.get_drop_cap_context().state() != 1))
 		{
@@ -456,7 +449,7 @@ void paragraph_format_properties::docx_convert(oox::docx_conversion_context & Co
 			    CP_XML_ATTR(L"w:start", w_left);
 				CP_XML_ATTR(L"w:end", w_right);
 
-				if (Context.get_drop_cap_context().state() != 1 )//состояние сразу после добавления буквицы - не нужны ни отступы, ни висячие
+				if (Context.get_drop_cap_context().state() != 1 )//state immediately after adding a drop cap - no indents or hanging ones needed
 				{
 					if (!w_hanging.empty())
 						CP_XML_ATTR(L"w:hanging", w_hanging);
@@ -533,7 +526,7 @@ void style_tab_stop::docx_convert(oox::docx_conversion_context & Context, bool c
 
     _pPr << L"<w:tab";
 
-	length def_tab =  length(1.0, length::cm);// в ms значение 0.8 не корректно оО
+	length def_tab =  length(1.0, length::cm);// in ms the value 0.8 isn't correct OO
 		
 	double tab_pos_offset = (!Context.get_paragraph_state() || Context.is_table_content()) ? margin_left : 0;
 

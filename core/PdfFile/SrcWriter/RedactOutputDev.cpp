@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -401,7 +394,7 @@ void SaveImageMaskToStream(CDocument* pDocument, CDictObject* pDictObj, BYTE* pM
 }
 void ApplyRedactToRGBA(const std::vector<double>& arrQuadPoints, BYTE* pImage, int nWidth, int nHeight, const std::vector<CPoint>& imagePolygon)
 {
-	// Находим все области редоктирования, которые пересекаются с изображением
+	// Finding all edit areas that intersect with the image
 	std::vector<std::vector<CPoint>> imageSpaceRedacts;
 
 	for (int j = 0; j < arrQuadPoints.size(); j += 8)
@@ -414,7 +407,7 @@ void ApplyRedactToRGBA(const std::vector<double>& arrQuadPoints, BYTE* pImage, i
 			CPoint(arrQuadPoints[j + 6], arrQuadPoints[j + 7])
 		};
 
-		// Преобразуем в координаты изображения
+		// Convert to image coordinates
 		std::vector<CPoint> imageSpaceRedact;
 		for (const CPoint& point : redactPolygon)
 		{
@@ -423,15 +416,15 @@ void ApplyRedactToRGBA(const std::vector<double>& arrQuadPoints, BYTE* pImage, i
 			imageSpaceRedact.push_back(CPoint(x, y));
 		}
 
-		// Проверяем, что область хоть частично внутри изображения
+		// Check that the area is at least partially inside the image
 		if (PdfWriter::SAT(imageSpaceRedact, {CPoint(0, 0), CPoint(0, nHeight), CPoint(nWidth, nHeight), CPoint(nWidth, 0)}))
 			imageSpaceRedacts.push_back(imageSpaceRedact);
 	}
 
-	// Закрашиваем области редоктирования черным цветом
+	// Paint the edited areas black
 	for (const auto& redact : imageSpaceRedacts)
 	{
-		// Находим bounding box области редоктирования в координатах изображения
+		// Finding the bounding box of the editing area in image coordinates
 		double minX = nWidth, minY = nHeight, maxX = 0, maxY = 0;
 		for (const CPoint& p : redact)
 		{
@@ -441,25 +434,25 @@ void ApplyRedactToRGBA(const std::vector<double>& arrQuadPoints, BYTE* pImage, i
 			if (p.y > maxY) maxY = p.y;
 		}
 
-		// Ограничиваем bounding box размерами изображения
+		// Limit the bounding box to the size of the image
 		int startX = std::max(0, (int)minX);
 		int startY = std::max(0, (int)minY);
 		int endX = std::min(nWidth  - 1, (int)maxX);
 		int endY = std::min(nHeight - 1, (int)maxY);
 
-		// Закрашиваем прямоугольную область
+		// Painting a rectangular area
 		for (int y = startY; y <= endY; ++y)
 		{
 			for (int x = startX; x <= endX; ++x)
 			{
-				// Проверяем, что пиксель внутри полигона редоктирования
+				// Checking that the pixel is inside the edit polygon
 				if (PdfWriter::isPointInQuad(x, y, redact[0].x, redact[0].y, redact[1].x, redact[1].y, redact[2].x, redact[2].y, redact[3].x, redact[3].y))
 				{
 					int nIndex = ((nHeight - 1 - y) * nWidth + x) * 4;
 					pImage[nIndex + 0] = 0; // R
 					pImage[nIndex + 1] = 0; // G
 					pImage[nIndex + 2] = 0; // B
-					// Alpha оставляем 255
+					// Alpha is left at 255
 				}
 			}
 		}
@@ -467,7 +460,7 @@ void ApplyRedactToRGBA(const std::vector<double>& arrQuadPoints, BYTE* pImage, i
 }
 void ApplyRedactToGray(const std::vector<double>& arrQuadPoints, BYTE* pImage, int nWidth, int nHeight, const std::vector<CPoint>& imagePolygon)
 {
-	// Преобразуем области редоктирования в координаты маски
+	// Converting edit areas to mask coordinates
 	std::vector<std::vector<CPoint>> maskSpaceRedacts;
 
 	for (int j = 0; j < arrQuadPoints.size(); j += 8)
@@ -480,7 +473,7 @@ void ApplyRedactToGray(const std::vector<double>& arrQuadPoints, BYTE* pImage, i
 			CPoint(arrQuadPoints[j + 6], arrQuadPoints[j + 7])
 		};
 
-		// Преобразуем в координаты маски
+		// Convert to mask coordinates
 		std::vector<CPoint> maskSpaceRedact;
 		for (const CPoint& point : redactPolygon)
 		{
@@ -495,7 +488,7 @@ void ApplyRedactToGray(const std::vector<double>& arrQuadPoints, BYTE* pImage, i
 
 	for (const auto& redact : maskSpaceRedacts)
 	{
-		// Находим bounding box
+		// Finding the bounding box
 		double minX = nWidth, minY = nHeight, maxX = 0, maxY = 0;
 		for (const CPoint& p : redact)
 		{
@@ -588,7 +581,7 @@ void RedactOutputDev::restoreState(GfxState *pGState)
 	updateAll(pGState);
 
 	if (m_sStates.empty())
-		return; // Несбалансированный q/Q - сломанный файл
+		return; // Unbalanced q/Q - broken file
 	m_sStates.pop_back();
 }
 //----- update graphics state
@@ -1087,7 +1080,7 @@ void RedactOutputDev::setShading(GfxState *pGState, const char* name)
 	double dShiftX = 0, dShiftY = 0;
 	DoTransform(pGState->getCTM(), &dShiftX, &dShiftY, true);
 
-	// TODO Нужно проверять Shading на отсечение?
+	// TODO Need to check Shading for clipping?
 
 	m_pPage->GrSave();
 	UpdateTransform();
@@ -1229,7 +1222,7 @@ void RedactOutputDev::drawSoftMaskedImage(GfxState *pGState, Gfx *gfx, Object *p
 	{
 		if (nWidth != nMaskWidth || nHeight != nMaskHeight)
 		{
-			// Простое масштабирование (ближайший сосед)
+			// Simple scaling (nearest neighbor)
 			BYTE* pDstMask = new BYTE[nWidth * nHeight];
 			if (!pDstMask)
 			{
@@ -1247,7 +1240,7 @@ void RedactOutputDev::drawSoftMaskedImage(GfxState *pGState, Gfx *gfx, Object *p
 					int srcX = (int)(dstX * dScaleX);
 					int srcY = (int)(dstY * dScaleY);
 
-					// Ограничиваем координаты
+					// Limiting the coordinates
 					srcX = std::min(srcX, nMaskWidth  - 1);
 					srcY = std::min(srcY, nMaskHeight - 1);
 
@@ -1439,18 +1432,18 @@ bool SkipPath(const std::vector<CSegment>& arrForStroke, const CPoint& P1, const
 	{
 		CPoint P3 = arrForStroke[i].start;
 		CPoint P4 = arrForStroke[i].end;
-		// Вычисляем коэффициенты A, B, C для уравнения прямой P3P4: Ax + By + C = 0
+		// Calculate the coefficients A, B, C for the equation of the straight line P3P4: Ax + By + C = 0
 		double A = P4.y - P3.y;
 		double B = P3.x - P4.x;
 		double C = P4.x * P3.y - P3.x * P4.y;
 
-		// Проверяем, лежит ли точка P1 на прямой P3P4
+		// Checking whether point P1 lies on line P3P4
 		double check1 = A * P1.x + B * P1.y + C;
 
-		// Проверяем, лежит ли точка P2 на прямой P3P4
+		// Checking whether point P2 lies on line P3P4
 		double check2 = A * P2.x + B * P2.y + C;
 
-		// Если обе проверки близки к нулю (в пределах эпсилон), то лежит
+		// If both checks are close to zero (within epsilon), then lies
 		if ((std::abs(check1) < 0.006) && (std::abs(check2) < 0.006))
 			return true;
 	}
@@ -1708,7 +1701,7 @@ void RedactOutputDev::DoPathRedact(GfxState* pGState, GfxPath* pPath, double* pC
 					++nCurPointIndex;
 				}
 			}
-			// if (pSubpath->isClosed()) Принудительное замыкание фигур для CGraphicsPath
+			// if (pSubpath->isClosed()) Force closed shapes for CGraphicsPath
 				oPath.CloseFigure();
 		}
 

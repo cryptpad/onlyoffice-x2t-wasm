@@ -4,7 +4,7 @@ namespace NSDocxRenderer
 {
 	CParagraphStyleManager::CParagraphStyleManager()
 	{
-		// стандартные стили
+		// standard styles
 		CParagraphStyle oNormal(L"Normal", L"Normal");
 		CParagraphStyle oHeading1(L"Heading1", L"Heading 1");
 		CParagraphStyle oHeading2(L"Heading2", L"Heading 2");

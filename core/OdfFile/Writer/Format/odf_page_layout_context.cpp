@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -162,7 +155,7 @@ void odf_page_layout_context::process_master_styles(office_element_ptr root )
 		}
 		catch(...)
 		{
-			//почему то нет страницы
+			//why is there no page
 		}
 	}
 }
@@ -256,13 +249,13 @@ void odf_page_layout_context::set_page_gutter(_CP_OPT(length) length_)
 
 }
 void odf_page_layout_context::set_footer_size(_CP_OPT(length) length_, _CP_OPT(odf_types::length) length_min)
-//тут собственно не footer а размер после колонтитула
+//here it's not the footer itself, but the size after the footer
 {
 	if (layout_state_list_.size() < 1) return;
 
 	//layout_state_list_.back().footer_size_ = length_;
 	layout_state_list_.back().footer_min_size_ = length_min;
-	//собственно в layout встроим позднее - по факту наличия хоть одного колонтитула
+	//Actually build it into the layout later - based on the presence of at least one header and footer
 	return;
 }
 void odf_page_layout_context::set_header_size(_CP_OPT(length) length_, _CP_OPT(odf_types::length) length_min)
@@ -324,7 +317,7 @@ bool odf_page_layout_context::add_footer(int type)
 	master_state_list_.back().add_footer(root_header_footer_);
 
 /////////////////////////////////////////////////////////////////////
-//настраить нужно 1 раз
+//needs to be configured once
 	if (!layout_state_list_.back().footer_size_ && !layout_state_list_.back().footer_min_size_) return true;
 
 	style_header_footer_properties *footer_props = get_footer_properties();
@@ -371,7 +364,7 @@ bool odf_page_layout_context::add_header(int type)
 	
 	master_state_list_.back().add_header(root_header_footer_);
 ////////////////////////////////////////////////////////////////////////
-//настроить нужно один раз
+//needs to be configured once
 	if (!layout_state_list_.back().header_size_ && !layout_state_list_.back().header_min_size_) return true;
 	
 	style_header_footer_properties *header_props = get_header_properties();
@@ -401,7 +394,7 @@ void odf_page_layout_context::set_header_footer_image(office_element_ptr image)
 	style_header_footer_properties *header_footer_props = get_footer_properties();
 	if (!header_footer_props)return;
 
-	if (!header_footer_props->style_background_image_ )// картинка общая для всех четных,  нечетных, первых, так же нету центральных, левых, правых
+	if (!header_footer_props->style_background_image_ )// the image is common for all even, odd, first, there are also no central, left, right
 	{
 		header_footer_props->style_background_image_ = image;
 	}
@@ -559,7 +552,7 @@ void odf_page_layout_context::set_page_number_format(_CP_OPT(int) & type, _CP_OP
 		case 62: break;	    //numberformatVietnameseCounting           = 62
 		default:
 			break;
-		}//todooo
+		}//TODO
 	}
 }	
 

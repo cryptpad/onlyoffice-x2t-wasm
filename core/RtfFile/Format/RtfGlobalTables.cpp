@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -83,7 +76,7 @@ std::wstring RtfFontTable::RenderToOOX(RenderParameter oRenderParameter)
 }
 std::wstring RtfFontTable::RenderToRtf(RenderParameter oRenderParameter)
 {
-	////записывает default charset и codepage
+	////writes default charset and codepage
 	//RtfDocument* poDocument = static_cast<RtfDocument*>( oRenderParameter.poDocument );
 	//if( PROP_DEF != poDocument->m_oProperty.m_nAnsiCodePage )
 	//{
@@ -237,7 +230,7 @@ RtfStylePtr RtfStyleTable::GetStyleResulting( RtfStylePtr oInputStyle )
 	{
 		eStyleType		= RtfStyle::stParagraph;
 		oResultStyle	= RtfParagraphStylePtr( new RtfParagraphStyle() );
-		nLinked			= oInputStyle->m_nLink;//linked будем смотреть только у стилей параграфа, чтобы избежать рекурсии
+		nLinked			= oInputStyle->m_nLink;//linked we will look only at paragraph styles to avoid recursion
 	}
 	else if( RtfStyle::stTable == oInputStyle->m_eType )
 	{
@@ -245,7 +238,7 @@ RtfStylePtr RtfStyleTable::GetStyleResulting( RtfStylePtr oInputStyle )
 		oResultStyle	= RtfTableStylePtr( new RtfTableStyle() );
 	}
 	else
-		return oInputStyle;	//ОПАСНО .. потом может другим затереться todooo
+		return oInputStyle;	//DANGEROUS .. then it can be overwritten by others TODO
 
 	RtfStylePtr oLinkedStyle;
 	//if( PROP_DEF != nLinked && nStyleId != nLinked)
@@ -262,7 +255,7 @@ RtfStylePtr RtfStyleTable::GetStyleResulting( RtfStylePtr oInputStyle )
 			oBaseStyle = GetStyleResulting( oTemStyle );
 	}
 
-	//Опытным путем установлено - Base старше Link
+	//Established empirically - Base has lower priority than Link
 	if( NULL != oLinkedStyle )
 	{
 		oResultStyle->Merge( oLinkedStyle );

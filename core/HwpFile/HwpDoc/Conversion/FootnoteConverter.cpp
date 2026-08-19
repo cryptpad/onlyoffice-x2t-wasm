@@ -112,7 +112,7 @@ std::wstring CFootnoteConverter::CreateHeadOrFoot(const CCtrlHeadFoot* pCtrlHead
 	if (arRelationships.empty())
 		return wsFileName;
 
-	// TODO:: пока это копия из Converter2OOXML
+	// TODO:: for now this is a copy from Converter2OOXML
 	NSFile::CFileBinary oRelsWriter;
 	if (oRelsWriter.CreateFileW(oConverter.GetTempDirectory() + L"/word/_rels/" + wsFileName + L".rels"))
 	{

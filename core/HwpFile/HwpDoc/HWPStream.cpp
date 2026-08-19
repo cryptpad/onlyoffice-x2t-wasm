@@ -103,7 +103,7 @@ bool CHWPStream::ReadChar(HWP_CHAR& chValue)
 
 bool CHWPStream::ReadFloat(float& fValue)
 {
-	//TODO:: Проверить
+	//TODO:: Check
 	int nValue;
 	if (!ReadInt(nValue))
 		return false;
@@ -115,7 +115,7 @@ bool CHWPStream::ReadFloat(float& fValue)
 
 bool CHWPStream::ReadDouble(double& dValue)
 {
-	//TODO:: реализовать
+	//TODO::implement
 	long long lValue;
 	if (!ReadLong(lValue))
 		return false;

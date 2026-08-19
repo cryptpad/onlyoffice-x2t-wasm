@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -243,10 +236,10 @@ void office_text::docx_convert(oox::docx_conversion_context & Context)
 		if (content_[i]->next_element_style_name)
 		{
 			std::wstring text___ = *content_[i]->next_element_style_name;
-			// проверяем не сменится ли свойства страницы.
-			// если да — устанавливаем контексту флаг на то что необходимо в текущем параграфе
-			// распечатать свойства раздела/секции
-			//проверить ... не она ли текущая - может быть прописан дубляж - и тогда разрыв нарисуется ненужный
+			// Check whether the page properties will change.
+			// if yes, set the context flag to what is needed in the current paragraph
+			// write section properties
+			//check... if it is the current one - a duplicate may get registered - and then an unnecessary gap will be drawn
 			const _CP_OPT(std::wstring) next_masterPageName	= Context.root()->odf_context().styleContainer().master_page_name_by_name(*content_[i]->next_element_style_name);
 
 			if ((next_masterPageName)  && (Context.get_master_page_name() != *next_masterPageName))

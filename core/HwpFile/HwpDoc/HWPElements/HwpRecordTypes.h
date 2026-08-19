@@ -74,7 +74,7 @@ inline ELineStyle1 GetLineStyle1(const std::string& sValue, EHanType eType)
 	if (GetValueName(EValue::SlimThickSlim, eType) == sValue)
 		return ELineStyle1::SLIM_THICK_SLIM;
 
-	// Остальные значения встречаются только в hwpx
+	// Other values are found only in hwpx
 	if (EHanType::HWPX != eType)
 		return ELineStyle1::SOLID;
 	

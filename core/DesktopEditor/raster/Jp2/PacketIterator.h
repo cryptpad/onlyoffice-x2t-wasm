@@ -6,7 +6,7 @@
 namespace Jpeg2000
 {
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Вспомогательные функции
+	// Auxiliary functions
 	//-------------------------------------------------------------------------------------------------------------------------------
 	static bool PI_NextLRCP(PacketIterator *pPI)
 	{
@@ -157,7 +157,7 @@ namespace Jpeg2000
 						{
 							continue;
 						}
-						// TO DO: Проверить здесь последнее деление на (1 << nResPX)
+						// TO DO: Check here the last division by (1 << nResPX)
 						if ((!(pPI->nY % (pComponent->nDy << nResPY) == 0) || (pPI->nY == pPI->nTileY0 && (nTileResY0 << nLevel) % (1 << nResPX))))
 						{
 							continue;
@@ -247,7 +247,7 @@ namespace Jpeg2000
 						{
 							continue;
 						}
-						// TO DO: Проверить здесь последнее деление на (1 << nResPX)
+						// TO DO: Check here the last division by (1 << nResPX)
 						if ((!(pPI->nY % (pComponent->nDy << nResPY) == 0) || (pPI->nY == pPI->nTileY0 && (nTileResY0 << nLevel) % (1 << nResPX))))
 						{
 							continue;
@@ -332,7 +332,7 @@ namespace Jpeg2000
 						{
 							continue;
 						}
-						// TO DO: Проверить здесь последнее деление на (1 << nResPX)
+						// TO DO: Check here the last division by (1 << nResPX)
 						if ((!(pPI->nY % (pComponent->nDy << nResPY) == 0) || (pPI->nY == pPI->nTileY0 && (nTileResY0 << nLevel) % (1 << nResPX))))
 						{
 							continue;
@@ -367,7 +367,7 @@ namespace Jpeg2000
 		return false;
 	}
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Основные функции
+	// Basic functions
 	//-------------------------------------------------------------------------------------------------------------------------------
 	void	PI_Destroy(PacketIterator *pPI, CodingParams *pCodingParams, int nTileIndex)
 	{

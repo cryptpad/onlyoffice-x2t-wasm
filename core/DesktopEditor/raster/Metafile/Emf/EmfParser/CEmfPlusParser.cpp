@@ -266,22 +266,22 @@ namespace MetaFile
 
 			switch (unShType)
 			{
-				//Clipping Record Types (Типы записей отсечения)
+				//Clipping Record Types
 				case EMRPLUS_OFFSETCLIP:    Read_EMRPLUS_OFFSETCLIP();              break;
 				case EMRPLUS_RESETCLIP:     Read_EMRPLUS_RESETCLIP();               break;
 				case EMFPLUS_SETCLIPPATH:   Read_EMFPLUS_SETCLIPPATH(unShFlags);    break;
 				case EMFPLUS_SETCLIPRECT:   Read_EMFPLUS_SETCLIPRECT(unShFlags);    break;
 				case EMFPLUS_SETCLIPREGION: Read_EMFPLUS_SETCLIPREGION(unShFlags);  break;
 
-					//Comment Record Types (Типы записей комментариев)
+					//Comment Record Types
 				case EMFPLUS_COMMENT: Read_EMFPLUS_COMMENT(); break;
 
-					//Control Record Types (Типы управляющих записей)
+					//Control Record Types
 				case EMFPLUS_ENDOFFILE: Read_EMFPLUS_ENDOFFILE();       break;
 				case EMFPLUS_GETDC:     Read_EMFPLUS_GETDC();           break;
 				case EMFPLUS_HEADER:    Read_EMFPLUS_HEADER(unShFlags); break;
 
-					//Drawing Record Types (Типы записей чертежа)
+					//Drawing Record Types
 				case EMFPLUS_CLEAR:             Read_EMFPLUS_CLEAR();                           break;
 				case EMFPLUS_DRAWARC:           Read_EMFPLUS_DRAWARC(unShFlags);                break;
 				case EMFPLUS_DRAWBEZIERS:       Read_EMFPLUS_DRAWBEZIERS(unShFlags);            break;
@@ -304,11 +304,11 @@ namespace MetaFile
 				case EMFPLUS_FILLRECTS:         Read_EMFPLUS_FILLRECTS(unShFlags);              break;
 				case EMFPLUS_FILLREGION:        Read_EMFPLUS_FILLREGION(unShFlags);             break;
 
-					//Object Record Types (Типы записей объектов)
+					//Object Record Types
 				case EMFPLUS_OBJECT:            Read_EMFPLUS_OBJECT(unShFlags);                 break;
 				case EMFPLUS_SERIALIZABLEOBJECT:Read_EMFPLUS_SERIALIZABLEOBJECT(unShFlags);     break;
 
-					//Property Record Types (Типы записей свойств)
+					//Property Record Types
 				case EMFPLUS_SETANTIALIASMODE:          Read_EMFPLUS_SETANTIALIASMODE(unShFlags);       break;
 				case EMFPLUS_SETCOMPOSITINGMODE:        Read_EMFPLUS_SETCOMPOSITINGMODE(unShFlags);     break;
 				case EMFPLUS_SETCOMPOSITINGQUALITY:     Read_EMFPLUS_SETCOMPOSITINGQUALITY(unShFlags);  break;
@@ -318,18 +318,18 @@ namespace MetaFile
 				case EMFPLUS_SETTEXTCONTRAST:           Read_EMFPLUS_SETTEXTCONTRAST(unShFlags);        break;
 				case EMFPLUS_SETTEXTRENDERINGHINT:      Read_EMRPLUS_SETTEXTRENDERINGHINT(unShFlags);   break;
 
-					//State Record Types (Типы записей состояния)
+					//State Record Types
 				case EMFPLUS_BEGINCONTAINER:            Read_EMFPLUS_BEGINCONTAINER(unShFlags); break;
 				case EMFPLUS_BEGINCONTAINERNOPARAMS:    Read_EMFPLUS_BEGINCONTAINERNOPARAMS();  break;
 				case EMFPLUS_ENDCONTAINER:              Read_EMFPLUS_ENDCONTAINER();            break;
 				case EMFPLUS_RESTORE:                   Read_EMFPLUS_RESTORE();                 break;
 				case EMFPLUS_SAVE:                      Read_EMFPLUS_SAVE();                    break;
 
-					//Terminal Server Record (Запись сервера Терминалов)
+					//Terminal Server Record
 				case EMFPLUS_SETTSCLIP:         Read_EMFPLUS_SETTSCLIP(unShFlags);      break;
 				case EMFPLUS_SETTSGRAPHICS:     Read_EMFPLUS_SETTSGRAPHICS(unShFlags);  break;
 
-					//Transform Record Types (Преобразование Типов записей)
+					//Transform Record Types
 				case EMFPLUS_MULTIPLYWORLDTRANSFORM:    Read_EMFPLUS_MULTIPLYWORLDTRANSFORM(unShFlags); break;
 				case EMFPLUS_RESETWORLDTRANSFORM:       Read_EMFPLUS_RESETWORLDTRANSFORM();             break;
 				case EMFPLUS_ROTATEWORLDTRANSFORM:      Read_EMFPLUS_ROTATEWORLDTRANSFORM(unShFlags);   break;
@@ -556,7 +556,7 @@ namespace MetaFile
 		}
 		case BrushTypeTextureFill:
 		{
-			// TODO: так как на данный момент нельзя регулировать повторение заливки, то будет отрисовывать изображение при самой заливки
+			// TODO: since fill repetition can't be adjusted at the moment, it will draw the image during the fill itself
 			pEmfPlusBrush->unStyle = BS_PATTERN;
 
 			unsigned int unBrushDataFlags, unSkip = 16;
@@ -590,7 +590,7 @@ namespace MetaFile
 		case BrushTypePathGradient:
 		{
 //			pEmfPlusBrush->Style = BS_PATHGRADIENT;
-			//TODO: пока что данная кисть будет радиальной, но в дальнейшем необходимо реализовать все возможности данной кисти
+			//TODO: for now this brush will be radial, but future work should implement all the capabilities of this brush
 			pEmfPlusBrush->unStyle = BS_RADIALGRADIENT;
 
 			unsigned int unBrushDataFlags;
@@ -642,7 +642,7 @@ namespace MetaFile
 
 				std::vector<TEmfPlusPointF> arPoints = ReadPoints<TEmfPlusPointF>(nCountPoint);
 
-				//TODO::реализовать при встрече
+				//TODO::implement when encountered
 			}
 
 			if (BrushDataTransform & unBrushDataFlags)
@@ -673,7 +673,7 @@ namespace MetaFile
 		}
 		case BrushTypeLinearGradient:
 		{
-			//TODO: реализовать
+			//TODO: implement
 			pEmfPlusBrush->unStyle = BS_LINEARGRADIENT;
 
 			int nBrushDataFlags;
@@ -976,7 +976,7 @@ namespace MetaFile
 
 		m_oStream >> unLength;
 
-		if (unLength > 15) // 30 байта / 2 (размер ushort) = 15 символов максимальная длина имени Unicode шрифта
+		if (unLength > 15) // 30 bytes / 2 (ushort size) = 15 characters maximum length of a Unicode font name
 			unLength = 15;
 
 		unsigned short* pString = new unsigned short[unLength + 1];
@@ -1019,11 +1019,11 @@ namespace MetaFile
 
 		if ((unPathPointFlags >>(20)) & 1 )
 		{
-			//Определен флаг R (С игнорируется)
+			//R flag defined (C is ignored)
 		}
 		else if ((unPathPointFlags >>(14)) & 1 )
 		{
-			//Не определен флаг R, но определен флаг С
+			//The R flag isn't defined, but the C flag is defined
 			std::vector<TEmfPlusPoint> arPoints     = ReadPoints<TEmfPlusPoint>(unPathPointCount);
 			std::vector<char> arPointTypes          = ReadPointTypes(unPathPointCount);
 
@@ -1089,9 +1089,9 @@ namespace MetaFile
 
 			if (unSkip < 4)
 				m_oStream.Skip(unSkip);
-			//Оба флага не определены
+			//Both flags are undefined
 		}
-		//TODO: реализовать
+		//TODO: implement
 
 		return pPath;
 	}
@@ -1610,7 +1610,7 @@ namespace MetaFile
 				return;
 
 			unsigned int alfa = 0xffffff;
-			//дефолтный тон должен быть прозрачным, а не белым
+			//default tone should be transparent, not white
 			//memset(pBgraData, 0x00, nWidth * nHeight * 4);
 			for (int i = 0; i < nWidth * nHeight; i++)
 				((unsigned int*)pBgraData)[i] = alfa;
@@ -1754,7 +1754,7 @@ namespace MetaFile
 			m_pInterpretator->Begin();
 			m_pInterpretator->HANDLE_EMFPLUS_HEADER(unEmfPlusFlags, m_unLogicalDpiX, m_unLogicalDpiY);
 		}
-		//TODO: добавить установление нового Dpi (нужно ли?)
+		//TODO: add setting a new Dpi (is it necessary?)
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_CLEAR()
@@ -1816,18 +1816,18 @@ namespace MetaFile
 	{
 		if ((unShFlags >>(11)) & 1 )
 		{
-			//Определен флаг P (С игнорируется)
-			//Read_EMFPLUS_DRAWBEZIERS_BASE<TEmfPlusPointR>(unShFlags); // относительное расположение
+			//P flag defined (C is ignored)
+			//Read_EMFPLUS_DRAWBEZIERS_BASE<TEmfPlusPointR>(unShFlags); // relative location
 		}
 		else if ((unShFlags >>(14)) & 1 )
 		{
-			//Не определен флаг P, но определен флаг С
-			Read_EMFPLUS_DRAWBEZIERS_BASE<TEmfPlusPoint>(unShFlags);  // относительное расположение
+			//The P flag isn't defined, but the C flag is defined
+			Read_EMFPLUS_DRAWBEZIERS_BASE<TEmfPlusPoint>(unShFlags);  // relative position
 		}
 		else
 		{
-			//Оба флага не определены
-			Read_EMFPLUS_DRAWBEZIERS_BASE<TEmfPlusPointF>(unShFlags); // абсолютное расположение
+			//Both flags are undefined
+			Read_EMFPLUS_DRAWBEZIERS_BASE<TEmfPlusPointF>(unShFlags); // absolute location
 		}
 	}
 
@@ -1875,18 +1875,18 @@ namespace MetaFile
 	{
 		if ((unShFlags >>(11)) & 1 )
 		{
-			//Определен флаг P (С игнорируется)
-			//Read_EMFPLUS_DRAWCLOSEDCURVE_BASE<TEmfPlusPointR>(unShFlags); // относительное расположение
+			//P flag defined (C is ignored)
+			//Read_EMFPLUS_DRAWCLOSEDCURVE_BASE<TEmfPlusPointR>(unShFlags); // relative location
 		}
 		else if ((unShFlags >>(14)) & 1 )
 		{
-			//Не определен флаг P, но определен флаг С
-			Read_EMFPLUS_DRAWCLOSEDCURVE_BASE<TEmfPlusPoint>(unShFlags);  // абсолютное расположение с 16-разрядными координатами
+			//The P flag isn't defined, but the C flag is defined
+			Read_EMFPLUS_DRAWCLOSEDCURVE_BASE<TEmfPlusPoint>(unShFlags);  // absolute location with 16-bit coordinates
 		}
 		else
 		{
-			//Оба флага не определены
-			Read_EMFPLUS_DRAWCLOSEDCURVE_BASE<TEmfPlusPointF>(unShFlags); // абсолютное расположение с 32-разрядными координатами.
+			//Both flags are undefined
+			Read_EMFPLUS_DRAWCLOSEDCURVE_BASE<TEmfPlusPointF>(unShFlags); // absolute location with 32-bit coordinates.
 		}
 	}
 
@@ -2163,18 +2163,18 @@ namespace MetaFile
 	{
 		if ((unShFlags >>(11)) & 1 )
 		{
-			//Определен флаг P (С игнорируется)
-			//Read_EMFPLUS_DRAWIMAGEPOINTS_BASE<TEmfPlusPointR>(unShFlags); // относительное расположение
+			//P flag defined (C is ignored)
+			//Read_EMFPLUS_DRAWIMAGEPOINTS_BASE<TEmfPlusPointR>(unShFlags); // relative location
 		}
 		else if ((unShFlags >>(14)) & 1 )
 		{
-			//Не определен флаг P, но определен флаг С
-			Read_EMFPLUS_DRAWIMAGEPOINTS_BASE<TEmfPlusPoint>(unShFlags);  // абсолютное расположение с 16-разрядными целочисленными координатами
+			//The P flag isn't defined, but the C flag is defined
+			Read_EMFPLUS_DRAWIMAGEPOINTS_BASE<TEmfPlusPoint>(unShFlags);  // absolute location with 16-bit integer coordinates
 		}
 		else
 		{
-			//Оба флага не определены
-			Read_EMFPLUS_DRAWIMAGEPOINTS_BASE<TEmfPlusPointF>(unShFlags); // абсолютное расположение с 32-разрядными координатами с плавующей запятой
+			//Both flags are undefined
+			Read_EMFPLUS_DRAWIMAGEPOINTS_BASE<TEmfPlusPointF>(unShFlags); // absolute location with 32-bit floating point coordinates
 		}
 	}
 
@@ -2206,18 +2206,18 @@ namespace MetaFile
 	{
 		if ((unShFlags >>(11)) & 1 )
 		{
-			//Определен флаг P (С игнорируется)
-			//Read_EMFPLUS_DRAWLINES_BASE<TEmfPlusPointR>(unShFlags); // относительное расположение
+			//P flag defined (C is ignored)
+			//Read_EMFPLUS_DRAWLINES_BASE<TEmfPlusPointR>(unShFlags); // relative location
 		}
 		else if ((unShFlags >>(14)) & 1 )
 		{
-			//Не определен флаг P, но определен флаг С
-			Read_EMFPLUS_DRAWLINES_BASE<TEmfPlusPoint>(unShFlags);  // абсолютное расположение с 16-разрядными целочисленными координатами
+			//The P flag isn't defined, but the C flag is defined
+			Read_EMFPLUS_DRAWLINES_BASE<TEmfPlusPoint>(unShFlags);  // absolute location with 16-bit integer coordinates
 		}
 		else
 		{
-			//Оба флага не определены
-			Read_EMFPLUS_DRAWLINES_BASE<TEmfPlusPointF>(unShFlags); // абсолютное расположение с 32-разрядными координатами с плавующей запятой
+			//Both flags are undefined
+			Read_EMFPLUS_DRAWLINES_BASE<TEmfPlusPointF>(unShFlags); // absolute location with 32-bit floating point coordinates
 		}
 	}
 
@@ -2322,7 +2322,7 @@ namespace MetaFile
 		if (NULL != m_pInterpretator)
 			m_pInterpretator->HANDLE_EMFPLUS_DRAWPIE(shOgjectIndex, dStartAngle, dSweepAngle, GetConvertedRectangle(oRect));
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_DRAWRECTS(unsigned short unShFlags)
@@ -2500,18 +2500,18 @@ namespace MetaFile
 	{
 		if ((unShFlags >>(11)) & 1 )
 		{
-			//Определен флаг P (С игнорируется)
-			//Read_EMFPLUS_FILLCLOSEDCURVE_BASE<TEmfPlusPointR>(unShFlags); // относительное расположение
+			//P flag defined (C is ignored)
+			//Read_EMFPLUS_FILLCLOSEDCURVE_BASE<TEmfPlusPointR>(unShFlags); // relative location
 		}
 		else if ((unShFlags >>(14)) & 1 )
 		{
-			//Не определен флаг P, но определен флаг С
-			Read_EMFPLUS_FILLCLOSEDCURVE_BASE<TEmfPlusPoint>(unShFlags);  // абсолютное расположение с 16-разрядными целочисленными координатами
+			//The P flag isn't defined, but the C flag is defined
+			Read_EMFPLUS_FILLCLOSEDCURVE_BASE<TEmfPlusPoint>(unShFlags);  // absolute location with 16-bit integer coordinates
 		}
 		else
 		{
-			//Оба флага не определены
-			Read_EMFPLUS_FILLCLOSEDCURVE_BASE<TEmfPlusPointF>(unShFlags); // абсолютное расположение с 32-разрядными координатами с плавующей запятой
+			//Both flags are undefined
+			Read_EMFPLUS_FILLCLOSEDCURVE_BASE<TEmfPlusPointF>(unShFlags); // absolute location with 32-bit floating point coordinates
 		}
 	}
 
@@ -2532,7 +2532,7 @@ namespace MetaFile
 
 		}
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_FILLELLIPSE(unsigned short unShFlags)
@@ -2668,25 +2668,25 @@ namespace MetaFile
 		if (NULL != m_pInterpretator)
 			m_pInterpretator->HANDLE_EMFPLUS_FILLPIE(unBrushId, dStartAngle, dSweepAngle, GetConvertedRectangle(oRect));
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_FILLPOLYGON(unsigned short unShFlags)
 	{
 		if ((unShFlags >>(11)) & 1 )
 		{
-			//Определен флаг P (С игнорируется)
-			//Read_EMFPLUS_FILLPOLYGON_BASE<TEmfPlusPointR>(unShFlags); // относительное расположение
+			//P flag defined (C is ignored)
+			//Read_EMFPLUS_FILLPOLYGON_BASE<TEmfPlusPointR>(unShFlags); // relative location
 		}
 		else if ((unShFlags >>(14)) & 1 )
 		{
-			//Не определен флаг P, но определен флаг С
-			Read_EMFPLUS_FILLPOLYGON_BASE<TEmfPlusPoint>(unShFlags);  // абсолютное расположение с 16-разрядными целочисленными координатами
+			//The P flag isn't defined, but the C flag is defined
+			Read_EMFPLUS_FILLPOLYGON_BASE<TEmfPlusPoint>(unShFlags);  // absolute location with 16-bit integer coordinates
 		}
 		else
 		{
-			//Оба флага не определены
-			Read_EMFPLUS_FILLPOLYGON_BASE<TEmfPlusPointF>(unShFlags); // абсолютное расположение с 32-разрядными координатами с плавующей запятой
+			//Both flags are undefined
+			Read_EMFPLUS_FILLPOLYGON_BASE<TEmfPlusPointF>(unShFlags); // absolute location with 32-bit floating point coordinates
 		}
 	}
 
@@ -2827,7 +2827,7 @@ namespace MetaFile
 
 		m_oStream >> unBrushId;
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_OBJECT(unsigned short unShFlags)
@@ -2965,7 +2965,7 @@ namespace MetaFile
 			return;
 		}
 		}
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_SERIALIZABLEOBJECT(unsigned short unShFlags)
@@ -2976,41 +2976,41 @@ namespace MetaFile
 		m_oStream >> oGUID;
 		m_oStream >> unBufferSize;
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_SETANTIALIASMODE(unsigned short unShFlags)
 	{
 		// short shSmoothingMode = ExpressValue(unShFlags, 1,  7);
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_SETCOMPOSITINGMODE(unsigned short unShFlags)
 	{
 		// short shCompositingMode = ExpressValue(unShFlags, 0, 7);
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_SETCOMPOSITINGQUALITY(unsigned short unShFlags)
 	{
 		// short shCompositingQuality = ExpressValue(unShFlags, 0, 7);
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_SETINTERPOLATIONMODE(unsigned short unShFlags)
 	{
 		// short shInterpolationMode = ExpressValue(unShFlags, 0, 7);
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_SETPIXELOFFSETMODE(unsigned short unShFlags)
 	{
 		// short shPixelOffsetMode = ExpressValue(unShFlags, 0, 7);
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_SETRENDERINGORIGIN()
@@ -3020,20 +3020,20 @@ namespace MetaFile
 		m_oStream >> nX;
 		m_oStream >> nY;
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_SETTEXTCONTRAST(unsigned short unShFlags)
 	{
 		// short shTextContrast  = ExpressValue(unShFlags, 0, 11);
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMRPLUS_SETTEXTRENDERINGHINT(unsigned short unShFlags)
 	{
 		// short shTextRenderingHint = ExpressValue(unShFlags, 0, 7);
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_BEGINCONTAINER(unsigned short unShFlags)
@@ -3046,7 +3046,7 @@ namespace MetaFile
 		m_oStream >> oSrcRect;
 		m_oStream >> unStackIndex;
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_BEGINCONTAINERNOPARAMS()
@@ -3055,7 +3055,7 @@ namespace MetaFile
 
 		m_oStream >> unStackIndex;
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_ENDCONTAINER()
@@ -3064,7 +3064,7 @@ namespace MetaFile
 
 		m_oStream >> unStackIndex;
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_RESTORE()
@@ -3109,7 +3109,7 @@ namespace MetaFile
 			m_oStream >> arRects[unIndex];
 		}
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_SETTSGRAPHICS(unsigned short unShFlags)
@@ -3130,7 +3130,7 @@ namespace MetaFile
 		m_oStream >> unChPixelOffset;
 		m_oStream >> oMatrix;
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMFPLUS_MULTIPLYWORLDTRANSFORM(unsigned short unShFlags)
@@ -3251,7 +3251,7 @@ namespace MetaFile
 		if (NULL != m_pInterpretator)
 			m_pInterpretator->HANDLE_EMFPLUS_OFFSETCLIP(dX, dY);
 
-		//TODO: реализовать
+		//TODO: implement
 	}
 
 	void CEmfPlusParser::Read_EMRPLUS_RESETCLIP()

@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 	unsigned int unWidth  = 1000;
 	unsigned int unHeight = 1000;
 
-	// Создание основной картинки
+	// Creating the main image
 	BYTE* pData = new BYTE[4 * unWidth * unHeight];
 
 	for (unsigned long unIndex = 0; unIndex < unWidth * unHeight; ++unIndex)
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	{
 		case GenerationMask:
 		{
-			// Генерируем маску
+			// Generating a mask
 			pRasterRenderer->BeginCommand(c_nMaskType);
 			pRasterRenderer->PathCommandStart();
 
@@ -52,12 +52,12 @@ int main(int argc, char *argv[])
 			pRasterRenderer->PathCommandLineTo(0,    700);
 			pRasterRenderer->PathCommandClose();
 
-			// Задаем значения для пера и кисти маски
+			// Set the values for the pen and brush of the mask
 			pRasterRenderer->put_PenSize(100);
-			pRasterRenderer->put_PenColor(16777215); // белый 16777215
+			pRasterRenderer->put_PenColor(16777215); // white 16777215
 
 			pRasterRenderer->put_BrushAlpha1(255);
-			pRasterRenderer->put_BrushColor1(8355711); // серый
+			pRasterRenderer->put_BrushColor1(8355711); // gray
 
 			pRasterRenderer->Stroke();
 			pRasterRenderer->Fill();
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// Отрисовываем тестовый объект
+	// Drawing a test object
 	pRasterRenderer->BeginCommand(c_nPathType);
 	pRasterRenderer->PathCommandStart();
 
@@ -117,17 +117,17 @@ int main(int argc, char *argv[])
 	pRasterRenderer->PathCommandLineTo(100, 300);
 	pRasterRenderer->PathCommandClose();
 
-	// Задаем значения для пера и кисти
+	// Set values for pen and brush
 	pRasterRenderer->put_PenSize(100);
-	pRasterRenderer->put_PenColor(255); // красный
+	pRasterRenderer->put_PenColor(255); // red
 
 	pRasterRenderer->put_BrushAlpha1(255);
-	pRasterRenderer->put_BrushColor1(65280); // зеленый
+	pRasterRenderer->put_BrushColor1(65280); // green
 
 	pRasterRenderer->Stroke();
 	pRasterRenderer->Fill();
 
-	//Сбрасываем маску
+	//Removing the mask
 	pRasterRenderer->BeginCommand(c_nResetMaskType);
 	pRasterRenderer->EndCommand(c_nResetMaskType);
 

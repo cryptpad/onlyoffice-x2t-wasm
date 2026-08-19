@@ -119,7 +119,7 @@ namespace MetaFile
 
 	void CWmfInterpretatorSvg::HANDLE_META_CHORD(short shYEndArc, short shXEndArc, short shYStartArc, short shXStartArc, short shBottom, short shRight, short shTop, short shLeft)
 	{
-		//TODO:: реализовать
+		//TODO::implement
 	}
 
 	void CWmfInterpretatorSvg::HANDLE_META_ELLIPSE(short shBottom, short shRight, short shTop, short shLeft)
@@ -206,7 +206,7 @@ namespace MetaFile
 
 	void CWmfInterpretatorSvg::HANDLE_META_FRAMEREGION(unsigned short ushRegionIndex, unsigned short ushBrushIndex, short shHeight, short shWidth)
 	{
-		//TODO:: реализовать
+		//TODO::implement
 	}
 
 	void CWmfInterpretatorSvg::HANDLE_META_INVERTREGION(unsigned short ushRegionIndex)
@@ -233,7 +233,7 @@ namespace MetaFile
 
 	void CWmfInterpretatorSvg::HANDLE_META_PAINTREGION(unsigned short ushRegionIndex)
 	{
-		//TODO:: реализовать
+		//TODO::implement
 	}
 
 	void CWmfInterpretatorSvg::HANDLE_META_PATBLT(unsigned int unRasterOperation, short shH, short shW, short shY, short shX)
@@ -390,7 +390,7 @@ namespace MetaFile
 
 	void CWmfInterpretatorSvg::HANDLE_META_SETPIXEL(const TRGBA &oColor, short shY, short shX)
 	{
-		//TODO:: реализовать
+		//TODO::implement
 	}
 
 	void CWmfInterpretatorSvg::HANDLE_META_TEXTOUT(short shStringLength, unsigned char *pString, short shX, short shY)
@@ -403,7 +403,7 @@ namespace MetaFile
 		NSStringExt::CConverter::ESingleByteEncoding eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_DEFAULT;;
 		if (pFont)
 		{
-			// Соответствие Charset -> Codepage: http://support.microsoft.com/kb/165478
+			// Corresponding Charset -> Codepage: http://support.microsoft.com/kb/165478
 			// http://msdn.microsoft.com/en-us/library/cc194829.aspx
 			//  Charset Name       Charset Value(hex)  Codepage number
 			//  ------------------------------------------------------

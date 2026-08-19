@@ -39,7 +39,7 @@ bool CCompoundFile::GetComponent(const HWP_STRING& sEntryName, CHWPStream& oBuff
 
 VECTOR<CDirectoryEntry*> CCompoundFile::GetChildEntries(const CDirectoryEntry* pBaseEntry) const
 {
-	//TODO:: реализовать
+	//TODO::implement
 	VECTOR<int> arEntryIdx;
 
 	int nIndex = 0;
@@ -613,7 +613,7 @@ bool CCompoundFile::ParseHeader(CHWPStream& oBuffer)
 	m_nMinorVersion = oBuffer.ReadShort();
 
 	// if (0x003E != m_nMinorVersion)
-		// return false; //TODO:: возможно следует просто пропускать такие несоответсвия
+		// return false; //TODO:: perhaps we should just ignore such inconsistencies
 
 	m_nMajorVersion = oBuffer.ReadShort();
 

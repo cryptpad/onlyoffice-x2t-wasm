@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -564,7 +557,7 @@ namespace OOX
 				}
 			}
 
-			IFileContainer::Read(oRootPath, oPath); //в данном случае порядок считывания важен для xlsb
+			IFileContainer::Read(oRootPath, oPath); //in this case the reading order is important for xlsb
 
 			CXlsx* xlsx = dynamic_cast<CXlsx*>(File::m_pMainDocument);
 			if (xlsx)
@@ -573,7 +566,7 @@ namespace OOX
 				{
 					m_bMacroEnabled = true;
 				}
-				//дубли листов
+				//duplicate sheets
 				for (auto elm : this->m_mapContainer)
 				{
 					if (elm.second->type() == OOX::Spreadsheet::FileTypes::Chartsheets || elm.second->type() == OOX::Spreadsheet::FileTypes::Worksheet)
@@ -753,7 +746,7 @@ xmlns:xr2=\"http://schemas.microsoft.com/office/spreadsheetml/2015/revision2\"\
 			//WorkbookPr
 			if (false == m_oWorkbookPr.IsInit())
 				m_oWorkbookPr.Init();
-			//todo если этот параметр выставлен, то берется стандартная тема, а не из файла.
+			//todo if this parameter is set, then the standard theme is taken, and not from the file.
 			//if(false == m_oWorkbookPr->m_oDefaultThemeVersion.IsInit())
 			//{
 			//	m_oWorkbookPr->m_oDefaultThemeVersion.Init();
@@ -792,7 +785,7 @@ xmlns:xr2=\"http://schemas.microsoft.com/office/spreadsheetml/2015/revision2\"\
 		LONG CWorkbook::GetActiveSheetIndex()
 		{
 			LONG lActiveSheet = 0;
-			std::wstring sSheetRId = L"Sheet1"; // Читаем не по rId, а по имени листа
+			std::wstring sSheetRId = L"Sheet1"; // Read not by rId, but by sheet name
 												// Get active sheet
 			if (m_oBookViews.IsInit() && !m_oBookViews->m_arrItems.empty())
 			{

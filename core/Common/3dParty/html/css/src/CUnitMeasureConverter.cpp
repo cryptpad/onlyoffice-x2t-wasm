@@ -23,7 +23,7 @@ namespace NSCSS
 			case NSCSS::Inch:
 				return dValue / (double)ushDPI;
 			case NSCSS::Peak:
-				return dValue * 6. / (double)ushDPI; // 1 дюйм = 6 пик
+				return dValue * 6. / (double)ushDPI; // 1 inch = 6 picas
 			case NSCSS::Twips:
 				return dValue * 1440. / (double)ushDPI;
 			default:
@@ -36,17 +36,17 @@ namespace NSCSS
 		switch (enUnitMeasure)
 		{
 			case NSCSS::Point:
-				return dValue * 28.3465 ; // 1 см = (2.54 / 72) пункта
+				return dValue * 28.3465 ; // 1 cm = 72 / 2.54 points
 			case NSCSS::Pixel:
 				return dValue * (double)ushDPI / 2.54;
 			case NSCSS::Millimeter:
 				return dValue * 10.;
 			case NSCSS::Inch:
-				return dValue / 2.54; // 1 дюйм = 2.54 см
+				return dValue / 2.54; // 1 inch = 2.54 cm
 			case NSCSS::Peak:
 				return dValue * 2.36; // 2.36 = 6 / 2.54
 			case NSCSS::Twips:
-				return dValue * 567.; // 1 см = (1440 / 2.54) твипов
+				return dValue * 567.; // 1 cm = (1440 / 2.54) twips
 			default:
 				return dValue;
 		}
@@ -57,7 +57,7 @@ namespace NSCSS
 		switch (enUnitMeasure)
 		{
 			case NSCSS::Point:
-				return dValue * 2.8346; // 1 мм = (25.4 / 72) пункта
+				return dValue * 2.8346; // 1 mm = 72 / 25.4 points
 			case NSCSS::Pixel:
 				return dValue * (double)ushDPI / 25.4;
 			case NSCSS::Cantimeter:
@@ -82,7 +82,7 @@ namespace NSCSS
 			case NSCSS::Pixel:
 				return dValue * (double)ushDPI;
 			case NSCSS::Cantimeter:
-				return dValue * 2.54; // 1 дюйм = 2.54 см
+				return dValue * 2.54; // 1 inch = 2.54 cm
 			case NSCSS::Millimeter:
 				return dValue * 25.4;
 			case NSCSS::Peak:
@@ -105,9 +105,9 @@ namespace NSCSS
 			case NSCSS::Millimeter:
 				return dValue * 0.3528;
 			case NSCSS::Inch:
-				return dValue / 72.; // 1 дюйм = 72 пункта
+				return dValue / 72.; // 1 inch = 72 points
 			case NSCSS::Peak:
-				return dValue * 0.0833; // 0.0833 = 6 / 72 (1 пункт = 1/72 дюйма)
+				return dValue * 0.0833; // 0.0833 = 6 / 72 (1 point = 1/72 inch)
 			case NSCSS::Twips:
 				return dValue * 20.; // 20 = 1440 / 72
 			default:
@@ -122,7 +122,7 @@ namespace NSCSS
 			case NSCSS::Point:
 				return dValue * 12.; // 12 = 72 / 6
 			case NSCSS::Pixel:
-				return dValue * (double)ushDPI / 6.; // 1 дюйм = 6 пика
+				return dValue * (double)ushDPI / 6.; // 1 inch = 6 picas
 			case NSCSS::Cantimeter:
 				return dValue * 0.423; // 0.423 = 2.54 / 6
 			case NSCSS::Millimeter:
@@ -143,7 +143,7 @@ namespace NSCSS
 			case NSCSS::Point:
 				return dValue * 0.05; // 0.05 = 72. / 1440.
 			case NSCSS::Pixel:
-				return dValue * (double)ushDPI / 1440.; // 1 дюйм = 1440 твипов
+				return dValue * (double)ushDPI / 1440.; // 1 inch = 1440 twips
 			case NSCSS::Cantimeter:
 				return dValue * 0.001764; // 0.001764 = 2.54 / 1440
 			case NSCSS::Millimeter:

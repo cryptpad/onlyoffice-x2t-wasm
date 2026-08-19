@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -274,7 +267,7 @@ int main(int argc, char** argv)
 
 	for (int i = 0; i <= argc; ++i)
 	{
-		// чтобы не дублировать код
+		// so as not to duplicate code
 		std::wstring param = L"--print";
 
 		if (i < argc)
@@ -382,7 +375,7 @@ int main(int argc, char** argv)
 	std::string docinfo = file.ReadAdditional(file_path, L"DocumentID");
 	std::string docinfoOld = docinfo;
 
-	// декодируем пароль (если надо)
+	// decode the password (if necessary)
 	if (MasterRecord.Type == rtMaster && file_password.empty())
 	{
 		std::string user = U_TO_UTF8(MasterRecord.getValue(L"user"));
@@ -419,7 +412,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	// сначала удаляем
+	// first delete
 	for (std::vector<CRecord>::iterator iter = Records.begin(); iter != Records.end(); iter++)
 	{
 		CRecord& rec = *iter;
@@ -440,7 +433,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	// теперь добавляем
+	// now add
 	for (std::vector<CRecord>::iterator iter = Records.begin(); iter != Records.end(); iter++)
 	{
 		CRecord& rec = *iter;
@@ -455,7 +448,7 @@ int main(int argc, char** argv)
 
 		if (!data.empty())
 		{
-			// записи не дублируем
+			// Don't duplicate records
 			std::string::size_type pos = docinfo.find(user);
 			while (pos != std::string::npos)
 			{

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -63,7 +56,7 @@ bool OOXLevelReader::Parse( ReaderParameter oParam, RtfListLevelProperty& oLevel
 		int nVal = *m_ooxLvlNum->m_oLvlRestart->m_oVal;
 		if( 0 == nVal )
 			oLevelProperty.m_nNoRestart = 0;
-		//todooo непонятка что будет если рестарт списка с не "0"
+		//TODO it's not clear what will happen if the list is restarted from something other than "0"
 	}
 	if (m_ooxLvlNum->m_oIsLgl.IsInit() )
 		oLevelProperty.m_nLegal = m_ooxLvlNum->m_oIsLgl->m_oVal.ToBool() ? 1 : 0;
@@ -71,7 +64,7 @@ bool OOXLevelReader::Parse( ReaderParameter oParam, RtfListLevelProperty& oLevel
 	if (m_ooxLvlNum->m_oLvlText.IsInit() && m_ooxLvlNum->m_oLvlText->m_sVal.IsInit())
 	{
 		oLevelProperty.SetLevelTextOOX( *m_ooxLvlNum->m_oLvlText->m_sVal);
-		//null???? todooo
+		//null???? TODO
 	}
 	if (m_ooxLvlNum->m_oNumFmt.IsInit() && m_ooxLvlNum->m_oNumFmt->m_oVal.IsInit())
 	{

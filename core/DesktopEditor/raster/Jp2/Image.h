@@ -42,7 +42,7 @@ namespace Jpeg2000
 			pImage->eColorSpace = eColorSpace;
 			pImage->nCsiz       = nComponentsCount;
 
-			// Выделяем память под компоненты
+			// Allocating memory for components
 			pImage->pComponents = (ImageComponent*)Malloc(pImage->nCsiz * sizeof(ImageComponent));
 
 			if (!pImage->pComponents)
@@ -75,7 +75,7 @@ namespace Jpeg2000
 		}
 		else
 		{
-			// TO DO: Выдать сообщение об ошибке
+			// TO DO: Print an error message
 		}
 
 		return pImage;

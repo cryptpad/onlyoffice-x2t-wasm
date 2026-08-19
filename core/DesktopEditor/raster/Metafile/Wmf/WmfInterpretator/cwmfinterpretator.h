@@ -9,7 +9,7 @@ namespace MetaFile
 	{
 	public:
 		CWmfInterpretator();
-		//TODO:: реализовать
+		//TODO::implement
 	};
 }
 

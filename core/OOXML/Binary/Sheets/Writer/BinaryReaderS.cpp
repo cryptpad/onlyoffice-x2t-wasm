@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -2094,7 +2087,7 @@ int BinaryStyleTableReader::ReadDxf(BYTE type, long length, void* poResult)
 	{
 		pDxf->m_oNumFmt.Init();
 		READ2_DEF_SPREADSHEET(length, res, this->ReadNumFmt, pDxf->m_oNumFmt.GetPointer());
-		//todooo в m_mapNumFmtIndex
+		//TODO in m_mapNumFmtIndex
 	}
 	else
 		res = c_oSerConstants::ReadUnknown;
@@ -4007,7 +4000,7 @@ int BinaryCommentReader::ReadComment(BYTE type, long length, void* poResult)
 
 			*((_INT32*)(pWriteBuffer + nSignatureSize)) = (_INT32)length;
 			memcpy(pWriteBuffer + nSignatureSize + nDataLengthSize, pSourceBuffer, length);
-			//пишем в конце 0, потому что при редактировании Excel меняет посление байты.
+			//Write 0 at the end, because when editing Excel changes the last bytes.
 			memset(pWriteBuffer + nSignatureSize + nDataLengthSize + length, 0, nJunkSize);
 
 			int nBase64BufferLen = Base64::Base64EncodeGetRequiredLength(nWriteBufferLength, Base64::B64_BASE64_FLAG_NONE);
@@ -4018,7 +4011,7 @@ int BinaryCommentReader::ReadComment(BYTE type, long length, void* poResult)
             {
 				std::wstring strGfxdata = NSFile::CUtf8Converter::GetUnicodeStringFromUTF8(pbBase64Buffer, nBase64BufferLen);
                 sGfxdata = std::wstring(strGfxdata.c_str());
-				//важно иначе при редактировании и сохранении в Excel перетирается
+				//important, otherwise it gets overwritten when editing and saving in Excel
                 sGfxdata += L"\r\n";
 			}
 			RELEASEARRAYOBJECTS(pbBase64Buffer);
@@ -4308,7 +4301,7 @@ BinaryWorksheetsTableReader::BinaryWorksheetsTableReader(NSBinPptxRW::CBinaryFil
 m_mapMedia(mapMedia), m_sDestinationDir(sDestinationDir), m_arWorksheets(arWorksheets), m_mapWorksheets(mapWorksheets), m_pSharedStrings(pSharedStrings),m_mapPivotCacheDefinitions(mapPivotCacheDefinitions)
 {
 	m_pOfficeDrawingConverter = pOfficeDrawingConverter;
-	m_nNextObjectId = 0xfffff; // в CDrawingConverter своя нумерация .. 
+	m_nNextObjectId = 0xfffff; // CDrawingConverter has its own numbering ..
 	m_lObjectIdVML = 1024;
 } 
 int BinaryWorksheetsTableReader::Read()
@@ -4322,7 +4315,7 @@ int BinaryWorksheetsTableReader::Read2xlsb(OOX::Spreadsheet::CXlsb &xlsb)
 {
     m_pXlsb = &xlsb;
     int res = c_oSerConstants::ReadOk;
-    //читаем листы для получения их имен  и названий таблиц(используется в формулах)
+    //read sheets to get their names and table names (used in formulas)
     auto worksheetsPos = m_oBufferedStream.GetPos();
     READ_TABLE_DEF(res, this->ReadWorksheetsCache, this);
     m_oWorkbook.m_oSheets->m_arrItems.resize(0);
@@ -4661,7 +4654,7 @@ int BinaryWorksheetsTableReader::ReadWorksheet(boost::unordered_map<BYTE, std::v
 	
 	SEEK_TO_POS_START(c_oSerWorksheetsTypes::Controls);
 		READ1_DEF(length, res, this->ReadControls, &oControls);
-	//SEEK_TO_POS_END(oControls); ниже ...
+	//SEEK_TO_POS_END(oControls); below ...
 	SEEK_TO_POS_END2(); 
 //-------------------------------------------------------------------------------------------------------------
 	OOX::Spreadsheet::CUserProtectedRanges *pUserProtectedRanges = new OOX::Spreadsheet::CUserProtectedRanges();
@@ -5057,7 +5050,7 @@ int BinaryWorksheetsTableReader::ReadWorksheet(boost::unordered_map<BYTE, std::v
 
     SEEK_TO_POS_START(c_oSerWorksheetsTypes::Controls);
         READ1_DEF(length, res, this->ReadControls, &oControls);
-    //SEEK_TO_POS_END(oControls); ниже ...
+    //SEEK_TO_POS_END(oControls); below ...
     SEEK_TO_POS_END2();
 //-------------------------------------------------------------------------------------------------------------
     OOX::CPath pathDrawingsDir = m_sDestinationDir  + FILE_SEPARATOR_STR + _T("xl")  + FILE_SEPARATOR_STR + _T("drawings");
@@ -7037,7 +7030,7 @@ int BinaryWorksheetsTableReader::ReadCells(BYTE type, long length, void* poResul
 		OOX::Spreadsheet::CCell oCell;
 		READ1_DEF(length, res, this->ReadCell, &oCell);
 
-//текст error и формул пишем
+//write the text error and formulas
 		if (NULL != m_pSharedStrings && oCell.m_oType.IsInit() && oCell.m_oValue.IsInit())
 		{
 			SimpleTypes::Spreadsheet::ECellTypeType eCellType = oCell.m_oType->GetValue();
@@ -8589,7 +8582,7 @@ int BinaryOtherTableReader::ReadMediaItem(BYTE type, long length, void* poResult
                 sImageSrc = m_sFileInDir + _T("media/") + sImage;
 			}
 		}
-		//Проверяем что файл существует
+		//Checking that the file exists
 		FILE* pFileNative = oFile.GetFileNative();
 		if (NULL != pFileNative)
 		{
@@ -8639,7 +8632,7 @@ void BinaryOtherTableReader::ReadMediaItemSaveFileFILE(FILE* pFile)
 
 			if (false == sExt.empty())
 			{
-				std::wstring sNewImagePath = ReadMediaItemSaveFileGetNewPath(L"1.jpg"); //todooo add true sExt
+				std::wstring sNewImagePath = ReadMediaItemSaveFileGetNewPath(L"1.jpg"); //TODO add true sExt
 				NSFile::CFileBinary oFile;
 				oFile.CreateFileW(sNewImagePath);
 				oFile.WriteFile(pData, dwSizeRead);
@@ -9598,7 +9591,7 @@ int BinaryFileReader::ReadFile(const std::wstring& sSrcFileName, std::wstring sD
 	oFile.ReadFile(pBase64Data, oFile.GetFileSize(), nBase64DataSize);
 	oFile.CloseFile();
 
-	//проверяем формат
+	//checking the format
 	bool bValidFormat = false;
 	std::wstring sSignature(g_sFormatSignature);
 	size_t nSigLength = sSignature.length();
@@ -9614,7 +9607,7 @@ int BinaryFileReader::ReadFile(const std::wstring& sSrcFileName, std::wstring sD
 	}
 	if (bValidFormat)
 	{
-		//Читаем из файла версию и длину base64
+		//Read the base64 version and length from the file
 		int nIndex = (int)nSigLength;
 		int nType = 0;
 		std::string version = "";
@@ -9687,7 +9680,7 @@ int BinaryFileReader::ReadFile(const std::wstring& sSrcFileName, std::wstring sD
 			_INT32 Lcid;
 
 			SerializeCommon::ReadFileType(sXMLOptions, fileType, nCodePage, sDelimiter, saveFileType, Lcid); //csv, tsc .. from XmlOptions !
-			// Делаем для CSV перебивку пути, иначе создается папка с одинаковым имеем (для rels) и файл не создается.
+			// Insert a path separator for the CSV, otherwise a folder with the same name is created (for rels) and the file isn't created.
 
 			if (BinXlsxRW::c_oFileTypes::CSV == fileType)
 			{

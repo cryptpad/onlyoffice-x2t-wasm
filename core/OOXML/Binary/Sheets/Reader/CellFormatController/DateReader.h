@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -41,65 +34,65 @@
 class DateReader
 {
 public:
-    /// @brief создание считывателя с указанным id локали
-    /// @param lcid идентификатор локали в зависимости от которой будет читаться дата
+    /// @brief creating a reader with the specified locale id
+    /// @param lcid locale identifier depending on which the date will be read
 	DateReader(_INT32 lcid = 9);
 
-    /// @brief получение даты в виде числа в формате excel
-    /// @param date дата в строковом формате
-    /// @param result результат в формате excel
-    /// @param return true в случае успешной конвертации, иначе false
+    /// @brief getting date as number in excel format
+    /// @param date date in string format
+    /// @param result result in excel format
+    /// @return true if conversion is successful, false otherwise
     bool GetDigitalDate(const std::wstring &date, double &result, bool &Hasdate, bool &Hastime);
 
 
-    /// @brief парсинг стандартизированной даты
-    /// @param date дата в строковом формате
-    /// @param result в формате tm
-    /// @param return true в случае успешной конвертации, иначе false
+    /// @brief parsing a standardized date
+    /// @param date date in string format
+    /// @param result in tm format
+    /// @return true if conversion is successful, false otherwise
     bool parseIsoDate(const std::wstring &date, tm &result);
 
-    /// @brief парсинг строковой даты с известной локалью
-    /// @param date дата в строковом формате
-    /// @param result в формате tm
-    /// @param return true в случае успешной конвертации, иначе false
+    /// @brief parse string date with known locale
+    /// @param date date in string format
+    /// @param result in tm format
+    /// @return true if conversion is successful, false otherwise
     bool parseLocalDate(const std::wstring &date, tm &result, bool &Hasdate, bool &Hastime);
 
 private:
-    /// @brief получение даты в виде числа в формате excel из дат позднее 1900 года
-    /// @param datetime структура с датой
-    /// @return дата в формате excel
+    /// @brief getting the date as a number in excel format from dates later than 1900
+    /// @param datetime structure with date
+    /// @return date in excel format
     _INT32 getStandartDate(tm date);
 
-    /// @brief получение времени в виде десятичной части double
-    /// @param datetime структура с датой и временем
-    /// @return время в виде десятичной части double числа
+    /// @brief getting time as decimal part of double
+    /// @param datetime structure with date and time
+    /// @return time as the decimal part of a double number
     double getStandartTime(tm date);
 
-    /// @brief получение даты в виде числа в формате excel из дат от 1900 года и до 1970
-    /// @param datetime структура с датой
-    /// @return дата в формате excel
+    /// @brief getting a date as a number in excel format from dates from 1900 to 1970
+    /// @param datetime structure with date
+    /// @return date in excel format
     _INT32 getNonUnixDate(tm date);
 
-    /// @brief нормализация года под стандарт excel
-    /// @param year год либо в формате yyyy - 2021 либо в формате yy - 21
-    /// @return количество лет прошедших с 1900 года
+    /// @brief normalization of the year to the excel standard
+    /// @param year year either in the format yyyy - 2021 or in the format yy - 21
+    /// @return number of years since 1900
     _INT32 normalizeYear(_INT32 year);
 
-    /// @brief парсинг am и pm частей времени
-    /// @param буфер с символами
-    /// @param date структура с датой
-    /// @return true если строка является частью am или pm
+    /// @brief parsing am and pm parts of time
+    /// @param buffer with characters
+    /// @param date structure with date
+    /// @return true if the string is part of am or pm
     bool parseAmPm(std::vector<wchar_t> &stringBuf, tm &date);
 
-    /// @brief парсинг имени месяца и внесение его в дату
-    /// @param буфер с символами
-    /// @param date структура с датой
-    /// @return true если строка является именем месяца
+    /// @brief parsing the month name and putting it into the date
+    /// @param buffer with characters
+    /// @param date structure with date
+    /// @return true if the string is a month name
     bool parseMonthName(std::vector<wchar_t> &stringBuf, tm &date);
 
     _INT32 lcid_ = 9;
 
-    /// @brief счетчик ячеек
+    /// @brief cell counter
     _UINT16 cellCounter_ = 0;
 
     bool dateFound_ = false;

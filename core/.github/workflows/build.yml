@@ -1,0 +1,222 @@
+name: Build
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: self-hosted
+    env:
+      PLEASE_PRELOAD_LIBSTDCPP: true
+      CC: clang-13
+      CXX: clang++-13
+      NEXTCLOUD_USER: ${{ secrets.NEXTCLOUD_USER }}
+      NEXTCLOUD_PASS: ${{ secrets.NEXTCLOUD_PASS }}
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/.cache/vcpkg
+      VCPKG_BINARY_SOURCES: "clear;files,${{ github.workspace }}/.cache/vcpkg,readwrite"
+      CCACHE_DIR: ${{ github.workspace }}/.cache/ccache
+      CCACHE_MAXSIZE: 2G
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+                git \
+                curl \
+                wget \
+                ssh \
+                build-essential \
+                make \
+                cmake \
+                ccache \
+                ninja-build \
+                pkg-config \
+                libglib2.0-dev \
+                lsb-release \
+                libboost-all-dev
+    
+    - name: Install clang-13 and LLVM tools for V8 9.x build
+      run: |
+        wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/llvm-snapshot.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/llvm-snapshot.gpg] http://apt.llvm.org/jammy/ llvm-toolchain-jammy-13 main" | sudo tee /etc/apt/sources.list.d/llvm-13.list
+        sudo apt-get update && sudo apt-get install -y \
+            clang-13 lld-13 llvm-13-dev llvm-13 \
+            libc++-13-dev libc++abi-13-dev \
+            qemu-user-static binfmt-support
+        
+        # Ensure alternatives are set for clang/llvm 
+        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-13 100
+        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-13 100
+        sudo update-alternatives --install /usr/bin/llvm-ar llvm-ar /usr/bin/llvm-ar-13 100
+        sudo update-alternatives --install /usr/bin/llvm-nm llvm-nm /usr/bin/llvm-nm-13 100
+        sudo update-alternatives --install /usr/bin/llvm-ranlib llvm-ranlib /usr/bin/llvm-ranlib-13 100
+        sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-13 100
+
+        # Explicitly select clang version 13 as default,
+        # because clang version 18 might also be available and 
+        # might be the default on the system.
+        sudo update-alternatives --set clang /usr/bin/clang-13
+        sudo update-alternatives --set clang++ /usr/bin/clang++-13
+        sudo update-alternatives --set lld /usr/bin/lld-13
+        sudo update-alternatives --set llvm-ar /usr/bin/llvm-ar-13
+        sudo update-alternatives --set llvm-nm /usr/bin/llvm-nm-13
+        sudo update-alternatives --set llvm-ranlib /usr/bin/llvm-ranlib-13
+    - name: Verify clang version
+      run: |
+        set -euo pipefail
+
+        clang-13 --version
+        clang --version
+
+        # strict checks
+        clang-13 --version | head -n1 | grep -qE 'clang version 13' || { echo "clang-13 is not 13"; exit 1; }
+        clang --version  | head -n1 | grep -qE 'clang version 13' || { echo "clang is not 13"; exit 1; }
+
+        echo "clang and clang-13 are both v13"
+
+    - name: Set up vcpkg
+      uses: lukka/run-vcpkg@v11
+
+    - name: Restore vcpkg binary cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ github.workspace }}/.cache/vcpkg
+        key: vcpkg-${{ runner.os }}-clang13-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-clang13-
+
+    - name: Restore ccache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ github.workspace }}/.cache/ccache
+        key: ccache-${{ runner.os }}-clang13-${{ github.run_id }}
+        restore-keys: |
+          ccache-${{ runner.os }}-clang13-
+
+    - name: Configure core, build third_party libs (ICU, V8, etc.)
+      run: |
+        mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE" "$CCACHE_DIR"
+        cmake -GNinja -S . -B build -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_MODE=ON -DVCPKG_MANIFEST_DIR=. -DVCPKG_MANIFEST_FEATURES=tests -DEO_BUILD_TESTS=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+    - name: Build core (x2t, docbuilder, etc.)
+      run: |
+        cmake --build build
+
+    - name: ccache statistics
+      if: always()
+      run: ccache --show-stats
+
+    - name: Unit tests (CTest)
+      run: ctest --test-dir build --output-on-failure
+
+    - name: Conversion Test
+      run: ./Test/Applications/x2tTester/conversionTest.sh ./Test/Applications/x2tTester ../../../build/package
+
+    # Save caches even when earlier steps fail, so each run reuses prior work.
+    - name: Save vcpkg binary cache
+      if: always()
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ github.workspace }}/.cache/vcpkg
+        key: vcpkg-${{ runner.os }}-clang13-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+
+    - name: Save ccache
+      if: always()
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ github.workspace }}/.cache/ccache
+        key: ccache-${{ runner.os }}-clang13-${{ github.run_id }}
+
+    # ─────────────────────────────────────────────────────────────
+    # E2E: overlay the freshly built core binaries onto the published
+    # nightly image and run the DocumentServer Playwright suite. Reuses
+    # the binaries already produced in build/package above, so it adds
+    # no extra compile cost. Unique port + container name avoid colliding
+    # with the DocumentServer e2e job on the shared self-hosted host.
+    # ─────────────────────────────────────────────────────────────
+    - name: Check out DocumentServer e2e (current branch)
+      id: docserver
+      uses: actions/checkout@v4
+      continue-on-error: true
+      with:
+        repository: Euro-Office/DocumentServer
+        path: documentserver
+        ref: ${{ github.head_ref || github.ref_name }}
+    - name: Check out DocumentServer e2e (main)
+      if: steps.docserver.outcome != 'success'
+      uses: actions/checkout@v4
+      with:
+        repository: Euro-Office/DocumentServer
+        path: documentserver
+        ref: main
+
+    - name: Use Node.js 20 for e2e
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Pull nightly image
+      run: docker pull ghcr.io/euro-office/documentserver:nightly
+
+    - name: Build overlay image with fresh core binaries
+      run: |
+        set -euo pipefail
+        cat > overlay.Dockerfile <<'EOF'
+        ARG NIGHTLY_IMAGE
+        FROM ${NIGHTLY_IMAGE}
+        COPY . /tmp/core/
+        # The CI build emits a flat build/package (binaries, tools and .so libs
+        # together), unlike the bake which splits bin/tools. Rather than assume a
+        # layout, overlay by filename: replace each same-named file already present
+        # in the image's server tree (FileConverter/bin, FileConverter/lib,
+        # server/tools). Fail if nothing matched, so a layout drift can't silently
+        # pass. The install path is brand-derived; locate it via the sdkjs dir.
+        RUN set -eu; \
+            root="$(dirname "$(find /var/www -maxdepth 5 -type d -name sdkjs -path '*documentserver*' | head -n1)")"; \
+            test -n "$root"; \
+            count=0; \
+            for f in $(find /tmp/core -type f); do \
+              name="$(basename "$f")"; \
+              for t in $(find "$root/server" -type f -name "$name"); do \
+                cp -af "$f" "$t"; count=$((count+1)); echo "overlaid $name -> $t"; \
+              done; \
+            done; \
+            echo "total files replaced: $count"; \
+            [ "$count" -gt 0 ]; \
+            rm -rf /tmp/core
+        EOF
+        docker build \
+          --build-arg NIGHTLY_IMAGE=ghcr.io/euro-office/documentserver:nightly \
+          -t euro-office/documentserver:e2e-core \
+          -f overlay.Dockerfile \
+          build/package
+
+    - name: Install e2e dependencies
+      working-directory: documentserver/e2e
+      run: npm ci
+
+    - name: Install Playwright browsers
+      working-directory: documentserver/e2e
+      run: npx playwright install chromium --with-deps
+
+    - name: Run E2E tests
+      working-directory: documentserver/e2e
+      env:
+        E2E_IMAGE: euro-office/documentserver:e2e-core
+        E2E_HOST_PORT: 8989
+        E2E_CONTAINER_NAME: euro-office-e2e-core
+      run: npm test
+
+    - name: Upload Playwright report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report-${{ github.sha }}
+        path: documentserver/e2e/playwright-report/
+        retention-days: 14

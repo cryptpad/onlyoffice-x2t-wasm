@@ -95,7 +95,7 @@ namespace MetaFile
 		//-----------------------------------------------------------
 		virtual void HANDLE_META_ESCAPE(unsigned short ushEscapeFunction, unsigned short ushByteCount) = 0;
 		//-----------------------------------------------------------
-		// Неизвестные записи
+		// Unknown entries
 		//-----------------------------------------------------------
 		virtual void HANDLE_META_UNKNOWN(CDataStream& oDataStream) = 0;
 	};

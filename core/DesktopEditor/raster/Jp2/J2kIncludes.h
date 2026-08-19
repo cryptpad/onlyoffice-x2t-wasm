@@ -51,7 +51,7 @@ namespace Jpeg2000
             return NULL;
         }
 
-        Image *pImage = Jp2_Decode((Jp2Stream*)pDInfo->pJp2, pStream); // в случае ошибки pImage = NULL
+        Image *pImage = Jp2_Decode((Jp2Stream*)pDInfo->pJp2, pStream); // in case of error pImage = NULL
         Jp2_DestroyDecompress((Jp2Stream*)pDInfo->pJp2);
 
         Free(pDInfo);
@@ -82,7 +82,7 @@ namespace Jpeg2000
             return NULL;
         }
 
-        Image *pImage = J2k_Decode((J2kCodestream*)pDInfo->pJ2k, pStream); // в случае ошибки pImage = NULL
+        Image *pImage = J2k_Decode((J2kCodestream*)pDInfo->pJ2k, pStream); // in case of error pImage = NULL
         J2k_DestroyDecompress((J2kCodestream*)pDInfo->pJ2k);
 
         Free(pDInfo);
@@ -114,7 +114,7 @@ namespace Jpeg2000
             return NULL;
         }
 
-        Image *pImage = J2k_DecodeJptStream((J2kCodestream*)pDInfo->pJ2k, pStream); // в случае ошибки pImage = NULL
+        Image *pImage = J2k_DecodeJptStream((J2kCodestream*)pDInfo->pJ2k, pStream); // in case of error pImage = NULL
         J2k_DestroyDecompress((J2kCodestream*)pDInfo->pJ2k);
 
         Free(pDInfo);
@@ -145,7 +145,7 @@ namespace Jpeg2000
             return NULL;
         }
 
-        Image *pImage = Mj2_Decode((Mj2_Movie*)pDInfo->pMj2, pStream); // в случае ошибки pImage = NULL
+        Image *pImage = Mj2_Decode((Mj2_Movie*)pDInfo->pMj2, pStream); // in case of error pImage = NULL
         Mj2_DestroyDecompress((Mj2_Movie*)pDInfo->pMj2);
 
         Free(pDInfo);

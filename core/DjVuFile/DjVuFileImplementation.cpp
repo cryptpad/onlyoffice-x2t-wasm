@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -255,7 +248,7 @@ void  CDjVuFileImplementation::DrawPageOnRenderer(IRenderer* pRenderer, int nPag
 	}
 	catch (...)
 	{
-		// белая страница
+		// white page
 	}
 }
 void CDjVuFileImplementation::ConvertToPdf(const std::wstring& wsDstPath)
@@ -426,7 +419,7 @@ BYTE* CDjVuFileImplementation::GetPageLinks(int nPageIndex)
 		{
 			GUTF8String str = map_areas[pos]->url;
 			oRes.WriteString((BYTE*)str.getbuf(), str.length());
-			// Верхний левый угол
+			// Upper left corner
 			double x = map_areas[pos]->get_xmin();
 			double y = dHeight - map_areas[pos]->get_ymax();
 			oRes.AddDouble(0.0);
@@ -635,7 +628,7 @@ void CDjVuFileImplementation::CreatePdfFrame(IRenderer* pRenderer, GP<DjVuImage>
 	}
 	else
 	{
-		// белый фрейм??
+		// white frame??
 		//memset(pBufferDst, 0xFF, 4 * lImageWidth * lImageHeight);
 		GRect oRectAll(0, 0, lImageWidth, lImageHeight);
 		GP<GPixmap> pImage = pPage->get_pixmap(oRectAll, oRectAll);
@@ -843,7 +836,7 @@ XmlUtils::CXmlNode CDjVuFileImplementation::ParseText(GP<DjVuImage> pPage)
 }
 void CDjVuFileImplementation::TextToRenderer(IRenderer* pRenderer, XmlUtils::CXmlNode oTextNode, double dKoef, bool isView)
 {
-	// Выставим шрифт пустой (чтобы растягивать по всему ректу)
+	// Set the brush to null (to stretch it across the entire rect)
 	pRenderer->put_FontName(L"DjvuEmptyFont");
 	//std::wstring csText = oTextNode.GetXml();
 	std::vector<XmlUtils::CXmlNode> oLinesNodes = oTextNode.GetNodes(L"LINE");

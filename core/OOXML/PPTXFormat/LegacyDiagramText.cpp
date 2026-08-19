@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -73,13 +66,13 @@ namespace PPTX
 		}
 
 		Parse();
-		// todooo .. разбить строку и создать структуру <a:p>...</a:p><a:p>...</a:p>...<a:p>...</a:p>
-		// щас используется 'нулевой' вариант
-		// незабыть поменять в doc_LoadShape (ASCOfficeDrawingConvert.cpp)
+		// TODO .. split the line and create the structure <a:p>...</a:p><a:p>...</a:p>...<a:p>...</a:p>
+		// currently the 'zero' option is used
+		// don't forget to change it in doc_LoadShape (ASCOfficeDrawingConvert.cpp)
 	}
 	void LegacyDiagramText::write(const OOX::CPath& filename, const OOX::CPath& directory, OOX::CContentTypes& content)const
 	{
-		//старье на запись не поддерживаем
+		//Don't support old stuff for writing
 		content.Registration(type().OverrideType(), directory, filename);
 	}
 	LegacyDiagramText& LegacyDiagramText::operator=(const LegacyDiagramText& oSrc)
@@ -271,7 +264,7 @@ namespace PPTX
 			else
 				Bulleted	= false;
 		}
-//todooo протестировано тока align
+//TODO tested only align
 		if (bulletChar_)
 		{
 			Logic::BuChar *buChar = new Logic::BuChar();
@@ -441,7 +434,7 @@ namespace PPTX
 		bool bIsFontStylePresent = (hasBold || hasItalic || hasUnderline || hasShadow ||
 			hasFehint || hasKimi || hasEmboss || hasStyle != 0);
 
-//todooo протестировано тока sz, color
+//TODO tested only sz, color
 		if (bIsFontStylePresent)
 		{
 			WORD fontStyle = *(_UINT16*)(Data + pos); pos += 2;
@@ -513,7 +506,7 @@ namespace PPTX
 			int BaseLineOffset = static_cast<int>((double)(*(_UINT16*)(Data + pos))); pos += 2;
 		}
 
-		// или два последних наоборот????
+		// or the last two are the other way around????
 
 		return pos;
 	}

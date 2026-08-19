@@ -121,7 +121,7 @@ namespace MetaFile
 		const TRectL& GetBounds() const;
 		CPath*        GetPath();
 	private:
-		//Работа с изображениями
+		//Working with Images
 		void ImageProcessing(const TEmfAlphaBlend       &oTEmfAlphaBlend);
 		void ImageProcessing(const TEmfStretchDIBITS    &oTEmfStretchDIBITS);
 		void ImageProcessing(const TEmfBitBlt           &oTEmfBitBlt);
@@ -408,7 +408,7 @@ namespace MetaFile
 			if (NULL != m_pInterpretator && (NULL == m_pPath || Svg != m_pInterpretator->GetType()))
 				m_pInterpretator->HANDLE_EMR_POLYPOLYLINE(oBounds, arPoints);
 		}
-		//TODO: Реализовать сохранение полигонов в полигоне
+		//TODO: Implement saving polygons in a polygon
 		void HANDLE_EMR_RECTANGLE(TRectL& oBox);
 		void HANDLE_EMR_ROUNDRECT(TRectL& oBox, TSizeL& oCorner);
 		void HANDLE_EMR_SETPIXELV(TPointL& oPoint, TRGBA& oColor);

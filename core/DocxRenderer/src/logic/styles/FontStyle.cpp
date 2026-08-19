@@ -73,7 +73,7 @@ namespace NSDocxRenderer
 		oWriter.WriteString(L"\"/>");
 
 		oWriter.WriteString(L"<w:basedOn w:val=\"");
-		oWriter.WriteString(L"DefaultParagraphFont"); //todo сделать дерево зависимостей
+		oWriter.WriteString(L"DefaultParagraphFont"); //todo make a dependency tree
 		oWriter.WriteString(L"\"/>");
 
 		//oWriter.WriteString(L"<w:rsid w:val=\"00BB76B0\"/>");

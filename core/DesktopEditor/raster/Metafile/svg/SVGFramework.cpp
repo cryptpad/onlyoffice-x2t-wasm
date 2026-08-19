@@ -1586,7 +1586,7 @@ namespace SVG
 					m_render->put_PenLineStartCap(c_ag_LineCapRoundAnchor);
 
 				if (c_ag_LineJoinBevel == nStrokeLineJoin)
-					m_render->put_PenLineStartCap(c_ag_LineCapTriangle);	//	видимо на строне рендера есть проблема с таким стилем
+					m_render->put_PenLineStartCap(c_ag_LineCapTriangle);	//	Apparently there is a problem with this style on the rendering side
 
 				if (c_ag_LineJoinMiter == nStrokeLineJoin)
 					m_render->put_PenLineStartCap(c_ag_LineCapSquare);
@@ -1655,7 +1655,7 @@ namespace SVG
 					m_render->put_PenLineStartCap(c_ag_LineCapRoundAnchor);
 
 				if (c_ag_LineJoinBevel == nStrokeLineJoin)
-					m_render->put_PenLineStartCap(c_ag_LineCapTriangle);	//	видимо на строне рендера есть проблема с таким стилем
+					m_render->put_PenLineStartCap(c_ag_LineCapTriangle);	//	Apparently there is a problem with this style on the rendering side
 
 				if (c_ag_LineJoinMiter == nStrokeLineJoin)
 					m_render->put_PenLineStartCap(c_ag_LineCapSquare);
@@ -2308,7 +2308,7 @@ namespace SVG
 			}
 			else
 			{
-				// сдвинутый тайл
+				// offset tile
 
 				Point move	=	Point (m_pattern->GetBound().GetX(), m_pattern->GetBound().GetY());
 
@@ -2330,7 +2330,7 @@ namespace SVG
 			SaveImage(m_pPatternFrame, m_sLivePath);
 		}
 
-		// освободим память
+		// free up memory
 
 		RELEASEINTERFACE(m_render);
 		RELEASEOBJECT(m_pFrame);

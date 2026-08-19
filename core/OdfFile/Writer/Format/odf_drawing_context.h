@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -73,7 +66,7 @@ public:
 
 	void set_drawings_rect	(_CP_OPT(double) x_pt, _CP_OPT(double) y_pt, _CP_OPT(double) width_pt, _CP_OPT(double) height_pt);
 	void clear				();
-	void set_styles_context	(odf_style_context_ptr styles_context);//для embedded 
+	void set_styles_context	(odf_style_context_ptr styles_context);//for embedded
 
 	void set_parent_style(std::wstring style_name);
 	void set_parent_text_style(std::wstring style_name);
@@ -172,7 +165,7 @@ public:
 		void set_text_box_tableframe	(bool val);		
 	void end_text_box					();
 
-	void start_object(std::wstring ref, bool in_frame = true); //формулы, диаграммы ... 
+	void start_object(std::wstring ref, bool in_frame = true); //formulas, diagrams...
 	void end_object(bool in_frame = true);
 
 	void start_object_ole(std::wstring ref);
@@ -265,7 +258,7 @@ public:
 	void set_line_color	(std::wstring hexColor);
 	//void start_shadow_properties();
 	//void end_shadow_properties();
-// пока одной функией ..
+// one function for now..
 	void set_shadow	(int type, std::wstring hexColor, _CP_OPT(double) opacity, double dist_pt, double dist_pt_y = -1);
 	void set_grayscale();
 	void set_white_balance(double red, double green, double blue);

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -98,7 +91,7 @@ void table_table_row::xlsx_convert(oox::xlsx_conversion_context & Context)
 	}
 
     std::wostream & strm = Context.current_sheet().sheetData();
-///обработка чтилей для роу -
+/// processing styles for row -
 	size_t Default_Cell_style_in_row_ = 0; 
 
     const std::wstring rowStyleName			= attlist_.table_style_name_.get_value_or(L"");
@@ -111,16 +104,16 @@ void table_table_row::xlsx_convert(oox::xlsx_conversion_context & Context)
 	
 	if ((instStyle_CellDefault) && (instStyle_CellDefault->content())) 
 		prop_CellDefault = instStyle_CellDefault->content()->get_style_table_cell_properties();
-//кастомные настройки стиля ячеек в данном роу
+//custom cell style settings in a given row
 
-	if (prop_CellDefault) //проверим что есть вообще кастом для роу- а потом уже посчитаем стиль
+	if (prop_CellDefault) //Check that there is a custom for row, and then we'll calculate the style
 	{
 		odf_reader::style_table_cell_properties_attlist	cellFormatProperties = calc_table_cell_properties(instStyle_CellDefault);
 		Default_Cell_style_in_row_ = Context.get_style_manager().xfId(NULL,NULL, &cellFormatProperties, NULL, L"", 0, true);	
 	}
-	else //стиля ячеек для строки нет глянем что там внутри строки в последней ячейке
+	else //There is no cell style for the row, let's look at what's inside the row in the last cell
 	{
-		//возьмем стиль из последнего cell если он повторяющийся (тогда и ячейки вхолостую ненадо писать)
+		//Take the style from the last cell if it is repeating (then there is no need to write empty cells)
 		int ind_last_cell = content_.size()-1;
 		table_table_cell *last_cell = NULL;
 		if (ind_last_cell > 0)
@@ -148,9 +141,9 @@ void table_table_row::xlsx_convert(oox::xlsx_conversion_context & Context)
 			if ((prop->attlist_.style_use_optimal_row_height_) && 
 						(*prop->attlist_.style_use_optimal_row_height_==true))
 			{
-				//автоматическая подстройка высоты.
-				//нету в оох
-				//todooo высилить по текущему шрифту размер у (двойной) и сравнить с заданным - перебить !!!
+				//automatic height adjustment.
+				//no in ooh
+				//TODO change the size y (double) according to the current font and compare it with the given one - interrupt !!!
 			}
 
 			std::wstringstream ht_s;
@@ -248,14 +241,14 @@ void table_table_row::xlsx_convert(oox::xlsx_conversion_context & Context)
 		{
             skip_next_row = true;  
 			if (attlist_.table_number_rows_repeated_ > 0xf000)
-				break;//Уведомление_о_вручении.ods (1 лист)
+				break;//Уведомление_о_вручении.ods (sheet 1)
 		}
 		if (content_.size() > 0 && attlist_.table_number_rows_repeated_ > 1000)
 		{
 			table_table_cell * table_cell = dynamic_cast<table_table_cell *>(content_[0].get());
 			if ((table_cell) && (table_cell->attlist_.table_number_columns_repeated_ > 1000))
 			{
-				break;//Уведомление_о_вручении.ods  (2 лист)
+				break;//Уведомление_о_вручении.ods (sheet 2)
 			}
 		}
     }
@@ -546,7 +539,7 @@ void table_table_column::xlsx_convert(oox::xlsx_conversion_context & Context)
                     if (inst->content())
                     {
 						if (const style_table_cell_properties * prop = inst->content()->get_style_table_cell_properties())
-						{//сделать проверку чтоб сюда не попал дефолтный, то  сть пустой стиль
+						{//make a check so that the default, that is, empty, style doesn't appear here
 							odf_reader::style_table_cell_properties_attlist	cellFormatProperties = calc_table_cell_properties(inst);
 							
 							bool set_default = false;
@@ -754,7 +747,7 @@ void table_table_cell::xlsx_convert(oox::xlsx_conversion_context & Context)
 		if (num_format_type == office_value_type::Time ||
 			num_format_type == office_value_type::Date ||
 			num_format_type == office_value_type::Currency)
-		{//тип формата данных из стиля не соответствует формату анных ячейки
+		{//the data format type from the style doesn't match the cell data format
 			num_format.clear();
 			num_format_type = office_value_type::Custom;
 		}
@@ -767,7 +760,7 @@ void table_table_cell::xlsx_convert(oox::xlsx_conversion_context & Context)
 		if (num_format_type == office_value_type::Time ||
 			num_format_type == office_value_type::Date ||
 			num_format_type == office_value_type::Currency)
-		{//тип формата данных из стиля не соответствует формату анных ячейки
+		{//the data format type from the style doesn't match the cell data format
 			num_format.clear();
 			num_format_type = office_value_type::Percentage;
 		}
@@ -805,7 +798,7 @@ void table_table_cell::xlsx_convert(oox::xlsx_conversion_context & Context)
 					xlsx_value_type = oox::XlsxCellType::n;
 
 					if (num_format_type == office_value_type::Currency)
-					{//тип формата данных из стиля не соответствует формату данных ячейки
+					{//the data format type from the style doesn't match the cell data format
 						num_format.clear();
 						num_format_type = office_value_type::Date;
 					}
@@ -837,7 +830,7 @@ void table_table_cell::xlsx_convert(oox::xlsx_conversion_context & Context)
 					xlsx_value_type = oox::XlsxCellType::n;
 
 					if (num_format_type == office_value_type::Currency)
-					{//тип формата данных из стиля не соответствует формату анных ячейки
+					{//the data format type from the style doesn't match the cell data format
 						num_format.clear();
 						num_format_type = office_value_type::Time;
 					}
@@ -895,9 +888,9 @@ void table_table_cell::xlsx_convert(oox::xlsx_conversion_context & Context)
 
 	for (unsigned int r = 0; r < attlist_.table_number_columns_repeated_; ++r)
 	{
-// вычислить стиль для ячейки
+// calculate style for cell
 //---------------------------------------------------------------------------------------------------------	
-		std::wstring columnStyleName = Context.get_table_context().default_column_cell_style(); // могут быть разные стили колонок при repeated (Book 24.ods)
+		std::wstring columnStyleName = Context.get_table_context().default_column_cell_style(); // there may be different column styles when repeated (Book 24.ods)
 
 		odf_read_context& odfContext = Context.root()->odf_context();
 
@@ -924,7 +917,7 @@ void table_table_cell::xlsx_convert(oox::xlsx_conversion_context & Context)
 
 		std::wstring data_style = CalcCellDataStyle(Context, columnStyleName, rowStyleName, cellStyleName);
 
-		// стили не наследуются
+		// styles aren't inherited
 		std::vector<const style_instance*> instances;
 		instances.push_back(defaultCellStyle);
 
@@ -1043,7 +1036,7 @@ void table_table_cell::xlsx_convert(oox::xlsx_conversion_context & Context)
 		}
 		if (sharedStringId >= 0)
 		{
-			xlsx_value_type = oox::XlsxCellType::s;//в случае текста, если он есть берем кэшированное значение
+			xlsx_value_type = oox::XlsxCellType::s;//in the case of text, if there is one, we take the cached value
 		}		
 //---------------------------------------------------------------------------------------------------------			
 		if (skip_next_cell)
@@ -1052,7 +1045,7 @@ void table_table_cell::xlsx_convert(oox::xlsx_conversion_context & Context)
 			break;
 		}
 	
-	// пустые ячейки пропускаем.
+	// Skip empty cells.
         if ( is_data_visible || ((cellStyle || defaultColumnCellStyle) && is_style_visible))
         {
 			std::wstring ref = oox::getCellAddress(Context.current_table_column(), Context.current_table_row());
@@ -1122,9 +1115,9 @@ void table_table_cell::xlsx_convert(oox::xlsx_conversion_context & Context)
 				else
 				{
 					empty_cell_count++;
-					//Уведомление_о_вручении.ods - 13 повторов пустых с cellStyle=NULL - нужные !!!
+					//Уведомление_о_вручении.ods - 13 empty repetitions with cellStyle=NULL - necessary!!!
 					if (empty_cell_count > 19 && last_cell_&& (attlist_.table_number_columns_repeated_> 299 || cellStyle == NULL)) 
-					{//пишем простыню только если задан стиль тока для этих ячеек
+					{//write a sheet only if a style is specified only for these cells
 						skip_next_cell = true;
 					}
 				}				
@@ -1163,14 +1156,14 @@ void table_covered_table_cell::xlsx_convert(oox::xlsx_conversion_context & Conte
 	bool	skip_next_cell		= false;
 	bool	is_style_visible	= true;
 	bool	is_data_visible		= false;
-// вычислить стиль для ячейки
+// calculate style for cell
 
     std::wstring cellStyleName		= attlist_.table_style_name_.get_value_or(L"");
 	std::wstring columnStyleName	= Context.get_table_context().default_column_cell_style();
 	std::wstring rowStyleName		= Context.get_table_context().default_row_cell_style();
 
 	if (attlist_.table_number_columns_repeated_ > 1)
-		columnStyleName.clear(); // могут быть разные стили колонок Book 24.ods
+		columnStyleName.clear(); // There may be different styles of columns Book 24.ods
 
 	odf_read_context & odfContext = Context.root()->odf_context();   
 
@@ -1190,7 +1183,7 @@ void table_covered_table_cell::xlsx_convert(oox::xlsx_conversion_context & Conte
 
     std::wstring data_style = CalcCellDataStyle(Context, columnStyleName, rowStyleName, cellStyleName);
 
-    // стили не наследуются
+    // styles aren't inherited
     std::vector<const style_instance *> instances;
     instances.push_back(defaultCellStyle);
 
@@ -1364,11 +1357,11 @@ void table_covered_table_cell::xlsx_convert(oox::xlsx_conversion_context & Conte
 		const int sharedStringId = content_.xlsx_convert(Context, textFormatProperties);
 
 		if (xlsx_value_type == oox::XlsxCellType::str && sharedStringId >= 0)
-			xlsx_value_type = oox::XlsxCellType::s;//в случае текста, если он есть берем кэшированное значение
+			xlsx_value_type = oox::XlsxCellType::s;//in the case of text, if there is one, we take the cached value
 			
 		if (skip_next_cell) break;
 
-        // пустые ячейки пропускаем.
+        // Skip empty cells.
         if ( is_data_visible || ((cellStyle || defaultColumnCellStyle) && is_style_visible))
         {
             CP_XML_WRITER(strm)
@@ -1419,9 +1412,9 @@ void table_covered_table_cell::xlsx_convert(oox::xlsx_conversion_context & Conte
 				else
 				{
 					empty_cell_count++;
-					//Уведомление_о_вручении.ods - 13 повторов пустых с cellStyle=NULL - нужные !!!
+					//Уведомление_о_вручении.ods - 13 empty repetitions with cellStyle=NULL - necessary!!!
 					if (empty_cell_count > 19 && last_cell_&& (attlist_.table_number_columns_repeated_> 299 || cellStyle == NULL)) 
-					{//пишем простыню только если задан стиль тока для этих ячеек
+					{//write a sheet only if a style is specified only for these cells
 						skip_next_cell = true;
 					}
 				}				

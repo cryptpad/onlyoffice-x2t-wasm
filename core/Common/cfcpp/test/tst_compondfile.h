@@ -117,7 +117,8 @@ TEST_F(CompoundFileTest, deleteStream)
     const wstring streamName = L"PowerPoint Document";
     EXPECT_TRUE(cf.RootStorage()->GetStream(streamName));
     cf.RootStorage()->Delete(streamName);
-    EXPECT_THROW(cf.RootStorage()->GetStream(streamName), CFItemNotFound);
+    // GetStream returns a null pointer for a missing entry (it does not throw).
+    EXPECT_FALSE(cf.RootStorage()->GetStream(streamName));
 }
 
 TEST_F(CompoundFileTest, deleteStreamWithSave)
@@ -128,7 +129,8 @@ TEST_F(CompoundFileTest, deleteStreamWithSave)
     wstring savedFilePath = SaveToFile(cf, L"ex6.ppt");
 
     CompoundFile cf2(savedFilePath);
-    EXPECT_THROW(cf2.RootStorage()->GetStream(streamName), CFItemNotFound);
+    // GetStream returns a null pointer for a missing entry (it does not throw).
+    EXPECT_FALSE(cf2.RootStorage()->GetStream(streamName));
 }
 
 TEST_F(CompoundFileTest, deleteStorage)

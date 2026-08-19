@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -78,7 +71,7 @@ public:
 	void ApplyListProperties (odf_reader::paragraph_format_properties & propertiesOut, int Level);
 	odf_reader::style_list_level_properties* ApplyListProperties (odf_reader::paragraph_format_properties & propertiesOut, odf_reader::text_list_style* text_list_style, int Level);
 	
-	void set_local_styles_container(odf_reader::styles_container*  local_styles_);//это если стили объектов содержатся в другом документе
+	void set_local_styles_container(odf_reader::styles_container*  local_styles_);//this is if the object styles are contained in another document
 
 	hyperlink_data get_hyperlink();
 	void start_hyperlink();
@@ -146,11 +139,11 @@ private:
 	void			dump_run();
 	void			dump_field();
   
-	size_t paragraphs_cout_; //???? тока из за начала отсчета?
+	size_t paragraphs_cout_; //???? only because of the starting point?
    
-	std::wstringstream text_;		//приходящий текст
-    std::wstringstream paragraph_;	//перманенто скидываемые параграфы
-    std::wstringstream run_;		//перманенто скидываемые куски с быть может разными свойствами
+	std::wstringstream text_;		//incoming text
+    std::wstringstream paragraph_;	//permanently discarded paragraphs
+    std::wstringstream run_;		//permanently discarded pieces with perhaps different properties
    
 	std::wstring		last_paragraph_style_name_;
 	std::wstring		paragraph_style_name_;
@@ -167,9 +160,9 @@ private:
 	_CP_OPT(odf_types::length) svg_heightVal;
 	_CP_OPT(odf_types::length) svg_widthVal;
     
-    int new_list_style_number_;	// счетчик для нумерации имен созданных в процессе конвертации стилей
+    int new_list_style_number_;	// counter for numbering the names of styles created during the conversion process
    
-    boost::unordered_map<std::wstring, std::wstring> list_style_renames_; // цепочки переименований нумераций
+    boost::unordered_map<std::wstring, std::wstring> list_style_renames_; // numbering renaming chains
    
 	void write_list_styles(std::wostream & strm);
 	//void write_list_properties(std::wostream & strm);
@@ -218,7 +211,7 @@ void pptx_text_context::Impl::start_paragraph(const std::wstring & styleName)
     {	
 		//if (in_list_ == false || in_comment == true)
 		//{
-		//// конец предыдущего абзаца и начало следующего
+		//// end of the previous paragraph and beginning of the next
 		////text_ << L"&#10;";
 		//	text_ << L"\n"; 
 		//}
@@ -244,7 +237,7 @@ void pptx_text_context::Impl::end_paragraph()
 	in_paragraph = false;
 }
 
-void pptx_text_context::Impl::start_span(const std::wstring & styleName)//кусок текста в абзаце(параграфе) со своими свойствами - этто может быть и 1 буква
+void pptx_text_context::Impl::start_span(const std::wstring & styleName)//a piece of text in a paragraph (paragraph) with its own properties - it can be 1 letter
 {
 	int text_size = text_.str().length();
 	
@@ -275,7 +268,7 @@ std::wstring pptx_text_context::Impl::end_span2()
 }
 void pptx_text_context::Impl::start_hyperlink()
 {
-	dump_run();//проверить
+	dump_run();//check
 }
 
 void pptx_text_context::Impl::end_hyperlink()
@@ -445,7 +438,7 @@ void pptx_text_context::Impl::write_pPr(std::wostream & strm)
 	odf_reader::paragraph_format_properties paragraph_properties_;
 	
 	ApplyParagraphProperties	(paragraph_style_name_,	paragraph_properties_, process_layouts_);
-	ApplyListProperties			(paragraph_properties_, level);//выравнивания листа накатим на свойства параграфа
+	ApplyListProperties			(paragraph_properties_, level);//To align the slide, apply the paragraph properties
 
 	paragraph_properties_.pptx_convert(pptx_context_);	
 	
@@ -623,7 +616,7 @@ void pptx_text_context::Impl::dump_field()
 			}
 			else
 			{
-				//запишем как обычный текст
+				//write it as normal text
 				text_ << content;
 			}
 		}
@@ -641,7 +634,7 @@ void pptx_text_context::Impl::dump_run()
 	//	return; 
 	
 	const std::wstring content = XmlUtils::EncodeXmlString(text_.str());
-	//if (content.length() <1 &&  span_style_name_.length()<1) return ;      ... провеить с пустыми строками нужны ли  ...
+	//if (content.length() <1 && span_style_name_.length()<1) return ;      ...check with empty lines whether they are needed...
 
 	if (content.length() > 0)
 	{
@@ -795,7 +788,7 @@ void pptx_text_context::Impl::end_list()
 {
 	in_list_ = false;
   
-	list_style_stack_.pop_back();// пока не стираем .. как сохраним в lstStyles - очистим
+	list_style_stack_.pop_back();// don't erase yet .. as soon as we save it in lstStyles - we'll clear it
 }
 
 std::wstring pptx_text_context::Impl::current_list_style()
@@ -832,7 +825,7 @@ void pptx_text_context::Impl::start_field(field_type type, const std::wstring & 
 }
 void pptx_text_context::Impl::start_comment()
 {
-	in_comment = true;//отдельная ветка - так как без форматирования
+	in_comment = true;//separate branch - since without formatting
 }
 std::wstring pptx_text_context::Impl::end_comment()
 {

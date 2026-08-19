@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -183,7 +176,7 @@ std::string GetCorrectArgument(const std::string& sInput)
 			{
 				if (nQouteMarkCounter & 1)
 				{
-					// внутренняя кавычка - ничего не делаем
+					// inner quote - do nothing
 				}
 				else
 				{
@@ -382,7 +375,7 @@ bool CV8RealTimeWorker::SaveFileWithChanges(int type, const std::wstring& _path,
 	else if (type & AVS_OFFICESTUDIO_FILE_IMAGE)
 	{
 		_formatDst = NSDoctRenderer::DoctRendererFormat::IMAGE;
-		// не поддерживает x2т прямую конвертацию. делаем ***T format
+		// x2t doesn't support direct conversion. do ***T format
 		switch (m_nFileType)
 		{
 		case 0: { _formatDst = NSDoctRenderer::DoctRendererFormat::DOCT; break; }
@@ -1390,7 +1383,7 @@ namespace NSDoctRenderer
 		}
 
 		std::string sJsCommands = "";
-		std::wstring _builder_params[4]; // с запасом
+		std::wstring _builder_params[4]; // with reserve
 		for (std::list<std::string>::iterator i = _commands.begin(); i != _commands.end(); i++)
 		{
 			const std::string& command = *i;
@@ -1506,7 +1499,7 @@ namespace NSDoctRenderer
 
 					if (m_pInternal->m_oParams.m_bSaveWithDoctrendererMode)
 					{
-						// перед сохранением в такой схеме нужно скинуть изменения
+						// Reset the changes before saving with this scheme
 						this->ExecuteCommand(L"Asc.editor.asc_Save();");
 					}
 
@@ -1539,7 +1532,7 @@ namespace NSDoctRenderer
 
 		if (!sJsCommands.empty())
 		{
-			// Такого быть не должно!!! Так как результат никуда не сохранится. пустое действие.
+			// This shouldn't happen!!! Since the result won't be saved anywhere. empty action.
 			std::wstring sUnicodeCommand = NSFile::CUtf8Converter::GetUnicodeStringFromUTF8((BYTE*)sJsCommands.c_str(), (LONG)sJsCommands.length());
 			bool bIsNoError = this->m_pInternal->ExecuteCommand(sUnicodeCommand.c_str(), NULL, true);
 			sJsCommands = "";

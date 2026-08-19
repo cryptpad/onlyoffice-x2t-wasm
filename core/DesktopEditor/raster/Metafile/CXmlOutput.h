@@ -28,7 +28,7 @@ namespace MetaFile
 		bool IsEmptyNode()  const;
 		bool MoveToStart();
 
-		// Запись в Xml файл
+		// Writing to Xml file
 
 		void WriteString(const std::wstring& wsValue);
 
@@ -118,7 +118,7 @@ namespace MetaFile
 
 		void WriteNode(const std::wstring& wsNameNode, const unsigned int* pUnValues, const unsigned int& unSize);
 
-		// Чтение из Xml файла
+		// Reading from Xml file
 
 	public:
 		bool ReadFromFile(const std::wstring &wsPathToFile);

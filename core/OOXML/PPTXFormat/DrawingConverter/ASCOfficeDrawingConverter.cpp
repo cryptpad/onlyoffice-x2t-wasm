@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -884,7 +877,7 @@ namespace PPTX
 	}
 	void CStringTrimmer::LoadFromString(std::wstring& strParams)
 	{
-		// здесь не будем плодить тормозов - напишем без всяких Mid, Find, чтобы был только один проход
+		// Don't create any delays here - write without any Mid, Find, so that there is only one pass
         wchar_t* pData	= (wchar_t*)strParams.c_str();
 		int nCount		= (int)		strParams.length();
 
@@ -938,7 +931,7 @@ namespace PPTX
 	{
 		Clear();
 
-		// здесь не будем плодить тормозов - напишем без всяких Mid, Find, чтобы был только один проход
+		// Don't create any delays here - write without any Mid, Find, so that there is only one pass
         wchar_t* pData	= (wchar_t*)strParams.c_str();
 		int nCount		= (int)		strParams.length();
 
@@ -964,7 +957,7 @@ namespace PPTX
 			++nPosition;
 			++pDataMem;
 
-			// пропускаем пробелы
+			// skip spaces
             while ((nPosition < nCount) && ((wchar_t(' ') == *pDataMem) || (wchar_t('{') == *pDataMem)))
 			{
 				++nPosition;
@@ -973,7 +966,7 @@ namespace PPTX
 
 			int nPosOld = nPosition;
 
-			// ищем имя настройки
+			// looking for the setting name
             while ((nPosition < nCount) && (wchar_t(':') != *pDataMem))
 			{
 				++nPosition;
@@ -982,16 +975,16 @@ namespace PPTX
 
 			if (nPosOld == nPosition)
 			{
-				// нету ни одной настройки
+				// there are no settings
 				break;
 			}
 			std::wstring strName = strParams.substr(nPosOld, nPosition - nPosOld);
 
-			// убираем ':'
+			// remove ':'
 			++nPosition;
 			++pDataMem;
 
-			// пропускаем пробелы настройки
+			// skip settings spaces
             while ((nPosition < nCount) && (wchar_t(' ') == *pDataMem))
 			{
 				++nPosition;
@@ -1000,7 +993,7 @@ namespace PPTX
 
 			nPosOld = nPosition;
 
-			// пропускаем пробелы настройки
+			// skip settings spaces
             while ((nPosition < nCount) && (wchar_t(';') != *pDataMem) && (wchar_t('}') != *pDataMem))
 			{
 				++nPosition;
@@ -1024,7 +1017,7 @@ namespace PPTX
 	{
 		Clear();
 
-		// здесь не будем плодить тормозов - напишем без всяких Mid, Find, чтобы был только один проход
+		// Don't create any delays here - write without any Mid, Find, so that there is only one pass
         wchar_t* pData	= (wchar_t*)strParams.c_str();
         int nCount      = (int)		strParams.length();
 
@@ -1035,7 +1028,7 @@ namespace PPTX
 
 		while (true)
 		{
-			// пропускаем пробелы
+			// skip spaces
             while ((nPosition < nCount) && ((wchar_t(' ') == *pDataMem) || (wchar_t('{') == *pDataMem) || (wchar_t(';') == *pDataMem)))
 			{
 				++nPosition;
@@ -1044,7 +1037,7 @@ namespace PPTX
 
 			int nPosOld = nPosition;
 
-			// ищем имя настройки
+			// looking for the setting name
             while ((nPosition < nCount) && (wchar_t(':') != *pDataMem))
 			{
 				++nPosition;
@@ -1053,16 +1046,16 @@ namespace PPTX
 
 			if (nPosOld == nPosition)
 			{
-				// нету ни одной настройки
+				// there are no settings
 				break;
 			}
 			std::wstring strName = strParams.substr(nPosOld, nPosition - nPosOld);
 
-			// убираем ':'
+			// remove ':'
 			++nPosition;
 			++pDataMem;
 
-			// пропускаем пробелы настройки
+			// skip settings spaces
             while ((nPosition < nCount) && (wchar_t(' ') == *pDataMem))
 			{
 				++nPosition;
@@ -1071,7 +1064,7 @@ namespace PPTX
 
 			nPosOld = nPosition;
 
-			// пропускаем пробелы настройки
+			// skip settings spaces
             while ((nPosition < nCount) && (wchar_t(';') != *pDataMem) && (wchar_t('}') != *pDataMem))
 			{
 				++nPosition;
@@ -1330,7 +1323,7 @@ void CDrawingConverter::AddShapeType(XmlUtils::CXmlNode& oNode)
 	}
 
 	if (strId.empty()) return;
-	//if (m_mapShapeTypes.find(strId) == m_mapShapeTypes.end())//?? с затиранием ???
+	//if (m_mapShapeTypes.find(strId) == m_mapShapeTypes.end())//?? with overwriting???
 	{
 		CPPTShape* pShape = new CPPTShape();
 		pShape->m_bIsShapeType = true;
@@ -1435,7 +1428,7 @@ void CDrawingConverter::ConvertVml(const std::wstring& sXml, std::vector<nullabl
 			}
 			else if (strName == L"pict" || strName == L"object")
 			{
-				//сначала shape type
+				//first shape type
 				XmlUtils::CXmlNode oNodeST;
 				if (oParseNode.GetNode(L"v:shapetype", oNodeST))
 				{
@@ -1620,7 +1613,7 @@ bool CDrawingConverter::ParceObject(const std::wstring& strXml, std::wstring* pM
 			}
             else if (strName == L"pict" || strName == L"object")
 			{
-				//сначала shape type
+				//first shape type
 				XmlUtils::CXmlNode oNodeST;
 				if (oParseNode.GetNode(L"v:shapetype", oNodeST))
 				{
@@ -1959,7 +1952,7 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 					}
 				}
 
-				// теперь определяем bounds
+				// now we define bounds
 				int _x = INT_MAX;
 				int _y = INT_MAX;
 				int _r = INT_MIN;
@@ -2003,7 +1996,7 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 
 				pPPTShape = new CPPTShape();
 				pPPTShape->SetShapeType((PPTShapes::ShapeType)1);
-				// иначе сохранится рект
+				// otherwise the rect will remain
 				pPPTShape->m_eType = PPTShapes::sptCustom;
 
 				pPPTShape->LoadPathList(strPath);
@@ -2062,7 +2055,7 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 			{
 				pPPTShape = new CPPTShape();
 				pPPTShape->SetShapeType((PPTShapes::ShapeType)1);
-				// иначе сохранится рект
+				// otherwise the rect will remain
 				pPPTShape->m_eType = PPTShapes::sptCustom;
 			}			
 		}
@@ -2112,7 +2105,7 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 		}
         std::wstring strXmlPPTX;
 
-		PPTX::Logic::Shape*	pShape		= NULL; //todoooo + CxnSp
+		PPTX::Logic::Shape*	pShape		= NULL; //TODO + CxnSp
 		PPTX::Logic::Pic*	pPicture	= NULL;
 		
 		PPTX::Logic::SpPr*	pSpPr		= NULL;
@@ -2150,7 +2143,7 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 			{
 				strXmlPPTX = oShapeElem.ConvertPPTShapeToPPTX(true);
 
-				// в старых шейпах текст крутится отдельно
+				// in old shapes the text rotates separately
 				pShape->oTextBoxBodyPr->upright = true;
 			}
 
@@ -2159,7 +2152,7 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 			std::wstring sTextboxStyle;
 
 			bool			res_text = oNodeShape.GetNode(L"v:textbox", oNodeTextBox);
-			if (!res_text)	res_text = oNodeShape.GetNode(L"w:textbox", oNodeTextBox); // libre 4.0 эту хрень делает
+			if (!res_text)	res_text = oNodeShape.GetNode(L"w:textbox", oNodeTextBox); // LibreOffice 4.0 does this
 			
 			if (res_text)
 			{
@@ -2232,7 +2225,7 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 				}
 
 				if (!sTextboxStyle.empty())
-				{//todooo прописать все остальное 
+				{//TODO write down everything else
 					SimpleTypes::Vml::CCssStyle oCssStyle;
 					oCssStyle.FromString(sTextboxStyle);
 
@@ -2281,8 +2274,8 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 								case SimpleTypes::Vml::cssmsorotate180:	val = 180; break;
 								case SimpleTypes::Vml::cssmsorotate270:	val = 270; break;
 								}
-								pShape->oTextBoxBodyPr->rot = val * 60000;  //для docx, xlsx
-								if (pShape->txBody.IsInit() == false)       //для pptx
+								pShape->oTextBoxBodyPr->rot = val * 60000;  //for docx, xlsx
+								if (pShape->txBody.IsInit() == false)       //for pptx
 									pShape->txBody = new PPTX::Logic::TxBody();
 
 								if (!pShape->txBody->bodyPr.IsInit())
@@ -2296,7 +2289,7 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 						{
 							if (oCssStyle.m_arrProperties[pFind->second]->get_Value().bValue)
 							{
-								if (pShape->txBody.IsInit() == false)                       //для pptx /// todooo схлопнуть
+								if (pShape->txBody.IsInit() == false)                       //for pptx /// TODO collapse
 									pShape->txBody = new PPTX::Logic::TxBody();
 
 								if (!pShape->txBody->bodyPr.IsInit())
@@ -2311,14 +2304,14 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 						{
 							if (oCssStyle.m_arrProperties[pFind->second]->get_Value().bValue)
 							{
-								if (pShape->txBody.IsInit() == false)                       //для pptx
+								if (pShape->txBody.IsInit() == false)                       //for pptx
 									pShape->txBody = new PPTX::Logic::TxBody();
 
 								if (!pShape->txBody->bodyPr.IsInit())
 									pShape->txBody->bodyPr = new PPTX::Logic::BodyPr();
 
-								pShape->txBody->bodyPr->Fit.type = PPTX::Logic::TextFit::FitNo;//?? todoooo
-								pShape->oTextBoxBodyPr->Fit.type = PPTX::Logic::TextFit::FitNo;//?? todoooo
+								pShape->txBody->bodyPr->Fit.type = PPTX::Logic::TextFit::FitNo;//?? TODO
+								pShape->oTextBoxBodyPr->Fit.type = PPTX::Logic::TextFit::FitNo;//?? TODO
 
 							}
 						}
@@ -2329,10 +2322,10 @@ void CDrawingConverter::ConvertShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::CX
 							{
 								if (oCssStyle.m_arrProperties[pFind->second]->get_Value().oValue.eType == SimpleTypes::Vml::cssunitstypeUnits)
 								{
-									pShape->oTextBoxBodyPr->Fit.fontScale = (int)(100 * oCssStyle.m_arrProperties[pFind->second]->get_Value().oValue.dValue);  //для docx, xlsx
+									pShape->oTextBoxBodyPr->Fit.fontScale = (int)(100 * oCssStyle.m_arrProperties[pFind->second]->get_Value().oValue.dValue);  //for docx, xlsx
 									pShape->oTextBoxBodyPr->Fit.type = PPTX::Logic::TextFit::FitNormAuto;
 
-									if (pShape->txBody.IsInit() == false)    //для pptx
+									if (pShape->txBody.IsInit() == false)    //for pptx
 										pShape->txBody = new PPTX::Logic::TxBody();
 
 									if (!pShape->txBody->bodyPr.IsInit())
@@ -2691,7 +2684,7 @@ void CDrawingConverter::ConvertWordArtShape(PPTX::Logic::SpTreeElem* elem, XmlUt
 			std::wstring strNameP = XmlUtils::GetNameNoNS(oNodeP.GetName());
 			if (L"textpath" == strNameP)
 			{
-				std::wstring tmpString = oNodeP.GetText();	//для обхода &#xA пишется дубль в контент
+				std::wstring tmpString = oNodeP.GetText();	//to escape &#xA, a duplicate is written to the content
 
 				if (tmpString.empty())
 				{
@@ -2891,7 +2884,7 @@ void CDrawingConverter::ConvertWordArtShape(PPTX::Logic::SpTreeElem* elem, XmlUt
 						arColors.push_back(oColor);
 					else
 					{
-						//дублирование 
+						//duplication
 						PPTX::Logic::UniColor *oColor1 = new PPTX::Logic::UniColor();
 						oColor1->Color = new PPTX::Logic::SrgbClr();
 						oColor1->Color->SetRGB(color.R, color.G, color.B);
@@ -3130,7 +3123,7 @@ void CDrawingConverter::ConvertWordArtShape(PPTX::Logic::SpTreeElem* elem, XmlUt
 		}
 		else
 		{
-			//не существует в природе
+			//doesn't exist in nature
 		}
 
 		strRPr += L"</w14:textFill>";
@@ -3193,7 +3186,7 @@ void CDrawingConverter::ConvertWordArtShape(PPTX::Logic::SpTreeElem* elem, XmlUt
 		}
 	}
 
-	// у старого wordArt никаких отступов
+	// old wordArt has no indents
 	pShape->oTextBoxBodyPr->lIns = 0;
 	pShape->oTextBoxBodyPr->tIns = 0;
 	pShape->oTextBoxBodyPr->rIns = 0;
@@ -3207,7 +3200,7 @@ void CDrawingConverter::ConvertWordArtShape(PPTX::Logic::SpTreeElem* elem, XmlUt
 
 	if (!pPPTShape->m_textPath.bTrim)
 	{
-		// нужно для данного размера шейпа выставить отступы сверху и снизу
+		// For a given shape size, need to set padding at the top and bottom
 		// top: Ascent - CapHeight
 		// bottom: Descent
 	}
@@ -3223,7 +3216,7 @@ void CDrawingConverter::ConvertGroup(PPTX::Logic::SpTreeElem *result, XmlUtils::
 
 	std::vector<XmlUtils::CXmlNode> oNodes;
 	
-	//сначала shape type
+	//first shape type
     if (oNode.GetNodes(L"*", oNodes))
 	{
 		size_t nCount = oNodes.size();
@@ -4233,7 +4226,7 @@ void CDrawingConverter::CheckBorderShape(PPTX::Logic::SpTreeElem* oElem, XmlUtil
 	if (!pSpPr) return;
 	
 	if ( (pSpPr->ln.IsInit()) && (pSpPr->ln->Fill.m_type != PPTX::Logic::UniFill::noFill) )
-		return; //дублирование обрамлением линией
+		return; //duplication caused by line border framing
 
 	nullable_string sColorBorder;
     XmlMacroReadAttributeBase(oNode, L"o:borderleftcolor", sColorBorder);
@@ -4620,7 +4613,7 @@ void CDrawingConverter::CheckBrushShape(PPTX::Logic::SpTreeElem* oElem, XmlUtils
 			//	
 			//	pGradFill->GsLst.push_back( Gs_ );
 			//}
-			//todooo method
+			//TODO method
 
 			if (oType.IsInit() && oType->GetValue() == SimpleTypes::filltypeGradientRadial)
 			{
@@ -5458,7 +5451,7 @@ void CDrawingConverter::SaveObjectEx(long lStart, long lLength, const std::wstri
 		}
 		catch(...)
 		{
-			//todooo
+			//TODO
 		}
 
 		bool bOle = false;
@@ -5512,7 +5505,7 @@ std::wstring CDrawingConverter::SaveObjectBackground(LONG lStart, LONG lLength)
 	}
 	catch(...)
 	{
-		//todooo
+		//TODO
 	}
 
 	NSBinPptxRW::CXmlWriter oXmlWriter;
@@ -5522,7 +5515,7 @@ std::wstring CDrawingConverter::SaveObjectBackground(LONG lStart, LONG lLength)
 
 	if (oElem.is<PPTX::Logic::Shape>())
 	{
-		oXmlWriter.m_bIsTop = true; // не забыть скинуть в самом шейпе
+		oXmlWriter.m_bIsTop = true; // don't forget to drop it in the shape itself
 
 		PPTX::Logic::Shape& oShape = oElem.as<PPTX::Logic::Shape>();
 		OOX::IFileContainer* rels = GetRelsPtr();
@@ -5540,7 +5533,7 @@ void CDrawingConverter::ConvertPicVML(PPTX::Logic::SpTreeElem& oElem, const std:
 {
     ConvertMainPropsToVML(bsMainProps, oWriter, oElem);
 
-	oWriter.m_bIsTop = true; // не забыть скинуть в самом шейпе
+	oWriter.m_bIsTop = true; // don't forget to drop it in the shape itself
 	PPTX::Logic::Pic& oPic = oElem.as<PPTX::Logic::Pic>();
 	oPic.toXmlWriterVML(&oWriter, *m_pTheme, *m_pClrMap);
 }
@@ -5551,7 +5544,7 @@ void CDrawingConverter::ConvertShapeVML(PPTX::Logic::SpTreeElem& oElem, const st
 
 	if (oElem.is<PPTX::Logic::Shape>())
 	{
-		oWriter.m_bIsTop = true; // не забыть скинуть в самом шейпе
+		oWriter.m_bIsTop = true; // don't forget to drop it in the shape itself
 		
 		PPTX::Logic::Shape& oShape = oElem.as<PPTX::Logic::Shape>();
 		OOX::IFileContainer* rels = GetRelsPtr();
@@ -5565,7 +5558,7 @@ void CDrawingConverter::ConvertGroupVML(PPTX::Logic::SpTreeElem& oElem, const st
 
 	if (oElem.is<PPTX::Logic::SpTree>())
 	{
-		oWriter.m_bIsTop = true; // не забыть скинуть в самом шейпе (вместе с остальными параметрами)
+		oWriter.m_bIsTop = true; // don't forget to reset it in the shape itself (along with other parameters)
 		
 		PPTX::Logic::SpTree& oGroup = oElem.as<PPTX::Logic::SpTree>();
 		OOX::IFileContainer* rels = GetRelsPtr();
@@ -5580,7 +5573,7 @@ void CDrawingConverter::ConvertParaVML(XmlUtils::CXmlNode& node, PPTX::Logic::Pa
 	PPTX::CCSS oCSSParser;
 	oCSSParser.LoadFromString2(strStyle);
 
-	//todooo oCSSParser->pPr
+	//TODO oCSSParser->pPr
 
 	std::vector<XmlUtils::CXmlNode> nodesDiv1 = node.GetNodes(L"*");
 	for (auto node1 : nodesDiv1)

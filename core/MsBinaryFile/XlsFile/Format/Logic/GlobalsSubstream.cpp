@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -570,15 +563,15 @@ const bool GlobalsSubstream::loadContent(BinProcessor& proc)
 			case rt_GUIDTypeLib:		proc.optional<GUIDTypeLib>();			break;
 
 			//case rt_XFCRC:
-			//{//не по спецификации !!! Calculadora.xls
+			//{//not according to specification!!! Calculadora.xls
 			//	if(proc.optional<XFCRC>())
 			//	{
-			//		elements_.pop_back(); // Crc не нужен
+			//		elements_.pop_back(); // Crc isn't needed
 
 			//		count = proc.repeated<XFExt>(0, 0);//(16, 4050);
 			//		while (count > 0)
 			//		{
-			//			//перенести в FORMATING/XFS ?? - тогда нужен пересчет там !!
+			//			//transfer to FORMATTING/XFS ?? - then we need a recount there!!
 			//			//if (elements_.empty()) break;
 			//			//XFExt* ext = dynamic_cast<XFExt*>(elements_.back().get());
 			//			//m_arXFext.push_back(elements_.front());
@@ -607,7 +600,7 @@ const bool GlobalsSubstream::loadContent(BinProcessor& proc)
 	}
 
 	if (global_info_->CodePage == 0)
-	{	//try from charsets ... todooo make local set on each record (aka Label)
+	{	//try from charsets ... TODO make local set on each record (aka Label)
 		//from ixfe -> ifnt from xf -> arFonts
 		for (std::map<int, int>::iterator it = global_info_->fonts_charsets.begin()
 			; global_info_->CodePage == 0 && it != global_info_->fonts_charsets.end()
@@ -942,7 +935,7 @@ void GlobalsSubstream::UpdateDefineNames()
 				name = L"_xludf." + name;
 			}
 		}
-		global_info_->arDefineNames.push_back(name);// для имен функций - todooo ... не все функции корректны !! БДИ !!
+		global_info_->arDefineNames.push_back(name);// for function names - TODO... not all functions are correct!! BDI!!
 	}
 }
 void GlobalsSubstream::UpdateExternalDefineNames()

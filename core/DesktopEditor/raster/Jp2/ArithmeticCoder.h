@@ -7,7 +7,7 @@ namespace Jpeg2000
 {
 	//-------------------------------------------------------------------------------------------------------------------------------
 
-	// Данный массив содержит все возможные состояния (см. Annex C Table C-2)
+	// This array contains all possible states (see Annex C Table C-2)
 	static MQCoderState aoMQCoderStates[47 * 2] =
 	{
 		{ 0x5601, 0, &aoMQCoderStates[2], &aoMQCoderStates[3] },
@@ -107,7 +107,7 @@ namespace Jpeg2000
 	};
 
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Вспомогательные функции
+	// Auxiliary functions
 	//-------------------------------------------------------------------------------------------------------------------------------
 	static void MQC_ByteOut(MQCoder *pMQCoder)
 	{
@@ -305,7 +305,7 @@ namespace Jpeg2000
 
 
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Основные функции
+	// Basic functions
 	//-------------------------------------------------------------------------------------------------------------------------------
 	MQCoder* MQC_Create()
 	{
@@ -383,7 +383,7 @@ namespace Jpeg2000
 	}
 	void     MQC_BypassInitEncoder(MQCoder *pMQCoder)
 	{
-		// TO DO: Данная функция не польностью протестирована
+		// TO DO: This feature isn't fully tested
 		pMQCoder->nCregister = 0;
 		pMQCoder->nCt = 8;
 
@@ -394,7 +394,7 @@ namespace Jpeg2000
 	}
 	void     MQC_BypassEncoder(MQCoder *pMQCoder, int nValue)
 	{
-		// TO DO: Данная функция не польностью протестирована
+		// TO DO: This feature isn't fully tested
 		pMQCoder->nCt--;
 		pMQCoder->nCregister = pMQCoder->nCregister + (nValue << pMQCoder->nCt);
 
@@ -414,7 +414,7 @@ namespace Jpeg2000
 
 	int      MQC_BypassFlushEncoder(MQCoder *pMQCoder)
 	{
-		// TO DO: Данная функция не польностью протестирована
+		// TO DO: This feature isn't fully tested
 		unsigned char nBitPadding = 0;
 
 		if (pMQCoder->nCt != 0)

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -34,11 +27,11 @@
 
 /*
 
-Схема работы с visitor:
+Scheme of work with visitor:
 
-для классов, которые могут быть посещены visitor-ом:
-1. наследуем от base_visitable
-2. объявляем внутри макрос CPDOCCORE_DEFINE_VISITABLE()
+for classes that can be visited by a visitor:
+1. inherit from base_visitable
+2. declare the macro CPDOCCORE_DEFINE_VISITABLE() inside
 
 class example_visitable_element: public base_visitable 
 {
@@ -48,16 +41,16 @@ public:
 // ... 
 };
 
-Для создания гостя:
-1. наследуем гостя от base_visitor
-2. наследуем гостя(визитор) от const_visitor<visitable_element1>/visitor<visitable_element1>,
-                        const_visitor<visitable_element2>/visitor<visitable_element2>, и т.д.
-   для каждого из элементов, котоыре может посетить визитор
-3. объявляем для каждого из элементов метод
+To create a guest:
+1. inherit the guest from base_visitor
+2. inherit the guest (visitor) from const_visitor<visitable_element1>/visitor<visitable_element1>,
+                        const_visitor<visitable_element2>/visitor<visitable_element2>, etc.
+   for each of the elements that a visitor can visit
+3. declare a method for each element
     virtual void visit(const visitable_element1& val);
     virtual void visit(const visitable_element2& val);
-    и т.д.
-    (в случае неконстатности - убираем const)
+    etc.
+    (in case of non-constness, remove const)
 
 
 class table_round : public base_visitor, 
@@ -81,16 +74,16 @@ class table_round : public base_visitor,
     }
 };
 
-Для организации обхода:
-1. Создаем визитор
-2. Выполняем accept для корневого элемента
+To organize a walkthrough:
+1. Create a visitor
+2. Execute accept for the root element
 
 office_element * root;
 /// ... 
 table_round tableRoundVisitor;
 root->accept(tableRoundVisitor);
 
-Внимание! Визитор САМ определяет правила обхода внутренних вершин, т.е. внутри каждой функции посещения требуется написать например
+Attention! The visitor itself determines the rules for traversing internal vertices, i.e. inside each visit function need to write for example
     
     virtual void visit(const office_body& val)
     {

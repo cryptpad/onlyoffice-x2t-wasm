@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -168,7 +161,7 @@ namespace DocFileFormat
 			}
 			else
 			{
-				// -1 //че-нить в лог написать
+				// -1 //write something in the log
 			}*/
 
 			oldElem = currentFc;
@@ -336,7 +329,7 @@ namespace DocFileFormat
 			}
 		}
 
-		if ((chpxs != NULL) && (chpxFcs != NULL) && !chpxFcs->empty())//? второе
+		if ((chpxs != NULL) && (chpxFcs != NULL) && !chpxFcs->empty())//? second
 		{
 			size_t i = 0;
 
@@ -361,7 +354,7 @@ namespace DocFileFormat
 
 				//it's the last chpx and it exceeds the paragraph
 
-				if ( ( i == ( chpxs->size() - 1 ) ) && ( fcChpxEnd > fcEnd ) )//todooo убрать обращение к size() !!!
+				if ( ( i == ( chpxs->size() - 1 ) ) && ( fcChpxEnd > fcEnd ) )//TODO remove the call to size() !!!
 				{
 					//so use the FC of the paragraph
 					fcChpxEnd = fcEnd;
@@ -831,7 +824,7 @@ namespace DocFileFormat
 
 				if (!oVmlMapper.m_isEmbedded && oVmlMapper.m_isEquation)
 				{
-					//нельзя в Run писать oMath
+					//oMath can't be written in Run
 					//m_pXmlWriter->WriteString(oVmlMapper.m_equationXml);
 					_writeAfterRun = oVmlMapper.m_equationXml;
 				}
@@ -1015,7 +1008,7 @@ namespace DocFileFormat
 
 				//<w:sym w:font="Symbol" w:char="F062"/>
 
-				if (false == s.HexValue.empty()) //09FluGuide.doc - поврежденный
+				if (false == s.HexValue.empty()) //09FluGuide.doc - damaged
 				{
 					m_pXmlWriter->WriteNodeBegin(L"w:sym", true);
 					if (false == s.FontName.empty()) // ??? default
@@ -1097,7 +1090,7 @@ namespace DocFileFormat
                         if (oPicture.shapeContainer)
                         {
                             if (oPicture.shapeContainer->m_nShapeType != msosptPictureFrame)
-                                bPicture = false;//шаблон 1.doc картинка в колонтитуле
+                                bPicture = false;//шаблон 1.doc image in the footer
 
                             m_bSkip = oPicture.shapeContainer->m_bSkip;
                         }
@@ -1125,7 +1118,7 @@ namespace DocFileFormat
                                 }
                                 else if (oVmlMapper.m_isEquation)
                                 {
-                                    //нельзя в Run писать oMath
+                                    //oMath can't be written in Run
                                     //m_pXmlWriter->WriteString(oVmlMapper.m_equationXml);
                                     _writeAfterRun = oVmlMapper.m_equationXml;
                                     bFormula = true;
@@ -1225,7 +1218,7 @@ namespace DocFileFormat
 			cp++;
 		}
 		if (std::wstring::npos != text.find(L"EMBED"))
-		{//если есть мааркер конца поля и маркер замещающей картинки и нету маркера начала
+		{//if there is a field end marker and a replacement image marker and there is no start marker
 			//О реорганизации территориальных органов ПФР с 01.11.2018.doc
 			int cpFieldStart	= initialCp;
 			int cpPic			= searchNextTextMark(m_document->Text, cpFieldStart, TextMark::Picture);

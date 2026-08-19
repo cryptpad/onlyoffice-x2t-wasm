@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -71,12 +64,12 @@ public:
 
 	void process_master_styles			(office_element_ptr root );
 	void process_automatic_for_styles	(office_element_ptr root );
-	void process_office_styles			(office_element_ptr root );//картинки, шрифты, ... для мастер пэйджей и шаблонов
+	void process_office_styles			(office_element_ptr root );//images, fonts, ... for master pages and templates
 
     odf_layout_state * last_layout();
     odf_master_state * last_master();
 
-	odf_style_context_ptr get_local_styles_context() //для автоматических стилей самих стилей
+	odf_style_context_ptr get_local_styles_context() //for automatic styles the styles themselves
 		{return local_style_context_;}
 
 	void set_page_margin				(_CP_OPT(double) top, _CP_OPT(double) left, _CP_OPT(double) bottom, _CP_OPT(double) right, _CP_OPT(double) header, _CP_OPT(double) footer);
@@ -114,7 +107,7 @@ public:
 
 	void set_page_number_format		(_CP_OPT(int) & type, _CP_OPT(int) & start);
 
-	office_element_ptr	root_header_footer_; //для топовых элементов в style:footer
+	office_element_ptr	root_header_footer_; //for top elements in style:footer
 	
 	double				current_page_width_;
 	bool				even_and_left_headers_;

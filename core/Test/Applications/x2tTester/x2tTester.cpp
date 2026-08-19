@@ -370,9 +370,7 @@ Cx2tTester::Cx2tTester(const std::wstring& configPath)
 		        std::to_wstring(time->tm_min) + L"_" +
 		        std::to_wstring(time->tm_sec);
 
-		std::wstring report_ext = NSFile::GetFileExtention(m_reportFile);
-		m_reportFile = m_reportFile.substr(0, m_reportFile.size() - report_ext.size() - 1);
-		m_reportFile += L"_" + timestamp + L"." + report_ext;
+		m_reportFile += L"Report_" + timestamp + L".txt";
 	}
 
 	if(NSFile::CFileBinary::Exists(m_reportFile))

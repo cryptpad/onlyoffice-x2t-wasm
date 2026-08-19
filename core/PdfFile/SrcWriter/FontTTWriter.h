@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -94,10 +87,10 @@ namespace PdfWriter
 		static CFontFileTrueType *LoadFromFile(const std::wstring& wsFileName, unsigned int unIndex);
 		~CFontFileTrueType();
 
-		// Записываем TrueTypeFont File, заполняя недостающие таблицы и корректируя 
-		// различные ошибки. Если задан парметр <sName>, в шрифте переписываем таблицу
-		// 'name'. Если задан парамтре <pCodeToGID>, тогда в шрифте переписываем
-		// таблицу 'cmap'.
+		// Write a TrueTypeFont File, filling in the missing tables and correcting
+		// various errors. If the <sName> parameter is specified, we rewrite the table in the font
+		// 'name'. If the <pCodeToGID> parameter is specified, then we rewrite in the font
+		// table 'cmap'.
 		void WriteTTF(CStream* pOutputStream, char *sName = NULL, unsigned short *pCodeToGID = NULL, unsigned int unCodesCount = 0, unsigned char *pUseGlyfs = NULL, long lGlyfsCount = 0);
 		void WriteOTF(CStream* pOutputStream, char *sName = NULL, unsigned short *pCodeToGID = NULL);
 		void WriteCIDFontType0C(CStream* pOutputStream, unsigned short* pCodeToGID = NULL, unsigned int unCodesCount = 0);

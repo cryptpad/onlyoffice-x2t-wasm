@@ -16,6 +16,9 @@
  */
 
 
+#ifdef BUILDING_WASM_MODULE
+#include <wasm_jmp.h>
+#endif
 #include <freetype/ftlist.h>
 #include <freetype/ftoutln.h>
 #include <freetype/ftfntfmt.h>
@@ -166,7 +169,11 @@
 
     /* throw away volatileness; use `jump_buffer' or the  */
     /* compiler may warn about an unused local variable   */
+#ifdef BUILDING_WASM_MODULE
+    ft_longjmp_ex( *(ft_jmp_buf*) jump_buffer, 1 );
+#else
     ft_longjmp( *(ft_jmp_buf*) jump_buffer, 1 );
+#endif
   }
 
 

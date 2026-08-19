@@ -101,7 +101,7 @@ namespace Jpeg2000
         unsigned char indB = isBGRA ? 0 : 2;
         Jpeg2000::ImageComponent* pComponents = pImage->pComponents;
 
-        // Пишем данные в pBufferPtr
+        // Writing data to pBufferPtr
         if (pImage->nCsiz == 3 && pImage->pComponents[0].nXRsiz == pImage->pComponents[1].nXRsiz && pImage->pComponents[1].nXRsiz == pImage->pComponents[2].nXRsiz
             && pImage->pComponents[0].nYRsiz == pImage->pComponents[1].nYRsiz && pImage->pComponents[1].nYRsiz == pImage->pComponents[2].nYRsiz
             && pImage->pComponents[0].nPrecision == pImage->pComponents[1].nPrecision && pImage->pComponents[1].nPrecision == pImage->pComponents[2].nPrecision)
@@ -173,7 +173,7 @@ namespace Jpeg2000
 
 		DecoderParams oParameters;
 
-		// Установим стандартные значения параметров
+		// Set standard parameter values
 		ApplyDecoderOptions(&oParameters, wsXmlOptions);
 
 		///////////////////////////////////////////////////////////////////////////////////
@@ -215,7 +215,7 @@ namespace Jpeg2000
 
 		DecoderParams oParameters;
 
-		// Установим стандартные значения параметров
+		// Set standard parameter values
 		ApplyDecoderOptions(&oParameters, wsXmlOptions);
 
 		///////////////////////////////////////////////////////////////////////////////////
@@ -252,7 +252,7 @@ namespace Jpeg2000
 
 		DecoderParams oParameters;
 
-		// Установим стандартные значения параметров
+		// Set standard parameter values
 		ApplyDecoderOptions(&oParameters, wsXmlOptions);
 
 		///////////////////////////////////////////////////////////////////////////////////
@@ -307,7 +307,7 @@ namespace Jpeg2000
 
 		nComponentsCount = pImage->nCsiz;
 
-		// Пишем данные в pBufferPtr
+		// Writing data to pBufferPtr
 		for (int nComponent = 1; nComponent < nComponentsCount; nComponent++)
 		{
 			if (pImage->pComponents[0].nXRsiz != pImage->pComponents[nComponent].nXRsiz
@@ -338,7 +338,7 @@ namespace Jpeg2000
 	}
 	bool CJ2kFile::Save(CBgraFrame* pFrame, const std::wstring& wsDstPath, const std::wstring& wsXmlOptions)
 	{
-		// TODO: Запись не реализована, надо доделать.
+		// TODO: Writing hasn't been implemented yet, it needs to be completed.
 		return false;
 
 		if (!pFrame)
@@ -349,12 +349,12 @@ namespace Jpeg2000
 		BYTE* pSourceBuffer = pFrame->get_Data();
 		LONG lBufferSize    = 4 * lWidth * lHeight;
 
-		// Далее обрабатываем Xml с параметрами компрессии
+		// Next, we process the Xml with compression parameters
 		EncoderParams oParameters;
 		int nFormat = ApplyEncoderOptions(&oParameters, wsXmlOptions);
 
-		// TODO: Добавить возможность записи альфа-канала
-		ImageComponentParams aComponentParams[3]; // Пока пусть будет максимально три компоненты (RGB)
+		// TODO: Add ability to record alpha channel
+		ImageComponentParams aComponentParams[3]; // For now, let there be a maximum of three components (RGB)
 		Image *pImage = NULL;
 		int nComponentsCount = oParameters.nComponentsCount;
 
@@ -370,7 +370,7 @@ namespace Jpeg2000
 			aComponentParams[nIndex].nHeight    = (int)lHeight;
 		}
 
-		// Создаем структуру Image
+		// Create the Image structure
 		pImage = Image_Create(nComponentsCount, &aComponentParams[0], csRGB);
 		if (!pImage)
 			return false;
@@ -433,7 +433,7 @@ namespace Jpeg2000
 		pParameters->nReduce        = 0;
 		pParameters->nLayer         = 0;
 
-		// TODO: Сделать чтение параметров декодирования
+		// TODO: Make reading decoding parameters
 		//if (sXml.GetLength() > 0)
 		//{
 		//	XmlUtils::CXmlNode oMainNode;
@@ -475,20 +475,20 @@ namespace Jpeg2000
 	{
 		EncoderParams* pParameters = (EncoderParams*)pParameters;
 		int nFormat = 0; // J2k
-		// Сначала выставляем стандартные значения параметров
+		// First, set the standard parameter values
 		memset(pParameters, 0, sizeof(EncoderParams));
 		pParameters->nComponentsCount     = 3;
 		pParameters->nResolutionsCount    = 6;
 		pParameters->nCodeBlockHeightInit = 64;
 		pParameters->nCodeBlockWidthInit  = 64;
 		pParameters->eProgOrder           = poLRCP;
-		pParameters->nROIComponentIndex   = -1;     // Нет ROI
+		pParameters->nROIComponentIndex   = -1;     // No ROI
 		pParameters->nSubSamplingDx       = 1;
 		pParameters->nSubSamplingDy       = 1;
 		pParameters->bTileSizeOn          = false;
 		pParameters->sComment             = (char*)"Manufactured by Online Media Technologies Ltd.";
 
-		// TODO: Сделать чтение параметров кодирования
+		// TODO: Make reading encoding parameters
 		//if (sXml.GetLength() > 0)
 		//{
 		//	XmlUtils::CXmlNode oMainNode;
@@ -598,7 +598,7 @@ namespace Jpeg2000
 		//			// SOPmarker
 		//			if (oSaveNode.GetNode(_T("SOPmarker"), oCurNode))
 		//			{
-		//				// Пока отключим, потом надо будет добавить - для этого нужно выделять память для стрктуры ImageInfo
+		//				// Let's disable it for now, then we'll need to add it - for this we need to allocate memory for the ImageInfo structure
 		//				//pParameters->nCodingStyle |= 0x02;
 		//			}
 
@@ -622,7 +622,7 @@ namespace Jpeg2000
 		//			if (oSaveNode.GetNode(_T("Comment"), oCurNode))
 		//			{
 		//				sValue = oCurNode.GetAttribute(_T("value"));
-		//				// TO DO: Неправильное копирование строки
+		//				// TO DO: Incorrect string copying
 		//				USES_CONVERSION;
 		//				pParameters->sComment = W2A(sValue.GetBuffer());
 		//			}
@@ -731,13 +731,13 @@ namespace Jpeg2000
 		//}
 
 
-		// Проверим кооректность введенных параметров
+		// Check the correctness of the entered parameters
 
-		// Параметры nDistoAlloc, nFixedQuality, nFixedAlloc нельзя использовать вместе
+		// The parameters nDistoAlloc, nFixedQuality, nFixedAlloc can't be used together
 		if ((pParameters->nDistoAlloc || pParameters->nFixedAlloc || pParameters->nFixedQuality) && (!(pParameters->nDistoAlloc ^ pParameters->nFixedAlloc ^ pParameters->nFixedQuality)))
 			return -1;
 
-		// Если параметры не заданы, тогда по умолчанию ставим компрессию без потерь
+		// If the parameters aren't specified, then by default we set lossless compression
 		if (0 == pParameters->nLayersCount)
 		{
 			pParameters->afRates[0]   = 0;
@@ -751,7 +751,7 @@ namespace Jpeg2000
 		{
 			if (-1 == pParameters->aoPOC[nIndex].ePpoc)
 			{
-				// TO DO: Выдать ошибку, что порядок не задан
+				// TO DO: Throw an error that the order isn't specified
 			}
 		}
 

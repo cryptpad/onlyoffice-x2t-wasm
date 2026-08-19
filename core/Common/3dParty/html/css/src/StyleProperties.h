@@ -859,7 +859,7 @@ namespace NSCSS
 		CDigit  m_oSize;
 		CDigit  m_oLineHeight;
 		CString m_oFamily;
-		//TODO:: возможно стоит перейти в слудующих переменных на enum
+		//TODO:: it might be worth switching to enum for the following variables
 		CString m_oStretch;
 		CString m_oStyle;
 		CString m_oVariant;

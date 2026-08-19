@@ -60,10 +60,10 @@ bool CHWPFile::Open()
 	if ((m_oFileHeader.SignatureEmpty() || m_oFileHeader.VersionEmpty()) && !Detect())
 		return false;
 
-	//TODO:: добавить отдельный метод StringToInt
+	//TODO:: add a separate StringToInt method
 	m_nVersion = std::stoi(m_oFileHeader.GetVersion());
 
-	//TODO:: проверить данный момент
+	//TODO:: check this case
 	if (m_oFileHeader.PasswordEncrypted())
 		return false;
 
@@ -141,7 +141,7 @@ CDirectoryEntry* CHWPFile::FindChildEntry(const HWP_STRING& sBasePath, const CDi
 	{
 		if (0x01 == pEntry->GetObjectType())
 		{
-			//TODO:: проверить
+			//TODO:: check
 			HWP_STRING sChildPath = sBasePath + FILE_SEPARATOR_STR + pEntry->GetDirectoryEntryName();
 			return FindChildEntry(sChildPath, *pEntry, sEntryName);
 		}
@@ -157,7 +157,7 @@ CDirectoryEntry* CHWPFile::FindChildEntry(const HWP_STRING& sBasePath, const CDi
 
 HWP_STRING CHWPFile::SaveChildEntry(const HWP_STRING& sRootPath, const HWP_STRING& sEntryName, ECompressed eCompressed)
 {
-	//TODO:: перенести
+	//TODO::transfer
 	return HWP_STRING();
 }
 
@@ -294,8 +294,8 @@ bool CHWPFile::Unzip(CHWPStream& oInput, CHWPStream& oBuffer)
 	return DEFLATE_OK == nRes || DEFLATE_STREAM_END == nRes;
 }
 
-// Так как на всех ОС необходимо одинаковое поведение,
-// то используем свой рандомайзер
+// Since the same behavior is required on all operating systems,
+// use our own randomizer
 
 class CRandomizer
 {

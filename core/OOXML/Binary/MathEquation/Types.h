@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -48,14 +41,14 @@ namespace MathEquation
 
 	enum MBRACKETSTYPE
 	{
-		bracketsAngle            = 0x00, // < > Угловые скобки
-		bracketsRound            = 0x01, // ( ) Круглые скобки
-		bracketsCurve            = 0x02, // { } Фигурные скобки
-		bracketsSquare           = 0x03, // [ ] Квадратные скобки
-		bracketsLine             = 0x04, // | | Скобки в виде линии
-		bracketsDLine            = 0x05, // || ||Скобки в виде двойной линии
-		bracketsFloor            = 0x06, // Скобки с углом внизу
-		bracketsCeil             = 0x07, // Скобки с углом наверху
+		bracketsAngle            = 0x00, // < > Angle brackets
+		bracketsRound            = 0x01, // ( ) Parentheses
+		bracketsCurve            = 0x02, // { } Curly braces
+		bracketsSquare           = 0x03, // [ ] Square brackets
+		bracketsLine             = 0x04, // Vertical bar brackets (absolute value)
+		bracketsDLine            = 0x05, // || ||Double line brackets
+		bracketsFloor            = 0x06, // Brackets with corner at bottom
+		bracketsCeil             = 0x07, // Brackets with corner at top
 		bracketsSquareOpenOpen   = 0x08, // [ [
 		bracketsSquareCloseClose = 0x09, // ] ]
 		bracketsSquareCloseOpen  = 0x0a, // ] [
@@ -66,8 +59,8 @@ namespace MathEquation
 
 	enum MFRACTIONTYPES
 	{
-		fractionRegular = 0, // Обычная дробь
-		fractionSlanted = 1  // Наклонная дробь
+		fractionRegular = 0, // Common fraction
+		fractionSlanted = 1  // Slant fraction
 	};
 
 	enum MSCRIPTALIGN
@@ -79,91 +72,91 @@ namespace MathEquation
 
 	enum MBARTYPE
 	{
-		bartypeLine        = 0, // простая линия
-		bartypeDoubleLine  = 1, // двойная линия
-		bartypeArrowLeft   = 2, // стрелка налево
-		bartypeArrowRight  = 3, // стрелка направо
-		bartypeArrowDouble = 4  // двойная стрелка (и налево, и направо)
+		bartypeLine        = 0, // simple line
+		bartypeDoubleLine  = 1, // double line
+		bartypeArrowLeft   = 2, // left arrow
+		bartypeArrowRight  = 3, // right arrow
+		bartypeArrowDouble = 4  // double arrow (both left and right)
 	};
 
 	enum MARROWTYPE
 	{
-		arrowtypeLeft   = 0, // стрелка налево
-		arrowtypeRight  = 1, // стрелка направо
-		arrowtypeDouble = 2  // двойная стрелка (и налево, и направо)
+		arrowtypeLeft   = 0, // left arrow
+		arrowtypeRight  = 1, // right arrow
+		arrowtypeDouble = 2  // double arrow (both left and right)
 	};
 
 	enum MINTEGRALTYPE
 	{
-		integraltypeSingle             = 0, // Обычный одинарный интеграл без индексов
-		integraltypeSingleRSub         = 1, // Одинарный интеграл с правым нижним индексом
-		integraltypeSingleRSubSup      = 2, // Одинарный интеграл с правыми верхним и нижним индексами
-		integraltypeSingleOriented     = 3, // Одинарный ориентированный интеграл
-		integraltypeSingleOrientedRSub = 4, // Одинарный ориентированный интеграл с правым нижним индексом
+		integraltypeSingle             = 0, // Ordinary single integral without subscripts
+		integraltypeSingleRSub         = 1, // Single integral with right subscript
+		integraltypeSingleRSubSup      = 2, // Single integral with right upper and lower indices
+		integraltypeSingleOriented     = 3, // Single oriented integral
+		integraltypeSingleOrientedRSub = 4, // Single oriented integral with right subscript
 
-		integraltypeDouble             = 5,  // Двойной интеграл без индексов
-		integraltypeDoubleRSub         = 6,  // Двойной интеграл с правым нижним индексом
-		integraltypeDoubleOriented     = 7,  // Двойной ориентированный интеграл
-		integraltypeDoubleOrientedRSub = 8,  // Двойной ориентированный интеграл с правым нижним индексом
+		integraltypeDouble             = 5,  // Double integral without subscripts
+		integraltypeDoubleRSub         = 6,  // Double integral with right subscript
+		integraltypeDoubleOriented     = 7,  // Double oriented integral
+		integraltypeDoubleOrientedRSub = 8,  // Double oriented integral with right subscript
 
-		integraltypeTriple             = 9,  // Тройной интеграл без индексов
-		integraltypeTripleRSub         = 10, // Тройной интеграл с правым нижним индексом
-		integraltypeTripleOriented     = 11, // Тройной ориентированный интеграл
-		integraltypeTripleOrientedRSub = 12, // Тройной ориентированный интеграл с правым нижним индексом
+		integraltypeTriple             = 9,  // Triple integral without subscripts
+		integraltypeTripleRSub         = 10, // Triple integral with right subscript
+		integraltypeTripleOriented     = 11, // Triple oriented integral
+		integraltypeTripleOrientedRSub = 12, // Triple oriented integral with right subscript
 
-		integraltypeSingleCSubSup      = 13, // Одинарный интеграл с центральными верхним и нижним индексами
-		integraltypeSingleCSub         = 14, // Одинарный интеграл с центральным нижним индексом
-		integraltypeSingleOrientedCSub = 15, // Одинарный ориентированный интеграл с центральным нижним индексом
+		integraltypeSingleCSubSup      = 13, // Single integral with central superscript and subscript
+		integraltypeSingleCSub         = 14, // Single integral with central subscript
+		integraltypeSingleOrientedCSub = 15, // Single oriented integral with central subscript
 
-		integraltypeDoubleOrientedCSub = 16, // Двойной ориентированный интеграл с центральным нижним индексом
-		integraltypeDoubleCSub         = 17, // Двойной интеграл с центральным нижним индексом
+		integraltypeDoubleOrientedCSub = 16, // Double oriented integral with central subscript
+		integraltypeDoubleCSub         = 17, // Double integral with central subscript
 
-		integraltypeTripleOrientedCSub = 18, // Тройной ориентированный интеграл с центральным нижним индексом
-		integraltypeTripleCSub         = 19  // Тройной интеграл с центральным нижним индексом
+		integraltypeTripleOrientedCSub = 18, // Triple oriented integral with central subscript
+		integraltypeTripleCSub         = 19  // Triple integral with central subscript
 	};
 
 	enum MNARRAYTYPE
 	{
-		narySumCSub          = 0,  // Знак суммы с центральным нижним индексом
-		narySumCSubSup       = 1,  // Знак суммы с центральными нижним и верхним индексами
-		narySum              = 2,  // Знак суммы без индексов
+		narySumCSub          = 0,  // Sum sign with central subscript
+		narySumCSubSup       = 1,  // Sum sign with central subscript and superscript
+		narySum              = 2,  // Sum sign without subscripts
 
-		narySumRSub          = 3,  // Знак суммы с правым нижним индексом
-		narySumRSubSup       = 4,  // Знак суммы с правыми нижним и верхним индексами
+		narySumRSub          = 3,  // Sum sign with right subscript
+		narySumRSubSup       = 4,  // Sum sign with right lower and upper indices
 
-		naryProdCSub         = 5,  // Знак произведения с центральным нижним индексом
-		naryProdCSubSup      = 6,  // Знак произведения с центральными нижним и верхним индексами
-		naryProd             = 7,  // Знак произведения  без индексов
+		naryProdCSub         = 5,  // Product sign with central subscript
+		naryProdCSubSup      = 6,  // Product sign with central subscript and superscript
+		naryProd             = 7,  // Product sign without subscripts
 
-		naryProdRSub         = 8,  // Знак произведения с правым нижним индексом
-		naryProdRSubSup      = 9,  // Знак произведения с правыми нижним и верхним индексами
+		naryProdRSub         = 8,  // Product sign with right subscript
+		naryProdRSubSup      = 9,  // Product sign with right lower and upper indices
 
-		naryCoProdCSub       = 10, // Знак копроизведения с центральным нижним индексом
-		naryCoProdCSubSup    = 11, // Знак копроизведения с центральными нижним и верхним индексами
-		naryCoProd           = 12, // Знак копроизведения  без индексов
+		naryCoProdCSub       = 10, // Coproduct sign with central subscript
+		naryCoProdCSubSup    = 11, // Coproduct sign with central subscript and superscript
+		naryCoProd           = 12, // Coproduct sign without subscripts
 
-		naryCoProdRSub       = 13, // Знак копроизведения с правым нижним индексом
-		naryCoProdRSubSup    = 14, // Знак копроизведения с правыми нижним и верхним индексами
+		naryCoProdRSub       = 13, // Coproduct sign with right subscript
+		naryCoProdRSubSup    = 14, // Coproduct sign with right lower and upper indices
 
-		naryUnionCSub        = 15, // Знак объединения с центральным нижним индексом
-		naryUnionCSubSup     = 16, // Знак объединения с центральными нижним и верхним индексами
-		naryUnion            = 17, // Знак объединения  без индексов
+		naryUnionCSub        = 15, // Union sign with central subscript
+		naryUnionCSubSup     = 16, // Union sign with central subscript and superscript
+		naryUnion            = 17, // Union sign without subscripts
 
-		naryUnionRSub        = 18, // Знак объединения с правым нижним индексом
-		naryUnionRSubSup     = 19, // Знак объединения с правыми нижним и верхним индексами
+		naryUnionRSub        = 18, // Union sign with right subscript
+		naryUnionRSubSup     = 19, // Union sign with right subscript and superscript
 
-		naryIntersectCSub    = 20, // Знак пересечения с центральным нижним индексом
-		naryIntersectCSubSup = 21, // Знак пересечения с центральными нижним и верхним индексами
-		naryIntersect        = 22, // Знак пересечения  без индексов
+		naryIntersectCSub    = 20, // Intersection sign with upper and lower limits
+		naryIntersectCSubSup = 21, // Intersection sign with upper and lower limits and superscript
+		naryIntersect        = 22, // Intersection sign without indexes
 
-		naryIntersectRSub    = 23, // Знак пересечения с правым нижним индексом
-		naryIntersectRSubSup = 24  // Знак пересечения с правыми нижним и верхним индексами
+		naryIntersectRSub    = 23, // Intersection sign with right subscript
+		naryIntersectRSubSup = 24  // Intersection sign with right lower and upper indices
 	};
 
 	enum MLONGDIVISION
 	{
-		longdivisionWithResult = 0, // Знак деления столбиком без частного
-		longdivisionRegular    = 1  // Знак деления столбиком с частным
+		longdivisionWithResult = 0, // Division sign without quotient
+		longdivisionRegular    = 1  // Division sign with quotient
 	};
 
 	enum MANGLEBRACKETSWITHSEPARATORTYPE
@@ -175,25 +168,25 @@ namespace MathEquation
 
 	enum MEMBELTYPE
 	{
-		embelDot         = 0x02, // точка         .
-		embelDDot        = 0x03, // две точки     ..  
-		embelDDDot       = 0x04, // три точки     ...
-		embelPrime       = 0x05, // штрих         '
-		embelDPrime      = 0x06, // два штриха    "
-		embelLPrime      = 0x07, // штрих слева   '
-		embelTilde       = 0x08, // волна         ~
-		embelHat         = 0x09, // крышка(шляпа) ^
-		embelSlash       = 0x0a, // косая черта   /
-		embelRArrow      = 0x0b, // стрелка вправо <-
-		embelLArrow      = 0x0c, // стрелка влево ->
-		embelDArrow      = 0x0d, // стрелка в обе стороны <->
-		embelRHarpoon    = 0x0e, // гарпун вправо
-		embelLHarpoon    = 0x0f, // гарпун влево
-		embelStrikeout   = 0x10, // зачеркивание
-		embelBar         = 0x11, // линия
-		embelTPrime      = 0x12, // три штриха '''
-		embelFrown       = 0x13, // дуга вверх
-		embelSmile       = 0x14, // дуга вниз
+		embelDot         = 0x02, // point .
+		embelDDot        = 0x03, // two points..
+		embelDDDot       = 0x04, // three dots...
+		embelPrime       = 0x05, // stroke'
+		embelDPrime      = 0x06, // two strokes"
+		embelLPrime      = 0x07, // left stroke '
+		embelTilde       = 0x08, // wave ~
+		embelHat         = 0x09, // cap (hat) ^
+		embelSlash       = 0x0a, // slash /
+		embelRArrow      = 0x0b, // right arrow ->
+		embelLArrow      = 0x0c, // left arrow <-
+		embelDArrow      = 0x0d, // arrow in both directions <->
+		embelRHarpoon    = 0x0e, // harpoon right
+		embelLHarpoon    = 0x0f, // harpoon left
+		embelStrikeout   = 0x10, // strikethrough
+		embelBar         = 0x11, // line
+		embelTPrime      = 0x12, // three strokes '''
+		embelFrown       = 0x13, // arc up
+		embelSmile       = 0x14, // arc down
 
 		embelMin         = 0x02,
 		embelMax         = 0x14
@@ -209,11 +202,11 @@ namespace MathEquation
 
 	enum MMATRIXHORALIGN
 	{
-		matrixhoralignLeft      = 0x00, // прилегание к левому краю
-		matrixhoralignCenter    = 0x01, // прилегание по центру
-		matrixhoralignRight     = 0x02, // прилегание к правому краю
-		matrixhoralignEqualSign = 0x03, // прилегание по знаку =
-		matrixhoralignCommaSign = 0x04  // прилегание по знаку ,
+		matrixhoralignLeft      = 0x00, // fit to the left edge
+		matrixhoralignCenter    = 0x01, // center fit
+		matrixhoralignRight     = 0x02, // fit to the right edge
+		matrixhoralignEqualSign = 0x03, // Approaches sign =
+		matrixhoralignCommaSign = 0x04  // sign fit,
 	};
 
 	enum MMATRIXVERALIGN

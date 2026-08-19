@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -41,16 +34,16 @@ namespace PdfWriter
 		if (!bInline)
 			pXref->Add(this);
 
-		// Первый элемент массива должен быть страницей, которой принадлежит объект
+		// The first element of the array must be the page that the object belongs to
 		Add(pPage);
-		Add("Fit"); // Значение по умолчанию Fit
+		Add("Fit"); // Default Fit
 	}
 	bool CDestination::IsValid() const
 	{
 		if (m_arrList.size() < 2)
 			return false;
 
-		// Проверка, что объект является страницей. Но это может быть ссылка на нередактируемую страницу
+		// Checking that an object is a page. But this may be a link to a non-editable page
 		// CObjectBase* pObject = Get(0, false);
 		// if ((object_type_DICT != pObject->GetType() || dict_type_PAGE != ((CDictObject*)pObject)->GetDictType()) &&
 		// 		(object_type_PROXY != pObject->GetType() || object_type_DICT != ((CProxyObject*)pObject)->Get()->GetType() || dict_type_PAGE != ((CDictObject*)((CProxyObject*)pObject)->Get())->GetDictType()))
@@ -85,7 +78,7 @@ namespace PdfWriter
 		if (!IsValid())
 			return;
 
-		// Если параметр приближения задан некорректно, тогда оставляем его нетронутым(что соответствует значению 0)
+		// If the zoom parameter is set incorrectly, then leave it untouched (which corresponds to a value of 0)
 		if (fZoom < 0.08 || fZoom > 32)
 			fZoom = 0;
 

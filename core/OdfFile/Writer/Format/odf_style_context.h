@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -83,7 +76,7 @@ public:
 	bool find_odf_default_style_state(odf_types::style_family::type family, odf_style_state_ptr & state);
 	
 	bool find_odf_style(std::wstring style_name, odf_types::style_family::type family, style *& style_);
-	bool find_odf_style_state(std::wstring style_name, odf_types::style_family::type family, odf_style_state_ptr & state); //имена в odf_writer сделаны полностью уникальными
+	bool find_odf_style_state(std::wstring style_name, odf_types::style_family::type family, odf_style_state_ptr & state); //names in odf_writer are made completely unique
 
 	odf_style_state_ptr	last_state(odf_types::style_family::type family = odf_types::style_family::None);
 
@@ -107,7 +100,7 @@ private:
    
     
 	std::vector<odf_style_state_ptr>		style_state_list_;	
-	std::vector<odf_style_state_ptr>		current_default_styles_;//для внутренней работы .. переодически очищаемый частично или полностью
+	std::vector<odf_style_state_ptr>		current_default_styles_;//for internal work .. periodically cleaned partially or completely
    
 	std::wstring get_name_family(odf_types::style_family::type family);
 

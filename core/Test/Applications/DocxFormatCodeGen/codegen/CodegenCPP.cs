@@ -12,17 +12,10 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
- *
+  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
@@ -58,7 +51,7 @@ namespace codegen
         string gc_sEnumToXmlPrefix = "ToXml_";
         public void Process(string sDirCppXmlOut, string sDirCppBinOut, List<GenClass> aGenClasses)
         {
-            //собираем список используемых типов
+            //collect a list of used types
             List<GenClass> aEnums = new List<GenClass>();
             List<GenClass> aClasses = new List<GenClass>();
             for (int i = 0; i < aGenClasses.Count; ++i)
@@ -91,10 +84,10 @@ namespace codegen
             m_oDocxSerH.AppendFormat("namespace OOX{{\r\nnamespace Spreadsheet{{\r\n");
             m_oDocxSerCPP.AppendFormat("#include \"{0}\"\r\nnamespace OOX{{\r\nnamespace Spreadsheet{{\r\n", sFileDocxSerH);
             
-            //в начале все enum
+            //at the beginning: all enums
             for (int i = 0; i < aEnums.Count; ++i)
                 ProcessClass(aEnums[i]);
-            //декларация классов
+            //class declaration
             for (int i = 0; i < aClasses.Count; ++i)
                 m_oDocxSerH.AppendFormat("class {0};\r\n", aClasses[i].sName);
             for (int i = 0; i < aClasses.Count; ++i)
@@ -281,7 +274,7 @@ namespace codegen
                 string sMemeberName = Utils.GetMemberElemName(oGenMember.sName);
                 if (!oGenMember.bIsArray)
                 {
-                    //todo подумать нужны ли в конструкторе DefAttribute
+                    //todo think about whether DefAttribute is needed in the constructor
                     if (null != oGenMember.sDefAttribute)
                     {
                         string sTypeClass = "";
@@ -305,7 +298,7 @@ namespace codegen
                             }
                             else
                             {
-                                //todo без строк
+                                //todo without strings
                                 sb.AppendFormat("CString s_{0}(\"{1}\");\r\n", sMemeberName, oGenMember.sDefAttribute);
                                 sb.AppendFormat("{{\r\n", sMemeberName, oGenMember.sDefAttribute);
                                 ProcessCPPTypeFromXml(sb, "s_" + sMemeberName, "*" + sMemeberName, oGenMember.oSystemType);
@@ -674,7 +667,7 @@ namespace codegen
             //todo
             switch (Type.GetTypeCode(oType))
             {
-                case TypeCode.Boolean://todo на запись "false", "off"
+                case TypeCode.Boolean://todo to write "false", "off"
                     sb.AppendFormat("if({0})\r\n", sCodeVal);
                     sb.AppendFormat("{0} = _T(\"1\");\r\n", sCodeMember);
                     sb.AppendFormat("else\r\n");

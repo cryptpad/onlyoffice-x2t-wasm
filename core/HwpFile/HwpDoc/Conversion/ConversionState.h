@@ -40,7 +40,7 @@ struct TConversionState
 		}
 	} m_oLastNode;
 
-	bool m_bInTextBox; // TODO:: используется, чтобы в wps:txbx не появилась новая фигура (посмотреть этот момент нужно подробнее)
+	bool m_bInTextBox; // TODO:: is used to prevent a new shape from appearing in wps:txbx (review this in more detail)
 
 	unsigned short m_ushLastCharShapeId;
 	unsigned short m_ushSecdIndex;

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -35,15 +28,15 @@
 // CPath
 //-------------------------------------------------------------------------------------------------------------------------------
 
-// Path может быть в одном из трех следующий состояний:
+// Path can be in one of the following three states:
 //
-// 1. Нет текущей точки -- ни одного или более законченных SubPaths
+// 1. No current point -- zero or more completed SubPaths
 //    [m_nCurSubpath == m_nPointsCount]
 //
-// 2. Одна точка в SubPaths
+// 2. One point in SubPaths
 //    [m_nCurSubpath == m_nPointsCount - 1]
 //
-// 3. Открытый SubPaths c двумя или более точками
+// 3. Open SubPaths with two or more points
 //    [m_nCurSubpath < m_nPointsCount - 1]
 
 CFontPath::CFontPath() : NSFonts::IFontPath()

@@ -199,11 +199,11 @@ namespace NSGraphics
 		void drawHorLine (BYTE align, double y, double x, double r, double penW);
 		void drawHorLine2(BYTE align, double y, double x, double r, double penW);
 		void drawVerLine (BYTE align, double x, double y, double b, double penW);
-		// мега крутые функции для таблиц
+		// mega cool functions for tables
 		void drawHorLineExt(BYTE align, double y, double x, double r, double penW, double leftMW, double rightMW);
 		void rect     (double x, double y, double w, double h);
 		void TableRect(double x, double y, double w, double h);
-		// функции клиппирования
+		// clipping functions
 		void AddClipRect(double x, double y, double w, double h);
 		void RemoveClipRect();
 		void SetClip    (double x, double y, double w, double h);

@@ -339,7 +339,7 @@ namespace MetaFile
 		else if (pFont->IsStrikeOut())
 			arNodeAttributes.Add(L"text-decoration", L"line-through");
 
-		//TODO:: разобраться для корректной работы
+		//TODO:: investigate this for correct operation
 		//                        double dFontCharSpace = pFont->GetCharSet();
 
 		//                        if (dFontCharSpace > 1)
@@ -355,7 +355,7 @@ namespace MetaFile
 		if (ulTextAlign & TA_BASELINE)
 		{
 			ulTextAlign -= TA_BASELINE;
-			// Ничего не делаем
+			// Do nothing
 		}
 		else if (ulTextAlign & TA_BOTTOM || ulVTextAlign == VTA_BOTTOM)
 		{
@@ -389,10 +389,10 @@ namespace MetaFile
 		}
 		else  //if (ulTextAlign & TA_LEFT)
 		{
-			// Ничего не делаем
+			// Do nothing
 		}
 
-		if (oScale.Y < -0.00001) //TODO::Тоже нужно и для dXScale
+		if (oScale.Y < -0.00001) //TODO::Needed for dXScale too
 		{
 			dYCoord += dFontHeight;
 
@@ -660,7 +660,7 @@ namespace MetaFile
 		unsigned int ulPenEndCap    = unMetaPenStyle & PS_ENDCAP_MASK;
 		unsigned int ulPenJoin      = unMetaPenStyle & PS_JOIN_MASK;
 
-		// svg не поддерживает разные стили для разных сторон линии
+		// svg doesn't support different styles for different sides of a line
 		std::wstring wsLineCap, wsLineJoin;
 
 		if (PS_ENDCAP_ROUND == ulPenEndCap)

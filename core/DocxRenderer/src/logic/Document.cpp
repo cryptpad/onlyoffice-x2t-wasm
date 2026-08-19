@@ -73,7 +73,7 @@ namespace NSDocxRenderer
 		*dDpiY = m_dDpiY;
 		return S_OK;
 	}
-	//-------- Функции для задания настроек текста ----------------------------------------------
+	//-------- Functions for setting text settings ----------------------------------------------
 	// pen --------------------------------------------------------------------------------------
 	HRESULT CDocument::get_PenColor(LONG* lColor)
 	{
@@ -489,7 +489,7 @@ namespace NSDocxRenderer
 		return S_OK;
 	}
 
-	//-------- Функции для вывода текста --------------------------------------------------------
+	//-------- Functions for text output --------------------------------------------------------
 	HRESULT CDocument::CommandDrawTextPrivate(const int* pUnicodes, const int* pGids, int nCount,
 	                                          const double& dX, const double& dY, const double& dW,
 	                                          const double& dH, const double& dBaseLineOffset)
@@ -497,7 +497,7 @@ namespace NSDocxRenderer
 		double dAngleMatrix = m_oCurrentPage.m_oTransform.z_Rotation();
 		if (fabs(dAngleMatrix) > 1 || m_oCurrentPage.m_oTransform.sx() < 0 || m_oCurrentPage.m_oTransform.sy() < 0)
 		{
-			//note У повернутых символов не приходят координаты.
+			//note Rotated symbols don't receive coordinates.
 			_SetFont();
 			PathCommandEnd();
 			BeginCommand(c_nPathType);
@@ -546,7 +546,7 @@ namespace NSDocxRenderer
 		delete [] pUnicodes;
 		return S_OK;
 	}
-	//-------- Маркеры для команд ---------------------------------------------------------------
+	//-------- Markers for commands ---------------------------------------------------------------
 	HRESULT CDocument::BeginCommand(DWORD lType)
 	{
 		if (c_nPageType == lType && m_bIsDisablePageCommand)
@@ -586,7 +586,7 @@ namespace NSDocxRenderer
 
 		return S_OK;
 	}
-	//-------- Функции для работы с Graphics Path -----------------------------------------------
+	//-------- Functions for working with Graphics Path -----------------------------------------------
 	HRESULT CDocument::PathCommandMoveTo(double fX, double fY)
 	{
 		if (c_nSimpleGraphicType == m_lCurrentCommandType)
@@ -708,7 +708,7 @@ namespace NSDocxRenderer
 		ApplyTransform2(dAngle, dLeft, dTop, dWidth, dHeight, lFlags);
 		return S_OK;
 	}
-	//-------- Функции для вывода изображений --------------------------------------------------
+	//-------- Functions for displaying images --------------------------------------------------
 	HRESULT CDocument::DrawImage(IGrObject* pImage, double fX, double fY, double fWidth, double fHeight)
 	{
 		m_oCurrentPage.WriteImage(m_oImageManager.WriteImage((Aggplus::CImage*)pImage, fX, fY, fWidth, fHeight), fX, fY, fWidth, fHeight);
@@ -810,10 +810,10 @@ namespace NSDocxRenderer
 	{
 		Clear();
 
-		// Сбросим кэш шрифтов. По идее можно оставлять кэш для шрифтов "по имени",
-		// но для шрифтов из темповых папок - нет. Темповая папка для Reader (PDF/XPS/DJVU)
-		// может быть одной и той же. И создание там файлов функцией создания временных файлов
-		// может вернуть один и тот же путь. И шрифт возьмется из старого файла.
+		// Reset the font cache. In theory, a cache for fonts "by name" can be kept,
+		// but for fonts from temp folders - no. The temp folder for Reader (PDF/XPS/DJVU)
+		// may be the same. And creating files there with the function of creating temporary files
+		// may return the same path. And the font will be taken from the old file.
 		m_oFontSelector.ClearCache();
 		m_oFontManager.ClearCache();
 		if (m_pAppFonts && bIsClearStreams) m_pAppFonts->GetStreams()->Clear();
@@ -890,7 +890,7 @@ namespace NSDocxRenderer
 
 	void CDocument::BuildDocumentXmlRels()
 	{
-		// сохраним rels (images & docs)
+		// save rels (images & docs)
 		NSStringUtils::CStringBuilder oWriter;
 
 		oWriter.WriteString(L"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
@@ -921,7 +921,7 @@ namespace NSDocxRenderer
 	void CDocument::BuildFontTableXml()
 	{
 		NSStringUtils::CStringBuilder oWriter;
-		// сохраним fontTable
+		// save fontTable
 		oWriter.WriteString(L"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
 		                    <w:fonts xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
 		        xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" \
@@ -1003,7 +1003,7 @@ namespace NSDocxRenderer
 	{
 		NSStringUtils::CStringBuilder oWriter;
 
-		// сохраним styles
+		// save styles
 		oWriter.WriteString(L"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
 		                    <w:styles xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
 		        xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" \
@@ -1169,7 +1169,7 @@ namespace NSDocxRenderer
 		oWriter.WriteString(L"<w:uiPriority w:val=\"1\"/>");
 		oWriter.WriteString(L"<w:semiHidden/>");
 		oWriter.WriteString(L"<w:unhideWhenUsed/>");
-		oWriter.WriteString(L"<w:noProof/>"); //отключение проверки орфографии
+		oWriter.WriteString(L"<w:noProof/>"); //disable spell checking
 		oWriter.WriteString(L"<w:b w:val=\"0\"/>");
 		oWriter.WriteString(L"<w:bCs w:val=\"0\"/>");
 		oWriter.WriteString(L"<w:i w:val=\"0\"/>");

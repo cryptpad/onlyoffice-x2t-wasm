@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -673,8 +666,8 @@ namespace NSOpenSSL
 #define GCM_IV_LENGTH   12
 #define GCM_TAG_LENGHT  16
 
-	// для того, чтобы мы могли менять алгоритмы, в зависимости от версии
-	// на шифровке - дописываем хедер. сделано на этом уровне, чтобы лишний раз не выделять/копировать память
+	// so that algorithms can be changed depending on the version
+	// on the encryption - add the header. done at this level so as not to allocate/copy memory again
 	std::string g_aes_header = "VER2;";
 
 	unsigned char* PBKDF2_desktop_GCM(const std::string& pass, const std::string& salt)

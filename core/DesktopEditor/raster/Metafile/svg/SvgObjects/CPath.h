@@ -167,7 +167,7 @@ namespace SVG
 		IPathElement *m_pCurrentElement;
 		unsigned int  m_unIndexElement;
 
-		// Необходимо при рабое с кривыми Безье
+		// Necessary when working with Bezier curves
 		double        m_dCurveIndex;
 		double        m_dCurveStep;
 	};

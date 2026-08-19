@@ -1,0 +1,14 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index a8618452794..4ab368a4149 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -689,6 +689,9 @@ config("toolchain") {
+ 
+   defines = []
+   cflags = []
++  if (!is_win) {
++    cflags += ["-include", "cstdint"]
++  }
+   ldflags = []
+ 
+   if (v8_current_cpu == "arm") {

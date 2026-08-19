@@ -45,11 +45,11 @@ function Raster()
     {
         if (!this.isInit)
         {
-            // не подгружен еще модуль
+            // module not loaded yet
             return null;
         }
 
-        // копируем память в память webasm
+        // copy memory to webasm memory
         var imageFileRawDataSize = dataBuffer.byteLength;
         var imageFileRawData = Module["_Raster_Malloc"](imageFileRawDataSize);
         if (0 === imageFileRawData)
@@ -58,7 +58,7 @@ function Raster()
         var uint8DataBuffer = new Uint8Array(dataBuffer);
         Module["HEAP8"].set(uint8DataBuffer, imageFileRawData);
 
-        // грузим картинку
+        // upload the image
         var imageFile = Module["_Raster_Load"](imageFileRawData, imageFileRawDataSize);
         if (0 === imageFile)
         {
@@ -66,7 +66,7 @@ function Raster()
             return null;
         }
 
-        // получаем данные картинки
+        // get the image data
         var imageW = Module["_Raster_GetWidth"](imageFile);
         var imageH = Module["_Raster_GetHeight"](imageFile);
         var imageRGBA = Module["_Raster_GetRGBA"](imageFile);
@@ -78,7 +78,7 @@ function Raster()
             return null;
         }
 
-        // быстро копируем память в канву
+        // quickly copy memory to canvas
         var canvas = document.createElement("canvas");
         canvas.width = imageW;
         canvas.height = imageH;

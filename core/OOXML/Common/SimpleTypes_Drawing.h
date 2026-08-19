@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -33,7 +26,7 @@
 
 #include "SimpleTypes_Base.h"
 
-// Здесь представлены все простые типы Drawing-Main из спецификации Office Open Xml (20.1.10)
+// Here are all the simple Drawing-Main types from the Office Open Xml specification (20.1.10)
 namespace SimpleTypes
 {
 	//--------------------------------------------------------------------------------
@@ -1346,7 +1339,7 @@ namespace SimpleTypes
 		////new//////////////
 		shapetypeBallon,
 		shapetypeRightUpArrow,
-		//дубирует с WordArd - может задаваться как внутри текстого бокса, так и в виде объекта
+		//duplicates with WordArt - can be specified both inside a text box and as an object
 		shapetypeTextArchDownPour,
 		shapetypeTextArchUpPour,
 		shapetypeTextCanDown,
@@ -1749,7 +1742,7 @@ namespace SimpleTypes
 
 } // SimpleTypes
 
-// Здесь представлены все простые типы Drawing-Word из спецификации Office Open Xml (20.4.3)
+// Here are all the simple Drawing-Word types from the Office Open Xml specification (20.4.3)
 namespace SimpleTypes
 {
 	//--------------------------------------------------------------------------------
@@ -1890,19 +1883,19 @@ namespace SimpleTypes
 
 } // SimpleTypes
 
-// Здесь представлены все простые типы Drawing-Spreadsheet из спецификации Office Open Xml (20.5.3)
+// Here are all the simple Drawing-Spreadsheet types from the Office Open Xml specification (20.5.3)
 namespace SimpleTypes
 {
 
 } // SimpleTypes
 
-// Здесь представлены все простые типы Drawing-Charts из спецификации Office Open Xml (21.2.3, 21.3.3)
+// Here are all the simple Drawing-Charts types from the Office Open Xml specification (21.2.3, 21.3.3)
 namespace SimpleTypes
 {
 
 } // SimpleTypes
 
-// Здесь представлены все простые типы Drawing-Diagrams из спецификации Office Open Xml (21.4.7)
+// Here are all the simple Drawing-Diagrams types from the Office Open Xml specification (21.4.7)
 namespace SimpleTypes
 {
 	//--------------------------------------------------------------------------------

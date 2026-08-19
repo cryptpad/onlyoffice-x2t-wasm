@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -100,7 +93,7 @@ namespace cpdoccore {
 
 		get_text_context().set_process_layouts(true);
 
-		//актуальные
+		//current
 		for (size_t layout_index = 0; layout_index < layouts.content.size(); layout_index++)
 		{
 			start_layout(layout_index);
@@ -112,7 +105,7 @@ namespace cpdoccore {
 			{
 				layout->pptx_convert(*this);
 			}
-			//нужно вытащить footers 
+			//need to pull out the footers
 			odf_reader::style_master_page* master =
 				root()->odf_context().pageLayoutContainer().master_page_by_name(layouts.content[layout_index].master_name);
 
@@ -154,7 +147,7 @@ namespace cpdoccore {
 		process_masters_ = true;
 		//get_text_context().set_process_layouts(true);
 
-		//берем только актуальные
+		//Take only relevant ones
 		odf_reader::office_element_ptr master_notes_;
 
 		for (size_t master_index = 0; master_index < masters.content.size(); master_index++)
@@ -501,7 +494,7 @@ namespace cpdoccore {
 
 			//
 		}
-		else//общий шаблон (насильно пропишем к темам несоответствующие шалоны)
+		else//general template (we will force mismatched templates into themes)
 		{
 		}
 
@@ -557,7 +550,7 @@ namespace cpdoccore {
 		current_master_page_name_ = L"";
 		current_layout_page_name_ = L"";
 
-		process_theme(masters.content[master_index].master_name);//add default theme - одинаковые но под разными именами
+		process_theme(masters.content[master_index].master_name);//add default theme - the same but under different names
 		current_master().add_theme(current_theme().id(), L"tId1");
 
 		for (size_t i = 0; i < masters.content[master_index].layouts.size(); i++)
@@ -566,7 +559,7 @@ namespace cpdoccore {
 		}
 
 		//----------------------------------------------------------------------------------
-		//размеры страниц в презентации
+		//presentation page sizes
 		const std::wstring pageProperties = root()->odf_context().pageLayoutContainer().page_layout_name_by_style(masters.content[master_index].master_name);
 
 		odf_reader::page_layout_instance* pages_layouts = root()->odf_context().pageLayoutContainer().page_layout_by_name(pageProperties);
@@ -594,8 +587,8 @@ namespace cpdoccore {
 		get_slide_context().serialize_animations(current_slide().Timing());
 
 		{
-			// NOTE: При использовании operator<< потока буст пушит туда лишний пробел перед значением.
-			//		С этим пробелом наш редактор onlyoffice на распознает значение.
+			// NOTE: When using operator<< stream, boost pushes an extra space in front of the value.
+			//		With this space, our onlyoffice editor doesn't recognize the value.
 			// Example: 
 			// <p:attrName> ppt_y</p:attrName>
 			// <p:attrName>ppt_y</p:attrName>
@@ -637,7 +630,7 @@ namespace cpdoccore {
 
 		get_slide_context().start_slide();
 
-		process_theme(L"");//add default theme - одинаковые но под разными именами
+		process_theme(L"");//add default theme - the same but under different names
 		current_notesMaster().add_theme(current_theme().id(), L"tId1");
 
 		get_slide_context().start_slide();
@@ -711,15 +704,15 @@ namespace cpdoccore {
 	void pptx_conversion_context::start_chart(std::wstring name)
 	{
 		charts_.push_back(oox_chart_context_ptr(new oox_chart_context(get_mediaitems(), name)));
-		//добавляем новую форму для диаграммы
-		 //в ней будет информационная часть - и она пишется каждый раз в свою xml (их - по числу диаграмм)
-		//этот контекст нужно передавать в файл
+		//adding a new form for the diagram
+		 //it will contain an information part - and it is written each time in its own xml (their number is based on the number of diagrams)
+		//this context must be passed to the file
 
 	}
 	void pptx_conversion_context::end_chart()
 	{
 		//current_chart().set_drawing_link(current_sheet().get_drawing_link());
-		//излишняя инфа
+		//unnecessary information
 	}
 	void pptx_conversion_context::add_jsaProject(const std::string& content)
 	{

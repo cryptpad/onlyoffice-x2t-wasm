@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -42,7 +35,7 @@ bool OOXtcPrReader::Parse( ReaderParameter oParam ,RtfCellProperty& oOutputPrope
 {
 	if (m_ooxTableCellProps == NULL) return false;
 
-	//ищем cnfStyle  и применяем внешний стиль
+	//look for cnfStyle and apply the external style
 	if( NULL != oParam.poTableStyle )
 	{
 		if( m_ooxTableCellProps->m_oCnfStyle.IsInit() )
@@ -130,7 +123,7 @@ bool OOXtcPrReader::Parse( ReaderParameter oParam ,RtfCellProperty& oOutputPrope
 	else if ((m_ooxTableProps) && (m_ooxTableProps->m_oTblBorders.IsInit()))
 	{
 		//from table props
-		//todoo last, first !!!!
+		//TODO last, first !!!!
 		//if( m_ooxTableProps->m_oTblBorders->m_oTop.IsInit() )
 		//{
 		//	OOXBorderReader oBorderReader(m_ooxTableProps->m_oTblBorders->m_oTop.GetPointer());
@@ -232,5 +225,5 @@ void OOXtcPrReader::Parse(ComplexTypes::Word::CTblWidth* margin, int& type, int&
 		value = (int)margin->m_oW->GetValue();
 	}
 
-	//todooo сделать реализацию с процентами
+	//TODO implement percentage support
 }

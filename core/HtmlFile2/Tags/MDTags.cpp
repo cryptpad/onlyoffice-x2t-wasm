@@ -309,7 +309,7 @@ CTable<CMDWriter>::CTable(CMDWriter* pWriter)
 
 bool CTable<CMDWriter>::Open(const std::vector<NSCSS::CNode>& arSelectors, const boost::any& oExtraData)
 {
-	if (!ValidWriter() /*|| m_pWriter->InTable()*/) //В MD не поддерживаются вложенные таблицы (пока разруливаем в парсере)
+	if (!ValidWriter() /*|| m_pWriter->InTable()*/) //Nested tables aren't supported in MD (handled in the parser for now)
 		return false;
 
 	m_pWriter->WriteBreakLine();

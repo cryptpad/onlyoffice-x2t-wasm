@@ -1,0 +1,56 @@
+diff --git a/bootstrap/bootstrap.py b/bootstrap/bootstrap.py
+index 8d9592938..7eb53dbd1 100644
+--- a/bootstrap/bootstrap.py
++++ b/bootstrap/bootstrap.py
+@@ -200,7 +200,8 @@ def _check_call(argv, stdin_input=None, **kwargs):
+     proc = subprocess.Popen(argv, **kwargs)
+     stdout, stderr = proc.communicate(input=stdin_input)
+     if proc.returncode:
+-        raise subprocess.CalledProcessError(proc.returncode, argv, None)
++        # raise subprocess.CalledProcessError(proc.returncode, argv, None)
++        return
+     return stdout, stderr
+ 
+ 
+@@ -461,7 +462,7 @@ def git_postprocess(template):
+                                     os.path.join(ROOT_DIR, stub_name))
+ 
+     # Bootstrap the git global config.
+-    _win_git_bootstrap_config()
++    # _win_git_bootstrap_config()
+ 
+ 
+ def main(argv):
+diff --git a/bootstrap/manifest.txt b/bootstrap/manifest.txt
+index 61fcb267c..3a6e39bed 100644
+--- a/bootstrap/manifest.txt
++++ b/bootstrap/manifest.txt
+@@ -1,21 +1,10 @@
+-# CIPD manifest for bootstrapping tools.
+-#
+-# We must install anything that we want included on PATH to a different
+-# subdirectory than Git, as Git's msys bash strips its root directory
+-# from PATH, hence the subdirs.
+-#
+-# If any paths or package layouts change, updates will be required in
+-# "win_tools.bat", "bootstrap.py" and "../bootstrap_python3" templates.
+-#
+-# "win_tools.bat" has a hard requirement that the Python packages contain the
+-# string "cpython3/" for Python 3, and ends with the CIPD tag "version:VERSION".
+-# It uses this to extract VERSION.
+-#
+-# "bootstrap_python3" has a hard requirement that the Python package contains
+-# the string "cpython3/" and ends with the CIPD tag "version:VERSION".
+-# It uses this to extract VERSION.
+-
+ $VerifiedPlatform windows-amd64 windows-arm64 linux-amd64 mac-amd64 mac-arm64
+ 
++@Subdir python
++infra/3pp/tools/cpython/${platform} version:2@2.7.18.chromium.39
++
+ @Subdir python3
+-infra/3pp/tools/cpython3/${platform} version:2@3.11.8.chromium.35
++infra/3pp/tools/cpython3/${platform} version:2@3.8.10.chromium.23
++
++@Subdir git
++infra/3pp/tools/git/${platform} version:2@2.41.0.chromium.11

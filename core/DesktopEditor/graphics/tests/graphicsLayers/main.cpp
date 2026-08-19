@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 	const unsigned int unWidth  = 1000;
 	const unsigned int unHeight = 1000;
 
-	// Создание основной картинки
+	// Creating the main image
 	BYTE* pData = new BYTE[4 * unWidth * unHeight];
 
 	for (unsigned long unIndex = 0; unIndex < unWidth * unHeight; ++unIndex)
@@ -35,11 +35,11 @@ int main(int argc, char *argv[])
 	pRasterRenderer->BeginCommand(c_nPathType);
 	pRasterRenderer->PathCommandStart();
 
-	// Отрисовываем основной слой
+	// Drawing the main layer
 	pRasterRenderer->PathCommandRect(50, 200, 600, 300);
 
 	pRasterRenderer->put_BrushAlpha1(255);
-	pRasterRenderer->put_BrushColor1(RGB_TO_INT(255, 0, 0)); // красный
+	pRasterRenderer->put_BrushColor1(RGB_TO_INT(255, 0, 0)); // red
 
 	pRasterRenderer->put_PenAlpha(255);
 	pRasterRenderer->put_PenColor(RGB_TO_INT(255, 0, 255));
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	pRasterRenderer->PathCommandEnd();
 	pRasterRenderer->EndCommand(c_nPathType);
 
-	// Отрисовываем второй слой
+	// Drawing the second layer
 	pRasterRenderer->BeginCommand(c_nLayerType);
 
 	pRasterRenderer->BeginCommand(c_nPathType);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 	pRasterRenderer->PathCommandRect(300, 300, 300, 300);
 
 	pRasterRenderer->put_BrushAlpha1(255);
-	pRasterRenderer->put_BrushColor1(RGB_TO_INT(0, 255, 0)); // зеленый
+	pRasterRenderer->put_BrushColor1(RGB_TO_INT(0, 255, 0)); // green
 
 	pRasterRenderer->put_PenAlpha(150);
 	pRasterRenderer->put_PenColor(RGB_TO_INT(0, 0, 255));
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 	pRasterRenderer->PathCommandEnd();
 	pRasterRenderer->EndCommand(c_nPathType);
 
-	//Отрисовываем третий слой
+	//Draw the third layer
 	pRasterRenderer->BeginCommand(c_nLayerType);
 
 	pRasterRenderer->BeginCommand(c_nPathType);
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	pRasterRenderer->PathCommandRect(500, 400, 300, 300);
 
 	pRasterRenderer->put_BrushAlpha1(150);
-	pRasterRenderer->put_BrushColor1(RGB_TO_INT(0, 0, 255)); // синий
+	pRasterRenderer->put_BrushColor1(RGB_TO_INT(0, 0, 255)); // blue
 
 	pRasterRenderer->put_PenAlpha(255);
 	pRasterRenderer->put_PenColor(RGB_TO_INT(255, 0, 0));
@@ -94,10 +94,10 @@ int main(int argc, char *argv[])
 	pRasterRenderer->PathCommandEnd();
 	pRasterRenderer->EndCommand(c_nPathType);
 
-	// блитируем трутий слой на второй
+	// blit the third layer to the second
 	pRasterRenderer->EndCommand(c_nLayerType);
 
-	// блитируем второй слой на основной
+	// blit the second layer onto the main one
 	pRasterRenderer->EndCommand(c_nLayerType);
 
 	oFrame.SaveFile(L"testGraphicsLayers.png", 4);

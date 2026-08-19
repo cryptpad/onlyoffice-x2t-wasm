@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -256,10 +249,10 @@ void xlsx_xml_worksheet::write_to(std::wostream & strm)
             {
 				CP_XML_STREAM() << protect;
 			}
-			//оказывается порядок нахождения элементов важен !!! (для office 2010)
-			//объединенные ячейки раньше чем гиперлинки !!!
+			//It turns out that the order in which the elements are found is important!!! (for office 2010)
+			//merged cells before hyperlinks!!!
 			
-			CP_XML_STREAM() << impl_->autofilter_.str(); //автофильтры перед merge !!!
+			CP_XML_STREAM() << impl_->autofilter_.str(); //autofilters before merge!!!
 			
 			CP_XML_STREAM() << impl_->mergeCells_.str();
 			
@@ -278,7 +271,7 @@ void xlsx_xml_worksheet::write_to(std::wostream & strm)
                 }
             }
 			CP_XML_STREAM() << impl_->page_props_.str();
-			//props выше legacyDrawing !!
+			//props above legacyDrawing!!
 
 			CP_XML_STREAM() << impl_->header_footer_.str();
 			

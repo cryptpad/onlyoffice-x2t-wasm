@@ -16,14 +16,14 @@ namespace NS_STATIC_FUNCTIONS
 	std::string GetContentAsUTF8(const std::wstring& sFileName)
 	{
 		std::string sContent;
-		// читаем файл как есть. utf-8 тут просто название.
+		// read the file as is. utf-8 is just a name here.
 		if(!NSFile::CFileBinary::ReadAllTextUtf8A(sFileName, sContent))
 			return sContent;
 
 		std::string sEncoding;
 		if (true)
 		{
-			// определяем кодировку
+			// determine the encoding
 			const std::string::size_type& posCharset = sContent.find("@charset");
 
 			if (std::string::npos != posCharset)

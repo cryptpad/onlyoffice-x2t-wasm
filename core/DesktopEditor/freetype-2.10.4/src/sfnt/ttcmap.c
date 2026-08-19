@@ -3825,11 +3825,20 @@
 
             valid.num_glyphs = (FT_UInt)face->max_profile.numGlyphs;
 
+#ifdef BUILDING_WASM_MODULE
+            try
+#else
             if ( ft_setjmp( FT_VALIDATOR( &valid )->jump_buffer) == 0 )
+#endif
             {
               /* validate this cmap sub-table */
               error = clazz->validate( cmap, FT_VALIDATOR( &valid ) );
             }
+#ifdef BUILDING_WASM_MODULE
+            catch (int jmp)
+            {              
+            }
+#endif
 
             if ( !valid.validator.error )
             {

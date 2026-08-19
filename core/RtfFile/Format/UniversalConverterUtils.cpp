@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -35,16 +28,16 @@
 
 int Utils::CopyDirOrFile(std::wstring sSource, std::wstring sDestination)
 {
-	//удаляем sDestination, чтобы там не было.
+	//delete sDestination so that it isn't there.
 	if( 0 != RemoveDirOrFile( sDestination ) )
 		return 1;
 
-	//копируем
+	//copy
 	CDirectory::CopyFile(sSource, sDestination);
 
 	return 0;
 }
-// return "" если не удалось создать
+// return "" if creation failed
 int Utils::RemoveDirOrFile(std::wstring sPath)
 {
 	CDirectory::DeleteFile(sPath);
@@ -63,8 +56,8 @@ std::wstring Utils::CreateTempFile( std::wstring sDir )
 	else
 		return CreateTempFile();
 }
-// return "" если не удалось создать
-std::wstring Utils::CreateTempDir( std::wstring sDir )//создаем файл в папке sDir
+// return "" if creation failed
+std::wstring Utils::CreateTempDir( std::wstring sDir )//create a file in the sDir folder
 {
 	if( !sDir.empty() )
 	{

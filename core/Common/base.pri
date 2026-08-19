@@ -452,9 +452,18 @@ core_android {
         QMAKE_LFLAGS += -Wl,--build-id=sha1
     }
 
-    !core_android_no_unistd {
-        DEFINES += HAVE_UNISTD_H HAVE_FCNTL_H
-    }
+	!core_android_no_unistd {
+		DEFINES += HAVE_UNISTD_H HAVE_FCNTL_H
+	}
+
+	core_release {
+		QMAKE_CFLAGS += -g0
+		QMAKE_CXXFLAGS += -g0
+		QMAKE_LFLAGS += -Wl,-s
+
+		QMAKE_CFLAGS -= -fno-limit-debug-info
+		QMAKE_CXXFLAGS -= -fno-limit-debug-info
+	}
 }
 
 core_debug {

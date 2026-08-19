@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -290,7 +283,7 @@ namespace PPTX
 						ooxml_file = ole_file->filename().GetPath() + (bMacro ? L".docm" : L".docx");
 					}
 					else if (checker.nFileType == AVS_OFFICESTUDIO_FILE_PRESENTATION_PPT)
-					{//todooo
+					{//TODO
 					}
 					if (0 == nRes)
 					{
@@ -468,7 +461,7 @@ namespace PPTX
 						delete pXlsxEmbedded;
 					}
 					//else if (office_checker.nFileType == AVS_OFFICESTUDIO_FILE_PRESENTATION_PPTX)
-					//{ todooo
+					//{ TODO
 					// embedded_type = 3;
 					//}
 					else if (office_checker.nFileType == AVS_OFFICESTUDIO_FILE_DRAW_VSDX ||
@@ -872,7 +865,7 @@ namespace PPTX
 																		
 									if (!sIdImageFileCache.empty())
 									{
-										//ищем физический файл ( rId относительно vml_drawing)									
+										//looking for a physical file (rId relative to vml_drawing)
 										smart_ptr<OOX::File> pFile = pVml->Find(sIdImageFileCache);
 										
 										if (pFile.IsInit() && (	OOX::FileTypes::Image == pFile->type()))
@@ -935,7 +928,7 @@ namespace PPTX
 						pWriter->WriteString1(0, mediaFile->filename().GetPath());
 
 					pWriter->WriteBool1(1, mediaFile->IsExternal());
-				//todoo start, end positions ..
+				//TODO start, end positions ..
 
 				pWriter->WriteBYTE(NSBinPptxRW::g_nodeAttributeEnd);
 				pWriter->EndRecord();
@@ -1351,7 +1344,7 @@ namespace PPTX
 					
 					if ( (mediaFile.IsInit() == false || mediaFile->filename().GetPath() == L"NULL") && !nvPicPr.nvPr.extLst.empty())
 					{
-						//todooo - почему везде нулевой то? - сделать поиск по всем uri
+						//TODO - why is it zero everywhere? - search all uris
 						file = pRels->Find(nvPicPr.nvPr.extLst[0].link_media.get());
 					}		
 				}
@@ -1896,7 +1889,7 @@ namespace PPTX
 		bool COLEObject::ReadXlsxBin(NSBinPptxRW::CBinaryFileReader* pReader, const std::wstring& sDstEmbedded, BYTE* pData, long length)
 		{
 			m_OleObjectFile = new OOX::OleObject(NULL, true, pReader->m_nDocumentType == XMLWRITER_DOC_TYPE_DOCX);
-			int id = pReader->m_nCountEmbedded++; //todoooo -> countEmbeddedObjects
+			int id = pReader->m_nCountEmbedded++; //TODO -> countEmbeddedObjects
 			
 			std::wstring sDstEmbeddedTemp = sDstEmbedded + FILE_SEPARATOR_STR + L"Temp";
 			NSDirectory::CreateDirectory(sDstEmbeddedTemp);
@@ -1948,7 +1941,7 @@ namespace PPTX
 		bool COLEObject::ReadVsdxBin(NSBinPptxRW::CBinaryFileReader* pReader, const std::wstring& sDstEmbedded, BYTE* pData, long length)
 		{
 			m_OleObjectFile = new OOX::OleObject(NULL, true, pReader->m_nDocumentType == XMLWRITER_DOC_TYPE_DOCX);
-			int id = pReader->m_nCountEmbedded++; //todoooo -> countEmbeddedObjects
+			int id = pReader->m_nCountEmbedded++; //TODO -> countEmbeddedObjects
 
 			std::wstring sDstEmbeddedTemp = sDstEmbedded + FILE_SEPARATOR_STR + L"Temp";
 			NSDirectory::CreateDirectory(sDstEmbeddedTemp);

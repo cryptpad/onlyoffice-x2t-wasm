@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -94,7 +87,7 @@ namespace PdfWriter
 		std::time_t oTime = time(0);
         hash.Update( (BYTE*)&oTime, sizeof(oTime));
 
-		// Создаем идентификатор файла по элементам библиотеки Info.
+		// Create a file identifier using the elements of the Info dictionary.
 		if (pInfo)
 		{
 			const char *sTemp = NULL;
@@ -243,7 +236,7 @@ namespace PdfWriter
 			pStream->WriteEscapeName(oIter->first.c_str());
 			pStream->WriteChar(' ');
 			nBegin = pStream->Tell();
-			// Цифровая подпись не шифруется
+			// The digital signature isn't encrypted
 			pStream->Write(pObject, oIter->first == "Contents" ? NULL : pEncrypt);
 			nEnd = pStream->Tell();
 			pStream->WriteStr("\012");
@@ -261,7 +254,7 @@ namespace PdfWriter
 	}
 	void CSignatureDict::WriteToStream(CStream* pStream, int nFileEnd)
     {
-        // Запись ByteRange
+        // ByteRange entry
         if (m_nByteRangeBegin > 0 && m_nByteRangeEnd > 0 && m_nByteRangeBegin < m_nByteRangeEnd && m_nByteRangeEnd < nFileEnd)
         {
             CArrayObject* pByteRange = new CArrayObject();
@@ -297,10 +290,10 @@ namespace PdfWriter
 		if (!pSignedData)
 			return false;
 
-		// Записываем подписанные данные в Contents
+		// Write signed data to Contents
 		if (dwDataLength > m_nContentsSize)
 		{
-			// Подпись не влезает! Ошибка расчета размера
+			// The signature doesn't fit! Size calculation error
 			return false;
 		}
 
@@ -309,11 +302,11 @@ namespace PdfWriter
 		if (!pContents)
 			return false;
 
-		// Цифровая подпись не шифруется
+		// The digital signature isn't encrypted
 		pStream->Write(pContents, NULL);
 		delete pContents;
 
-		// Стираем лишний '>' если нужно
+		// Erase extra '>' if necessary
 		BYTE cChar = '0';
 		pStream->Seek(pStream->Tell() - 1, EWhenceMode::SeekSet);
 		pStream->Write(&cChar, 1);
@@ -339,8 +332,8 @@ namespace PdfWriter
 	}
 	void CSignatureDict::SetName(const std::string& sName)
     {
-        // Name - Cтрока, Имя лица или органа, подписавшего документ.
-        // Значение следует использовать когда невозможно извлечь имя из подписи или сертификата подписавшего.
+        // Name - String, Name of the person or body that signed the document.
+        // The value should be used when it isn't possible to extract the name from the signer's signature or certificate.
         Add("Name", new CStringObject(sName.c_str()));
     }
 	void CSignatureDict::SetLocation(const std::string& sLocation)
@@ -349,19 +342,19 @@ namespace PdfWriter
 	}
     void CSignatureDict::SetReason(const std::string& sReason)
     {
-        // Reason - Строка, Причина подписания, например (Я согласен)
+        // Reason - String, Reason for signing, for example (I agree)
         Add("Reason", new CStringObject(sReason.c_str()));
     }
     void CSignatureDict::SetContact(const std::string& sContacts)
     {
-        // ContactInfo - Строка, Информация, предоставленная подписывающей стороной,
-        // чтобы получатель мог связаться с подписывающей стороной для проверки подписи, например (номер_телефона)
+        // ContactInfo - String, Information provided by the signer,
+        // so that the recipient can contact the signer to verify the signature, for example (phone_number)
         Add("ContactInfo", new CStringObject(sContacts.c_str()));
     }
     void CSignatureDict::SetDate()
     {
-        // M - Дата, Время подписания
-        // Значение следует использовать когда время подписания недоступно в подписи
+        // M - Date, Time of signing
+        // The value should be used when the signing time isn't available in the signature
 
         Add("M", new CStringObject(DateNow().c_str()));
     }
