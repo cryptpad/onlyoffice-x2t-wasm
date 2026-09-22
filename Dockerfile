@@ -1,8 +1,8 @@
-FROM ubuntu:26.04 AS base
+FROM ubuntu:22.04 AS base
 SHELL ["/bin/bash", "-c"]
  
 # Workaround for slow archive.ubuntu.com
-RUN sed -i 's|archive.ubuntu.com|ftp.halifax.rwth-aachen.de|g' /etc/apt/sources.list.d/ubuntu.sources
+RUN sed -i 's|archive.ubuntu.com|ftp.halifax.rwth-aachen.de|g' /etc/apt/sources.list
 
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
@@ -22,8 +22,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        qt6-base-dev \
        wget \
        xz-utils \
-       zip \
-       qtchooser
+       zip
     
 WORKDIR /
 RUN git clone https://github.com/emscripten-core/emsdk.git
@@ -519,9 +518,9 @@ COPY --from=html /core/Common/3dParty/html /core/Common/3dParty/html
 WORKDIR /core
 RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
     DesktopEditor/graphics/pro/freetype.pri
-RUN find / -name md4c-html.h ; exit 1
+# RUN find / -name md4c-html.h ; exit 1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh HtmlFile2
+    embuild.sh -s HtmlFile2
 # Outputs /core/build/lib/linux_64/libHtmlFile2.a
 
 

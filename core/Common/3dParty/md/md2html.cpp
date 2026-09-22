@@ -1,6 +1,6 @@
 #include "md2html.h"
 
-#include "md/src/md4c-html.h"
+#include "md4c/src/md4c-html.h"  // CryptPad fix path
 #include "../../../DesktopEditor/common/File.h"
 
 namespace Md
