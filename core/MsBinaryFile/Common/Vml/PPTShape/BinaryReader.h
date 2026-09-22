@@ -49,7 +49,7 @@ namespace ODRAW
 		{
 			m_pBuffer = pBuffer;
 			m_lCount = lCount;
-
+		}
 		LONG ReadLONG(); // int32 is implied
 		DWORD ReadDWORD();
 		WORD ReadWORD();

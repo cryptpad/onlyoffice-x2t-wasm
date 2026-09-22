@@ -13,7 +13,7 @@
 #include "Writers/MDWriter.h"
 #include "Tags/MDTags.h"
 
-#include "gumbo.h"
+#include "../Common/3dParty/html/gumbo-parser/src/gumbo.h" // CryptPad: Fix path
 #include "src/StringFinder.h"
 
 #include <boost/tuple/tuple.hpp>

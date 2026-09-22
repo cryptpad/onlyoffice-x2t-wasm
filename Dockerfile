@@ -1,5 +1,8 @@
-FROM ubuntu:22.04 AS base
+FROM ubuntu:26.04 AS base
 SHELL ["/bin/bash", "-c"]
+ 
+# Workaround for slow archive.ubuntu.com
+RUN sed -i 's|archive.ubuntu.com|ftp.halifax.rwth-aachen.de|g' /etc/apt/sources.list.d/ubuntu.sources
 
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
@@ -19,7 +22,8 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        qt6-base-dev \
        wget \
        xz-utils \
-       zip
+       zip \
+       qtchooser
     
 WORKDIR /
 RUN git clone https://github.com/emscripten-core/emsdk.git
@@ -205,7 +209,7 @@ WORKDIR /core
 RUN sed -i -e 's,$$PWD/src/[^ ]*\.cpp,,' \
     Common/3dParty/html/css/CssCalculator.pri
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -c "-Wno-register" DesktopEditor/graphics/pro
+    embuild.sh -s -c "-Wno-register" DesktopEditor/graphics/pro
 # Outputs /core/build/lib/linux_64/libgraphics.a
 
 
@@ -275,7 +279,7 @@ COPY core/OdfFile /core/OdfFile
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh OOXML/Projects/Linux/PPTXFormatLib
+    embuild.sh -s OOXML/Projects/Linux/PPTXFormatLib
 # Outputs /core/build/lib/linux_64/libPPTXFormatLib.a
 
 
@@ -515,6 +519,7 @@ COPY --from=html /core/Common/3dParty/html /core/Common/3dParty/html
 WORKDIR /core
 RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
     DesktopEditor/graphics/pro/freetype.pri
+RUN find / -name md4c-html.h ; exit 1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh HtmlFile2
 # Outputs /core/build/lib/linux_64/libHtmlFile2.a
@@ -677,7 +682,7 @@ WORKDIR /tests
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-basic-text.docx
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-formatted-report.docx
 COPY core/ /core/
-RUN find /core -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' | xargs -I {} -- cp {} /tests
+RUN find /core -type f \( -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' \) | xargs -I {} -- cp {} /tests
 # Remove tests, that we know are broken
 RUN rm /tests/Example.docx \
     /tests/NumberFormat.xlsx \

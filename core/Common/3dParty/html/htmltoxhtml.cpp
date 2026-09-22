@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "gumbo.h"
+#include "gumbo-parser/src/gumbo.h" // CryptPad: Fix path
 #include "../../../DesktopEditor/common/File.h"
 #include "../../../DesktopEditor/common/Directory.h"
 #include "../../../DesktopEditor/common/StringBuilder.h"

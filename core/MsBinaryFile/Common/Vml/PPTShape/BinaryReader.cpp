@@ -28,18 +28,6 @@
 
 namespace ODRAW
 {
-	CBinaryReader::CBinaryReader(BYTE* pBuffer, DWORD lCount)
-	{
-		m_pBuffer = pBuffer;
-		m_lCount = lCount;
-
-		m_lOrigin = 0;
-	}
-	CBinaryReader::~CBinaryReader()
-	{
-		m_pBuffer = NULL;
-		m_lCount = 0;
-	}
 	LONG CBinaryReader::ReadLONG() // int32 is implied
 	{
 		DWORD lOldOrigin = m_lOrigin;
