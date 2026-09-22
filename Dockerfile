@@ -208,7 +208,7 @@ WORKDIR /core
 RUN sed -i -e 's,$$PWD/src/[^ ]*\.cpp,,' \
     Common/3dParty/html/css/CssCalculator.pri
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s -c "-Wno-register" DesktopEditor/graphics/pro
+    embuild.sh -c "-Wno-register" DesktopEditor/graphics/pro
 # Outputs /core/build/lib/linux_64/libgraphics.a
 
 
@@ -278,7 +278,7 @@ COPY core/OdfFile /core/OdfFile
 COPY --from=boost /usr/local/include/boost /boost/libs/functional/include/boost
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s OOXML/Projects/Linux/PPTXFormatLib
+    embuild.sh OOXML/Projects/Linux/PPTXFormatLib
 # Outputs /core/build/lib/linux_64/libPPTXFormatLib.a
 
 
@@ -472,7 +472,6 @@ COPY core/OOXML /core/OOXML
 COPY core/OdfFile /core/OdfFile
 COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
 WORKDIR /core
-# RUN find . -name sha.h ; exit 1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh -c "-ICommon/3dParty/openssl/openssl/include" DesktopEditor/doctrenderer
 # Outputs /core/build/lib/linux_64/libdoctrenderer.a
@@ -490,12 +489,6 @@ COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linu
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 COPY --from=gumbo /gumbo-parser /gumbo-parser
 WORKDIR /core
-# RUN find /gumbo-parser -type f | xargs grep RemoveEmptyTag
-# RUN find . -type f | xargs grep RemoveEmptyTag
-# RUN exit 1
-# RUN rm HtmlFile2/src/StringFinder.h
-# RUN sed -i -e 's,./src/StringFinder.h,,' \
-#     HtmlFile2/HtmlFile2.pro
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Fb2File
 # Outputs /core/build/lib/linux_64/libFb2File.a
@@ -518,9 +511,8 @@ COPY --from=html /core/Common/3dParty/html /core/Common/3dParty/html
 WORKDIR /core
 RUN sed -i -e 's,$$FREETYPE_PATH/[^ ]*\.c,,' \
     DesktopEditor/graphics/pro/freetype.pri
-# RUN find / -name md4c-html.h ; exit 1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh -s HtmlFile2
+    embuild.sh HtmlFile2
 # Outputs /core/build/lib/linux_64/libHtmlFile2.a
 
 
