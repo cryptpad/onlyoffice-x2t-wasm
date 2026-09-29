@@ -13,12 +13,12 @@ namespace NSCSS
 	class CNode
 	{
 	public:
-		std::wstring m_wsName;  // Имя тэга
-		std::wstring m_wsClass; // Класс тэга
-		std::wstring m_wsId;    // Id тэга
-		std::wstring m_wsStyle; // Стиль тэга
-		std::map<std::wstring, std::wstring> m_mAttributes; // Остальные аттрибуты тэга
-		//TODO:: возможно использование std::wstring излишне
+		std::wstring m_wsName;  // Tag name
+		std::wstring m_wsClass; // Tag class
+		std::wstring m_wsId;    // Tag ID
+		std::wstring m_wsStyle; // Tag style
+		std::map<std::wstring, std::wstring> m_mAttributes; // Other tag attributes
+		//TODO:: perhaps std::wstring is unnecessary here
 
 		#ifdef CSS_CALCULATOR_WITH_XHTML
 		CCompiledStyle *m_pCompiledStyle;

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -294,7 +287,7 @@ void CTextPFRunRecord::LoadFromStream(POLE::Stream* pStream, bool bIsIndentation
     BYTE flag3 = (BYTE)(dwFlags >> 16);
     BYTE flag4 = (BYTE)(dwFlags >> 24);
 
-    //флаги чтения
+    //read flags
     bool hasBullet_ = (0x01 == (0x01 & flag1));
     bool bulletHasFont_ = (0x02 == (0x02 & flag1));
     bool bulletHasColor_ = (0x04 == (0x04 & flag1));
@@ -563,7 +556,7 @@ void CTextCFRunRecord::LoadFromStream(POLE::Stream* pStream, bool bIsIndentation
     if (BaseLineOffset_)
         m_oRun.BaseLineOffset = (double)StreamUtils::ReadSHORT(pStream);
 
-    // или два последних наоборот????
+    // or the last two are the other way around????
 }
 
 
@@ -714,7 +707,7 @@ void CMetaHeader::ToEMFHeader(Gdiplus::ENHMETAHEADER3* pHeader)
     pHeader->rclBounds.right = rcBounds.right;
     pHeader->rclBounds.bottom = rcBounds.bottom;
 
-    // нужно перевести в мм
+    // need to be converted to mm
     pHeader->rclFrame.left = rcBounds.left;
     pHeader->rclFrame.top = rcBounds.top;
     pHeader->rclFrame.right = rcBounds.right;
@@ -737,7 +730,7 @@ void CMetaHeader::ToEMFHeader(Gdiplus::ENHMETAHEADER3* pHeader)
     pHeader->szlDevice.cx = 200;
     pHeader->szlDevice.cy = 200;
 
-    // нужно перевести в мм
+    // need to be converted to mm
     pHeader->szlMillimeters.cx = 100;
     pHeader->szlMillimeters.cy = 100;
 }

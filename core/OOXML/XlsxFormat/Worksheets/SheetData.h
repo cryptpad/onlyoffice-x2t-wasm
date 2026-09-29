@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -283,12 +276,12 @@ namespace OOX
 			nullable<CSi>			m_oRichText;
 			nullable<CText>			m_oValue;
 //-----------------------------
-            //число повторов чтобы хранить одинаковые в одной
+            //number of repetitions to store identical ones in one
             nullable_uint           m_oRepeated;
 			nullable_string			m_oCacheValue;
 		};
 
-		//необработано:
+		//raw:
 		//<extLst>
 		class CRow : public WritingElementWithChilds<CCell>
 		{
@@ -314,7 +307,7 @@ namespace OOX
 			XLS::BaseObjectPtr toXLS();
             void toBin(XLS::StreamCacheWriterPtr& writer);
             void WriteAttributes(XLS::StreamCacheWriterPtr& writer);
-            //удалить хранимые ячейки и кэшировать данные для экономии памяти
+            //delete stored cells and cache data to save memory
             void storeXmlCache();
 			virtual EElementType getType () const;
 
@@ -324,7 +317,7 @@ namespace OOX
 			void ReadAttributes(XLS::BaseObjectPtr& obj);
 			void CheckIndex();
             bool compressCell(CCell* pCell);
-            //xml кэш чтобы не хранить ячеки
+            //xml cache so as not to store cells
             nullable_string           m_oDataCache;
 
 		public:
@@ -340,7 +333,7 @@ namespace OOX
 			nullable<SimpleTypes::COnOff>					m_oThickBot;
 			nullable<SimpleTypes::COnOff>					m_oThickTop;
 			nullable<SimpleTypes::CDouble>					m_oDyDescent;
-            //число повторов для сжатия пустых строк
+            //number of repetitions to compress empty strings
             nullable_uint           m_oRepeated;
 		};
 
@@ -358,7 +351,7 @@ namespace OOX
 			virtual void toXML(NSStringUtils::CStringBuilder& writer) const;
 			virtual void toXMLStart(NSStringUtils::CStringBuilder& writer) const;
 			virtual void toXMLEnd(NSStringUtils::CStringBuilder& writer) const;
-            //добавить кэшированное xml значение строки для экономии памяти
+            //add cached xml string value to save memory
             void AddRowToCache(CRow &row);
 
 			virtual void fromXML(XmlUtils::CXmlLiteReader& oReader);

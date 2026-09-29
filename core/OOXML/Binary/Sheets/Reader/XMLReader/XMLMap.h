@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -44,83 +37,83 @@
 #include <utility>
 #include <memory>
 
-/// @brief узел xml дерева
+/// @brief xml tree node
 struct XmlNode
 {
-    /// @brief имя ноды
+    /// @brief node name
     std::wstring name;
-    /// @brief предок ноды
+    /// @brief ancestor node
     std::shared_ptr<XmlNode> parent;
-    /// @brief атрибуты ноды
+    /// @brief node attributes
     std::set<std::wstring> attributes;
-    /// @brief имя столбца с данными ноды, пустое если нода не имеет данных
+    /// @brief name of the node data column, empty if the node has no data
     std::wstring ValueColumnName;
-    /// @brief наследуемые столбцы ноды
+    /// @brief inherited node columns
     std::set<std::wstring> childColumns;
-    /// @brief потомки ноды
+    /// @brief descendants of the node
     std::set<std::shared_ptr<XmlNode>> childs;
-    /// @brief счетчик повторений ноды, чтобы расширять одну ноду, вместо использования многих с одинаковым именем
+    /// @brief node repetition counter to extend one node instead of using many with the same name
     _UINT32 counter;
-    /// @brief все ноды предки
+    /// @brief all ancestor nodes
     std::set<std::shared_ptr<XmlNode>> parents;
 };
 
 
-/// @brief класс осуществляющий считывание xml файла и построение его табличной структуры для дальнейшей конвертации
+/// @brief class that reads an xml file and builds its table structure for further conversion
 class XMLMap
 {
 public:
-    /// @brief метод, считывающий структуру xml файла
-    /// @param reader xmlLiteReader с загруженным в него xml документом
-    /// @param nameController контроллер имен в который будут загружаться имена столбцов
-    /// @param nodeTree указатель на корневой элемент дерева нод, которое будет заполнено этим методом
-    /// @return true в случае успеха, иначе false
+    /// @brief method that reads the xml file structure
+    /// @param reader xmlLiteReader with xml document loaded into it
+    /// @param nameController name controller into which column names will be loaded
+    /// @param nodeTree pointer to the root element of the node tree that will be filled by this method
+    /// @return true if successful, false otherwise
     bool ReadXmlStructure(XmlUtils::CXmlLiteReader &reader, ColumnNameController &nameController, std::shared_ptr<XmlNode> nodeTree,
     std::set<std::wstring> &repeatebleValues);
 
 private:
 
-    /// @brief считывает аттрибуты текущей ноды
+    /// @brief reads the attributes of the current node
     void readAttributes();
 
-    /// @brief обрабатывает ноду типа element
-    /// @param type тип обрабатываемой ноды
+    /// @brief processes a node of type element
+    /// @param type type of node being processed
     void openNode();
 
-    /// @brief обрабатывает ноду типа endelement
-    /// @param type тип обрабатываемой ноды
+    /// @brief processes a node of type endelement
+    /// @param type type of node being processed
     void closeNode();
 
-    /// @brief вставляет значение во временную внутреннюю структуру
+    /// @brief inserts a value into a temporary internal structure
     void insertValue();
 
-    /// @brief вставляет атрибут во временную внутреннюю структуру ноды
-    /// @param key ключ, по которому будет вставлено значение
+    /// @brief inserts an attribute into the node's temporary internal structure
+    /// @param key the key by which the value will be inserted
     void insertAttribute(const std::wstring &key);
 
-    /// @brief Получение уникального имени ноды, либо его поиск в переданном множестве
-    /// @param name имя ноды, прочитанное из xml
-    /// @param names set содержащий уникальные имена, среди которых будет осуществляться поиск
-    /// @return найденное или сгенерированное уникальное имя ноды
+    /// @brief Receiving a unique node name, or searching for it in the passed set
+    /// @param name node name read from xml
+    /// @param names set containing unique names among which the search will be carried out
+    /// @return the found or generated unique node name
     std::wstring getNodeName(const std::wstring &name, std::set<std::wstring> &names);
 
-    /// @brief ищет на верхнем уровне ноду с переданным именем, используется для подсчета строк таблицы
-    /// @param name имя ноды
+    /// @brief searches at the top level for a node with the passed name, used to count table rows
+    /// @param name node name
    std::shared_ptr<XmlNode> searchSameNode(const std::wstring &name);
 
-    /// @brief указатель на считавший xml данные reader
+    /// @brief pointer to the reader that read the xml data
     XmlUtils::CXmlLiteReader *reader_;
 
-    /// @brief указатель на контроллер имен столбцов таблицы
+    /// @brief pointer to the table column name controller
     ColumnNameController *colNames_;
 
-    /// @brief вектор с родительскими нодами и используемыми на их уровнях именами
+    /// @brief vector with parent nodes and names used at their levels
     std::vector<std::shared_ptr<XmlNode>> parents_;
 
-    /// @brief тип предыдущей ноды(для поиска нод вида <node></node>)
+    /// @brief type of the previous node (to search for nodes like <node></node>)
     XmlUtils::XmlNodeType prevType_ = XmlUtils::XmlNodeType::XmlNodeType_None;
 
-    /// @brief столбцы значений, ноды которых повторялись более 1 раза
+    /// @brief columns of values whose nodes were repeated more than once
     std::set<std::wstring> *repeatebleValues_;
 
 };

@@ -54,7 +54,7 @@ namespace MetaFile
 		CMetaFileRenderer *m_pMetaFileRenderer;
 
 	public:
-		//Следующие методы ничего не делают
+		//The following methods do nothing
 		void HANDLE_EMR_HEADER(const TEmfHeader& oTEmfHeader) override {};
 		void HANDLE_EMR_ALPHABLEND(const TEmfAlphaBlend& oTEmfAlphaBlend, CDataStream &oDataStream) override {};
 		void HANDLE_EMR_STRETCHDIBITS(const TEmfStretchDIBITS& oTEmfStretchDIBITS, CDataStream &oDataStream) override {};
@@ -134,7 +134,7 @@ namespace MetaFile
 		void HANDLE_EMR_POLYPOLYGON(const TRectL& oBounds, const std::vector<std::vector<TPointS>>& arPoints) override {};
 		void HANDLE_EMR_POLYPOLYLINE(const TRectL& oBounds, const std::vector<std::vector<TPointL>>& arPoints) override {};
 		void HANDLE_EMR_POLYPOLYLINE(const TRectL& oBounds, const std::vector<std::vector<TPointS>>& arPoints) override {};
-		//TODO: Реализовать сохранение полигонов в полигоне
+		//TODO: Implement saving polygons in a polygon
 		void HANDLE_EMR_RECTANGLE(const TRectL& oBox) override {};
 		void HANDLE_EMR_ROUNDRECT(const TRectL& oBox, const TSizeL& oCorner) override {};
 		void HANDLE_EMR_SETPIXELV(const TPointL& oPoint, const TRGBA& oColor) override {};

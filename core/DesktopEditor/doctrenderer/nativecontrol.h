@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -254,10 +247,10 @@ namespace NSNativeControl
 
 		CZipWorker m_oZipWorker;
 
-		// для добавления картинок -------------------------------------
+		// to add images ---------------------------------------
 		CImagesWorker* m_pWorker;
 
-		// серверная версия билдера
+		// server version of the builder
 		CV8Params m_oParams;
 		std::map<std::wstring, bool> m_map_access_directories;
 
@@ -380,7 +373,7 @@ namespace NSNativeControl
 		{
 			int nNaturalIndex = nDeleteIndex;
 
-			// на каждое изменение две кавычки)
+			// there are two quotes for each change)
 			nNaturalIndex <<= 1;
 
 			// not cool realize
@@ -415,7 +408,7 @@ namespace NSNativeControl
 		{
 			if (nDeleteIndex < m_nCurrentChangesBuilderIndex)
 			{
-				// нужно удалить изменения
+				// need to delete changes
 				DumpRemoveChanges(nDeleteIndex);
 			}
 			m_nCurrentChangesBuilderIndex = nDeleteIndex + nCount;
@@ -543,7 +536,7 @@ public:
 
 		if (nLen <= m_nMaxUnionSize)
 		{
-			// все убралось - выделяем один кусок
+			// everything has been removed - select one piece
 			m_nLen = nLen + 4;
 		}
 		else
@@ -678,7 +671,7 @@ public:
 public:
 	void OpenFull(std::vector<std::wstring>& oFiles)
 	{
-		// определяем размер
+		// determine the size
 		size_t nCount = oFiles.size();
 		for (size_t i = 0; i < nCount; ++i)
 		{
@@ -736,7 +729,7 @@ public:
 
 	void OpenFull_excel(std::vector<std::wstring>& oFiles)
 	{
-		// определяем размер
+		// determine the size
 		size_t nCount = oFiles.size();
 		for (size_t i = 0; i < nCount; ++i)
 		{

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -37,64 +30,64 @@
 namespace NSFontConverter
 {
     //---------------------------------------------------------------------------------------
-    // класс StringExt - аналог CString
+    // class StringExt - analogue of CString
     //---------------------------------------------------------------------------------------
 
     class StringExt
     {
     public:
 
-        // Создаем пустую строку.
+        // Create an empty string.
         StringExt();
 
-        // Создаем строку из Сишной строки.
+        // Create a string from a C-string.
         StringExt(const char *sString);
 
-        // Создаем строку из <nLength> символов в <sString>. Данная строка
-        // может содержать нулевые символы.
+        // Create a string of <nLength> characters in <sString>. This string
+        // may contain null characters.
         StringExt(const char *sString, int nLength);
 
-        // Создаем строку из <nLength> символов, начиная с <nIndex>, строки <seString>.
+        // Create a string of <nLength> characters, starting with <nIndex>, string <seString>.
         StringExt(StringExt *seString, int nIndex, int nLength);
 
-        // Копируем строку.
+        // Copy the string.
         StringExt(StringExt *seString);
         StringExt *Copy()
         {
             return new StringExt(this);
         }
 
-        // Соединяем две строки.
+        // Concatenate two strings.
         StringExt(StringExt *seString1, StringExt *seString2);
 
-        // Переводим целое значение в строку.
+        // Convert the integer value to a string.
         static StringExt *FromInt(int nValue);
 
-        // Создаем форматированную строку. Функция подобна printf, но без проблем
-        // с переполнением строки. Формат выглядит следующим образом:
+        // Create a formatted string. Function similar to printf, but without the problems
+        // with buffer overflow. The format looks like this:
         //     {<nArg>:[<nWidth>][.<precision>]<type>}
-        // где:
-        // - <nArg> номер аргумента (нумерация начинается с 0).
-        // -- PS: сами аргументы должны идти по порядку, а использовать их можно
-        //    многократно и в любом порядке.
-        // - <nWidth> ширина поля, если она отрицательна, тогда прилежание будет
-        //   сменено на противоположное, а пустые места будут заполнены нулями.
-        // - <nPrecision> количество знаков после запятой
-        // - <nType> тип один из слудющих:
-        //     d, x, o, b -- целое(int) в десятичной, шестнадцатиричной, восьмиричной
-        //                   и двоичной системах исчисления
-        //     ud, ux, uo, ub -- тоже самое, только беззнаковое целое(uint)
-        //     ld, lx, lo, lb, uld, ulx, ulo, ulb -- аналогичной long и ulong
+        // where:
+        // - <nArg> argument number (numbering starts from 0).
+        // -- PS: the arguments themselves must be in order, but they can be used
+        //    repeatedly and in any order.
+        // - <nWidth> field width, if it is negative then the alignment will
+        //   be reversed, and the empty spaces will be filled with zeros.
+        // - <nPrecision> number of decimal places
+        // - <nType> type is one of the following:
+        //     d, x, o, b -- integer (int) in decimal, hexadecimal, octal
+        //                   and binary systems
+        //     ud, ux, uo, ub -- the same thing, only unsigned integer (uint)
+        //     ld, lx, lo, lb, uld, ulx, ulo, ulb -- similar to long and ulong
         //     f, g -- double
         //     c -- char
         //     s -- string (char *)
         //     t -- StringExt *
-        //     w -- Пробелы; значение аргументы означает количество пробелов
-        // Для вывода фигурных скобок надо использовать {{ и }}.
+        //     w -- Spaces; the value argument specifies the number of spaces
+        // To output curly braces, use {{ and }}.
         static StringExt *Format (char *sFormat, ...);
         static StringExt *FormatV(char *sFormat, va_list sArgList);
 
-        // Деструктор.
+        // Destructor.
         ~StringExt();
 
         int GetLength()
@@ -102,7 +95,7 @@ namespace NSFontConverter
             return m_nLength;
         }
 
-        // Возвращаем строку в виде char*.
+        // Return a string as char*.
         char *GetBuffer()
         {
             return m_sData;
@@ -117,33 +110,33 @@ namespace NSFontConverter
             m_sData[ nIndex ] = nChar;
         }
 
-        // Очищаем строку.
+        // Clear the string.
         StringExt *Clear();
 
-        // Добавляем символ или строку.
+        // Add a character or string.
         StringExt *Append(char nChar);
         StringExt *Append(StringExt *seString);
         StringExt *Append(const char *sString);
         StringExt *Append(const char *sString, int nLength);
 
-        // Добавляем форматированную строку.
+        // Add a formatted string.
         StringExt *AppendFormat (char *sFormat, ...);
         StringExt *AppendFormatV(char *sFormat, va_list sArgList);
 
-        // Вставляем символ или строку.
+        // Insert a character or string.
         StringExt *Insert(int nIndex, char nChar);
         StringExt *Insert(int nIndex, StringExt  *seString);
         StringExt *Insert(int nIndex, const char *sString);
         StringExt *Insert(int nIndex, const char *sString, int nLength);
 
-        // Удаляем один символ или массив символов.
+        // Delete one character or an array of characters.
         StringExt *Delete(int nIndex, int nCount = 1);
 
-        // Делаем в строке все символы большими/маленькими буквами.
+        // Make all the characters in the string in uppercase/lowercase.
         StringExt *MakeUpper();
         StringExt *MakeLower();
 
-        // Сравнение двух строк:  -1:<  0:=  +1:>
+        // Comparing two strings: -1:< 0:= +1:>
         int Compare (StringExt *seString);
         int CompareN(StringExt *seString, int nCount);
         int Compare (const char *sString);

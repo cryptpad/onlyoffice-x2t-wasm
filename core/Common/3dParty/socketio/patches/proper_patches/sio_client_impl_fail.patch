@@ -1,0 +1,26 @@
+diff --git a/src/internal/sio_client_impl.cpp b/src/internal/sio_client_impl.cpp
+index 02ccead..714c2cd 100644
+--- a/src/internal/sio_client_impl.cpp
++++ b/src/internal/sio_client_impl.cpp
+@@ -396,15 +396,16 @@ namespace sio
+ 
+     void client_impl::on_fail(connection_hdl)
+     {
+-        if (m_con_state == con_closing) {
++        con_state con_state_old = m_con_state;
++        m_con.reset();
++        m_con_state = con_closed;
++        this->sockets_invoke_void(&sio::socket::on_disconnect);
++
++        if (con_state_old == con_closing) {
+             LOG("Connection failed while closing." << endl);
+             this->close();
+             return;
+         }
+-
+-        m_con.reset();
+-        m_con_state = con_closed;
+-        this->sockets_invoke_void(&sio::socket::on_disconnect);
+         LOG("Connection failed." << endl);
+         if(m_reconn_made<m_reconn_attempts && !m_abort_retries)
+         {

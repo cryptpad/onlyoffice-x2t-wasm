@@ -18,14 +18,14 @@ namespace HTML
 class CHTMLReader
 {
 	XmlUtils::CXmlLiteReader m_oLightReader;   // SAX Reader
-	NSCSS::CCssCalculator    m_oCSSCalculator; // Css калькулятор
+	NSCSS::CCssCalculator    m_oCSSCalculator; // CSS calculator
 
 	bool m_bIsTempDirOwner;
-	std::wstring m_wsTempDirectory; // Temp папка
-	std::wstring m_wsSrcDirectory;  // Директория источника
-	std::wstring m_wsDstDirectory;  // Директория назначения
-	std::wstring m_wsBaseDirectory; // Полный базовый адрес
-	std::wstring m_wsCoreDirectory; // Путь до корневого файла (используется для работы с Epub)
+	std::wstring m_wsTempDirectory; // Temp folder
+	std::wstring m_wsSrcDirectory;  // Source directory
+	std::wstring m_wsDstDirectory;  // Destination directory
+	std::wstring m_wsBaseDirectory; // Full base address
+	std::wstring m_wsCoreDirectory; // Path to the root file (used for working with Epub)
 
 	IWriter *m_pWriter;
 

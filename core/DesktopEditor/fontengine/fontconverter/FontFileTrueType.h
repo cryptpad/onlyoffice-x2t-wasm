@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -118,8 +111,8 @@ namespace NSFontConverter
 
     struct T42Table
     {
-        char *sTag;		 // 4-байтовое название
-        bool  bRequired; // Требуется ли по спецификации TrueType?
+        char *sTag;		 // 4-byte name
+        bool  bRequired; // Is TrueType required by the specification?
     };
 
     // TrueType tables to be embedded in Type 42 fonts.
@@ -153,16 +146,16 @@ namespace NSFontConverter
     {
     public:
 
-        // Создаем объект TTF из буфера.
+        // Create a TTF object from the buffer.
         static CFontFileTrueType *LoadFromBuffer(char *sBuffer, int lenA);
 
-        // Создаем объект TTF из файла.
+        // Create a TTF object from a file.
         static CFontFileTrueType *LoadFromFile(const wchar_t *wsFileName);
 
         virtual ~CFontFileTrueType();
 
-        // TRUE, если данный OpenType фонт содержите данные формата CFF.
-        // FALSE,если это TrueType фонт ( или OpenType фонт с данными в формате TrueType).
+        // TRUE if this OpenType font contains CFF format data.
+        // FALSE if this is a TrueType font (or an OpenType font with data in TrueType format).
         bool IsOpenTypeCFF()
         {
             return m_bOpenTypeCFF;
@@ -176,25 +169,25 @@ namespace NSFontConverter
 
         int  FindCmap(int nPlatform, int nEncoding);
 
-        // Возвращает GID, соответствующий символу <nChar> в <nIndex>ной CMap.
+        // Returns the GID corresponding to the <nChar> character in the <nIndex> CMap.
         unsigned short MapCodeToGID(int nCMapIndex, int nChar);
 
-        // Возвращает GID, соответствующий <sName> в таблице post. Возвращает 0,
-        // если символа с таким именем не нашли, или таблицы post нет.
+        // Returns the GID corresponding to <sName> in the post table. Returns 0,
+        // if a symbol with the same name wasn't found, or there is no post table.
         int MapNameToGID(char *sName);
 
-        // Возвращает карту CIDs в GIDs, и возваращет количество элементов
-        // CIDs в *<pnCIDs>.  Только для CID фонтов( OpenType CFF )
+        // Returns a map of CIDs to GIDs, and returns the number of elements
+        // CIDs in *<pnCIDs>.  Only for CID fonts (OpenType CFF)
         unsigned short *GetCIDToGIDMap(int *pnCIDs);
 
-        // Лицензионные ограничения на включение фонта( в соответствие со
-        // спецификацией True Type):
+        // License restrictions on the inclusion of the font (in accordance with
+        // TrueType specification):
 
-        // * 4: таблицы OS/2 не найдена или некорректна
-        // * 3: разрешено устанавливать
-        // * 2: разрешено редактировать
-        // * 1: разрешено просматривать и печатать
-        // * 0: ограничено лицензией
+        // * 4: OS/2 table not found or incorrect
+        // * 3: allowed to install
+        // * 2: Allowed to edit
+        // * 1: Allowed to view and print
+        // * 0: limited by license
         int GetEmbeddingRestrictions();
 
         // Convert to a Type 42 font, suitable for embedding in a PostScript
@@ -239,10 +232,10 @@ namespace NSFontConverter
         // PostScript font name.  (Only useful for OpenType CFF fonts.)
         void ToType0(char *sPSName, FontFileOutputFunc pOutputFunc, void *pOutputStream);
 
-        // Записываем TrueTypeFont File, заполняя недостающие таблицы и корректируя
-        // различные ошибки. Если задан парметр <sName>, в шрифте переписываем таблицу
-        // 'name'. Если задан парамтре <pCodeToGID>, тогда в шрифте переписываем
-        // таблицу 'cmap'.
+        // Write a TrueTypeFont File, filling in the missing tables and correcting
+        // various errors. If the <sName> parameter is specified, we rewrite the table in the font
+        // 'name'. If the <pCodeToGID> parameter is specified, then we rewrite in the font
+        // table 'cmap'.
         void WriteTTF(FontFileOutputFunc pOutputFunc, void *pOutputStream, const char *sName = NULL, unsigned short *pCodeToGID = NULL, unsigned char *pUseGlyfs = NULL, long lGlyfsCount = 0) ;
 
     private:

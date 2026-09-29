@@ -21,7 +21,7 @@ class CMetafileTreeWidget : public QWidget
         void Clear();
         void SetMainWindow(MainWindow *pMainWindow);
 
-        //Методы QTreeView
+        //QTreeView Methods
         void setItemDelegate(CTextEditDelegate *pTextEditDelegate);
         void expandAll();
         void collapseAll();
@@ -33,7 +33,7 @@ class CMetafileTreeWidget : public QWidget
         void setAnimated(bool bEnable);
         QHeaderView* header();
 
-        //Методы CMetafileTreeView
+        //CMetafileTreeView Methods
         void SetMetafile(const std::wstring& wsXmlFilePath);
         bool IsClearTree();
         void SetMode(bool bLightMode);

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -37,68 +30,68 @@
 const std::wstring CurrencyFormatTemplate = L"#,##0.00";
 
 const std::set<std::wstring> CurrencySymbols = {
-    L"\u0024",    // Доллар США
-    L"\u20AC",    // Евро
-    L"\u00A5",    // Японская иена
-    L"\u00A3",    // Фунт стерлингов Великобритании
-    L"\u0024\u0061",   // Австралийский доллар
-    L"\u0024\u0063",   // Канадский доллар
-    L"\u0046\u0072\u002E",  // Швейцарский франк
-    L"\u20BD",    // Российский рубль
-    L"\u20B8",    // Казахский тенге
-    L"\u5143",   // Китайский юань
-    L"\u20B1", // Филиппинское песо
-    L"\u20B9", // Индийская рупия
-    L"\u20AA", // Израильский новый шекель
-    L"\u20A7", // Испанская песета
-    L"\u0631.\u0633.", //Саудовский риал
+    L"\u0024",    // US dollar
+    L"\u20AC",    // Euro
+    L"\u00A5",    // Japanese yen
+    L"\u00A3",    // Great Britain pound
+    L"\u0024\u0061",   // Australian dollar
+    L"\u0024\u0063",   // Canadian dollar
+    L"\u0046\u0072\u002E",  // Swiss franc
+    L"\u20BD",    // Russian ruble
+    L"\u20B8",    // Kazakh tenge
+    L"\u5143",   // CNY
+    L"\u20B1", // Philippine Peso
+    L"\u20B9", // Indian Rupee
+    L"\u20AA", // Israeli new shekel
+    L"\u20A7", // Spanish peseta
+    L"\u0631.\u0633.", //Saudi Riyal
     L"kr.",
     L"Ft",
-    L"\u20A9", // Корейская вона
-    L"\u007a\u0142",// Польский злотый
+    L"\u20A9", // Korean won
+    L"\u007a\u0142",// Polish zloty
     L"R\u0024",
     L"kr",
-    L"\u20BA", //Турецкая лира
-    L"\u20B4",//Украинская гривна
-    L"\u20AB", //Вьетнамский донг
-    L"\u20BC", //Азербайджанский манат
-    L"\u20AE", //Монгольский тугрик
-    L"\u043B\u0432.", //Болгарский лев
+    L"\u20BA", //Turkish lira
+    L"\u20B4",//Ukrainian hryvnia
+    L"\u20AB", //Vietnamese dong
+    L"\u20BC", //Azerbaijani manat
+    L"\u20AE", //Mongolian tugrik
+    L"\u043B\u0432.", //Bulgarian Lev
     L"NT\u0024",
-    L"\u004B\u010D", //Чешская крона
+    L"\u004B\u010D", //Czech crown
     L"Rp",
-    L"\u062F.\u0639.‏", //Иракский динар
+    L"\u062F.\u0639.‏", //Iraqi Dinar
     L"L",
-    L"\u062C.\u0645.‏", // Египетский фунт
+    L"\u062C.\u0645.‏", // Egyptian pound
     L"HK\u0024",
-    L"\u062F.\u0644.‏", // Ливийский динар
+    L"\u062F.\u0644.‏", // Libyan dinar
     L"Q",
     L"KM",
-    L"\u062F.\u062C.‏", // Алжирский динар
-    L"\u20A1", //Колон Сальвадора и Коста-рики
+    L"\u062F.\u062C.‏", // Algerian dinar
+    L"\u20A1", //Colon of El Salvador and Costa Rica
     L"B/.",
-    L"\u062F.\u062A.‏", //Тунисский динар
+    L"\u062F.\u062A.‏", //Tunisian dinar
     L"R",
     L"EC\u0024",
-    L"\u0631.\u0639.‏", //Оманский риал
+    L"\u0631.\u0639.‏", //Omani rial
     L"Bs.S",
-    L"\u0631.\u064A.‏", //Йеменский риал
+    L"\u0631.\u064A.‏", //Yemeni rial
     L"FC",
     L"RSD",
-    L"\u0434\u0438\u043D.", //сирийский динар
-    L"\u062F.\u0627.‏", //Дирхам ОАЭ
+    L"\u0434\u0438\u043D.", //Syrian pound
+    L"\u062F.\u0627.‏", //UAE dirham
     L"FCFA",
-    L"\u0644.\u0644.‏", //Ливанский фунт
+    L"\u0644.\u0644.‏", //Lebanese pound
     L"US\u0024",
     L"CFA",
-    L"\u062F.\u0643.‏", //Кувейтский динар
-    L"\u20B1", // Филлипинское песо
-    L"\u062F.\u0625.‏", //Иорданский динар
+    L"\u062F.\u0643.‏", //Kuwaiti dinar
+    L"\u20B1", // Philippine Peso
+    L"\u062F.\u0625.‏", //Jordanian dinar
     L"DH",
-    L"\u062F.\u0628.‏", //Бахрейнский динар
-    L"\u20B2", //Парагвайский гуарани
+    L"\u062F.\u0628.‏", //Bahraini Dinar
+    L"\u20B2", //Paraguayan Guarani
     L"G",
-    L"\u0631.\u0648.‏", //Катарский риал
+    L"\u0631.\u0648.‏", //Qatari rial
     L"Bs",
     L"RM",
     L"C\u0024",

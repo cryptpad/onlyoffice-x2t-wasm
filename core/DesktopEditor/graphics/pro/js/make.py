@@ -70,7 +70,7 @@ if not base.is_dir("freetype-2.10.4"):
 
 # compile
 compiler_flags = ["-O3",
-                  # "-fno-rtti", cryptopp использует typeid
+                  # "-fno-rtti", cryptopp uses typeid
                   "-fexceptions",
                   "-Wno-unused-command-line-argument",
                   "-s WASM=1",

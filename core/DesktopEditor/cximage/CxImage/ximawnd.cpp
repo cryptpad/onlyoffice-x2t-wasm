@@ -237,7 +237,7 @@ bool CxImage::CreateFromHANDLE(HANDLE hMem)
 		SetYDPI((int32_t)floor(head.biYPelsPerMeter * 254.0 / 10000.0 + 0.5));
 
 		/*//copy the pixels (old way)
-		if((pHead->biCompression != BI_RGB) || (pHead->biBitCount == 32)){ //<Jцrgen Alfredsson>
+		if((pHead->biCompression != BI_RGB) || (pHead->biBitCount == 32)){ //<Jörgen Alfredsson>
 			// BITFIELD case
 			// set the internal header in the dib
 			memcpy(pDib,&head,sizeof(head));
@@ -467,7 +467,7 @@ bool CxImage::CreateFromHANDLE(HANDLE hMem)
 											*(sline + bits) = second_byte;
 											bits++;
 										} else {
-											bContinue = FALSE; //don't delete: we are in memory, it is not as with files
+											bContinue = FALSE; //don't delete: we are in memory, it isn't as with files
 											break;
 										}
 									}
@@ -820,7 +820,7 @@ int32_t CxImage::Draw(HDC hdc, const RECT& rect, RECT* pClipRect, bool bSmooth, 
  *                 - If cx or cy are different than width or height, the image will be stretched
  *
  * \param pClipRect : limit the drawing operations inside a given rectangle in the output device context.
- * \param bSmooth : activates a bilinear filter that will enhance the appearence for zommed pictures.
+ * \param bSmooth : activates a bilinear filter that will enhance the appearence for zommed images.
  *                   Quite slow. Needs CXIMAGE_SUPPORT_INTERPOLATION.
  * \param bFlipY : draws a mirror image along the y-axis
  * \return true if everything is ok
@@ -1144,7 +1144,7 @@ int32_t CxImage::Draw(HDC hdc, int32_t x, int32_t y, int32_t cx, int32_t cy, REC
  *                 - If cx or cy are not specified (or less than 0), the normal width or height will be used
  *                 - If cx or cy are different than width or height, the image will be stretched
  * \param pClipRect : limit the drawing operations inside a given rectangle in the output device context.
- * \param bSmooth : activates a bilinear filter that will enhance the appearence for zommed pictures.
+ * \param bSmooth : activates a bilinear filter that will enhance the appearence for zommed images.
  *                   Quite slow. Needs CXIMAGE_SUPPORT_INTERPOLATION.
  * \return HBITMAP handle, NULL in case of error
  * \sa MakeBitmap

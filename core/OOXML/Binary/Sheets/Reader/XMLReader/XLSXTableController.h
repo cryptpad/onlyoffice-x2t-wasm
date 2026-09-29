@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -40,44 +33,44 @@
 #include <string>
 #include <vector>
 
-/// @brief класс -обертка позволяющий добавлять ячейки в таблицу и создавать документ из созданных ячеек
+/// @brief is a wrapper class that allows adding cells to a table and creating a document from the created cells
 class XLSXTableController
 {
 
 public:
-    /// @brief инициализация полей объекта
-    /// @param book объект который будет заполнен данными с помощью метода FormBook
-    /// @param lcid идентификатор локлаи
+    /// @brief initialization of object fields
+    /// @param book an object that will be filled with data using the FormBook method
+    /// @param lcid local ID
     XLSXTableController(OOX::Spreadsheet::CXlsx &book, _INT32 lcid);
 
-    /// @brief добавление ячейки
-    /// @param sText вставляемый текст
-    /// @param nRow номер строки
-    /// @param nCol номер столбца
-    /// @param bIsWrap признак свернутости
+    /// @brief adding a cell
+    /// @param sText inserted text
+    /// @param nRow row number
+    /// @param nCol column number
+    /// @param bIsWrap sign of wrapping
     void AddCell(const std::wstring &sText, INT nRow, INT nCol);
 
-    /// @brief получение документа xlsx
+    /// @brief getting xlsx document
     void FormBook();
 
 private:
-    /// @brief добавление ряда
-    /// @param pRow указатель на строку
-    /// @param pWorkSheet указатель на лист
-    /// @param nRow номер строки
+    /// @brief adding a row
+    /// @param pRow pointer to row
+    /// @param pWorkSheet pointer to worksheet
+    /// @param nRow row number
     _UINT32 addRow(OOX::Spreadsheet::CRow *pRow, OOX::Spreadsheet::CWorksheet *pWorkSheet,  INT nRow);
 
-    /// @brief добавление страницы
-    /// @param page указатель на лист
-    /// @param pageNumber номер страницы
+    /// @brief adding a page
+    /// @param page pointer to sheet
+    /// @param pageNumber page number
     void addPage(OOX::Spreadsheet::CWorksheet *page, INT pageNumber);
 
-    /// @brief документ xlsx
+    /// @brief xlsx document
     OOX::Spreadsheet::CXlsx *book_;
 
-    /// @brief вектор со строками таблицы
+    /// @brief vector with table rows
     std::vector<OOX::Spreadsheet::CRow*> tableRows_;
 
-    /// @brief контроллер форматов
+    /// @brief format controller
     std::shared_ptr<CellFormatController> formates_;
 };

@@ -306,7 +306,7 @@ namespace NSDocxRenderer
 
 		if (m_bIsHighlightPresent)
 		{
-			//note В <w:style это не работает
+			//note In <w:style it doesn't work
 			ColorTable& colorTable = SingletonInstance<ColorTable>();
 			if (colorTable.IsStandardColor(m_lHighlightColor))
 			{
@@ -897,19 +897,19 @@ namespace NSDocxRenderer
 	 eVerticalCrossingType eVType,
 	 eHorizontalCrossingType eHType)
 	{
-		//Условие пересечения по вертикали
+		//Vertical intersection condition
 		bool bIf1 = eVType == eVerticalCrossingType::vctCurrentAboveNext;
 		bool bIf2 = eVType == eVerticalCrossingType::vctCurrentBelowNext;
 
-		//Условие пересечения по горизонтали
+		//Horizontal intersection condition
 		bool bIf3 = eHType == eHorizontalCrossingType::hctCurrentLeftOfNext;
 		bool bIf4 = eHType == eHorizontalCrossingType::hctCurrentRightOfNext;
 
-		//Размеры шрифта и текст должны бать одинаковыми
+		//Font sizes and text should be the same
 		bool bIf5 = pFirstCont->m_pFontStyle->dFontSize == pSecondCont->m_pFontStyle->dFontSize;
 		bool bIf6 = pFirstCont->m_oText == pSecondCont->m_oText;
 
-		//Цвет тени должен быть серым
+		//The shadow color should be gray
 		bool bIf7 = pFirstCont->m_pFontStyle->oBrush.Color1 == c_iGreyColor;
 		bool bIf8 = pSecondCont->m_pFontStyle->oBrush.Color1 == c_iGreyColor;
 
@@ -919,7 +919,7 @@ namespace NSDocxRenderer
 		bool bIf11 = pFirstCont->m_pFontStyle->oBrush.Color1 == c_iGreyColor2;
 		bool bIf12 = pSecondCont->m_pFontStyle->oBrush.Color1 == c_iGreyColor2;
 
-		// каждый символ с Emboss или Engrave разбиваются на 3 символа с разными цветами
+		// Each symbol with Emboss or Engrave is split into 3 symbols with different colors
 		if (bIf5 && bIf6)
 		{
 			if (bIf12 && pFirstCont->m_bIsEmbossPresent)
@@ -953,7 +953,7 @@ namespace NSDocxRenderer
 			}
 
 			//Emboss
-			//Первый проход
+			//First pass
 			//c_iBlackColor -> c_iBlackColor -> c_iGreyColor2
 			else if (bIf1 && bIf3 && bIf9)
 			{
@@ -994,7 +994,7 @@ namespace NSDocxRenderer
 		             eHType == eHorizontalCrossingType::hctCurrentRightOfNext) &&
 		        fabs(pFirstCont->m_dLeft - pSecondCont->m_dRight) < c_dTHE_STRING_X_PRECISION_MM;
 
-		//Размеры шрифта должны бать разными
+		//Font sizes should be different
         bool bIf5 = pFirstCont->m_pFontStyle->dFontSize * 0.8 > pSecondCont->m_pFontStyle->dFontSize;
         bool bIf6 = pFirstCont->m_pFontStyle->dFontSize <  pSecondCont->m_pFontStyle->dFontSize * 0.8;
 
@@ -1237,8 +1237,8 @@ namespace NSDocxRenderer
 		pCont->m_dHeight = dHeight;
 		pCont->m_dLeft   = dLeft;
 
-		// первичное получение стиля для текущего символа
-		// при дальнейшем анализе может измениться
+		// getting the style for the current character first
+		// may change with further analysis
 		pCont->m_pFontStyle = m_pFontStyleManager->GetOrAddFontStyle(
 		            oBrush,
 		            m_pFontSelector->GetSelectedName(),

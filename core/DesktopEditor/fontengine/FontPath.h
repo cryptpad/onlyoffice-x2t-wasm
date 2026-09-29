@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -55,16 +48,16 @@ struct TPathPoint
 // CPath.nFlags
 //-------------------------------------------------------------------------------------------------------------------------------
 
-// Флаг для первой точки любого subpath
+// Flag for the first point of any subpath
 #define PathFirst         0x01
 
-// Флаг для последней точки любого subpath
+// Flag for the last point of any subpath
 #define PathLast          0x02
 
-// Если subpath замкнутый, тогда его последняя и первая точка должны совпадать, их флаг в данном случае следующий 
+// If the subpath is closed, then its last and first points must match, their flag in this case is the following
 #define PathClosed        0x04
 
-// Флаг, означающий, что данная точка является контрольной для кривой Безье
+// Flag indicating that this point is a control point for a Bezier curve
 #define PathCurve         0x08
 
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -119,7 +112,7 @@ public:
 
 	INT GetCurPoint(double *pdX, double *pdY);
 
-	// Добавляем флаг StrokeAdjust.
+	// Add the StrokeAdjust flag.
 	void AddStrokeAdjustHint(int nFirstControl, int nSecondControl, int nFirstPoint, int nLastPoint);
 	
 	virtual int ToInterface(NSFonts::ISimpleGraphicsPath* pPath);
@@ -143,12 +136,12 @@ private:
 
 private:
 
-	TPathPoint    *m_pPoints;      // Массив точек
-	unsigned char *m_pFlags;       // Массив флагов, указыающих значение точки в SubPath
-	int            m_nPointsCount; // Количество точек
-	int            m_nSize;        // Непосредственный размер массива
+	TPathPoint    *m_pPoints;      // Array of points
+	unsigned char *m_pFlags;       // An array of flags indicating the value of a point in SubPath
+	int            m_nPointsCount; // Number of points
+	int            m_nSize;        // Allocated array size
 	
-	int            m_nCurSubpath;  // Номер первой точки последнего SubPath
+	int            m_nCurSubpath;  // Number of the first point of the last SubPath
 
 	TPathHint     *m_pHints;       //
 	int            m_nHintsCount;

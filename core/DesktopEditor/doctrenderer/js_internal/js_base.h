@@ -492,7 +492,7 @@ namespace NSJSBase
 		void Exit();
 
 		/**
-		 * Сheck if context is current.
+		 * Check if context is current.
 		 * This method is not safe.
 		 */
 		bool IsEntered();

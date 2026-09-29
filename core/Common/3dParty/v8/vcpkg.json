@@ -1,0 +1,5 @@
+{
+  "name": "v8",
+  "version": "8.9",
+  "description": "Custom V8 build"
+}

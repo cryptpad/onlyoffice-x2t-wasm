@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -550,7 +543,7 @@ namespace NSDoctRenderer
 			oWorker.m_arAdditionalFolders.push_back(NSFile::GetProcessDirectory() + L"/fonts");
 			oWorker.m_bIsNeedThumbnails = false;
 			oWorker.m_sDirectory = sDirectory;
-			// это не рабочая папка, где только шрифты
+			// this isn't a working folder, where there are only fonts
 			oWorker.m_bIsCleanDirectory = false;
 			NSFonts::IApplicationFonts* pFonts = oWorker.Check();
 			if(pFonts)
@@ -679,8 +672,8 @@ namespace NSDoctRenderer
 			int n3 = (int)from.find (L"ftp");
 			int n4 = (int)from.find (L"https");
 
-			//если nI сранивать не с 0, то будут проблемы
-			//потому что в инсталяции мы кладем файлы в /var/www...
+			//if nI is compared with something other than 0, there will be problems
+			//because in the installation we put the files in /var/www...
 			if (0 == n1 || 0 == n2 || 0 == n3 || 0 == n4)
 			{
 				NSNetwork::NSFileTransport::CFileDownloader oDownloader(from, false);
@@ -726,7 +719,7 @@ namespace NSDoctRenderer
 			}
 #endif
 
-			// не открываем локальные файлы в серверной версии.
+			// Don't open local files in the server version.
 			if (m_bIsServerSafeVersion)
 				return;
 
@@ -883,7 +876,7 @@ namespace NSDoctRenderer
 
 			if (true)
 			{
-				// для файлов по ссылке - расширение может быть плохим.
+				// for files from the link - the extension may be bad.
 				const wchar_t* sExtCopyPtr = sExtCopy.c_str();
 				int nExtCopyLen = sExtCopy.length();
 				int nValidIndex = 0;

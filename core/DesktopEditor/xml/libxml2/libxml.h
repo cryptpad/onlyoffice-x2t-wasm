@@ -96,7 +96,12 @@ int __xmlRandom(void);
 #endif
 
 XMLPUBFUN xmlChar * XMLCALL xmlEscapeFormatString(xmlChar **msg);
+
+#ifdef BUILDING_WASM_MODULE
+int xmlNop(void* context, char* buffer, int len);
+#else
 int xmlNop(void);
+#endif
 
 #ifdef IN_LIBXML
 #ifdef __GNUC__

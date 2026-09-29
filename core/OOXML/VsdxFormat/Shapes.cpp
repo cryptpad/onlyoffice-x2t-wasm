@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -177,7 +170,7 @@ namespace OOX
 				std::wstring image_name_new;
 				if (false == image_path.GetPath().empty())
 				{
-					//todooo check correct path inside container
+					//TODO check correct path inside container
 					image_name_new = image_path.GetFilename();
 					std::wstring image_ext_new = image_path.GetExtention();
 
@@ -221,7 +214,7 @@ namespace OOX
 									NSFile::CFileBinary::SaveToFile(out.GetPath() + FILE_SEPARATOR_STR + image_name_new + L".svg", sInternalSvg);
 								}
 								else
-								{// не смогли сконвертировать в svg - пробуем в png									
+								{// Couldn't convert to svg - try to png
 
 									std::wstring strSaveItem = out.GetPath() + FILE_SEPARATOR_STR + image_name_new + L".png";
 									pMetafile->ConvertToRaster(strSaveItem.c_str(), 4 /*CXIMAGE_FORMAT_PNG*/, 0, 0);
@@ -252,7 +245,7 @@ namespace OOX
 						pWriter->m_pCommon->m_pMediaManager->m_mapMediaFiles.insert(std::make_pair(image_path.GetFilename(), oInfo));
 					}
 					std::wstring ole_name_new = image_name_new + ole_path.GetExtention();
-					//todooo check correct path inside container
+					//TODO check correct path inside container
 					NSFile::CFileBinary::Copy(ole_path.GetPath(), out.GetPath() + FILE_SEPARATOR_STR + ole_name_new);
 
 					pWriter->StartRecord(2);
@@ -339,7 +332,7 @@ namespace OOX
 
 			if (ole_filename.empty() == false)
 			{
-				int idOle = pReader->m_nCountEmbedded++; //todoooo -> countEmbeddedObjects
+				int idOle = pReader->m_nCountEmbedded++; //TODO -> countEmbeddedObjects
 				int idImage = pReader->m_nCountImage++; 
 
 				std::wstring ole_filename_dst = L"oleObject" + std::to_wstring(idOle) + CPath(ole_filename).GetExtention();
@@ -840,7 +833,7 @@ namespace OOX
 
 			for (size_t i = 0; i < m_arrItems.size(); ++i)
 			{
-				int type = 0xff;					 //todooo predefine type for ???
+				int type = 0xff;					 //TODO predefine type for ???
 				switch (m_arrItems[i]->getType())
 				{
 				case et_dr_Cell: type = 0; break;
@@ -975,7 +968,7 @@ namespace OOX
 
 			for (size_t i = 0; i < m_arrItems.size(); ++i)
 			{
-				int type = 0xff;					 //todooo predefine type for ???
+				int type = 0xff;					 //TODO predefine type for ???
 				switch (m_arrItems[i]->getType())
 				{
 				case et_dr_Cell: type = 0; break;
@@ -1426,7 +1419,7 @@ namespace OOX
 
 			for (size_t i = 0; i < m_arrItems.size(); ++i)
 			{
-				int type = 0xff;					 //todooo predefine type for ???
+				int type = 0xff;					 //TODO predefine type for ???
 				switch (m_arrItems[i]->getType())
 				{
 					case et_dr_Cell: type = 0; break;

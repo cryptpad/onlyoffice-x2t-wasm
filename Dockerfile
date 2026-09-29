@@ -1,5 +1,8 @@
 FROM ubuntu:22.04 AS base
 SHELL ["/bin/bash", "-c"]
+ 
+# Workaround for slow archive.ubuntu.com
+RUN sed -i 's|archive.ubuntu.com|ftp.halifax.rwth-aachen.de|g' /etc/apt/sources.list
 
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
@@ -469,7 +472,6 @@ COPY core/OOXML /core/OOXML
 COPY core/OdfFile /core/OdfFile
 COPY --from=openssl /core/Common/3dParty/openssl/ /core/Common/3dParty/openssl/
 WORKDIR /core
-# RUN find . -name sha.h ; exit 1
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh -c "-ICommon/3dParty/openssl/openssl/include" DesktopEditor/doctrenderer
 # Outputs /core/build/lib/linux_64/libdoctrenderer.a
@@ -487,12 +489,6 @@ COPY --from=graphics /core/build/lib/linux_64/libgraphics.a /core/build/lib/linu
 COPY --from=unicodeconverter /core/build/lib/linux_64/libUnicodeConverter.a /core/build/lib/linux_64/
 COPY --from=gumbo /gumbo-parser /gumbo-parser
 WORKDIR /core
-# RUN find /gumbo-parser -type f | xargs grep RemoveEmptyTag
-# RUN find . -type f | xargs grep RemoveEmptyTag
-# RUN exit 1
-# RUN rm HtmlFile2/src/StringFinder.h
-# RUN sed -i -e 's,./src/StringFinder.h,,' \
-#     HtmlFile2/HtmlFile2.pro
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
     embuild.sh Fb2File
 # Outputs /core/build/lib/linux_64/libFb2File.a
@@ -677,7 +673,7 @@ WORKDIR /tests
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-basic-text.docx
 RUN wget https://sample-files.com/downloads/documents/docx/sample-files.com-formatted-report.docx
 COPY core/ /core/
-RUN find /core -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' | xargs -I {} -- cp {} /tests
+RUN find /core -type f \( -name '*.docx' -or -name '*.xlsx' -or -name '*.pptx' \) | xargs -I {} -- cp {} /tests
 # Remove tests, that we know are broken
 RUN rm /tests/Example.docx \
     /tests/NumberFormat.xlsx \

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -579,7 +572,7 @@ void anim_par::pptx_convert(oox::pptx_conversion_context & Context)
 	_CP_OPT(int)			presentationPresetId;
 	_CP_OPT(int)			presentationPresetPresetSubType;
 
-	bool isSlideAnimation = false; // NOTE: Анимация применяется к самому слайду, а не элементу на слайде
+	bool isSlideAnimation = false; // NOTE: The animation is applied to the slide itself, not the element on the slide
 
 	_CP_OPT(int)	accelerate; 
 	_CP_OPT(int)	decelerate;
@@ -712,14 +705,14 @@ void anim_par::pptx_convert(oox::pptx_conversion_context & Context)
 	if (anim_par_array_.size())
 	{
 		for(size_t i = 0; i < anim_par_array_.size(); i++)
-			anim_par_array_[i]->pptx_convert(Context); // это для самого слайда (то что и нужно)
+			anim_par_array_[i]->pptx_convert(Context); // this is for the slide itself (that's what's needed)
 	}
 	for (size_t i = 0; i < anim_seq_array_.size(); i++)
     {
 		anim_seq_array_[i]->pptx_convert(Context);
 	}
 /////////////////////////////////////////////////////////////////
-//внутренние эффекты - те что внутри одной последовательности
+//internal effects - those that are within one sequence
 	for (size_t i = 0; i < content_.size(); i++)
     {
 		content_[i]->pptx_convert(Context);
@@ -733,7 +726,7 @@ void anim_par::add_child_element( xml::sax * Reader, const std::wstring & Ns, co
 	if CP_CHECK_NAME(L"anim", L"par") 
 		CP_CREATE_ELEMENT(anim_par_array_);
 	else if	CP_CHECK_NAME(L"anim", L"seq") 
-		CP_CREATE_ELEMENT(anim_seq_array_);//более 1 элемента- взаимосвязанная анимация (между фигурами)
+		CP_CREATE_ELEMENT(anim_seq_array_);//more than 1 element - interconnected animation (between shapes)
 	else
 		CP_CREATE_ELEMENT(content_);
 }

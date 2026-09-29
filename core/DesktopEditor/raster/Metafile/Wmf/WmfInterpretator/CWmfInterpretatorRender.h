@@ -48,7 +48,7 @@ namespace MetaFile
 	private:
 		CMetaFileRenderer *m_pMetaFileRenderer;
 	public:
-		//Следующие методы ничего не делают
+		//The following methods do nothing
 		void HANDLE_META_HEADER(const TWmfPlaceable&, const TWmfHeader&) override {};
 		//-----------------------------------------------------------
 		// 2.3.1 Bitmap records
@@ -131,7 +131,7 @@ namespace MetaFile
 		//-----------------------------------------------------------
 		void HANDLE_META_ESCAPE(unsigned short ushEscapeFunction, unsigned short ushByteCount) override {};
 		//-----------------------------------------------------------
-		// Неизвестные записи
+		// Unknown entries
 		//-----------------------------------------------------------
 		void HANDLE_META_UNKNOWN(CDataStream& oDataStream) override {};
 	};

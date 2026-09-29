@@ -671,7 +671,7 @@ public:
 
 		if (!m_pInternal->m_bIsStandard)
 		{
-			// смотрим разницу
+			// look at the difference
 			std::wstring strDirIn = GetOutputFile(L"", true);
 			std::wstring strDirOut = sDirectoryDst;
 

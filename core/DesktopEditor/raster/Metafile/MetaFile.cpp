@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -51,7 +44,7 @@ namespace MetaFile
 	{
 		m_pFontManager = NULL;
 		m_pAppFonts = pAppFonts;
-		// Создаем менеджер шрифтов с собственным кэшем
+		// Creating a font manager with its own cache
 		if (pAppFonts)
 		{
 			m_pFontManager = pAppFonts->GenerateFontManager();
@@ -153,7 +146,7 @@ namespace MetaFile
 			return;
 
 		unsigned int alfa = 0xffffff;
-		//дефолтный тон должен быть прозрачным, а не белым
+		//default tone should be transparent, not white
 		//memset(pBgraData, 0xff, nWidth * nHeight * 4);
 		for (int i = 0; i < nWidth * nHeight; i++)
 		{
@@ -275,14 +268,14 @@ namespace MetaFile
 		m_oEmfFile.SetOutputDevice(wsFilePath, InterpretatorType::Emf);
 		m_oEmfFile.PlayMetaFile();
 
-		//TODO:: сохранение в *.emf файл
+		//TODO:: saving to *.emf file
 	}
 #endif
 
 	bool CMetaFile::LoadFromFile(const wchar_t *wsFilePath)
 	{
-		// TODO: Сейчас при загрузке каждой новой картинки мы пересоздаем
-		//       FontManager, потому что сейчас в нем кэш без ограничения.
+		// TODO: Now, when loading each new image, we recreate
+		//       FontManager because it currently has unlimited cache.
 		//------------------------------------------------------
 
 		RELEASEINTERFACE(m_pFontManager);
@@ -311,7 +304,7 @@ namespace MetaFile
 		//------------------------------------------------------
 
 	#ifdef METAFILE_SUPPORT_WMF_EMF
-		// Сначала пытаемся открыть файл как Wmf
+		// First, try to open the file as Wmf
 		if (m_oWmfFile.OpenFromWmfFile(wsFilePath) == true)
 		{
 			m_oWmfFile.Scan();
@@ -323,7 +316,7 @@ namespace MetaFile
 			}
 			m_oWmfFile.Close();
 		}
-		// Это не Wmf
+		// This isn't WMF
 		if (m_oEmfFile.OpenFromEmfFile(wsFilePath) == true)
 		{
 			m_oEmfFile.Scan();
@@ -336,7 +329,7 @@ namespace MetaFile
 			m_oEmfFile.Close();
 		}
 	#endif
-		// Это не Emf
+		// This isn't Emf
 	#ifdef METAFILE_SUPPORT_SVM
 		if (m_oSvmFile.OpenFromFile(wsFilePath) == true)
 		{
@@ -351,7 +344,7 @@ namespace MetaFile
 			m_oSvmFile.Close();
 		}
 	#endif
-		// Это не svm
+		// This isn't svm
 	#ifdef METAFILE_SUPPORT_SVG
 		if (m_oSvgFile.OpenFromFile(wsFilePath) == true)
 		{
@@ -369,8 +362,8 @@ namespace MetaFile
 		if (NULL == pBuffer || 0 == unSize)
 			return false;
 
-		// TODO: Сейчас при загрузке каждой новой картинки мы пересоздаем
-		//       FontManager, потому что сейчас в нем кэш без ограничения.
+		// TODO: Now, when loading each new image, we recreate
+		//       FontManager because it currently has unlimited cache.
 		//------------------------------------------------------
 
 		RELEASEINTERFACE(m_pFontManager);
@@ -399,7 +392,7 @@ namespace MetaFile
 		//------------------------------------------------------
 
 	#ifdef METAFILE_SUPPORT_WMF_EMF
-		// Сначала пытаемся открыть файл как Wmf
+		// First, try to open the file as Wmf
 		if (m_oWmfFile.ReadFromBuffer(pBuffer, unSize) == true)
 		{
 			m_oWmfFile.Scan();
@@ -411,7 +404,7 @@ namespace MetaFile
 			}
 			m_oWmfFile.Close();
 		}
-		// Это не Wmf
+		// This isn't WMF
 		if (m_oEmfFile.ReadFromBuffer(pBuffer, unSize) == true)
 		{
 			m_oEmfFile.Scan();
@@ -424,7 +417,7 @@ namespace MetaFile
 			m_oEmfFile.Close();
 		}
 	#endif
-		// Это не Emf
+		// This isn't Emf
 	#ifdef METAFILE_SUPPORT_SVM
 		if (m_oSvmFile.ReadFromBuffer(pBuffer, unSize) == true)
 		{
@@ -439,7 +432,7 @@ namespace MetaFile
 			m_oSvmFile.Close();
 		}
 	#endif
-		// Это не svm
+		// This isn't svm
 	#ifdef METAFILE_SUPPORT_SVG
 		if (m_oSvgFile.ReadFromBuffer(pBuffer, unSize) == true)
 		{
@@ -661,7 +654,7 @@ namespace MetaFile
 			return;
 
 		unsigned int alfa = 0xffffff;
-		//дефолтный тон должен быть прозрачным, а не белым
+		//default tone should be transparent, not white
 		//memset(pBgraData, 0xff, nWidth * nHeight * 4);
 		for (int i = 0; i < nWidth * nHeight; i++)
 		{

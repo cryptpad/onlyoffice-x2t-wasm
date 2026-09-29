@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -88,7 +81,7 @@ namespace ComplexTypes
 		}
 		void CCellMergeTrackChange::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
 			{
-				// Читаем атрибуты
+				// Reading the attributes
 				WritingElement_ReadAttributes_Start( oReader )
 				WritingElement_ReadAttributes_Read_if     ( oReader, L"w:author",     m_sAuthor )
 				WritingElement_ReadAttributes_Read_else_if( oReader, L"w:date",       m_oDate )
@@ -130,7 +123,7 @@ namespace ComplexTypes
 		}
 		void CHMerge::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
 			{
-				// Читаем атрибуты
+				// Reading the attributes
 				WritingElement_ReadAttributes_Start( oReader )
 				WritingElement_ReadAttributes_ReadSingle( oReader, L"w:val", m_oVal )
 				WritingElement_ReadAttributes_End( oReader )
@@ -167,7 +160,7 @@ namespace ComplexTypes
 		}
 		void CVMerge::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
 			{
-				// Читаем атрибуты
+				// Reading the attributes
 				WritingElement_ReadAttributes_Start( oReader )
 				WritingElement_ReadAttributes_ReadSingle( oReader, L"w:val", m_oVal )
 				WritingElement_ReadAttributes_End( oReader )
@@ -249,7 +242,7 @@ namespace ComplexTypes
 		}
 		void CJcTable::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
 			{
-				// Читаем атрибуты
+				// Reading the attributes
 				WritingElement_ReadAttributes_Start( oReader )
 				WritingElement_ReadAttributes_ReadSingle( oReader, L"w:val", m_oVal )
 				WritingElement_ReadAttributes_End( oReader )
@@ -291,7 +284,7 @@ namespace ComplexTypes
 		}
 		void CTblLayoutType::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
 			{
-				// Читаем атрибуты
+				// Reading the attributes
 				WritingElement_ReadAttributes_Start( oReader )
 				WritingElement_ReadAttributes_ReadSingle( oReader, L"w:type", m_oType )
 				WritingElement_ReadAttributes_End( oReader )
@@ -493,7 +486,7 @@ namespace ComplexTypes
 		}
 		void CTblLook::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
 			{
-				// Читаем атрибуты
+				// Reading the attributes
 				WritingElement_ReadAttributes_Start( oReader )
 				WritingElement_ReadAttributes_Read_if     ( oReader, L"w:firstColumn", m_oFirstColumn )
 				WritingElement_ReadAttributes_Read_else_if( oReader, L"w:firstRow",    m_oFirstRow )
@@ -521,7 +514,7 @@ namespace ComplexTypes
 		}
 		void CTblOverlap::FromXML(XmlUtils::CXmlLiteReader& oReader)
 		{
-			// Читаем атрибуты
+			// Reading the attributes
 			WritingElement_ReadAttributes_Start( oReader )
 			WritingElement_ReadAttributes_ReadSingle( oReader, L"w:val", m_oVal )
 			WritingElement_ReadAttributes_End( oReader )
@@ -685,7 +678,7 @@ namespace ComplexTypes
 		}
 		void CTblPPr::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
 			{
-				// Читаем атрибуты
+				// Reading the attributes
 				WritingElement_ReadAttributes_Start( oReader )
 				WritingElement_ReadAttributes_Read_if     ( oReader, L"w:bottomFromText", m_oBottomFromText )
 				WritingElement_ReadAttributes_Read_else_if( oReader, L"w:horzAnchor",     m_oHorzAnchor )
@@ -1826,7 +1819,7 @@ namespace OOX
 			WritingElement_ReadNode( oNode, oChild, L"w:headers",        m_oHeaders );
 			WritingElement_ReadNode( oNode, oChild, L"w:hideMark",       m_oHideMark );
 
-			// В списке аттрибутов написано "hMerge", а в примере "hmerge"
+			// The list of attributes says "hMerge", and in the example "hmerge"
 			WritingElement_ReadNode( oNode, oChild, L"w:hmerge",         m_oHMerge );
 			if ( !m_oHMerge.IsInit() )
 				WritingElement_ReadNode( oNode, oChild, L"w:hMerge",     m_oHMerge );
@@ -1844,7 +1837,7 @@ namespace OOX
 			WritingElement_ReadNode( oNode, oChild, L"w:textDirection",  m_oTextDirection );
 			WritingElement_ReadNode( oNode, oChild, L"w:vAlign",         m_oVAlign );
 
-			// В списке аттрибутов написано "vMerge", а в примере "vmerge"
+			// The list of attributes says "vMerge", and in the example "vmerge"
 			WritingElement_ReadNode( oNode, oChild, L"w:vmerge",         m_oVMerge );
 			if ( !m_oVMerge.IsInit() )
 				WritingElement_ReadNode( oNode, oChild, L"w:vMerge",     m_oVMerge );

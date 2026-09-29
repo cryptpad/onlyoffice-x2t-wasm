@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -113,7 +106,7 @@ bool COfficeFileFormatChecker::isMultiPartsHtmlFormatFile(unsigned char *pBuffer
 		return false;
 
 	const char *contentTypeFormatLine1 = "Content-Type: multipart/related";
-	const char *contentTypeFormatLine2 = "Content-Type: text/html"; // может быть и вне заданого буфера (todooo)
+	const char *contentTypeFormatLine2 = "Content-Type: text/html"; // may be outside the specified buffer (TODO)
 
 	std::string xml_string((char *)pBuffer, dwBytes);
 
@@ -706,7 +699,7 @@ bool COfficeFileFormatChecker::isOfficeFile(const std::wstring &_fileName)
 	std::wstring fileName = _fileName;
 #endif
 
-	// приоритет как оказывается важен
+	// priority turns out to be important
 	// Metamorphic Manual for windows 28415.doc
 	POLE::Storage storage(fileName.c_str());
 	if (storage.open())
@@ -719,7 +712,7 @@ bool COfficeFileFormatChecker::isOfficeFile(const std::wstring &_fileName)
 		}
 		else if (isDocFormatFile(&storage))
 		{
-			// nFileType внутри
+			// nFileType inside
 			return true;
 		}
 		else if (isXlsFormatFile(&storage))
@@ -930,7 +923,7 @@ bool COfficeFileFormatChecker::isOfficeFile(const std::wstring &_fileName)
 	//------------------------------------------------------------------------------------------------
 	if (iXmlFile(fileName))
 	{
-		// nFileType внутри
+		// nFileType inside
 		return true;
 	}
 	//// by Extension
@@ -978,7 +971,7 @@ bool COfficeFileFormatChecker::isOfficeFile(const std::wstring &_fileName)
 		nFileType = AVS_OFFICESTUDIO_FILE_DOCUMENT_HTML;
 	else if (0 == sExt.compare(L".bin")) // base64 string
 		nFileType = AVS_OFFICESTUDIO_FILE_CANVAS_PDF;
-	else if (0 == sExt.compare(L".doct")) // случай архива с html viewer
+	else if (0 == sExt.compare(L".doct")) // case of archive with html viewer
 		nFileType = AVS_OFFICESTUDIO_FILE_TEAMLAB_DOCY;
 	else if (0 == sExt.compare(L".txt") || 0 == sExt.compare(L".xml") || 0 == sExt.compare(L".rtf")	|| 0 == sExt.compare(L".doc") || 0 == sExt.compare(L".docx"))
 		nFileType = AVS_OFFICESTUDIO_FILE_DOCUMENT_TXT;
@@ -1168,7 +1161,7 @@ bool COfficeFileFormatChecker::isDocFormatFile(const std::wstring &fileName)
 	{
 		if (isDocFormatFile(&storage))
 		{
-			// nFileType внутри;
+			// nFileType inside;
 			return true;
 		}
 	}
@@ -1191,7 +1184,7 @@ bool COfficeFileFormatChecker::isOnlyOfficeFormatFile(const std::wstring &fileNa
 {
 	COfficeUtils OfficeUtils(NULL);
 
-	ULONG nBufferSize = 128; // ограничим считывание из бинарника
+	ULONG nBufferSize = 128; // limit reading from the binary
 	BYTE *pBuffer = NULL;
 
 	HRESULT hresult = OfficeUtils.LoadFileFromArchive(fileName, L"Editor.bin", &pBuffer, nBufferSize);
@@ -1541,7 +1534,7 @@ bool COfficeFileFormatChecker::isOpenOfficeFormatFile(const std::wstring &fileNa
 	}
 	else
 	{
-		// если не записан тип смотрим манифест
+		// if the type isn't recorded, look at the manifest
 		nBufferSize = 0;
 		HRESULT hresult = OfficeUtils.LoadFileFromArchive(fileName, L"META-INF/manifest.xml", &pBuffer, nBufferSize);
 		if (hresult == S_OK && pBuffer != NULL)

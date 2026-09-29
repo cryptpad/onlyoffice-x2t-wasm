@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -224,8 +217,8 @@ public:
 			margins.left = margins.right = 0x00016530;
 			margins.top = margins.bottom = 0x0000b298;
 		}
-		std::wstring	content;		//c форматированием oox
-		std::wstring	vml_content;	//c форматированием vml
+		std::wstring	content;		//with oox formatting
+		std::wstring	vml_content;	//with vml formatting
 		int				wrap = 0; //square
 		int				align = 0; //noset
 		int				vert_align = 0; //noset
@@ -595,8 +588,8 @@ private:
 	std::vector<_drawing_state_ptr>		drawing_states;
 	std::vector<_drawing_state_ptr>*	current_drawing_states;
 
-	std::vector<_drawing_state_ptr>		drawing_states_objects;//копии для сериализации ole
-	std::vector<_drawing_state_ptr>		drawing_states_controls;//копии для сериализации control
+	std::vector<_drawing_state_ptr>		drawing_states_objects;//copies for ole serialization
+	std::vector<_drawing_state_ptr>		drawing_states_controls;//copies for control serialization
 	
 	void end_drawing			(_drawing_state_ptr & drawing_state);
 	void reset_fill_pattern		(_drawing_state_ptr & drawing_state);

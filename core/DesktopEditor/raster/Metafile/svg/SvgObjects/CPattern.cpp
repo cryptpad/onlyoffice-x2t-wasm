@@ -60,7 +60,7 @@ namespace SVG
 			return;
 
 		unsigned int alfa = 0xffffff;
-		//дефолтный тон должен быть прозрачным, а не белым
+		//default tone should be transparent, not white
 		//memset(pBgraData, 0xff, nWidth * nHeight * 4);
 		for (int i = 0; i < nWidth * nHeight; i++)
 			((unsigned int*)pBgraData)[i] = alfa;
@@ -80,7 +80,7 @@ namespace SVG
 
 		pGrRenderer->SetTransform(dMMtoPx, 0., 0., dMMtoPx, 0., 0.);
 
-		//Отрисовка
+		//Rendering
 		m_oContainer.Draw(pGrRenderer, pFile);
 
 		pGrRenderer->EndCommand(c_nImageType);

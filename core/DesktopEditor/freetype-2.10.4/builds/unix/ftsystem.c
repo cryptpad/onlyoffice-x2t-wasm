@@ -24,6 +24,7 @@
 #include <freetype/fterrors.h>
 #include <freetype/fttypes.h>
 #include <freetype/internal/ftstream.h>
+#include <fcntl.h>
 
   /* memory-mapping includes and definitions */
 #ifdef HAVE_UNISTD_H
@@ -64,6 +65,11 @@
 #include <fcntl.h>
 #endif
 
+#ifdef BUILDING_WASM_MODULE
+#ifdef __linux__
+#include <unistd.h>
+#endif
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

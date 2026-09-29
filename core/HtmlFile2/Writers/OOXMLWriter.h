@@ -39,11 +39,11 @@ struct TImageData
 
 class COOXMLWriter : public IWriter
 {
-	const std::wstring *m_pDstPath;  // Директория назначения
-	const std::wstring *m_pTempDir;  // Temp папка
-	const std::wstring *m_pSrcPath;  // Директория источника
-	const std::wstring *m_pBasePath; // Полный базовый адрес
-	const std::wstring *m_pCorePath; // Путь до корневого файла (используется для работы с Epub)
+	const std::wstring *m_pDstPath;  // Destination directory
+	const std::wstring *m_pTempDir;  // Temp folder
+	const std::wstring *m_pSrcPath;  // Source directory
+	const std::wstring *m_pBasePath; // Full base address
+	const std::wstring *m_pCorePath; // Path to the root file (used for working with Epub)
 
 	XmlString m_oStylesXml;   // styles.xml
 	XmlString m_oDocXmlRels;  // document.xml.rels
@@ -53,28 +53,28 @@ class COOXMLWriter : public IWriter
 	XmlString m_oNumberXml;   // numbering.xml
 	XmlString m_oWebSettings; // webSettings.xml
 
-	NSCSS::CDocumentStyle m_oXmlStyle;      // Ooxml стиль
-	NSCSS::NSProperties::CPage m_oPageData; // Стили страницы
+	NSCSS::CDocumentStyle m_oXmlStyle;      // Ooxml style
+	NSCSS::NSProperties::CPage m_oPageData; // Page styles
 
 	NSCSS::CCssCalculator *m_pStylesCalculator;
 	THTMLParameters *m_pHTMLParameters;
 
 	struct TState
 	{
-		bool m_bInP;         // <w:p> открыт?
-		bool m_bInR;         // <w:r> открыт?
-		bool m_bInT;         // <w:t> открыт?
-		bool m_bWasPStyle;   // <w:pStyle> записан?
-		bool m_bWasSpace;    // Был пробел?
+		bool m_bInP;         // Is <w:p> open?
+		bool m_bInR;         // Is <w:r> open?
+		bool m_bInT;         // Is <w:t> open?
+		bool m_bWasPStyle;   // <w:pStyle> recorded?
+		bool m_bWasSpace;    // Was there a space?
 
-		bool m_bInHyperlink; // <w:hyperlink> открыт?
+		bool m_bInHyperlink; // Is <w:hyperlink> open?
 		std::wstring m_wsTooltip;
 		std::wstring m_wsHref;
 		std::wstring m_wsFootnote;
 		bool m_bIsFootnote;
 		bool m_bISCrossHyperlink;
 
-		XmlString *m_pCurrentDocument; //Текущее место записи
+		XmlString *m_pCurrentDocument; //Current write location
 		bool m_bRemoveCurrentDocument;
 
 		TState(XmlString *pCurrentDocument)
@@ -99,22 +99,22 @@ class COOXMLWriter : public IWriter
 
 	std::stack<TState> m_arStates;
 
-	int m_nFootnoteId;  // ID сноски
-	int m_nHyperlinkId; // ID ссылки
-	int m_nListId;      // ID списка
-	int m_nElementId;   // ID остальные элементы
+	int m_nFootnoteId;  // Footnote ID
+	int m_nHyperlinkId; // Link ID
+	int m_nListId;      // List ID
+	int m_nElementId;   // ID other elements
 
-	bool m_bBanUpdatePageData; // Запретить обновление данных о странице?
+	bool m_bBanUpdatePageData; // Prevent page data from updating?
 
 	std::stack<std::wstring> m_arDivId;
 	bool m_bWasDivs;
 
-	std::map<std::wstring, std::wstring> m_mFootnotes; // Сноски
-	std::map<std::wstring, UINT>         m_mBookmarks; // Закладки
+	std::map<std::wstring, std::wstring> m_mFootnotes; // Footnotes
+	std::map<std::wstring, UINT>         m_mBookmarks; // Bookmarks
 	using anchors_map = std::map<std::wstring, std::wstring>;
-	anchors_map                          m_mAnchors; // Map якорей с индивидуальными id
+	anchors_map                          m_mAnchors; // Map of anchors with individual ids
 
-	NSFonts::IApplicationFonts*          m_pFonts;     // Необходимо для оптимизации работы со шрифтами
+	NSFonts::IApplicationFonts*          m_pFonts;     // Needed to optimize font handling
 public:
 	COOXMLWriter(THTMLParameters* pHTMLParameters = nullptr, NSCSS::CCssCalculator* pCSSCalculator = nullptr);
 

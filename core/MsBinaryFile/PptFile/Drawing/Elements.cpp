@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -149,9 +142,9 @@ bool PPT::CShapeElement::SetUpTextPlaceholder(std::wstring newText)
 	bool result = false;
 	PPT::CTextAttributesEx* pText = &m_pShape->m_oText;
 
-	for (size_t p = 0; p < pText->m_arParagraphs.size(); p++) //тут по всем -> 1-(33).ppt
+	for (size_t p = 0; p < pText->m_arParagraphs.size(); p++) //here for everyone -> 1-(33).ppt
 	{
-		if (pText->m_arParagraphs[p].m_arSpans.size() > 0)//??? по всем?
+		if (pText->m_arParagraphs[p].m_arSpans.size() > 0)//??? for everyone?
 		{
 			int pos = (int)pText->m_arParagraphs[p].m_arSpans[0].m_strText.find(L"*");
 
@@ -191,16 +184,9 @@ bool PPT::CShapeElement::SetUpTextPlaceholder(std::wstring newText)
 * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
 * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 *
-* You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
-* street, Riga, Latvia, EU, LV-1050.
-*
 * The  interactive user interfaces in modified source and object code versions
 * of the Program must display Appropriate Legal Notices, as required under
 * Section 5 of the GNU AGPL version 3.
-*
-* Pursuant to Section 7(b) of the License you must retain the original Product
-* logo when distributing the program. Pursuant to Section 7(e) we decline to
-* grant you any rights under trademark law for use of our trademarks.
 *
 * All the Product's GUI elements, including illustrations and icon sets, as
 * well as technical writing content are licensed under the terms of the
@@ -372,7 +358,7 @@ namespace PPT
 		CPPTShape* pPPTShape = dynamic_cast<CPPTShape*>(m_pShape->getBaseShape().get());
 		if (NULL == pPPTShape)
 		{
-			// такого быть не может
+			// this can't happen
 			return L"";
 		}
 

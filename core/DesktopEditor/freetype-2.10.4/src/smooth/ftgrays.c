@@ -97,7 +97,9 @@
    */
 #undef  FT_COMPONENT
 #define FT_COMPONENT  smooth
-
+#ifdef BUILDING_WASM_MODULE
+#include <wasm_jmp.h>
+#endif
 
 #ifdef STANDALONE_
 
@@ -542,7 +544,11 @@ typedef ptrdiff_t  FT_PtrDist;
     }
 
     if ( ras.num_cells >= ras.max_cells )
+#ifdef BUILDING_WASM_MODULE
+      ft_longjmp_ex( ras.jump_buffer, 1 );
+#else
       ft_longjmp( ras.jump_buffer, 1 );
+#endif
 
     /* insert new cell */
     cell        = ras.cells + ras.num_cells++;
@@ -1636,8 +1642,11 @@ typedef ptrdiff_t  FT_PtrDist;
   {
     int  error;
 
-
+#ifdef BUILDING_WASM_MODULE
+    try
+#else
     if ( ft_setjmp( ras.jump_buffer ) == 0 )
+#endif
     {
       if ( continued )
         FT_Trace_Disable();
@@ -1654,7 +1663,11 @@ typedef ptrdiff_t  FT_PtrDist;
                   ras.num_cells,
                   ras.num_cells == 1 ? "" : "s" ));
     }
+#ifdef BUILDING_WASM_MODULE
+    catch(int jmp)
+#else
     else
+#endif
     {
       error = FT_THROW( Memory_Overflow );
 

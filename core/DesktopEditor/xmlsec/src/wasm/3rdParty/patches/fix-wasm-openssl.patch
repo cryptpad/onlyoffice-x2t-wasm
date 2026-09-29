@@ -1,0 +1,49 @@
+diff --git a/crypto/rand/rand_lib.c b/crypto/rand/rand_lib.c
+index ab4e9b54..c8ab6299 100644
+--- a/crypto/rand/rand_lib.c
++++ b/crypto/rand/rand_lib.c
+@@ -911,34 +911,22 @@ void RAND_add(const void *buf, int num, double randomness)
+         meth->add(buf, num, randomness);
+ }
+ 
+-/*
+- * This function is not part of RAND_METHOD, so if we're not using
+- * the default method, then just call RAND_bytes().  Otherwise make
+- * sure we're instantiated and use the private DRBG.
+- */
++#include "emscripten.h"
++EM_JS(int, js_random, (unsigned char* buf, int num), {
++    var byteArray = new Uint8Array(num);
++    var engine = self.crypto || self.msCrypto;
++    engine.getRandomValues(byteArray);
++    Module["HEAP8"].set(byteArray, buf);
++    return 1;
++});
+ int RAND_priv_bytes(unsigned char *buf, int num)
+ {
+-    const RAND_METHOD *meth = RAND_get_rand_method();
+-    RAND_DRBG *drbg;
+-
+-    if (meth != NULL && meth != RAND_OpenSSL())
+-        return RAND_bytes(buf, num);
+-
+-    drbg = RAND_DRBG_get0_private();
+-    if (drbg != NULL)
+-        return RAND_DRBG_bytes(drbg, buf, num);
+-
+-    return 0;
++    return js_random(buf, num);
+ }
+ 
+ int RAND_bytes(unsigned char *buf, int num)
+ {
+-    const RAND_METHOD *meth = RAND_get_rand_method();
+-
+-    if (meth != NULL && meth->bytes != NULL)
+-        return meth->bytes(buf, num);
+-    RANDerr(RAND_F_RAND_BYTES, RAND_R_FUNC_NOT_IMPLEMENTED);
+-    return -1;
++    return js_random(buf, num);
+ }
+ 
+ #if OPENSSL_API_COMPAT < 0x10100000L

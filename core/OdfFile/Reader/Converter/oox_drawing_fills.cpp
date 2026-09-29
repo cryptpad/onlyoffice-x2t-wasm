@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -260,7 +253,7 @@ void oox_serialize_bitmap_fill(std::wostream & strm, const _oox_fill & val, cons
 						CP_XML_NODE(ns + L":fillRect")
 						{
 							if (val.bitmap->sx && val.bitmap->sy)
-							{ //todooo focus
+							{ //TODO focus
 								CP_XML_ATTR2(ns_att + L"l", (int)((100 - *val.bitmap->sx) / 2 * 1000));
 								CP_XML_ATTR2(ns_att + L"t", (int)((100 - *val.bitmap->sy) / 2 * 1000));
 								CP_XML_ATTR2(ns_att + L"r", (int)((100 - *val.bitmap->sx) / 2 * 1000));
@@ -396,7 +389,7 @@ void oox_serialize_hatch_fill(std::wostream & strm, const _oox_fill & val, const
 		CP_XML_NODE(ns + L":pattFill")
 		{
 			CP_XML_ATTR2(ns_att + L"prst", val.hatch->preset);
-			CP_XML_NODE(ns + L":fgClr")//опять для ms важно что этот цвет перед back
+			CP_XML_NODE(ns + L":fgClr")//again for ms it is important that this color is before back
 			{
 				oox_serialize_srgb(CP_XML_STREAM(), val.hatch->color_ref, val.opacity);
 			}	

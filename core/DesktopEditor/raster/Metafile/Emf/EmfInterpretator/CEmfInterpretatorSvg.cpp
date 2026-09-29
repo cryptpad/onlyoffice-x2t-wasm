@@ -317,7 +317,7 @@ namespace MetaFile
 
 	void CEmfInterpretatorSvg::HANDLE_EMR_CHORD(const TRectL &oBox, const TPointL &oStart, const TPointL &oEnd)
 	{
-		//TODO:: реализовать
+		//TODO::implement
 	}
 
 	void CEmfInterpretatorSvg::HANDLE_EMR_ELLIPSE(const TRectL &oBox)
@@ -1327,7 +1327,7 @@ namespace MetaFile
 
 	void CEmfInterpretatorSvg::HANDLE_EMFPLUS_DRAWPIE(short shOgjectIndex, double dStartAngle, double dSweepAngle, const TEmfPlusRectF &oRect)
 	{
-		//TODO: Реализовать при встрече
+		//TODO: Implement when encountered
 	}
 
 	void CEmfInterpretatorSvg::HANDLE_EMFPLUS_DRAWRECTS(short shOgjectIndex, const std::vector<TEmfPlusRectF> &arRects)

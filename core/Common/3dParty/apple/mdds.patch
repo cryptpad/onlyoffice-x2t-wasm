@@ -1,0 +1,25 @@
+diff --git a/include/mdds/global.hpp b/include/mdds/global.hpp
+index ba5f7708..6174a345 100644
+--- a/include/mdds/global.hpp
++++ b/include/mdds/global.hpp
+@@ -78,6 +78,20 @@
+ #endif
+ #endif
+ 
++#if __cplusplus < 201402L
++#   ifndef _MSC_VER
++
++namespace std {
++    template<bool __v>
++    using bool_constant = integral_constant<bool, __v>;
++
++    template <class... _Types>
++    using void_t = void;
++}
++
++#   endif
++#endif
++
+ namespace mdds {
+ 
+ class general_error : public ::std::exception

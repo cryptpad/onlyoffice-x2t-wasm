@@ -190,7 +190,7 @@ WASM_EXPORT void Crypto_DestroyCertificate(void* cert)
 #endif
 
 // methods for oform signatures
-// создаем ключи, приватный шифруем паролем, результат - две base64 строки
+// create keys, encrypt the private one with a password, the result is two base64 strings
 WASM_EXPORT char* Crypto_CreateKeys(const char* alg, const char* password, const char* salt)
 {
 	std::string publicKey;

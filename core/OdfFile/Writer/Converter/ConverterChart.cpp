@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -70,7 +63,7 @@ void OoxConverter::convert_chart_text(PPTX::Logic::TxBody *oox_txBody, bool only
 	{
 		convert(&oox_txBody->Paragrs[i], oox_txBody->lstStyle.GetPointer());
 	
-	//внешние настройки для текста
+	//external settings for text
 		convert_chart_text(oox_txBody->bodyPr.GetPointer());			
 	}
 
@@ -104,7 +97,7 @@ void OoxConverter::convert_chart_text(PPTX::Logic::BodyPr *oox_bodyPr)
 	if ((oox_bodyPr->numCol.IsInit()) && (oox_bodyPr->numCol.get() > 1))
 	{
 		//+ style section
-		//+element text:section в котором параграфы
+		//+element text:section which contains paragraphs
 	}
 	if (oox_bodyPr->rot.IsInit())
 	{
@@ -242,7 +235,7 @@ void OoxConverter::convert(OOX::Spreadsheet::CT_Legend* ct_legend)
 		convert_chart_text(ct_legend->m_txPr.GetPointer(), true);
 		if (ct_legend->m_legendEntry.size() > 0)
 		{
-			convert(ct_legend->m_legendEntry[0]); // в odf_writer нет в легенде множественности стилей
+			convert(ct_legend->m_legendEntry[0]); // in odf_writer there is no multiplicity of styles in the legend
 		}
 	//////////////////////
 	odf_context()->chart_context()->end_element();
@@ -551,7 +544,7 @@ void OoxConverter::convert(OOX::Spreadsheet::CT_ChartLines *line, int type)
 			convert(line->m_spPr.GetPointer());	
 		odf_context()->chart_context()->end_element();
 	}
-	if (type == 3)//drop line - нет в формате опен офис
+	if (type == 3)//drop line - not available in open office format
 	{
 		odf_context()->chart_context()->start_stock_range_line();
 			convert(line->m_spPr.GetPointer());
@@ -973,7 +966,7 @@ void OoxConverter::convert(OOX::Spreadsheet::CBaseSer* ser)
 {
 	if (ser == NULL) return;
 	
-	convert(ser->m_extLst.GetPointer()); // ref вперед cache
+	convert(ser->m_extLst.GetPointer()); // ref forward cache
 	
 	convert(ser->m_tx); 
 	convert(ser->m_spPr.GetPointer());
@@ -1015,7 +1008,7 @@ void OoxConverter::convert(OOX::Spreadsheet::CT_PieSer* ser)
 		convert(ser->m_cat, 1);
 		convert(ser->m_val);
 		
-		if (!ser->m_dPt.empty()) //?? нужны ли дефолтовые?
+		if (!ser->m_dPt.empty()) //?? Do we need default ones?
 		{
 			convert(NULL, ser->m_dPt);
 		}
@@ -1144,7 +1137,7 @@ void OoxConverter::convert(OOX::Spreadsheet::CT_Marker* marker, std::vector<OOX:
 		}
 		odf_context()->chart_context()->start_data_point_series(1);
 			convert(dPt[i]->m_spPr.GetPointer());
-			convert(dPt[i]->m_marker, !dPt[i]->m_spPr.IsInit()); // брать цвета маркера, если нет цвета точки
+			convert(dPt[i]->m_marker, !dPt[i]->m_spPr.IsInit()); // take the marker colors if there is no dot color
 			
 			if (dPt[i]->m_explosion.IsInit())
 					odf_context()->chart_context()->set_series_pie_explosion(*dPt[i]->m_explosion);
@@ -1172,7 +1165,7 @@ void OoxConverter::convert(OOX::Spreadsheet::CT_Marker* marker, bool bFill)
 			odf_context()->chart_context()->set_marker_type(marker->m_symbol->GetValue());
 	if (marker->m_size.IsInit())
 			odf_context()->chart_context()->set_marker_size(*marker->m_size);
-	//в оо нету отдельного понятия цвета маркера и точки данных
+	//in OO there is no separate concept of marker color and data point
 	if (bFill)
 	{
 		convert(marker->m_spPr.GetPointer());
@@ -1343,7 +1336,7 @@ void OoxConverter::convert(OOX::Spreadsheet::CT_Surface* ct_surface, int type, b
 void OoxConverter::convert(OOX::Spreadsheet::CT_ExternalData *external_data)
 {
 	if (external_data == NULL)return;
-	//данные для диаграммы внутренние !!!
+	//data for the chart is internal!!!
 
 	if (false == external_data->m_id.IsInit()) return;
 
@@ -1379,7 +1372,7 @@ void OoxConverter::convert(OOX::Spreadsheet::CT_ExternalData *external_data)
 	
 	if (!bConvertLocal)
 	{
-		odf_context()->chart_context()->set_local_table(true);//пока пользуем кэш ....
+		odf_context()->chart_context()->set_local_table(true);//while we are using the cache...
 	}
 }
 void OoxConverter::convert(OOX::Spreadsheet::CT_NumData	*num_data, bool categories, bool label)

@@ -110,7 +110,7 @@ void CCtrlObjElement::ParseRenderingInfo(CXMLReader &oReader, EHanType eType)
 {
 	WHILE_READ_NEXT_NODE_WITH_NAME(oReader)
 	{
-		// Сначала идёт 1 hc:transMatrix, а после попарно идут hc:scaMatrix с hc:rotMatrix
+		// First comes 1 hc:transMatrix, and then comes hc:scaMatrix in pairs with hc:rotMatrix
 
 		if (GetNodeName(ENode::TransformMatrix, eType) != sNodeName &&
 		    GetNodeName(ENode::ScaleMatrix, eType)     != sNodeName &&

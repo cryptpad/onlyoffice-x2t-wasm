@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -175,7 +168,7 @@ const bool SERIESFORMAT::loadContent(BinProcessor& proc)
 		elements_.pop_back();
 		count--;
 	}
-	//доп серии
+	//additional series
 	if (proc.mandatory<Parenthesis_SERIESFORMAT_1>())
 	{
 		count = elements_.size();
@@ -202,7 +195,7 @@ const bool SERIESFORMAT::loadContent(BinProcessor& proc)
 		}
 	}
 
-	count = proc.repeated<Parenthesis_SERIESFORMAT_2>(0, 0); // это типо "нормальных"
+	count = proc.repeated<Parenthesis_SERIESFORMAT_2>(0, 0); // it's like "normal"
 
 	count = elements_.size();
 	while(count > 0)
@@ -296,7 +289,7 @@ int SERIESFORMAT::serialize_legend(std::wostream & _stream, int idx)
 		{
 			CP_XML_NODE(L"c:idx")
 			{
-				CP_XML_ATTR(L"val", idx); //legendException->iss = oxffff легенда для серий
+				CP_XML_ATTR(L"val", idx); //legendException->iss = oxffff legend for series
 			}
 			if (att)
 			{
@@ -313,7 +306,7 @@ int SERIESFORMAT::serialize_parent(std::wostream & _stream, CHARTFORMATS* chart_
 {
 	if (m_SerParent == NULL)
 	{
-		for (size_t i = 0; i < m_arSERIESFORMAT_ext.size(); i++) // объединение
+		for (size_t i = 0; i < m_arSERIESFORMAT_ext.size(); i++) // association
 		{
 			SERIESFORMAT * series_ext = dynamic_cast<SERIESFORMAT *>(m_arSERIESFORMAT_ext[i].get());
 			if ((series_ext) && (series_ext->m_SerParent))
@@ -352,7 +345,7 @@ int SERIESFORMAT::serialize_parent(std::wostream & _stream, CHARTFORMATS* chart_
 				if (series_ss)
 				{
 					series_ss->serialize(CP_XML_STREAM(), CHART_TYPE_Bar, -1);
-					//тут не надо рисовать маркеры .. а вот fill можно - он просто отбрасывается - по "првильному" нужно выделить отдельный тип чисто линий
+					//here markers don't need to be drawn .. but fill is possible - it is simply discarded - according to the "correct" method, need to select a separate type of pure lines
 				}
 				//CP_XML_NODE(L"c:spPr")
 				//{

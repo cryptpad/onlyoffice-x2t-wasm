@@ -13,7 +13,7 @@
 #include "Writers/MDWriter.h"
 #include "Tags/MDTags.h"
 
-#include "../Common/3dParty/html/gumbo-parser/src/gumbo.h"
+#include "../Common/3dParty/html/gumbo-parser/src/gumbo.h" // CryptPad: Fix path
 #include "src/StringFinder.h"
 
 #include <boost/tuple/tuple.hpp>
@@ -61,8 +61,8 @@ const static std::map<std::wstring, HtmlTag> m_HTML_TAGS
 	ADD_TAG(L"code", CODE),
 	ADD_TAG(L"col", COL),
 	ADD_TAG(L"colgroup", COLGROUP),
-	ADD_TAG(L"command", SKIP_TAG), // Данного обозначения нет, но т.к.мы всё равно пропускаем, то делаем script
-	ADD_TAG(L"comment", SKIP_TAG), // Данного обозначения нет, но т.к.мы всё равно пропускаем, то делаем script
+	ADD_TAG(L"command", SKIP_TAG), // There is no such designation, but since we are skipping anyway, we make a script
+	ADD_TAG(L"comment", SKIP_TAG), // There is no such designation, but since we are skipping anyway, we make a script
 	ADD_TAG(L"datalist", DATALIST),
 	ADD_TAG(L"dd", DD),
 	ADD_TAG(L"del", DEL),
@@ -519,7 +519,7 @@ bool CHTMLReader::Convert(const std::wstring& wsPath, Convert_Func Convertation)
 	m_oLightReader.ReadNextNode();
 	ReadStyle();
 
-	// Переходим в начало
+	// Go to the beginning
 	if(!m_oLightReader.MoveToStart())
 		return S_FALSE;
 
@@ -544,7 +544,7 @@ void CHTMLReader::ReadStyle()
 			ReadStyle2();
 		else
 		{
-			// Стиль по ссылке
+			// Style by reference
 			if(sName == L"link")
 			{
 				while(m_oLightReader.MoveToNextAttribute())
@@ -552,7 +552,7 @@ void CHTMLReader::ReadStyle()
 
 				m_oLightReader.MoveToElement();
 			}
-			// тэг style содержит стили для styles.xml
+			// the style tag contains styles for styles.xml
 			else if(sName == L"style")
 				m_oCSSCalculator.AddStyles(m_oLightReader.GetText2());
 			else
@@ -564,14 +564,14 @@ void CHTMLReader::ReadStyle()
 void CHTMLReader::ReadStyle2()
 {
 	const std::wstring wsName = m_oLightReader.GetName();
-	// Стиль по ссылке
+	// Style by reference
 	if(wsName == L"link")
 	{
 		while(m_oLightReader.MoveToNextAttribute())
 			ReadStyleFromNetwork();
 		m_oLightReader.MoveToElement();
 	}
-	// тэг style содержит стили для styles.xml
+	// the style tag contains styles for styles.xml
 	else if(wsName == L"style")
 		m_oCSSCalculator.AddStyles(m_oLightReader.GetText2());
 
@@ -591,7 +591,7 @@ void CHTMLReader::ReadStyleFromNetwork()
 	if(NSFile::GetFileExtention(sRef) != L"css")
 		return;
 	std::wstring sFName = NSFile::GetFileName(sRef);
-	// Стиль в сети
+	// Style from a web URL
 	if(sRef.substr(0, 4) == L"http")
 	{
 		sFName = m_wsTempDirectory + L'/' + sFName;
@@ -633,7 +633,7 @@ void CHTMLReader::ReadHead()
 	while (m_oLightReader.ReadNextSiblingNode(nDeath))
 	{
 		const std::wstring wsName = m_oLightReader.GetName();
-		// Базовый адрес
+		// Base address
 		if (L"base" == wsName)
 			m_wsBaseDirectory = GetArgumentValue(m_oLightReader, L"href");
 	}
@@ -700,7 +700,7 @@ bool CHTMLReader::ReadInside(std::vector<NSCSS::CNode>& arSelectors)
 	if(wsName == L"#text")
 		return ReadText(arSelectors);
 
-	//TODO:: обработать все варианты return'а
+	//TODO:: process all return options
 	if (UnreadableNode(wsName) || TagIsUnprocessed(wsName))
 		return false;
 
@@ -832,7 +832,7 @@ bool CHTMLReader::ReadInside(std::vector<NSCSS::CNode>& arSelectors)
 		case HTML_TAG(STYLE):
 		case HTML_TAG(SCRIPT):
 		{
-			//Если встретили не обрабатываемые теги, то просто пропускаем
+			//Skip unhandled tags
 			arSelectors.pop_back();
 			return false;
 		}
@@ -1021,9 +1021,9 @@ bool CHTMLReader::ReadTable(std::vector<NSCSS::CNode>& arSelectors)
 
 	if (nullptr != m_pWriter && !m_pWriter->SupportNestedTables())
 	{
-		//Временно разруливаем это тут, так как по текущей логике мы сначала
-		//читаем всю таблицу и её вложенные элементы, а потом приступаем к конвертации,
-		//поэтому конвертору уже приходят вложенные таблицы, что в MD запрещено
+		//Handle this here temporarily, since according to the current logic we first
+		//read the entire table and its nested elements, and then proceed to conversion,
+		//therefore, the converter already receives nested tables, which is prohibited in MD
 		for (std::vector<NSCSS::CNode>::const_reverse_iterator itElement{arSelectors.crbegin() + 1}; itElement < arSelectors.crend(); ++itElement)
 			if (L"table" == itElement->m_wsName)
 				return false;
@@ -1123,8 +1123,8 @@ bool CHTMLReader::ReadTable(std::vector<NSCSS::CNode>& arSelectors)
 	oTable.SetAlign(pStyle->m_oDisplay.GetHAlign().ToWString());
 	//------
 
-	//TODO:: переписать работу с таблицами без предварительной конвертации ячеек и хранения их внутренних данных
-	//Читаем содержимое таблицы -> считаем ячейки -> нормализуем таблицу -> конвертим таблицу
+	//TODO:: rewrite work with tables without first converting cells and storing their internal data
+	//Read the contents of the table -> count the cells -> normalize the table -> convert the table
 
 	int nDeath = m_oLightReader.GetDepth();
 	while(m_oLightReader.ReadNextSiblingNode(nDeath))
@@ -1308,7 +1308,7 @@ void CHTMLReader::ReadTableRows(CStorageTable& oTable, std::vector<NSCSS::CNode>
 					arRowspanElements.push_back({pCell->GetRowspan(), unColumnIndex, pCell});
 			}
 
-			// Читаем th. Ячейка заголовка таблицы. Выравнивание посередине. Выделяется полужирным
+			// Read th. Table header cell. Center alignment. Shown in bold
 			if(m_oLightReader.GetName() == L"th")
 			{
 				if (pCell->GetStyles()->m_wsHAlign.empty())
@@ -1320,7 +1320,7 @@ void CHTMLReader::ReadTableRows(CStorageTable& oTable, std::vector<NSCSS::CNode>
 				ReadStream(arSelectors, true);
 				m_pWriter->RevertDataOutput();
 			}
-			// Читаем td. Ячейка таблицы
+			// Reading td. Table cell
 			else if(m_oLightReader.GetName() == L"td")
 			{
 				m_pWriter->SetDataOutput(pCell->GetData());
@@ -1441,7 +1441,7 @@ void CHTMLReader::GetSubClass(std::vector<NSCSS::CNode>& arSelectors)
 	NSCSS::CNode oNode;
 
 	oNode.m_wsName = m_oLightReader.GetName();
-	// Стиль по атрибуту
+	// Style by attribute
 	std::wstring wsAttributeName;
 
 	if (m_oLightReader.MoveToFirstAttribute())
@@ -1495,10 +1495,10 @@ inline std::wstring GetArgumentValue(XmlUtils::CXmlLiteReader& oLiteReader, cons
 	return wsValue;
 }
 
-// Так как CSS калькулятор не знает для какой ноды производится расчет стиля
-// и не знает, что некоторые стили предназначены только определенной ноде,
-// то проще пока обрабатывать это заранее
-// ! Используется для стилей, заданных через аргументы !
+// Since the CSS calculator doesn't know for which node the style is being calculated
+// and doesn't know that some styles are intended only for a specific node,
+// then it's easier to process it in advance
+// ! Used for styles specified via arguments !
 inline bool CheckArgumentMath(const std::wstring& wsNodeName, const std::wstring& wsStyleName)
 {
 	if (L"border" == wsStyleName && L"table" != wsNodeName)

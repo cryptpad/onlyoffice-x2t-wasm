@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -87,7 +80,7 @@ static double convert_symbol_size(double val, double metrix, bool add_padding)
 	return pixels * 0.75; //* 9525. * 72.0 / (360000.0 * 2.54);
 }
 
-// Класс для конструирования чартов
+// Class for constructing charts
 using namespace chart;
 	
 void object_odf_context::set_pivot_source(std::wstring const & val)
@@ -458,7 +451,7 @@ void object_odf_context::oox_convert(oox::oox_chart_context & chart_context)
 
  	for (size_t i = 0; i < series_.size(); i++)
 	{
-		if (series_[i].class_ != last_set_class)			//разные типы серий в диаграмме - например бар и линия.
+		if (series_[i].class_ != last_set_class) //different types of series in the chart - for example, a bar and a line.
 		{
 			chart_context.add_chart(series_[i].class_);
 			last_set_class = series_[i].class_;
@@ -487,10 +480,10 @@ void object_odf_context::oox_convert(oox::oox_chart_context & chart_context)
 		if (series_[i].cell_range_address_.empty())
 			series_[i].cell_range_address_ = domain_cell_range_adress2_;
 		
-		//тут данные нужно поделить по столбцам или строкам - так как в плот-ареа общий диапазон
-		//первый столбец-строка МОЖЕт использоваться для подписей
-		//каждая серия берет каждый последующий диапазрн
-		//такое определение - редкость = todooo
+		//here the data needs to be divided into columns or rows - since the plot area has a common range
+		//the first row-column CAN be used for signatures
+		//each series takes each subsequent range
+		//this definition is rare = TODO
 		
 		std::vector<std::wstring>		domain_cash;
 		std::vector<std::wstring>		cell_cash;
@@ -502,7 +495,7 @@ void object_odf_context::oox_convert(oox::oox_chart_context & chart_context)
 		calc_cache_series (series_[i].label_cell_address_,		label_cash);
 		
 		if (chart_context.no_used_local_tables_ && false == table_name_.empty())
-		{//убрать ссылки на локальную таблицу кэшей
+		{//remove links to the local cache table
 			if (std::wstring::npos != series_[i].cell_range_address_.find(table_name_))
 			{
 				series_[i].cell_range_address_.clear();
@@ -514,7 +507,7 @@ void object_odf_context::oox_convert(oox::oox_chart_context & chart_context)
 		}		
 		
 		if (false == categories_.empty())
-		{//вычищать от локальных ссылок нельзя. может использоваться в последующих сериях
+		{//can't be cleared of local links. can be used in subsequent series
 			calc_cache_series (categories_[0],	cat_cash);
 		}
 
@@ -580,7 +573,7 @@ void object_odf_context::oox_convert(oox::oox_chart_context & chart_context)
 			current->set_values_series(1, cell_cash);
 		}
 
-		if (categories_.empty() == false)//названия 
+		if (categories_.empty() == false)//titles
 		{
 			if (chart_context.no_used_local_tables_)
 			{
@@ -623,11 +616,11 @@ void object_odf_context::oox_convert(oox::oox_chart_context & chart_context)
 				last_set_class == chart_class::bubble) a.type_ = 2;
 
 			if (class_ == chart_class::stock && a.type_ == 3 )		
-				a.type_ = 4; //шкала дат.
+				a.type_ = 4; //date scale.
 
 			if (bIs3D.get_value_or(false))
 			{
-				a.type_ = 1; // шкала категорий
+				a.type_ = 1; // category scale
 			}
 			
 			x_enabled = true;
@@ -867,17 +860,17 @@ void process_build_object::visit(office_chart& val)
 void process_build_object::visit(office_text& val)
 {
 	object_odf_context_.object_type_ = 2;
-	object_odf_context_.office_text_ = &val;	//конвертация будет уровнем выше
+	object_odf_context_.office_text_ = &val;	//conversion will be a level higher
 }
 void process_build_object::visit(office_math& val)
 {
-	object_odf_context_.object_type_ = 3;		//= 0 - временно замещающая картинка
-	object_odf_context_.office_math_ = &val;	//конвертация будет уровнем выше
+	object_odf_context_.object_type_ = 3;		//= 0 - temporary replacement image
+	object_odf_context_.office_math_ = &val;	//conversion will be a level higher
 }
 void process_build_object::visit(office_spreadsheet& val)
 {
 	object_odf_context_.object_type_		= 4;	
-	object_odf_context_.office_spreadsheet_ = &val;	//конвертация будет уровнем выше
+	object_odf_context_.office_spreadsheet_ = &val;	//conversion will be a level higher
 }
 void process_build_object::visit(chart_chart& val)
 {

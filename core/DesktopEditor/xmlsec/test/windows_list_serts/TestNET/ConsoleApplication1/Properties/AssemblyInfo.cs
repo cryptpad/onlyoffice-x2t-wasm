@@ -2,9 +2,9 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// Управление общими сведениями о сборке осуществляется с помощью 
-// набора атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
-// связанные со сборкой.
+// General information about the assembly is managed using a
+// set of attributes. Change the values of these attributes to change the
+// assembly-related information.
 [assembly: AssemblyTitle("Sha1_C14N")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
@@ -14,23 +14,23 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-// Параметр ComVisible со значением FALSE делает типы в сборке невидимыми 
-// для COM-компонентов.  Если требуется обратиться к типу в этой сборке через 
-// COM, задайте атрибуту ComVisible значение TRUE для этого типа.
+// Setting ComVisible to FALSE makes types in the assembly invisible
+// for COM components.  If you need to access a type in this assembly via
+// COM, set the ComVisible attribute to TRUE for this type.
 [assembly: ComVisible(false)]
 
-// Следующий GUID служит для идентификации библиотеки типов, если этот проект будет видимым для COM
+// The following GUID serves to identify the type library if this project is to be visible to COM
 [assembly: Guid("a945e071-111a-41e0-8bb0-4f7755ebb77b")]
 
-// Сведения о версии сборки состоят из следующих четырех значений:
+// Assembly version information consists of the following four values:
 //
-//      Основной номер версии
-//      Дополнительный номер версии 
-//   Номер сборки
-//      Редакция
+//      Major version number
+//      Minor version number
+//   Build number
+//      Revision
 //
-// Можно задать все значения или принять номера сборки и редакции по умолчанию 
-// используя "*", как показано ниже:
+// You can specify all values or accept the default build and revision numbers
+// using "*" as below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -71,7 +64,7 @@ void XMLConverter::ConvertXml(XLSXTableController &table)
         }
         prevType_ = nodeType;
     }
-    ///выписываем однократно содержимое нод, если нет повторяющихся
+    ///write out the contents of the nodes once, if there are no duplicates
     if(writingRows_.empty())
     {
         for(auto i :data_)
@@ -85,7 +78,7 @@ void XMLConverter::ConvertXml(XLSXTableController &table)
         auto nodeName = writingRows_.at(nodeCount)->ValueColumnName;
         auto rowNumber = nodeCount + 2;
 
-         ///  ищем самую старшую повторяющуюся ноду и заполняем унаследованные атрибуты
+         /// look for the highest repeating node and fill in the inherited attributes
         auto elderNode = writingRows_.at(nodeCount);
         for(auto i = elderNode; i; i = i->parent)
         {
@@ -219,7 +212,7 @@ void XMLConverter::closeNode()
         }
         for (const auto& key : delitingNodes)
         {
-            openednodes_.erase(key); // Удаление элемента с указанным ключом
+            openednodes_.erase(key); // Removing an element with a specified key
         }
 
         if((!nodePointer_->ValueColumnName.empty() || !nodePointer_->childs.empty()) && closedNode)
@@ -251,7 +244,7 @@ void XMLConverter::closeNode()
 
 std::wstring XMLConverter::getNodeName(const std::wstring &name)
 {
-    /// ищем среди использовавшихся имён нужное
+    /// looking for the right one among the names used
     for(auto i = nodePointer_->attributes.begin(); i != nodePointer_->attributes.end(); i++)
     {
         if(colNames_->GetXmlName(*i) == name)

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -108,7 +101,7 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 			oMetaHeader.ToWMFHeader(&oWmfHeader);
 			
 			LONG lLenHeader = 22;
-			BYTE* pMetaHeader = new BYTE[lLenHeader]; // удалится в oMetaFile
+			BYTE* pMetaHeader = new BYTE[lLenHeader]; // will be deleted in oMetaFile
 			memcpy(pMetaHeader, (void*)(&oWmfHeader), lLenHeader);
 
 			oMetaFile.SetHeader(pMetaHeader, lLenHeader);
@@ -255,7 +248,7 @@ void CRecordOfficeArtBlip::ReadFromStream(SRecordHeader & oHeader, POLE::Stream*
 		{
 			std::string test((char*)pImage, (std::min)((int)oHeader.RecLen - lOffset, 4096));
 			if (std::string::npos != (lOffset2 = test.find("GIF89")))
-			{//gif in png chuncks - todooo from read header, chunks ....
+			{//gif in png chunks - TODO read from header, chunks ....
 				sExt = L".gif";
 				lOffset += lOffset2;
 			}

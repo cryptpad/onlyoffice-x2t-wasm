@@ -9,7 +9,7 @@ COFDFile_Private::COFDFile_Private(NSFonts::IApplicationFonts* pFonts)
 	if (nullptr == pFonts)
 		return;
 
-	// Создаем менеджер шрифтов с собственным кэшем
+	// Creating a font manager with its own cache
 	m_pFontManager = pFonts->GenerateFontManager();
 	NSFonts::IFontsCache* pMeasurerCache = NSFonts::NSFontCache::Create();
 	pMeasurerCache->SetStreams(pFonts->GetStreams());

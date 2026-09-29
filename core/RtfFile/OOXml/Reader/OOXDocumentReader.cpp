@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -91,7 +84,7 @@ bool OOXDocumentReader::Parse(ReaderParameter oParam)
 	{
 		size_t last_section_start = 0;
 
-		//считаем количесво секций и заполняем их свойства .. 
+		//Count the number of sections and fill in their properties..
 		for (size_t i = 0; i < m_ooxDocument->m_arrItems.size(); ++i)
 		{
 			if (m_ooxDocument->m_arrItems[i] == NULL) continue;
@@ -131,7 +124,7 @@ bool OOXDocumentReader::Parse(ReaderParameter oParam)
 		section.end_para = m_ooxDocument->m_arrItems.size();
 
 		section.props->m_oProperty.SetDefaultOOX();
-		if (m_ooxDocument->m_oSectPr.IsInit())// свойства последней секции
+		if (m_ooxDocument->m_oSectPr.IsInit())// properties of the last section
 		{
 			OOXSectionPropertyReader oSectReader(m_ooxDocument->m_oSectPr.GetPointer());
 			if (oSectReader.Parse(oParam, section.props->m_oProperty))
@@ -141,7 +134,7 @@ bool OOXDocumentReader::Parse(ReaderParameter oParam)
 		}
 	}
 	//-------------------------------------------------------------------------------------------------------------
-	m_poDocument->RemoveItem(0); //бланковый при инициализации
+	m_poDocument->RemoveItem(0); //blank upon initialization
 
 	for (int sect = 0; sect < m_poDocument->GetCount(); sect++)
 	{
@@ -187,11 +180,11 @@ bool OOXSettingsReader::Parse(ReaderParameter oParam)
 	}
 	if (m_ooxSettings->m_oHyphenationZone.IsInit() && m_ooxSettings->m_oHyphenationZone->m_oVal.IsInit())
 	{
-		oParam.oRtf->m_oProperty.m_nHyphenationRight = m_ooxSettings->m_oHyphenationZone->m_oVal->ToTwips(); //todooo проверить размерность
+		oParam.oRtf->m_oProperty.m_nHyphenationRight = m_ooxSettings->m_oHyphenationZone->m_oVal->ToTwips(); //TODO check dimension
 	}
 	if (m_ooxSettings->m_oDefaultTabStop.IsInit() && m_ooxSettings->m_oDefaultTabStop->m_oVal.IsInit())
 	{
-		oParam.oRtf->m_oProperty.m_nTabWidth = m_ooxSettings->m_oDefaultTabStop->m_oVal->ToTwips();//todooo
+		oParam.oRtf->m_oProperty.m_nTabWidth = m_ooxSettings->m_oDefaultTabStop->m_oVal->ToTwips();//TODO
 	}
 	if (m_ooxSettings->m_oBordersDoNotSurroundHeader.IsInit())
 	{
@@ -223,7 +216,7 @@ bool OOXSettingsReader::Parse(ReaderParameter oParam)
 	}
 	if (m_ooxSettings->m_oCompat.IsInit())
 	{
-		// todooo - реализовать в DocxFormat
+		// TODO - implement in DocxFormat
 
 		//if( L"w:doNotUseHTMLParagraphAutoSpacing" == sNodeName )
 		//	oParam.oRtf->m_oProperty.m_bHtmlAutoSpace = 0;

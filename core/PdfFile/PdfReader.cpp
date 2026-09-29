@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -91,7 +84,7 @@ CPdfReader::CPdfReader(NSFonts::IApplicationFonts* pAppFonts)
 	globalParams->setErrQuiet(gTrue);
 #endif
 
-	// Создаем менеджер шрифтов с собственным кэшем
+	// Creating a font manager with its own cache
 	m_pFontManager = InitFontManager(pAppFonts);
 #ifndef BUILDING_WASM_MODULE
 	globalParams->setupBaseFonts(NULL);
@@ -196,8 +189,8 @@ bool CPdfReader::LoadFromMemory(NSFonts::IApplicationFonts* pAppFonts, BYTE* dat
 	m_eError = errNone;
 	m_nFileLength = length;
 
-	// Все LoadFromMemory копируют память в свои классы
-	// Кроме того MemStream использует malloc/free память
+	// All LoadFromMemory copies memory to their classes
+	// In addition, MemStream uses malloc/free memory
 	BYTE* pCopy = (BYTE*)malloc(length);
 	memcpy(pCopy, data, length);
 	data = pCopy;
@@ -474,8 +467,8 @@ bool CPdfReader::MergePages(BYTE* pData, DWORD nLength, const wchar_t* wsPasswor
 
 	Object obj;
 	obj.initNull();
-	// будет освобожден в деструкторе PDFDoc
-	// Время его жизни > copy и makeSubStream из MemStream
+	// will be released in the PDFDoc destructor
+	// Lifetime > copy and makeSubStream from MemStream
 	BaseStream *str = new MemStream((char*)pData, 0, nLength, &obj, gTrue);
 	CPdfReaderContext* pContext = new CPdfReaderContext();
 	pContext->m_pDocument = new PDFDoc(str, owner_pswd, user_pswd);
@@ -494,7 +487,7 @@ bool CPdfReader::MergePages(BYTE* pData, DWORD nLength, const wchar_t* wsPasswor
 	m_eError = pDoc ? pDoc->getErrorCode() : errMemory;
 	if (!pDoc || !pDoc->isOk())
 	{
-		// pData освобождается
+		// pData is released
 		delete pContext;
 		m_vPDFContext.pop_back();
 		return false;
@@ -518,7 +511,7 @@ bool CPdfReader::MergePages(const std::wstring& wsFile, const wchar_t* wsPasswor
 		user_pswd  = NSStrings::CreateString(wsPassword);
 	}
 
-	// конвертим путь в utf8 - под виндой они сконвертят в юникод, а на остальных - так и надо
+	// convert the path to utf8 - on Windows they will convert to Unicode, but on others - this is how it should be
 	std::string sPathUtf8 = U_TO_UTF8(wsFile);
 
 	CPdfReaderContext* pContext = new CPdfReaderContext();
@@ -680,7 +673,7 @@ void CPdfReader::DrawPageOnRenderer(IRenderer* pRenderer, int _nPageIndex, bool*
 	LONG lRendererType = 0;
 	pRenderer->get_Type(&lRendererType);
 	if (c_nDocxWriter == lRendererType)
-		return; // Без отрисовки Redact при ScanPage
+		return; // No Redact rendering on ScanPage
 
 	Page* pPage = pDoc->getCatalog()->getPage(nPageIndex);
 	PDFRectangle* cropBox = pPage->getCropBox();
@@ -1104,7 +1097,7 @@ BYTE* CPdfReader::GetStructure()
 			oRes.AddInt(nStartPage);
 			oRes.AddInt(1);
 			oRes.AddDouble(0);
-			oRes.WriteString(std::to_string(iPDF)); // TODO Писать имя файла как Adobe?
+			oRes.WriteString(std::to_string(iPDF)); // TODO Write file name as Adobe?
 		}
 
 		for (int i = 0, num = pList->getLength(); i < num; i++)
@@ -1124,7 +1117,7 @@ BYTE* CPdfReader::GetStructure()
 }
 BYTE* CPdfReader::GetLinks(int _nPageIndex)
 {
-	// TODO Links должны стать частью Annots
+	// TODO Links should become part of Annots
 	PDFDoc* pDoc = NULL;
 	int nPageIndex = GetPageIndex(_nPageIndex, &pDoc);
 	if (nPageIndex < 0 || !pDoc || !pDoc->getCatalog())
@@ -1136,7 +1129,7 @@ BYTE* CPdfReader::GetLinks(int _nPageIndex)
 
 	NSWasm::CPageLink oLinks;
 
-	// Гиперссылка
+	// Hyperlink
 	/*
 	Links* pLinks = pDoc->getLinks(nPageIndex);
 	if (pLinks)
@@ -1222,7 +1215,7 @@ BYTE* CPdfReader::GetLinks(int _nPageIndex)
 	nRotate = -pDoc->getPageRotate(nPageIndex);
 #endif
 
-	// Текст-ссылка
+	// Link text
 	TextOutputControl textOutControl;
 	textOutControl.mode = textOutReadingOrder;
 	TextOutputDev* pTextOut = new TextOutputDev(NULL, &textOutControl, gFalse);
@@ -1407,7 +1400,7 @@ BYTE* CPdfReader::VerifySign(const std::wstring& sFile, ICertificate* pCertifica
 		int nByteOffset = 0;
 		for (int j = 0; j < arrByteOffset.size(); ++j)
 		{
-			// TODO проверка длины файла и ByteRange
+			// TODO check file length and ByteRange
 			memcpy(pDataForVerify + nByteOffset, pFileData + arrByteOffset[j], arrByteLength[j]);
 			nByteOffset += arrByteLength[j];
 		}
@@ -1425,7 +1418,7 @@ BYTE* CPdfReader::VerifySign(const std::wstring& sFile, ICertificate* pCertifica
 		RELEASEARRAYOBJECTS(pDataForVerify);
 		oObj1.free();
 
-		// Номер аннотации для сопоставления с AP
+		// Annotation number to match with AP
 		oRes.AddInt(i);
 		oRes.AddInt(nRes);
 	}
@@ -1524,7 +1517,7 @@ BYTE* CPdfReader::GetButtonIcon(int nBackgroundColor, int _nPageIndex, bool bBas
 			Object oStr, oXObject, oIm;;
 			if (oMK.dictLookup(sMKName.c_str(), &oStr)->isStream())
 			{
-				// Получение единственного XObject из Resources, если возможно
+				// Getting a single XObject from Resources if possible
 				Object oResources;
 				if (!oStr.streamGetDict()->lookup("Resources", &oResources)->isDict() || !oResources.dictLookup("XObject", &oXObject)->isDict() ||
 					oXObject.dictGetLength() != 1 || !oXObject.dictGetVal(0, &oIm)->isStream())
@@ -1536,7 +1529,7 @@ BYTE* CPdfReader::GetButtonIcon(int nBackgroundColor, int _nPageIndex, bool bBas
 			}
 			else if ((oStr.free(), true) && oMK.dictLookup("I", &oStr)->isNull() && oAP.isDict() && (oStr.free(), true) && oAP.dictLookup(arrAPName[j], &oStr)->isStream())
 			{
-				// Получение единственного XObject из Resources, если возможно
+				// Getting a single XObject from Resources if possible
 				Object oResources;
 				if (!oStr.streamGetDict()->lookup("Resources", &oResources)->isDict() || !oResources.dictLookup("XObject", &oXObject)->isDict() ||
 					oXObject.dictGetLength() != 1 || !oXObject.dictGetVal(0, &oIm)->isStream())
@@ -1571,11 +1564,11 @@ BYTE* CPdfReader::GetButtonIcon(int nBackgroundColor, int _nPageIndex, bool bBas
 			{
 				Object oFieldRef;
 				pField->getFieldRef(&oFieldRef);
-				// Номер аннотации для сопоставления с AP
+				// Annotation number to match with AP
 				oRes.AddInt(oFieldRef.getRefNum() + nStartRefID);
 				oFieldRef.free();
 
-				// Количество иконок 1-3
+				// Number of icons 1-3
 				nMKPos = oRes.GetSize();
 				oRes.AddInt(nMKLength);
 				bFirst = false;
@@ -2026,7 +2019,7 @@ int GetPageAnnots(PDFDoc* pdfDoc, NSFonts::IFontManager* pFontManager, PdfReader
 		// {
 		// 	pAnnot = new PdfReader::CAnnotPopup(pdfDoc, &oAnnotRef, nPageIndex, nStartRefID);
 		// }
-		// TODO Все аннотации
+		// TODO All annotations
 		oAnnotRef.free();
 
 		if (pAnnot)

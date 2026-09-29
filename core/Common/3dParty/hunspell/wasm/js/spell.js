@@ -1,4 +1,4 @@
-var printErr = undefined;
+/*var printErr = undefined;
 var FS = undefined;
 var print = undefined;
 
@@ -34,7 +34,7 @@ else
     getBinaryPromise = function() {
         return getBinaryPromise2();
     }
-}
+}*/
 
 //polyfill
 
@@ -65,7 +65,7 @@ function onMessageEvent(data, port)
 
     if (1 < self.spellchecker.messages.length)
     {
-        // значит еще грузим что-то
+        // it means we're still loading something
         return;
     }
 
@@ -276,7 +276,7 @@ function Spellchecker()
 			var readyLang = this.readyLanguages[lang_key];
 			if (!readyLang)
 			{
-				// начнем грузить
+				// start loading
 				var langToReady = new Dictionary();
 				langToReady.id = lang_key;
 				langToReady.language = this.languages[lang_key];
@@ -289,20 +289,20 @@ function Spellchecker()
 			}
 			else if (readyLang.status != 2)
 			{
-				// ждем
+				// wait
 				isReady = false;
 				break;
 			}
 			else
 			{				
-				// все готово.
+				// everything is ready.
 				continue;	
 			}
 		}
 
 		if (!isReady)
 		{
-			// ждем
+			// wait
 			return;
 		}
 
@@ -543,4 +543,9 @@ function Spellchecker()
 			self.spellchecker.checkMessage();
 		}, 1);
 	};
+
+
+    Module.onRuntimeInitialized = function () {
+        self.onEngineInit();
+    };
 }

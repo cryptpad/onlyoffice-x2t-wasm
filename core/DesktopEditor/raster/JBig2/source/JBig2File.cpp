@@ -43,7 +43,7 @@ bool CJBig2File::MemoryToJBig2(unsigned char* pBufferBGRA ,int BufferSize, int n
     unsigned char ShiftB = isBGRA ? 0 : 2;
 	for ( int nY = 0; nY < nHeight; nY++ )
 	{
-		for ( int nX = 0; nX < nWidth; nX++, pSourceBuffer += 3 )//todooo сделать 3 ? 4
+		for ( int nX = 0; nX < nWidth; nX++, pSourceBuffer += 3 )//TODO do 3? 4
 		{
             pixSetRGBPixel( pSource, nX, nY, pSourceBuffer[ ShiftR ], pSourceBuffer[ ShiftG ], pSourceBuffer[ ShiftB ] );
 		}
@@ -52,10 +52,10 @@ bool CJBig2File::MemoryToJBig2(unsigned char* pBufferBGRA ,int BufferSize, int n
 
 	jbig2ctx *pContext = jbig2_init( m_dTreshold, 0.5, 0, 0, ! m_bPDFMode,  m_bRefine ? 10 : -1 );
 
-	// Пока сделаем запись одной картинки в JBig2
-	// TO DO: надо будет сделать запись нескольких картинок в 1 JBig2 файл
+	// For now, let's record one image in JBig2
+	// TO DO: will need to write several images into 1 JBig2 file
 
-	// Убираем ColorMap
+	// Removing ColorMap
 	PIX *pPixL = NULL;
 	if ( NULL == ( pPixL = pixRemoveColormap( pSource, REMOVE_CMAP_BASED_ON_SRC ) ) ) 
 	{
@@ -122,7 +122,7 @@ bool CJBig2File::MemoryToJBig2(unsigned char* pBufferBGRA ,int BufferSize, int n
 		} 
 		if ( !pPixT ) 
 		{
-			// Ничего не делаем
+			// Do nothing
 			return true;
 		}
 	}

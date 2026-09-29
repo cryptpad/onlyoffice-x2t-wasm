@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -957,7 +950,7 @@ std::wstring XlsConverter::GetTargetMoniker(XLS::BiffStructure *moniker)
 		if (fileMoniker)
 		{
 			if (!fileMoniker->unicodePath.empty()) return fileMoniker->unicodePath;
-			else return std::wstring(fileMoniker->ansiPath.begin(), fileMoniker->ansiPath.end());//codePage ??? todooo
+			else return std::wstring(fileMoniker->ansiPath.begin(), fileMoniker->ansiPath.end());//codePage ??? TODO
 		}
 	}
 
@@ -980,7 +973,7 @@ std::wstring XlsConverter::WriteMediaFile(char *data, int size, std::wstring typ
 {
 	if (size < 1 || !data) return L"";
 	
-	if (id < 0)		id = xlsx_context->get_mediaitems().count_image + 1000; // 1000 - встроенные в поток , 3000 - footer/header
+	if (id < 0)		id = xlsx_context->get_mediaitems().count_image + 1000; // 1000 - embedded in the stream, 3000 - footer/header
 
 	xlsx_context->get_mediaitems().create_media_path(xlsx_path);
 
@@ -998,7 +991,7 @@ std::wstring XlsConverter::WriteMediaFile(char *data, int size, std::wstring typ
 		if (header->biWidth > 100000 || header->biHeight > 100000)
 		{
 			//biff8
-			//Formulas Matriciais - A Outra Dimensão do Excel.xls	775x20 		todoooo найти еще файлы 
+			//Formulas Matriciais - A Outra Dimensão do Excel.xls 775x20 TODO find more files
 			//Planilha Bastter Blue 7.0 Free.xls 10x3836
 			//biff 5
 			//test-picture.xls
@@ -1013,7 +1006,7 @@ std::wstring XlsConverter::WriteMediaFile(char *data, int size, std::wstring typ
 			
 			//if (header_core->bcWidth % 2 != 0 && sz_bitmap < size - offset)
 			//	header_core->bcWidth++;
-			///???? todooo непонятно .. в biff5 нужно флипать картинку, в biff8 не ясно ( - 
+			///???? TODO it's not clear .. in biff5 need to flip the image, in biff8 it's not clear ( -
 			
 			int stride = - (size - offset) / header_core->bcHeight;
 			frame.put_Stride	(stride/*header_core->bcBitCount * header_core->bcWidth /8 */);
@@ -1063,7 +1056,7 @@ std::wstring XlsConverter::WriteMediaFile(char *data, int size, std::wstring typ
 		}
 		else if (biSizeImage > 0)
 		{
-			//тут паттерные картинки
+			//here are pattern images
 			file_name += std::wstring(L".bmp");
 			NSFile::CFileBinary file;
 			if (file.CreateFileW(xlsx_context->get_mediaitems().media_path() + file_name))
@@ -1379,7 +1372,7 @@ void XlsConverter::convert(XLS::OBJECTS* objects, XLS::WorksheetSubstream * shee
 //-----------------------------------------------------------------------------
 		if (type_object < 0) continue;
 		if (group_objects.empty())
-			break; /// что то с объектами не то ! 2006 02.xls
+			break; /// something is wrong with the objects! 2006 02.xls
 
 		if (type_object == 0)
 		{
@@ -1390,7 +1383,7 @@ void XlsConverter::convert(XLS::OBJECTS* objects, XLS::WorksheetSubstream * shee
 				gr.count	= gr.spgr ? gr.spgr->child_records.size() : 0;
 				group_objects.push_back(gr);
 			}
-			else //сюда попадать не должно !!!!
+			else //Shouldn't come here!!!!
 				continue;
 		}
 		if (obj->cmo.fUIObj)
@@ -1655,7 +1648,7 @@ void XlsConverter::convert_fill_style(std::vector<ODRAW::OfficeArtFOPTEPtr> & pr
 					std::map<int,  std::wstring>::iterator it = xls_global_info->colors_palette.find(color.index);
 					if (it != xls_global_info->colors_palette.end())
 					{					
-						//убрать 0!!! todooo
+						//remove 0!!! TODO
 						xlsx_context->get_drawing_context().set_fill_color(0, it->second);
 					}
 				}
@@ -1679,7 +1672,7 @@ void XlsConverter::convert_fill_style(std::vector<ODRAW::OfficeArtFOPTEPtr> & pr
 					std::map<int,  std::wstring>::iterator it = xls_global_info->colors_palette.find(color.index);
 					if (it != xls_global_info->colors_palette.end())
 					{					
-						//todooo убрать 0 !!!
+						//TODO remove 0!!!
 						xlsx_context->get_drawing_context().set_fill_color(0, it->second, true );
 					}
 				}
@@ -1780,7 +1773,7 @@ void XlsConverter::convert_line_style(std::vector<ODRAW::OfficeArtFOPTEPtr> & pr
 					std::map<int,  std::wstring>::iterator it = xls_global_info->colors_palette.find(color.index);
 					if (it != xls_global_info->colors_palette.end())
 					{					
-						//todooo убрать 0 !!
+						//TODO remove 0!!
 						xlsx_context->get_drawing_context().set_line_color(0, it->second);
 					}
 				}
@@ -2394,7 +2387,7 @@ void XlsConverter::convert(XLS::Note* note)
 
 	if (xls_global_info->Version < 0x0600)
 	{
-		//todooo размеры произвольные .. можно сделать оценку по размеру строки
+		//TODO sizes are arbitrary .. an estimate can be made from the row size
 		xlsx_context->get_drawing_context().set_sheet_anchor(0, 0, 0, 0, 0, 0, 0, 0, note->note_sh.x_, note->note_sh.y_, 120 * 12700., 64 * 12700.);
 		xlsx_context->get_drawing_context().set_text(std::wstring(L"<t>") + note->note_sh.stText.value() + std::wstring(L"</t>"));
 	}
@@ -2671,7 +2664,7 @@ void XlsConverter::convert(XLS::ChartSheetSubstream* chart)
 	if (chart == NULL) return;
 
 	chart->serialize(xlsx_context->current_chart().chartData());	
-	//convert(chart->m_OBJECTSCHART.get());непонятные какие то текстбоксы - пустые и бз привязок
+	//convert(chart->m_OBJECTSCHART.get()); some unclear textboxes - empty and without bindings
 }
 
 void XlsConverter::convert(XLS::PIVOTVIEW* pivot_view)

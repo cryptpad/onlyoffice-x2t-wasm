@@ -18,8 +18,8 @@
 #include "Decrypt.h"
 
 #ifdef USE_OPENSSL_HASH
-#include "../../../Common/3dParty/openssl/openssl/crypto/sha/sha512.c"
-#include "../../../Common/3dParty/openssl/openssl/crypto/mem_clr.c"
+#include "crypto/sha/sha512.c"
+#include "crypto/mem_clr.c"
 #else
 #define SHA384 sha384
 #define SHA512 sha512

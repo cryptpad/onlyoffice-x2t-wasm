@@ -160,7 +160,7 @@ void CConverter2OOXML::CreateEmptyFiles()
 
 void CConverter2OOXML::FillDefaultData()
 {
-	// Заполняем начало файлов
+	// Filling in the beginning of the files
 	AddRelationship(L"styles", L"styles.xml");
 	AddRelationship(L"settings", L"settings.xml");
 	AddRelationship(L"webSettings", L"webSettings.xml");
@@ -181,7 +181,7 @@ void CConverter2OOXML::FillDefaultData()
 
 void CConverter2OOXML::Close()
 {
-	// Дописываем концы файлов
+	// Appending the ends of the files
 	m_oDocXml.WriteString(L"</w:body></w:document>");
 
 	NSFile::CFileBinary oDocumentWriter;
@@ -305,7 +305,7 @@ void CConverter2OOXML::WriteCharacter(const CCtrlCharacter* pCharacter, short sh
 	{
 		case ECtrlCharType::PARAGRAPH_BREAK:
 		{
-			// Таблицы пишутся без тега <w:p>, поэтому для них не открывается параграф
+			// Tables are written without the <w:p> tag, so a paragraph doesn't open for them
 			if (TConversionState::TLastNode::ELastNodeType::Table == oState.m_oLastNode.m_eType &&
 			    oState.m_unParaIndex == oState.m_oLastNode.m_unParaIndex && !oState.m_bInTable)
 			{
@@ -471,7 +471,7 @@ void CConverter2OOXML::WriteField(const CCtrlField* pShape, short shParaShapeID,
 			oState.m_arOpenedBookmarks.pop();
 			break;
 		}
-		//TODO:: как-будто хочется определить тип закрывающей field на этапе парса hwpx
+		//TODO:: it seems like we should determine the type of the closing field at the hwpx parsing stage
 		case EFieldType::Unknown:
 		{
 			std::map<unsigned int, const CCtrlField*>::const_iterator itFound = oState.m_mOpenField.find(pShape->GetInstanceID());
@@ -800,8 +800,8 @@ void CConverter2OOXML::WriteTable(const CCtrlTable* pTable, short shParaShapeID,
 		}
 	}
 
-	//TODO:: в случаях, когда есть пустые столбцы необходимо добавить возможность удаления данных столбцов
-	// Например для матрицы 3x2, у которой значения есть только в 2x2, необходимо удалить последний столбец
+	//TODO:: in cases where there are empty columns add support to delete column data
+	// For example, for a 3x2 matrix that only has values in 2x2, remove the last column
 
 	for (unsigned int unRowIndex = 0; unRowIndex < pTable->GetRows(); ++unRowIndex)
 	{
@@ -851,7 +851,7 @@ void CConverter2OOXML::WriteTableProperties(const CCtrlTable* pTable, short shPa
 
 	oBuilder.WriteString(L"<w:tblPr>");
 
-	// TODO:: сделать вычисление
+	// TODO:: do the calculation
 	oBuilder.WriteString(L"<w:tblW w:w=\"0\" w:type=\"auto\"/>");
 
 	if (0 != pTable->GetInLSpace() || 0 != pTable->GetInTSpace() ||
@@ -954,7 +954,7 @@ void CConverter2OOXML::WriteCellProperties(short shBorderFillID, NSStringUtils::
 
 		if (pFill->ColorFill())
 			oBuilder.WriteString(L"<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"" + Transform::IntColorToHEX(pFill->GetFaceColor()) + L"\"/>");
-		// In OOXML, there is no gradient support for cell fills, so we fill in the first color of the gradient.
+		// In OOXML, there is no gradient support for cell fills, so fill in the first color of the gradient.
 		else if (pFill->GradFill() && 0 != pFill->GetGradColorNum())
 			oBuilder.WriteString(L"<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"" + Transform::IntColorToHEX(pFill->GetGradColors().front()) + L"\"/>");
 	}
@@ -976,7 +976,7 @@ void CConverter2OOXML::WriteBorder(const TBorder& oBorder, const HWP_STRING& sBo
 
 	HWP_STRING sType;
 
-	//TODO:: проверить стиль линий
+	//TODO:: check line style
 	switch(oBorder.m_eStyle)
 	{
 		case ELineStyle2::NONE: oBuilder.WriteString(L"<w:" + sBorderName + L" w:val=\"none\"/>"); return;
@@ -1001,7 +1001,7 @@ VECTOR<TPoint> ArcToBezier(const TPoint& oStart, const TPoint& oEnd, const TPoin
 	const double dRadiusX = std::abs(oStart.m_nX - oCenter.m_nX);
 	const double dRadiusY = std::abs(oStart.m_nY - oCenter.m_nY);
 
-	// Вычисление углов
+	// Calculating angles
 	double dStartAngle = std::atan2(oStart.m_nY - oCenter.m_nY, oStart.m_nX - oCenter.m_nX);
 	double dEndAngle   = std::atan2(oEnd.m_nY   - oCenter.m_nY, oEnd.m_nX   - oCenter.m_nX);
 
@@ -1269,10 +1269,10 @@ void CConverter2OOXML::WriteEqEditShape(const CCtrlEqEdit* pEqEditShape, short s
 
 void CConverter2OOXML::WriteOleShape(const CCtrlShapeOle* pOleShape, short shParaShapeID, short shParaStyleID, NSStringUtils::CStringBuilder& oBuilder, TConversionState& oState)
 {
-	//TODO:: добавить конвертацию hwp ole -> ooxml chart
-	//TODO:: необходимо добавить поддержку формата "Hwp Document File Formats - Charts" (для случаев, когда нет ooxml представления)
-	// Пока можем вытащить лишь ooxml представление данных
-	// Реализовать с использованием pole.h?
+	//TODO:: add conversion hwp ole -> ooxml chart
+	//TODO:: add support for the "Hwp Document File Formats - Charts" format (for cases where there is no ooxml representation)
+	// For now, only the OOXML data representation can be extracted
+	// Implement using pole.h?
 
 	if (nullptr == m_pContext)
 		return;
@@ -1395,7 +1395,7 @@ void CConverter2OOXML::WriteSectionSettings(TConversionState& oState)
 
 	if (nullptr != oState.m_pColumnDef && 1 < oState.m_pColumnDef->GetColCount())
 	{
-		//TODO:: Добавить поддержку остальный свойств
+		//TODO:: Add support for other properties
 		m_oDocXml.WriteString(L"<w:cols w:num=\"" + std::to_wstring(oState.m_pColumnDef->GetColCount()) + L"\"  w:space=\"454\"");
 
 		if (ELineStyle2::NONE != oState.m_pColumnDef->GetColLineStyle())
@@ -1538,7 +1538,7 @@ HWP_STRING CConverter2OOXML::SavePicture(const HWP_STRING& sBinItemId, TConversi
 	if (nullptr == m_pContext || sBinItemId.empty())
 		return HWP_STRING();
 
-	//TODO:: добавить поддержку устновки размеров изображения из свойств шейпа
+	//TODO:: add support for setting image sizes from shape properties
 	CHWPStream oBuffer;
 	HWP_STRING sFileName;
 
@@ -2138,7 +2138,7 @@ void CConverter2OOXML::WriteAutoNumber(const CCtrlAutoNumber* pAutoNumber, short
 	unsigned short ushValue = 0;
 	HWP_STRING wsType;
 
-	//TODO:: лучше перейти не на ручной подсчет, а на автоматический в word (но там есть свои проблемы)
+	//TODO:: it's better to switch not to manual counting, but to automatic counting in word (but it has its own problems)
 	switch (pAutoNumber->GetNumType())
 	{
 		case ENumType::PAGE:

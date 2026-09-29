@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -64,7 +57,7 @@ namespace PdfWriter
 		Add("LastChar", 255);
 		
 		CDictObject* pFontDescriptor = new CDictObject();
-		// FontDescriptor обязательно должен идти ссылкой
+		// FontDescriptor must be a link
 		m_pXref->Add(pFontDescriptor);
 		pFontDescriptor->Add("Type", "FontDescriptor");
 		m_pFontDescriptor = pFontDescriptor;
@@ -75,7 +68,7 @@ namespace PdfWriter
 
 		if (m_bCanEmbed)
 		{
-			// Выставляем бит Symbolic, а бит NonSymbolic убираем
+			// Set the Symbolic bit and remove the NonSymbolic bit
 			unsigned int nFlags = 0;
 			if (!(nFlags & 4))
 				UIntChangeBit(nFlags, 2);
@@ -89,8 +82,8 @@ namespace PdfWriter
 		}
 		else
 		{
-			// Ставим флаг NonSymbolic, т.к. Adobe плохо подбирает шрифт с Symbolic флагом
-			// TODO: Хорошо бы сделать проверку, стоит ли ставить флаг Symbolic
+			// Set the NonSymbolic flag, because Adobe is bad at selecting fonts with the Symbolic flag
+			// TODO: It would be nice to check whether the Symbolic flag should be set
 			unsigned int nFlags = 0;
 			UIntChangeBit(nFlags, 5);
 			pFontDescriptor->Add("Flags", nFlags);
@@ -137,7 +130,7 @@ namespace PdfWriter
 			return;
 		}
 
-		// Дописываем имя шрифта во все необходимые словари, а также заполняем дескриптор
+		// Add the font name to all the necessary dictionaries, and also fill in the descriptor
 		std::string sFontName = pFace->family_name ? std::string(pFace->family_name) : std::string();
 		if (pFace->style_flags & FT_STYLE_FLAG_ITALIC)
 			sFontName += "-Italic";
@@ -200,8 +193,8 @@ namespace PdfWriter
 		m_pFontDescriptor->Add("StemV", 80);
 		m_pFontDescriptor->Add("FontWeight", m_pFontFile ? m_pFontFile->GetWeight() : 400);
 
-		// Сейчас мы этот класс используем для внедрения шрифтов, которые будут использоваться для заполнения
-		// внутри форм. Если класс будет использоваться для чего-то другого, тогда надо задавать ограничения на внедрение
+		// Now use this class to implement fonts that will be used to fill
+		// inside the forms. If the class will be used for something else, then need to set restrictions on implementation
 		FT_UShort fsType = FT_Get_FSType_Flags(pFace);
 		m_bCanEmbed = NSFonts::CFontInfo::CanEmbedForEdit(fsType);
 

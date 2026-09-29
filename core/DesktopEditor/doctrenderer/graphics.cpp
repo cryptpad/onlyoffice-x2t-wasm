@@ -1312,7 +1312,7 @@ namespace NSGraphics
 #endif
 		if (std::isnan(r0))
 		{
-			// линейный
+			// linear
 			double dAngle = 0;
 			if (fabs(x1 - x0) >= FLT_EPSILON || fabs(y1 - y0) >= FLT_EPSILON)
 				dAngle = atan2(y1 - y0, x1 - x0) * 180 / M_PI;
@@ -1322,7 +1322,7 @@ namespace NSGraphics
 		}
 		else
 		{
-			// радиальный
+			// radial
 			m_pRenderer->put_BrushType(c_BrushTypePathGradient2);
 			m_pRenderer->put_BrushGradientColors(pColors, pPositions, nCount);
 		}

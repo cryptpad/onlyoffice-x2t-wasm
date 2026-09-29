@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -52,7 +45,7 @@ if (window["NATIVE_EDITOR_ENJINE"])
 
 var setImmediate = window.setImmediate;
 
-//desktop_fetch
+{{{ MODULE }}}
 
 //polyfill
 
@@ -109,17 +102,10 @@ AscFonts.AllocString = function(size)
 	return new CShapeString(size);
 };
 
-AscFonts.FT_CreateLibrary = Module["_ASC_FT_Init"];
-AscFonts.FT_Done_Library = Module["_ASC_FT_Done_FreeType"];
-AscFonts.FT_Set_TrueType_HintProp = Module["_ASC_FT_Set_TrueType_HintProp"];
-
-AscFonts.FT_Open_Face = Module["_ASC_FT_Open_Face"];
-AscFonts.FT_Done_Face = Module["_ASC_FT_Done_Face"];
-AscFonts.FT_SetCMapForCharCode = Module["_ASC_FT_SetCMapForCharCode"];
-AscFonts.FT_GetKerningX = Module["_ASC_FT_GetKerningX"];
-AscFonts.FT_GetFaceMaxAdvanceX = Module["_ASC_FT_GetFaceMaxAdvanceX"];
-AscFonts.FT_Set_Transform = Module["_ASC_FT_Set_Transform"];
-AscFonts.FT_Set_Char_Size = Module["_ASC_FT_Set_Char_Size"];
+// NOTE: AscFonts.FT_* direct assignments moved to Module.onRuntimeInitialized
+// below, because newer Emscripten no longer generates lazy stubs — the
+// Module["_xxx"] references are undefined at file scope and only become real
+// functions once the WASM instance is ready.
 AscFonts.FT_GetFaceInfo = function(face, reader)
 {
 	let pointer = Module["_ASC_FT_GetFaceInfo"](face);
@@ -137,8 +123,7 @@ AscFonts.FT_GetFaceInfo = function(face, reader)
 	return g_return_obj;
 };
 
-AscFonts.FT_Load_Glyph = Module["_ASC_FT_Load_Glyph"];
-AscFonts.FT_SetCMapForCharCode = Module["_ASC_FT_SetCMapForCharCode"];
+// (AscFonts.FT_Load_Glyph and FT_SetCMapForCharCode also set in onRuntimeInitialized)
 AscFonts.FT_Get_Glyph_Measure_Params = function(face, vector_worker, reader)
 {
 	let pointer = Module["_ASC_FT_Get_Glyph_Measure_Params"](face, vector_worker ? 1 : 0);
@@ -180,7 +165,7 @@ AscFonts.FT_Get_Glyph_Render_Buffer = function(face, size)
 };
 
 let hb_cache_languages = {};
-AscFonts.HB_FontFree = Module["ASC_HB_FontFree"];
+// (AscFonts.HB_FontFree also set in onRuntimeInitialized)
 AscFonts.HB_ShapeText = function(fontFile, text, features, script, direction, language, reader)
 {
 	if (!hb_cache_languages[language])
@@ -217,7 +202,7 @@ AscFonts.HB_ShapeText = function(fontFile, text, features, script, direction, la
  */
 function ZLib()
 {
-	this.engine = 0; // указатель на нативный класс Zlib
+	this.engine = 0; // pointer to native Zlib class
 	this.files = {};
 }
 
@@ -244,17 +229,17 @@ ZLib.prototype.open = function(buf)
 
 	var arrayBuffer = (undefined !== buf.byteLength) ? new Uint8Array(buf) : buf;
 
-	// TODO: открыли архив, и заполнили this.files
-	// объектами { path : null }
+	// TODO: opened the archive and filled in this.files
+	// objects { path : null }
 
-	// копируем память в память webasm
+	// copy memory to webasm memory
 	var FileRawDataSize = arrayBuffer.length;
 	var FileRawData = Module["_Zlib_Malloc"](FileRawDataSize);
 	if (0 == FileRawData)
 		return false;
 	Module["HEAP8"].set(arrayBuffer, FileRawData);
 
-	// грузим данные
+	// loading data
 	this.engine = Module["_Zlib_Open"](FileRawData, FileRawDataSize);
 	if (0 == this.engine)
 	{
@@ -262,7 +247,7 @@ ZLib.prototype.open = function(buf)
 		return false;
 	}
 
-	// получаем пути в архиве
+	// get the paths in the archive
 	var pointer = Module["_Zlib_GetPaths"](this.engine);
 	if (0 == pointer)
 	{
@@ -352,11 +337,11 @@ ZLib.prototype.getFile = function(path)
 	if (!this.isModuleInit || !this.engine)
 		return null;
 
-	// проверяем - есть ли файл вообще?
+	// check to see if the file exists at all?
 	if (undefined === this.files[path])
 		return null;
 
-	// проверяем - может мы уже его разжимали?
+	// Check - maybe it may already have been decompressed?
 	if (null !== this.files[path])
 	{
 		if (this.files[path].l > 0)
@@ -406,7 +391,7 @@ ZLib.prototype.addFile = function(path, data)
 	if (!data)
 		return false;
 
-	// проверяем - может такой файл уже есть? тогда его надо сначала удалить?
+	// Check - maybe such a file already exists? should it be removed first then?
 	if (undefined !== this.files[path])
 		this.removeFile(path);
 
@@ -444,7 +429,7 @@ ZLib.prototype.removeFile = function(path)
 	if (!this.isModuleInit || !this.engine)
 		return false;
 
-	// проверяем - может такого файла и нет?
+	// Check - maybe there is no such file?
 	if (undefined === this.files[path])
 		return false;
 		
@@ -649,6 +634,26 @@ AscFonts.Hyphen_Word = function(lang, word)
 
 if (window["NATIVE_EDITOR_ENJINE"])
 	window.immediateRun();
-AscFonts.onLoadModule();
+
+AscFonts.onLoadModule();  // count = 1 (WASM not yet ready)
+
+Module.onRuntimeInitialized = function () {
+	// WASM is fully loaded — Module["_xxx"] are now real functions.
+	// Assign them here so engine.js's onLoadFontsModule always sees real values,
+	// regardless of whether Emscripten uses lazy stubs (old) or not (new).
+	AscFonts.FT_CreateLibrary         = Module["_ASC_FT_Init"];
+	AscFonts.FT_Done_Library          = Module["_ASC_FT_Done_FreeType"];
+	AscFonts.FT_Set_TrueType_HintProp = Module["_ASC_FT_Set_TrueType_HintProp"];
+	AscFonts.FT_Open_Face             = Module["_ASC_FT_Open_Face"];
+	AscFonts.FT_Done_Face             = Module["_ASC_FT_Done_Face"];
+	AscFonts.FT_SetCMapForCharCode    = Module["_ASC_FT_SetCMapForCharCode"];
+	AscFonts.FT_GetKerningX           = Module["_ASC_FT_GetKerningX"];
+	AscFonts.FT_GetFaceMaxAdvanceX    = Module["_ASC_FT_GetFaceMaxAdvanceX"];
+	AscFonts.FT_Set_Transform         = Module["_ASC_FT_Set_Transform"];
+	AscFonts.FT_Set_Char_Size         = Module["_ASC_FT_Set_Char_Size"];
+	AscFonts.FT_Load_Glyph            = Module["_ASC_FT_Load_Glyph"];
+	AscFonts.HB_FontFree              = Module["ASC_HB_FontFree"];
+	AscFonts.onLoadModule();  // count = 2 → triggers onLoadFontsModule in engine.js
+};
 
 })(window, undefined);

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -194,7 +187,7 @@ namespace NSFonts
 		INT bBold = NSBinarySerialize::Read<INT>(pBuffer);
 		INT bFixedWidth = NSBinarySerialize::Read<INT>(pBuffer);
 
-		INT lLen = NSBinarySerialize::Read<INT>(pBuffer); // должно быть равно 10
+		INT lLen = NSBinarySerialize::Read<INT>(pBuffer); // should be equal to 10
 		BYTE pPanose[10];
 		memcpy( (void *)pPanose, (const void *)pBuffer, 10 );
 		pBuffer += lLen;
@@ -294,7 +287,7 @@ namespace NSFonts
 
 		if (oSerializer.m_nVersion >= 2)
 		{
-			// вначале пишем длину
+			// first write the length
 			len += 4; // len
 
 			len += 2;
@@ -431,11 +424,11 @@ namespace NSCharsets
 
 	static void GetCodePageByCharset(unsigned char unCharset, unsigned int *pulBit, unsigned int *punLongIndex)
 	{
-		// Данная функция возвращает параметры, которые нужно посылать на вход
-		// функции AVSFontManager::IsUnicodeRangeAvailable
+		// This function returns the parameters to pass as input to
+		// AVSFontManager::IsUnicodeRangeAvailable
 
 
-		// Соответствие Charset -> Codepage: http://support.microsoft.com/kb/165478
+		// Corresponding Charset -> Codepage: http://support.microsoft.com/kb/165478
 		// http://msdn.microsoft.com/en-us/library/cc194829.aspx
 
 		//  Charset Name       Charset Value(hex)  Codepage number
@@ -461,7 +454,7 @@ namespace NSCharsets
 		//  VIETNAMESE_CHARSET      163 (xA3)            1258
 		//  MAC_CHARSET              77 (x4D)
 
-		// Соответсвие CodePage -> ulCodePageRange1 : http://www.microsoft.com/Typography/otspec/os2.htm#cpr
+		// Match CodePage -> ulCodePageRange1 : http://www.microsoft.com/Typography/otspec/os2.htm#cpr
 
 		if ( punLongIndex )
 			*punLongIndex = 4;
@@ -547,7 +540,7 @@ std::wstring CFontList::GetFontBySymbol(int symbol)
 ///////////////////////////////////////////////////////////////////////////////////
 int CFontList::GetCharsetPenalty(UINT ulCandRanges[6], unsigned char unReqCharset)
 {
-	// Penalty = 65000 (это самый весомый параметр)
+	// Penalty = 65000 (this is the most significant parameter)
 
 	if ( UNKNOWN_CHARSET == unReqCharset )
 		return 0;
@@ -569,8 +562,8 @@ int CFontList::GetSigPenalty(UINT ulCandRanges[6], UINT ulReqRanges[6], double d
 {
 	double dPenalty = 0;
 
-	// Для начала просматриваем сколько вообще различных пространств надо.
-	// Исходя из их общего количества, находим вес 1 пропущеного пространства.
+	// First, count how many distinct spaces are needed.
+	// Use the total count to calculate the weight of one missing space.
 
 	bool isSuferflouous = (dRangeWeightSuferflouous < 1) ? false : true;
 	int nRangesCount = 0;
@@ -605,8 +598,8 @@ int CFontList::GetFixedPitchPenalty(INT bCandFixed, INT bReqFixed)
 {
 	int nPenalty = 0;
 
-	// Если запрашивается моноширинный, а кандидат не моноширинный, то вес 15000
-	// Если запрашивается не моноширинный, а кандидат моноширинный, то вес 350
+	// If the request is monospace and the candidate isn't monospace, then the weight is 15000
+	// If the request isn't monospace, but the candidate is monospace, then the weight is 350
 	if ( bReqFixed && !bCandFixed )
 		nPenalty = 15000;
 	if ( !bReqFixed && bCandFixed )
@@ -740,13 +733,13 @@ int CFontList::GetBoldPenalty(INT bCandBold, INT bReqBold)
 
 int CFontList::GetFontFormatPenalty(NSFonts::EFontFormat eCandFormat, NSFonts::EFontFormat eReqFormat)
 {
-	// Вообще, на МSDN написано только про TrueType. Но мы будем сравнивать
-	// все типы форматов и при несовпадении даем вес = 4. Если формат не задан
-	// то по умолчанию считаем его TrueType.
+	// MSDN only mentions TrueType, but compare
+	// all format types and assign weight = 4 on mismatch. If the format isn't specified
+	// treat it as TrueType by default.
 
 	if ( eReqFormat == NSFonts::fontUnknown )
 	{
-		// Считаем, что когда формат не известен, значит это 100% не TrueType.
+		// If the format is unknown, assume it is definitely not TrueType.
 		if ( eCandFormat == NSFonts::fontTrueType )
 			return 4;
 		else
@@ -882,7 +875,7 @@ public:
 
 	static CFontSelectFormatCorrection* CheckCorrection(NSFonts::CFontSelectFormat& oSelect)
 	{
-		// пробуем "подправить" настройки
+		// try to "correct" the settings
 		std::wstring sName = *oSelect.wsName;
 		NSFonts::makeLower(sName);
 
@@ -960,12 +953,12 @@ NSFonts::CFontInfo* CFontList::GetByParams(NSFonts::CFontSelectFormat& oSelect, 
 
 	if (bIsDictionaryUse)
 	{
-		// дубликат не делаем!!! Серега создает объект только для подбора и дальше его не использует
+		// Don't create a duplicate; the caller creates this object only for selection and doesn't use it afterwards
 		NSFontDictionary::CorrectParamsFromDictionary(oSelect);
 	}
 
-	int nMinIndex   = 0; // Номер шрифта в списке с минимальным весом
-	int nMinPenalty = -1; // Минимальный вес
+	int nMinIndex   = 0; // Font number in the list with minimum weight
+	int nMinPenalty = -1; // Minimum weight
 
 	int nDefPenalty = 2147483647;
 	NSFonts::CFontInfo* pInfoMin = NULL;
@@ -1040,7 +1033,7 @@ NSFonts::CFontInfo* CFontList::GetByParams(NSFonts::CFontSelectFormat& oSelect, 
 			//if ( NULL != oSelect.bItalic )
 			//  nCurPenalty += GetItalicPenalty( pInfo->m_bItalic, *oSelect.bItalic );
 
-			// проверяем всегда!!! иначе только по имени может подобраться болд, и появляется зависимость от порядка шрифтов
+			// Always check; otherwise bold may be selected by name only, making the result depend on font order
 			nCurPenalty += GetBoldPenalty( pInfo->m_bBold, (NULL != oSelect.bBold) ? *oSelect.bBold : FALSE );
 			nCurPenalty += GetItalicPenalty( pInfo->m_bItalic, (NULL != oSelect.bItalic) ? *oSelect.bItalic : FALSE );
 
@@ -1081,7 +1074,7 @@ NSFonts::CFontInfo* CFontList::GetByParams(NSFonts::CFontSelectFormat& oSelect, 
 				nMinPenalty = nCurPenalty;
 			}
 
-			// Нашелся шрифт, удовлетворяющий всем параметрам, дальше искать нет смысла
+			// A font satisfying all parameters was found; there is no need to keep searching
 			if ( 0 == nCurPenalty )
 				break;
 		}
@@ -1135,10 +1128,10 @@ void CFontList::Add(FT_Library pLibrary, FT_Parameter* pParams, const std::wstri
 	if (FT_Open_Face( pLibrary, &oOpenArgs, 0, &pFace ))
 		return;
 
-	// TO DO: Шрифты, которые нельзя скейлить (т.е. изменять размер
-	// произвольно) мы не грузим. Возможно в будущем надо будет
-	// сделать, чтобы работал и такой вариант. (в Word такие шрифты
-	// не используются)
+	// TO DO: Fonts that can't be scaled (i.e. resized
+	// arbitrarily) aren't loaded. This may be needed in the future
+	// Make sure this option works too. (in Word these fonts are
+	// not used)
 	if ( !( pFace->face_flags & FT_FACE_FLAG_SCALABLE ) )
 	{
 		FT_Done_Face( pFace );
@@ -1213,8 +1206,8 @@ void CFontList::Add(FT_Library pLibrary, FT_Parameter* pParams, const std::wstri
 
 		if ( true )
 		{
-			// Специальная ветка для случаев, когда charset может быть задан не через значения
-			// ulCodePageRange, а непосредственно через тип Cmap.
+			// Special branch for cases when charset can be specified not through values
+			// ulCodePageRange, but directly through the Cmap type.
 
 			//  Charset Name       Charset Value(hex)  Codepage number   Platform_ID   Encoding_ID   Description
 			//  -------------------------------------------------------------------------------------------------
@@ -1337,7 +1330,7 @@ void CFontList::Add(FT_Library pLibrary, FT_Parameter* pParams, const std::wstri
 						sEncoding = "UTF-16BE";
 						break;
 					case TT_MS_ID_UCS_4:
-						//sEncoding = "UCS4"; // см tt_
+						//sEncoding = "UCS4"; // see tt_
 						sEncoding = "UTF-16BE";
 						break;
 						//case TT_MS_ID_SJIS:
@@ -1455,7 +1448,7 @@ void CFontList::LoadFromArrayFiles(std::vector<std::wstring>& oArray, int nFlag)
 	pParams[3].tag  = FT_PARAM_TAG_IGNORE_PREFERRED_SUBFAMILY;
 	pParams[3].data = NULL;
 
-	// определяем размер буфера, чтобы не выделять много кусков, а обойтись одним
+	// determine the size of the buffer so as not to allocate many pieces, but to make do with one
 	int nMaxFontSize = 0;
 	for (size_t nIndex = 0; nIndex < nCount; ++nIndex)
 	{
@@ -1465,7 +1458,7 @@ void CFontList::LoadFromArrayFiles(std::vector<std::wstring>& oArray, int nFlag)
 			int nSizeTmp = (int)oFile.GetFileSize();
 			if (nSizeTmp > 100000000)
 			{
-				// такие огромные шрифты не учитываем
+				// such huge fonts aren't taken into account
 				oArray.erase(oArray.begin() + nIndex, oArray.begin() + nIndex + 1);
 				nIndex--;
 				nCount--;
@@ -1743,7 +1736,7 @@ static long GetNextNameValue(HKEY key, const std::wstring& sSubkey, std::wstring
 std::vector<std::wstring> CApplicationFonts::GetSetupFontFiles(const bool& bIsUseUserFonts)
 {
 #if defined(_WIN32) || defined (_WIN64)
-	// Ищем директорию с фонтами (обычно это C:\Windows\Fonts)
+	// Find the directory with fonts (usually C:\Windows\Fonts)
 	wchar_t wsWinFontDir[MAX_PATH];
 	wsWinFontDir[0] = (wchar_t)'\0';
 

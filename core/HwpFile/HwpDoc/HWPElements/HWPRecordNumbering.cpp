@@ -27,20 +27,20 @@ CHWPRecordNumbering::CHWPRecordNumbering(CHWPDocInfo& oDocInfo, int nTagNum, int
 
 	oBuffer.ReadShort(m_shStart);
 
-	if (nVersion > 5025 && (nSize > oBuffer.GetDistanceToLastPos())) //TODO:: добавить проверку offset-off < size
+	if (nVersion > 5025 && (nSize > oBuffer.GetDistanceToLastPos())) //TODO:: add offset-off < size check
 	{
 		for (int nIndex = 0; nIndex < 7; ++nIndex)
 			oBuffer.ReadInt(m_arNumbering[nIndex].m_nStartNumber);
 	}
 
-	if (nVersion > 5100 && (nSize > oBuffer.GetDistanceToLastPos())) //TODO:: добавить проверку offset-off < size
+	if (nVersion > 5100 && (nSize > oBuffer.GetDistanceToLastPos())) //TODO:: add offset-off < size check
 	{
 		for (int nIndex = 0; nIndex < 3; ++nIndex)
 		{
-			//Содержимое неизвестно, но оно содержит 8 байт.
+			//The content is unknown, but it contains 8 bytes.
 			oBuffer.Skip(8);
 
-			//Содержимое неизвестно, но оно содержит 4 байт.
+			//The content is unknown, but it contains 4 bytes.
 			oBuffer.Skip(4);
 
 			short shLen;

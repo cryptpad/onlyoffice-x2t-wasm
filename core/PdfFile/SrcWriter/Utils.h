@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -142,11 +135,11 @@ namespace PdfWriter
 	std::string DateNow();
 	std::wstring NormalizeWhitespace(const std::wstring& s);
 
-	// Пересечение многоугольников по теореме о разделяющей оси
+	// Intersection of polygons using the separating axis theorem
 	bool SAT(const std::vector<CPoint>& poly1, const std::vector<CPoint>& poly2);
-	// Проверка, что все точки внутреннего полигона находятся внутри внешнего
+	// Checking that all points of the inner polygon are inside the outer one
 	bool isPolygonInsidePolygon(const std::vector<CPoint>& inner, const std::vector<CPoint>& outer);
-	// Проверка принадлежности точки выпуклому четырехугольнику
+	// Checking whether a point belongs to a convex quadrilateral
 	bool isPointInQuad(double px, double py,
 					   double x1, double y1, double x2, double y2,
 					   double x3, double y3, double x4, double y4);
@@ -154,17 +147,17 @@ namespace PdfWriter
 	class RectangleIntersection
 	{
 	private:
-		// Проверка на пересечение двух отрезков
+		// Checking for the intersection of two segments
 		static bool segmentsIntersect(const CPoint& a, const CPoint& b, const CPoint& c, const CPoint& d, CPoint& intersection);
-		// Проверка, находится ли точка внутри прямоугольника
+		// Checking if a point is inside a rectangle
 		static bool pointInRectangle(const CPoint& p, const std::vector<CPoint>& rect);
-		// Вычисление расстояния от точки до начала отрезка вдоль направления
+		// Calculating the distance from a point to the beginning of a segment along a direction
 		static double distanceAlongLine(const CPoint& start, const CPoint& end, const CPoint& point);
 
 	public:
-		// Основная функция для нахождения отрезков вне всех прямоугольников
+		// Main function for finding segments outside all rectangles
 		static std::vector<CSegment> findSegmentsOutsideRectangles(const CSegment& line, const std::vector<std::vector<CPoint>>& rectangles);
-		// Альтернативный подход: последовательное вычитание прямоугольников
+		// Alternative approach: sequential subtraction of rectangles
 		static std::vector<CSegment> findSegmentsOutsideRectanglesSequential(const CSegment& line, const std::vector<std::vector<CPoint>>& rectangles);
 	};
 

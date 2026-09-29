@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -487,7 +480,7 @@ namespace BinDocxRW {
 			std::wstring sTooltip;
 			bool bNextLink = false;
 			bool bNextTooltip = false;
-			//разбиваем по пробелам, но с учетом кавычек
+			//split by spaces, but including quotes
 			std::vector<std::wstring> aItems;
 			std::wstring sCurItem;
 			bool bDQuot = false;
@@ -738,7 +731,7 @@ namespace BinDocxRW {
 w15:paraIdParent=\"" + pComment->sParaIdParent + L"\" w15:done=\"" + sDone + L"\"/>";
 			else
 				sRes += L"<w15:commentEx w15:paraId=\"" + pComment->sParaId + L"\" w15:done=\"" + sDone + L"\"/>";
-			//расставляем paraIdParent
+			//set paraIdParent
 			for(size_t i = 0; i < pComment->replies.size(); i++)
 				pComment->replies[i]->sParaIdParent = pComment->sParaId;
 		}
@@ -1198,7 +1191,7 @@ allowOverlap=\"1\">";
 					}
 					else
 					{
-						//для wrapThrough и wrapTight wrapPolygon обязательное поле, если его нет - меняем тип.
+						//for wrapThrough and wrapTight wrapPolygon is a required field; if it isn't there, change the type.
 						if ( c_oSerImageType2::WrapSquare	== DrawingPropertyWrap.WrappingType		||
 								c_oSerImageType2::WrapThrough	== DrawingPropertyWrap.WrappingType		||
 								c_oSerImageType2::WrapTight		== DrawingPropertyWrap.WrappingType)

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -127,7 +120,7 @@ namespace BinDocxRW
 					std::wstring data = oReader.GetInnerXml();
 					XmlUtils::replace_all(data, L"&#xA;", L"");
 					XmlUtils::replace_all(data, L"&#x9;", L"");
-					//todooo убрать "красивую" разметку xml
+					//TODO remove the "pretty" xml markup
 					WriteXmlFile(*name, data);
 				}
 				if (L"pkg:binaryData" == sName)
@@ -224,13 +217,13 @@ bool BinDocxRW::CDocxSerializer::saveToFile(const std::wstring& sDstFileName, co
 
 		pEmbeddedFontsManager = pFontPicker->GetNativeCutter();
 
-		//добавляем весь латинский алфавит для списков.
+		//adding the entire Latin alphabet for lists.
         pEmbeddedFontsManager->CheckString(std::wstring(_T("abcdefghijklmnopqrstuvwxyz")));
 
-		//добавим мега шрифт
+		//add a mega font
 		pEmbeddedFontsManager->CheckFont(_T("Wingdings 3"), fp.getFontManager());
 		pEmbeddedFontsManager->CheckFont(_T("Arial"), fp.getFontManager());
-		//pEmbeddedFontsManager добавляются все цифры
+		//pEmbeddedFontsManager adds all digits
 	}
 
 	oDrawingConverter.SetFontDir(m_sFontDir);
@@ -331,7 +324,7 @@ bool BinDocxRW::CDocxSerializer::loadFromFile(const std::wstring& sSrcFileName, 
 	oFile.ReadFile(pBase64Data, oFile.GetFileSize(), nBase64DataSize);
 	oFile.CloseFile();
 
-	//проверяем формат
+	//checking the format
 	bool bValidFormat = false;
 	std::wstring sSignature(g_sFormatSignature);
 	int nSigLength = (int)sSignature.length();
@@ -346,7 +339,7 @@ bool BinDocxRW::CDocxSerializer::loadFromFile(const std::wstring& sSrcFileName, 
 	}
 	if (bValidFormat)
 	{
-		//Читаем из файла версию и длину base64
+		//Read the base64 version and length from the file
 		int nIndex = nSigLength;
 		int nType = 0;
 		std::string version = "";
@@ -417,7 +410,7 @@ bool BinDocxRW::CDocxSerializer::loadFromFile(const std::wstring& sSrcFileName, 
 
 			m_pCurFileWriter = new Writers::FileWriter(sDstPath, m_sFontDir, false, nVersion, &oDrawingConverter, sThemePath);
 
-			//папка с картинками
+			//folder with images
 			std::wstring strFileInDir = NSSystemPath::GetDirectoryName(sSrcFileName);
 			std::wstring sFileInDir = strFileInDir.c_str();
 

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -1833,7 +1826,7 @@ namespace SimpleTypes
 				sValue = sValue.substr(1);
 			}
 
-			//В документации не написано, что цвет может приходить строкой, но в реальных документах встречается и word это разруливает.
+			//The documentation doesn't say that color can come as a string, but it does occur in real documents and word sorts it out.
 			CPresetColorVal oPresetColorVal;
 			if(oPresetColorVal.FromStringIgnoreCase(sValue))
 			{
@@ -2138,7 +2131,7 @@ namespace SimpleTypes
 		{
 			this->m_eValue = highlightcolorNone;
 
-			// Инициализируем цвет
+			// Initializing the color
 			FromString( ToString() );
 		}
 
@@ -4368,7 +4361,7 @@ namespace SimpleTypes
 
 
 
-// Дополнительные типы
+// Additional types
 namespace SimpleTypes
 {
 	//--------------------------------------------------------------------------------
@@ -4442,13 +4435,13 @@ namespace SimpleTypes
 
 			if ( '0' == wsChar )
 			{
-				// Ничего не делаем
+				// Do nothing
 			}
 			else if ( '1' == wsChar )
 			{
 				this->m_eValue ^= nMult;
 			}
-			else // Неправильный формат
+			else // Wrong format
 				break;
 		}
 	}

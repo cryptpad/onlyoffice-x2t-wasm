@@ -47,7 +47,7 @@ namespace MetaFile
 
 			m_oStream >> ushType;
 
-			m_unRecordSize = unSize * 2; // Размер указан в WORD
+			m_unRecordSize = unSize * 2; // Size is in WORD
 
 			m_oStream.SetCurrentBlockSize(m_unRecordSize);
 
@@ -145,7 +145,7 @@ namespace MetaFile
 				//-----------------------------------------------------------
 				case META_ESCAPE: Read_META_ESCAPE(); break;
 				//-----------------------------------------------------------
-				// Неизвестные записи
+				// Unknown entries
 				//-----------------------------------------------------------
 				default:
 				{
@@ -157,7 +157,7 @@ namespace MetaFile
 			if (m_bEof)
 				break;
 
-			// Пропускаем лишние байты, которые могли быть в записи
+			// Skip extra bytes that could be in the record
 			int need_skip = m_unRecordSize - (m_oStream.Tell() - m_unRecordPos);
 			m_oStream.Skip(need_skip);
 			m_oStream.ClearCurrentBlockSize();
@@ -251,7 +251,7 @@ namespace MetaFile
 				TWmfBitmap16 oBitmap16;
 				m_oStream >> oBitmap16;
 
-				// TODO: Сделать чтение Bitmap16
+				// TODO: Do reading Bitmap16
 			}
 			else
 			{
@@ -311,7 +311,7 @@ namespace MetaFile
 				TWmfBitmap16 oBitmap16;
 				m_oStream >> oBitmap16;
 
-				// TODO: Сделать чтение Bitmap16
+				// TODO: Do reading Bitmap16
 			}
 			else
 			{
@@ -387,7 +387,7 @@ namespace MetaFile
 		short* pDx = NULL;
 		if (shStringLength > 0 && ((GetRecordRemainingBytesCount() >= shStringLength * 2 && !(ushFwOptions & ETO_PDY)) || (GetRecordRemainingBytesCount() >= shStringLength * 4 && ushFwOptions & ETO_PDY)))
 		{
-			if (shStringLength & 1) // Если длина нечетная, тогда пропускаем 1 байт, т.к. тут прилегание по 2 байта
+			if (shStringLength & 1) // If the length is odd, skip 1 byte for 2-byte alignment
 				m_oStream.Skip(1);
 
 			pDx = new short[shStringLength];
@@ -637,7 +637,7 @@ namespace MetaFile
 			TWmfBitmap16 oBitmap16;
 			m_oStream >> oBitmap16;
 
-			// TODO: Сделать чтение Bitmap16
+			// TODO: Do reading Bitmap16
 		}
 
 		HANDLE_META_CREATEPATTERNBRUSH(*pBrush, m_oStream);

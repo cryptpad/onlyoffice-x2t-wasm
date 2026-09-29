@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -152,15 +145,15 @@ protected:
     std::vector<TSubColor> m_subcolors;
 
 	CMatrix m_matrix;
-	float m_angle; // угол поворота в градусах базовой линии p1 -> p2
+	float m_angle; // angle of rotation in degrees of the baseline p1 -> p2
 
 	CDoubleRect Bounds;
 
 	Aggplus::WrapMode m_wrap;
 
-	INT m_bAngleScalable; // масштабировать угол поворота относительно заданных точек b = arctan( width / height * tan(angle) );
-	INT m_bRectable; // в качестве направляющей используется диагональ прямоугольника
-	INT m_bRelativeCoords; // координаты точек считаются относительно рисуемого примитива
+	INT m_bAngleScalable; // scale the rotation angle relative to the given points b = arctan( width / height * tan(angle) );
+	INT m_bRectable; // the diagonal of the rectangle is used as a guide
+	INT m_bRelativeCoords; // coordinates of points are considered relative to the drawn primitive
 };
 
 class CBrushTexture : public CBrush

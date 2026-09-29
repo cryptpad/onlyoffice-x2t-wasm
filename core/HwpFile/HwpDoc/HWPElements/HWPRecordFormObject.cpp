@@ -12,7 +12,7 @@ int CHWPRecordFormObject::ParseCtrl(CCtrlForm& oForm, int nSize, CHWPStream& oBu
 
 	oBuffer.Skip(4); // tbp+
 	oBuffer.Skip(4); // tbp+
-	oBuffer.Skip(4); // Длина строки?
+	oBuffer.Skip(4); // String length?
 
 	short shLen = oBuffer.ReadShort() * 2;
 	oBuffer.Skip(shLen);

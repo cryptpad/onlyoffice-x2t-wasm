@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -40,12 +33,12 @@
 #include "structures.h"
 #include "Matrix.h"
 
-// тип в DrawPath
+// type in DrawPath
 const long c_nStroke			= 0x0001;
 const long c_nWindingFillMode   = 0x0100;
 const long c_nEvenOddFillMode   = 0x0200;
 
-// тип в BeginCommand, EndCommand
+// type in BeginCommand, EndCommand
 const long c_nNone              = 0x0000;
 const long c_nPageType			= 0x0001;
 const long c_nTextType			= 0x0002;
@@ -93,23 +86,23 @@ const long c_nBlockHorzAlign		= 0xa033;
 const long c_nLine				= 0xa040;
 const long c_nBaselineShift		= 0xa041;
 
-// типы клипа
+// clip types
 const long c_nClipRegionTypeWinding		= 0x0000;
 const long c_nClipRegionTypeEvenOdd		= 0x0001;
-// тип преобразования пути для клипов
+// path transformation type for clips
 const long c_nClipToPath				= 0x0000;
 const long c_nClipToStrokePath			= 0x0010;
-// тип объединения клипов
+// clip merge type
 const long c_nClipRegionIntersect		= 0x0000;
 const long c_nClipRegionUnion			= 0x0100;
 const long c_nClipRegionXor             = 0x0200;
 const long c_nClipRegionDiff            = 0x0400;
 
-// флаги в CommandDrawTextEx
+// flags in CommandDrawTextEx
 const long c_nFlagNone			= 0x0000;
 const long c_nFlagHyperlink		= 0x0001;
 
-// флаги в CommandParams
+// flags in CommandParams
 const long c_nParamFlipX		= 0x0001;
 const long c_nParamFlipY		= 0x0002;
 const long c_nFlipNextRotate	= 0x0004;
@@ -119,7 +112,7 @@ const long c_nPenWidth0As1px	= 0x0020;
 const long c_nSupportPathTextAsText = 0x0040;
 const long c_nFontSubstitution  = 0x0080;
 
-// типы рендерера
+// renderer types
 const long c_nUnknownRenderer   = 0x0000;
 const long c_nPDFWriter         = 0x0001;
 const long c_nHtmlRendrerer		= 0x0002;
@@ -137,7 +130,7 @@ const long c_nQRenderer         = 0x0013;
 
 const int c_nAdditionalParamBreak = 0x00;
 
-// типы команд
+// command types
 const long c_nCommandLongTypeOnlyText = 0x1000;
 
 class IAdvancedCommand
@@ -148,7 +141,7 @@ public:
 		Hyperlink   = 0,
 		Link        = 1,
 		DocInfo     = 2,
-		FormField   = 3, // Обратная совместимость для docxf
+		FormField   = 3, // Backward compatibility for docxf
 		Annotaion   = 4,
 		DeleteAnnot = 5,
 		WidgetsInfo = 6,
@@ -187,9 +180,9 @@ public:
 	}
 
 public:
-	// тип рендерера-----------------------------------------------------------------------------
+	// renderer type------------------------------------------------------------------------------
 	virtual HRESULT get_Type(LONG* lType)				= 0;
-	//-------- Функции для работы со страницей --------------------------------------------------
+	//-------- Functions for working with the page --------------------------------------------------
 	virtual HRESULT NewPage()							= 0;
 	virtual HRESULT get_Height(double* dHeight)			= 0;
 	virtual HRESULT put_Height(const double& dHeight)	= 0;
@@ -292,7 +285,7 @@ public:
 	virtual HRESULT get_FontFaceIndex(int* lFaceIndex)			= 0;
 	virtual HRESULT put_FontFaceIndex(const int& lFaceIndex)	= 0;
 
-	//-------- Функции для вывода текста --------------------------------------------------------
+	//-------- Functions for text output --------------------------------------------------------
 	virtual HRESULT CommandDrawTextCHAR(const LONG& c, const double& x, const double& y, const double& w, const double& h) = 0;
 	virtual HRESULT CommandDrawText(const std::wstring& bsText, const double& x, const double& y, const double& w, const double& h) = 0;
 
@@ -306,11 +299,11 @@ public:
 		return CommandDrawTextExCHAR(c, (LONG)gid, x, y, w, h);
 	}
 
-	//-------- Маркеры для команд ---------------------------------------------------------------
+	//-------- Markers for commands ---------------------------------------------------------------
 	virtual HRESULT BeginCommand(const DWORD& lType)	= 0;
 	virtual HRESULT EndCommand(const DWORD& lType)		= 0;
 
-	//-------- Функции для работы с Graphics Path -----------------------------------------------
+	//-------- Functions for working with Graphics Path -----------------------------------------------
 	virtual HRESULT PathCommandMoveTo(const double& x, const double& y)			= 0;
 	virtual HRESULT PathCommandLineTo(const double& x, const double& y)			= 0;
 	virtual HRESULT PathCommandLinesTo(double* points, const int& count)		= 0;
@@ -331,7 +324,7 @@ public:
 
 	HRESULT AddPath(const Aggplus::CGraphicsPath& path);
 
-	//-------- Функции для вывода изображений ---------------------------------------------------
+	//-------- Functions for displaying images ------------------------------------------------------------------
 	virtual HRESULT DrawImage(IGrObject* pImage, const double& x, const double& y, const double& w, const double& h)		= 0;
 	virtual HRESULT DrawImageFromFile(const std::wstring&, const double& x, const double& y, const double& w, const double& h, const BYTE& lAlpha = 255)	= 0;
 

@@ -23,7 +23,7 @@ CCtrlNewNumber::CCtrlNewNumber(const HWP_STRING& sCtrlID, int nSize, CHWPStream&
 CCtrlNewNumber::CCtrlNewNumber(const HWP_STRING& sCtrlID, CXMLReader& oReader, EHanType eType)
 	: CCtrl(sCtrlID)
 {
-	//TODO:: при встрече в файле нужно проверить
+	//TODO:: when encountered in a file, check
 
 	START_READ_ATTRIBUTES(oReader)
 	{
@@ -31,7 +31,7 @@ CCtrlNewNumber::CCtrlNewNumber(const HWP_STRING& sCtrlID, CXMLReader& oReader, E
 			m_shNum = oReader.GetInt();
 		else if ("numType" == sAttributeName)
 			m_eNumType = ::HWP::GetNumType(oReader.GetTextA(), eType);
-		//TODO:: проверить данный момент
+		//TODO:: check this case
 		else if ("autoNumFormat" == sAttributeName)
 			m_eNumShape = GetNumberShape2(oReader.GetInt());
 	}

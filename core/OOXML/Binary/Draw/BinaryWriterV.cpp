@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -103,7 +96,7 @@ _UINT32 BinaryFileWriter::Open(const std::wstring& sInputDir, const std::wstring
 	_UINT32 result = 0;
 
 	OOX::CPath pathDst(sFileDst);
-//создаем папку для media
+//create a folder for media
     std::wstring mediaDir = pathDst.GetDirectory() + L"media";
 	NSDirectory::CreateDirectory(mediaDir);
 
@@ -220,7 +213,7 @@ void BinaryFileWriter::WriteMainTableStart(NSBinPptxRW::CBinaryFileWriter &oBuff
 
 	m_nRealTableCount = 0;
 	m_nMainTableStart = m_oBcw->m_oStream.GetPosition();
-	//вычисляем с какой позиции можно писать таблицы
+	//calculate from what position tables can be written
 	m_nLastFilePos = m_nMainTableStart + GetMainTableSize();
 	//Write mtLen
 	m_oBcw->m_oStream.WriteBYTE(0);
@@ -247,18 +240,18 @@ int BinaryFileWriter::WriteTableStart(BYTE type, int nStartPos)
 	m_oBcw->m_oStream.WriteLONG(m_nLastFilePos);
 
 	//Write table
-	//Запоминаем позицию в MainTable
+	//Remember the position in MainTable
 	int nCurPos = m_oBcw->m_oStream.GetPosition();
-	//Seek в свободную область
+	//Seek to a free area
 	m_oBcw->m_oStream.SetPosition(m_nLastFilePos);
 	return nCurPos;
 }
 void BinaryFileWriter::WriteTableEnd(int nCurPos)
 {
-	//сдвигаем позицию куда можно следующую таблицу
+	//move the position to where the next table can go
 	m_nLastFilePos = m_oBcw->m_oStream.GetPosition();
 	m_nRealTableCount++;
-	//Seek вобратно в MainTable
+	//Seek back to MainTable
 	m_oBcw->m_oStream.SetPosition(nCurPos);
 }
 

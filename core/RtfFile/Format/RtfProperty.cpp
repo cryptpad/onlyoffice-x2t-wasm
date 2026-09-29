@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -292,7 +285,7 @@ std::wstring RtfFont::RenderToOOX(RenderParameter oRenderParameter)
 				{
 					sHint = L" w:hint=\"cs\"";
 				}break;
-				//?? нужно ли описывать default??? todooo
+				//?? is it necessary to describe default??? TODO
 				default:
 					break;
 			}
@@ -532,7 +525,7 @@ bool RtfColor::GetHighlightByColor( RtfColor oOutputColor,std::wstring& oStr ) /
 RtfColor RtfColor::GetColorByPreset( std::wstring oStr )
 {
 	if		( oStr == L"aliceBlue" )	return RtfColor(240,248,255);
-	else if ( oStr == L"aniqueWhite" )	return RtfColor(250,235,215);
+	else if ( oStr == L"antiqueWhite" )	return RtfColor(250,235,215);
 	else if ( oStr == L"aqua" )			return RtfColor(0,255,255);
 	else if ( oStr == L"aquamarine" )	return RtfColor(127,255,212);
 	else if ( oStr == L"azure" )		return RtfColor(240,255,255);
@@ -553,10 +546,10 @@ RtfColor RtfColor::GetColorByPreset( std::wstring oStr )
 
 	return RtfColor(0,0,0);
 }
-std::wstring RtfColor::GetPresetByColor( RtfColor oCol ) //стр. 3320
+std::wstring RtfColor::GetPresetByColor( RtfColor oCol ) //page 3320
 {
 	if		( oCol == RtfColor(240,248,255))	return L"aliceBlue";
-	else if ( oCol == RtfColor(250,235,215))	return L"aniqueWhite";
+	else if ( oCol == RtfColor(250,235,215))	return L"antiqueWhite";
 	else if ( oCol == RtfColor(0,255,255))		return L"aqua";
 	else if ( oCol == RtfColor(127,255,212))	return L"aquamarine";
 	else if ( oCol == RtfColor(240,255,255))	return L"azure";
@@ -986,7 +979,7 @@ void RtfShading::SetDefault( )
 }
 void RtfShading::Merge( RtfShading& oParPr )
 {
-	//свойство должно быть как единое целое, поэтому если oBorPr задано, то переписыватся целиком
+	//the property must be as a single whole, so if oBorPr is specified, then the entire property will be rewritten
 	if ( st_none != oParPr.m_eType || PROP_DEF != oParPr.m_nValue || PROP_DEF != oParPr.m_nForeColor || PROP_DEF != oParPr.m_nBackColor )
 	{
 		m_eType			= oParPr.m_eType;
@@ -1119,7 +1112,7 @@ void RtfBorder::SetEmpty( )
 }
 void RtfBorder::Merge( RtfBorder& oBorPr )
 {
-	//свойство должно быть как единое целое, поэтому если oBorPr задано, то переписыватся целиком
+	//the property must be as a single whole, so if oBorPr is specified, then the entire property will be rewritten
 	if (PROP_DEF != oBorPr.m_eType || PROP_DEF != oBorPr.m_nWidth || PROP_DEF != oBorPr.m_nSpace || PROP_DEF != oBorPr.m_nColor )
 	{
 		m_eType		= oBorPr.m_eType;
@@ -1466,7 +1459,7 @@ void RtfCharProperty::Merge( RtfCharProperty& oCharPr, bool bAll )
 		MERGE_PROPERTY( m_bStrike,		oCharPr )
 		MERGE_PROPERTY( m_nStriked,		oCharPr )
 		MERGE_PROPERTY( m_nHightlited,	oCharPr )
-		//свойство должно быть как единое целое, поэтому если oBorPr задано, то переписыватся целиком
+		//the property must be as a single whole, so if oBorPr is specified, then the entire property will be rewritten
 		if ( uls_none != oCharPr.m_eUnderStyle || PROP_DEF != oCharPr.m_nUnderlineColor )
 		{
 			m_eUnderStyle = oCharPr.m_eUnderStyle;
@@ -1602,7 +1595,7 @@ std::wstring RtfCharProperty::RenderToOOX(RenderParameter oRenderParameter)
 		m_nFontSize = poRtfDocument->m_oProperty.m_nDefFontSize;
 	}
 	if( RENDER_TO_OOX_PARAM_MATH == oRenderParameter.nType)
-	{//w:rPr в m:ctrlPr 
+	{//w:rPr to m:ctrlPr
 		if (m_nRevised != PROP_DEF)
 		{
 			bInsert = true;
@@ -1626,7 +1619,7 @@ std::wstring RtfCharProperty::RenderToOOX(RenderParameter oRenderParameter)
 		sResult += L"<w:rPr>";
 	}
 
-	if ( PROP_DEF != m_nDeleted )//для rPr в pPr
+	if ( PROP_DEF != m_nDeleted )//for rPr to pPr
 	{
         std::wstring sAuthor = poRtfDocument->m_oRevisionTable.GetAuthor(m_nRevauthDel);
         std::wstring sDate(RtfUtility::convertDateTime(m_nRevdttmDel).c_str());
@@ -1814,7 +1807,7 @@ std::wstring RtfCharProperty::RenderToOOX(RenderParameter oRenderParameter)
 	RENDER_OOX_INT( m_nUp, sResult, L"w:position" )
 	
     if ((m_nLanguage != PROP_DEF || m_nLanguageAsian != PROP_DEF) && RENDER_TO_OOX_PARAM_MATH != oRenderParameter.nType) 
-			//todooo сделаь map для используемых в доке
+			//TODO make a map for those used in the document
 	{
         std::wstring str_lang, str_lang_asian;
 #if defined(_WIN32) || defined(_WIN64)
@@ -1910,7 +1903,7 @@ bool RtfListLevelProperty::IsValid()
 	return  PROP_DEF != m_nNumberType && false == m_sLevelText.empty();
 }
 std::wstring RtfListLevelProperty::GenerateListText()
- {//заменяем на булеты
+ {//replace with bullets
 	std::wstring sResult;
 
 	char cBullet[1];  cBullet[0] = (char)149;
@@ -2137,7 +2130,7 @@ std::wstring RtfListLevelProperty::RenderToRtf(RenderParameter oRenderParameter)
 	RENDER_RTF_INT( m_nStart, sResult, L"levelstartat" )
 	RENDER_RTF_INT( m_nNoRestart, sResult, L"levelnorestart" )
 	RENDER_RTF_INT( m_nPictureIndex, sResult, L"levelpicture" )
-	//чтобы при последующем чтении из rtf не потерялась информация о шрифте
+	//so that when subsequently reading from rtf, information about the font isn't lost
 	sResult +=  m_oCharProp.RenderToRtf( oRenderParameter ); 
 
     sResult += L"{\\leveltext" + m_sLevelText + L";}";
@@ -2209,7 +2202,7 @@ void RtfListLevelProperty::SetLevelTextOOX(const std::wstring& sText)
 
 			m_sLevelText += L"\\'" + XmlUtils::ToString(nLevel - 1, L"%02x");
 			m_sNumber += L"\\'" + XmlUtils::ToString(nLevelOffsets + 1, L"%02x");
-			i++; //т.к. следующий симовл уже учли
+			i++; //because the next character has already been taken into account
 
 			nText++;
 		}
@@ -3693,31 +3686,31 @@ std::wstring RtfParagraphProperty::RenderToRtf(RenderParameter oRenderParameter)
 	//RENDER_RTF_BOOL( m_bStyleSECell, sResult, L"tscsecell" );
 
 
-	//дописываем текст списка (для старых reader например  wordPad)
+	//add the list text (for older readers such as wordPad)
 	if( PROP_DEF != m_nListId && PROP_DEF != m_nListLevel )
 	{
 		RtfListProperty oListProperty;
 		RtfDocument* poRtfDocument = static_cast<RtfDocument*>(  oRenderParameter.poDocument );
 		RtfListOverrideProperty oListOverrideProperty;
-		//ищем по override table
+		//search by override table
 		if( true == poRtfDocument->m_oListOverrideTable.GetList( m_nListId, oListOverrideProperty ) )
 		{
-			//Ищем по List Table
+			//Search by List Table
 			if( true == poRtfDocument->m_oListTable.GetList( oListOverrideProperty.m_nListID, oListProperty) )
 			{
-				//дописываем свойства параграфа firstIndent Indent
+				//add the properties of the paragraph firstIndent Indent
 				RtfListLevelProperty poLevelProp ;
 				if( true == oListProperty.GetItem( poLevelProp , m_nListLevel ) )
 				{
 					sResult += L"{\\listtext\\pard\\plain";
 					sResult +=  poLevelProp.m_oCharProp.RenderToRtf( oRenderParameter );
-					//пишем текст 
+					//write the text
                     std::wstring strLevelProp = poLevelProp.GenerateListText();
 
                     RtfCharProperty* pCharProperty = NULL;
                     sResult +=   RtfChar::renderRtfText( strLevelProp, oRenderParameter.poDocument, pCharProperty );
 
-					//или картинку
+					//or an image
 					if( PROP_DEF != poLevelProp.m_nPictureIndex )
 					{
 						int nIndex = poLevelProp.m_nPictureIndex;
@@ -3725,7 +3718,7 @@ std::wstring RtfParagraphProperty::RenderToRtf(RenderParameter oRenderParameter)
 						if( 0 < nIndex && nIndex < poRtfDocument->m_oListTable.m_aPictureList.GetCount() )
 							sResult +=  poRtfDocument->m_oListTable.m_aPictureList[nIndex]->RenderToRtf( oRenderParameter );
 					}
-					//ставим tab
+					//put tab
 					if( PROP_DEF != poLevelProp.m_nFollow )
 					{
 						switch( poLevelProp.m_nFollow )
@@ -3899,7 +3892,7 @@ std::wstring RtfParagraphProperty::RenderToOOX(RenderParameter oRenderParameter)
 		else sSpacing += L" w:lineRule=\"auto\"";
 	}
 	//else
-    //	sSpacing += L" w:line=\"240\""); //по умолчанию - единичный
+    //	sSpacing += L" w:line=\"240\""); //by default - single
     if( !sSpacing.empty() )
 	{
 		sResult += L"<w:spacing " + sSpacing + L"/>";
@@ -3991,7 +3984,7 @@ std::wstring RtfParagraphProperty::RenderToOOX(RenderParameter oRenderParameter)
 	}
 
 	if (styleTabs.m_aTabs.size() != m_oTabs.m_aTabs.size() && m_oTabs.m_aTabs.size() > 0)
-	{//зачистка от стилевых табов (позиции по возрастанию)
+	{//clearing style tabs (positions in ascending order)
 		for (int i = (int)styleTabs.m_aTabs.size() - 1; i >= 0; i--)
 		{
 			bool bPreset = false;
@@ -4209,12 +4202,12 @@ std::wstring RtfCellProperty::RenderToRtf(RenderParameter oRenderParameter)
 	RENDER_RTF_BOOL( m_bNoWrap,				sResult, L"clNoWrap" )
 
 //https://www.office-forums.com/threads/rtf-file-weirdness-clpadt-vs-clpadl.2163500/
-	RENDER_RTF_INT( m_nPaddingLeft,			sResult, L"clpadt" )	//перепутаны top & left
-	RENDER_RTF_INT( m_ePaddingLeftUnit,		sResult, L"clpadft" )	//перепутаны top & left
+	RENDER_RTF_INT( m_nPaddingLeft,			sResult, L"clpadt" )	//top & left mixed up
+	RENDER_RTF_INT( m_ePaddingLeftUnit,		sResult, L"clpadft" )	//top & left mixed up
 	RENDER_RTF_INT( m_nPaddingRight,		sResult, L"clpadr" )
 	RENDER_RTF_INT( m_ePaddingRightUnit,	sResult, L"clpadfr" )
-	RENDER_RTF_INT( m_nPaddingTop,			sResult, L"clpadl" )	//перепутаны top & left
-	RENDER_RTF_INT( m_ePaddingTopUnit,		sResult, L"clpadfl" )	//перепутаны top & left
+	RENDER_RTF_INT( m_nPaddingTop,			sResult, L"clpadl" )	//top & left mixed up
+	RENDER_RTF_INT( m_ePaddingTopUnit,		sResult, L"clpadfl" )	//top & left mixed up
 	RENDER_RTF_INT( m_nPaddingBottom,		sResult, L"clpadb" )
 	RENDER_RTF_INT( m_ePaddingBottomUnit,	sResult, L"clpadfb" )
 
@@ -4414,8 +4407,8 @@ std::wstring RtfCellProperty::RenderToOOX(RenderParameter oRenderParameter)
 	{
 		if (PROP_DEF != m_nShadingPctFrom && PROP_DEF != m_oShading.m_nValue && m_oShading.m_nValue != 0)
 		{
-			// todooo тут цвет подложки подкладывается от ячейки, таблицы или еще какой хрени
-			// пока берем второй цвет паттерна Romanization_Armenian.rtf
+			// TODO here the background color is based on a cell, table or something else
+			// for now we take the second color of the Romanization_Armenian.rtf pattern
 			m_oShading.m_nBackColor = (int)(m_oShading.m_nForeColor * (m_oShading.m_nValue / 10000.));
 		}
 		sResult +=  m_oShading.RenderToOOX(oRenderParameter);
@@ -4776,7 +4769,7 @@ std::wstring RtfTableProperty::RenderToOOX(RenderParameter oRenderParameter)
 	else if( 1 == m_nAutoFit )
 		sResult += L"<w:tblLayout w:type=\"autofit\"/>";
 
-	//сделаем не по документации, а как все остальные юниты !!!
+	//Do it not according to the documentation, but like all other units!!!
 	if( PROP_DEF != nTableIndent && 3 == eTableIndentUnit  )
 	{
 		sResult += L"<w:tblInd w:w=\"" + std::to_wstring(nTableIndent) + L"\" w:type=\"dxa\"/>";
@@ -4935,7 +4928,7 @@ void RtfRowProperty::SetDefaultRtf()
 void RtfRowProperty::SetDefaultOOX()
 {
 	SetDefault();
-	//не SetEmpty() !!!
+	//not SetEmpty()!!!
 	m_oBorderLeft.SetDefault();
 	m_oBorderRight.SetDefault();
 	m_oBorderTop.SetDefault();

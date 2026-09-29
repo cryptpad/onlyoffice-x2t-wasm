@@ -1,0 +1,51 @@
+diff --git a/DesktopEditor/xml/libxml2/globals.c b/DesktopEditor/xml/libxml2/globals.c
+index 66b6a7746e..df65fc91b9 100644
+--- a/DesktopEditor/xml/libxml2/globals.c
++++ b/DesktopEditor/xml/libxml2/globals.c
+@@ -223,8 +223,13 @@ static int xmlDoValidityCheckingDefaultValueThrDef = 0;
+  * Global setting, indicate that the parser should provide warnings.
+  * Activated by default.
+  */
++#ifdef BUILDING_WASM_MODULE
++int xmlGetWarningsDefaultValue = 0;
++static int xmlGetWarningsDefaultValueThrDef = 0;
++#else
+ int xmlGetWarningsDefaultValue = 1;
+ static int xmlGetWarningsDefaultValueThrDef = 1;
++#endif
+ /**
+  * xmlLoadExtDtdDefaultValue:
+  *
+diff --git a/DesktopEditor/xml/libxml2/libxml.h b/DesktopEditor/xml/libxml2/libxml.h
+index 87841e2e89..1cbaf2362a 100644
+--- a/DesktopEditor/xml/libxml2/libxml.h
++++ b/DesktopEditor/xml/libxml2/libxml.h
+@@ -96,7 +96,12 @@ int __xmlRandom(void);
+ #endif
+ 
+ XMLPUBFUN xmlChar * XMLCALL xmlEscapeFormatString(xmlChar **msg);
++
++#ifdef BUILDING_WASM_MODULE
++int xmlNop(void* context, char* buffer, int len);
++#else
+ int xmlNop(void);
++#endif
+ 
+ #ifdef IN_LIBXML
+ #ifdef __GNUC__
+diff --git a/DesktopEditor/xml/libxml2/xmlIO.c b/DesktopEditor/xml/libxml2/xmlIO.c
+index bfab343ddb..60d749d9f1 100644
+--- a/DesktopEditor/xml/libxml2/xmlIO.c
++++ b/DesktopEditor/xml/libxml2/xmlIO.c
+@@ -813,7 +813,11 @@ xmlCheckFilename (const char *path)
+  * Returns zero
+  */
+ int
++#ifdef BUILDING_WASM_MODULE
++xmlNop(void* context, char* buffer, int len) {
++#else
+ xmlNop(void) {
++#endif
+     return(0);
+ }
+ 

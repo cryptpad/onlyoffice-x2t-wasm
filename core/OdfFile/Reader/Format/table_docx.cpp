@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -196,7 +189,7 @@ void table_table::docx_convert(oox::docx_conversion_context & Context)
 	}
 
 	bool sub_table = attlist_.table_is_sub_table_.get_value_or(false);
-	//todooo придумать как сделать внешние границы sub-таблицы границами внешней ячейки (чтоб слияние произошло)
+	//TODO figure out how to make the outer boundaries of the sub-table the boundaries of the outer cell (so that the merge occurs)
 	
 	std::wstring tableStyleName = attlist_.table_style_name_.get_value_or(L"");
 
@@ -393,7 +386,7 @@ void table_table_cell::docx_convert(oox::docx_conversion_context & Context)
         }
         _Wostream << L"</w:tcPr>";
 
-        /// Обрабатываем стиль по умолчанию для данного столбца
+        /// Process the default style for this column
         {
             const std::wstring & defaultCellStyle =
                 Context.get_table_context().get_default_cell_style_col(Context.get_table_context().current_column());
@@ -412,7 +405,7 @@ void table_table_cell::docx_convert(oox::docx_conversion_context & Context)
             }
         }
 
-        /// Стиль по умолчанию для данной строки
+        /// Default style for this row
         {
             const std::wstring & defaultCellStyle = Context.get_table_context().get_default_cell_style_row();
 
@@ -430,7 +423,7 @@ void table_table_cell::docx_convert(oox::docx_conversion_context & Context)
             }
         }
 		
-        // если одержимое не содержит ниодного параграфа, то добавляем параграф, иначе word считает файл битым
+        // if the object doesn't contain a single paragraph, then add a paragraph, otherwise word considers the file broken
         if (!content_.docx_convert(Context))
         {
             _Wostream << emptyPar;

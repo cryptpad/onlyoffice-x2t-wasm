@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -220,7 +213,7 @@ bool PptxConverter::convertDocument()
 	convert_masters_and_layouts();
 	convert_slides();
 
-	//удалим уже ненужный документ pptx 
+	//delete the unnecessary pptx document
 	delete pptx_document; pptx_document = NULL;
 
 	odp_context->end_document();
@@ -256,13 +249,13 @@ void PptxConverter::convert_styles()
 
 		OoxConverter::convert(presentation->defaultTextStyle->levels[0].GetPointer(), paragraph_properties, text_properties); //default text
 	}
-	//convert(presentation->defaultTextStyle.GetPointer()); //стили дефалтовых списков
+	//convert(presentation->defaultTextStyle.GetPointer()); //default list styles
 	
 ///////////////////////////////////////////////////////////////////////////
 
 	odp_context->styles_context()->create_default_style(odf_types::style_family::Table);					
 	odf_writer::style_table_properties	* table_properties	= odp_context->styles_context()->last_state()->get_table_properties();
-	//для красивой отрисовки в редакторах - разрешим объеденить стили пересекающихся обрамлений 
+	//for better rendering in editors - let's combine the styles of overlapping borders
 	table_properties->content_.table_border_model_ = odf_types::border_model(odf_types::border_model::Collapsing);
 
 	odp_context->styles_context()->create_default_style(odf_types::style_family::TableRow);					
@@ -270,7 +263,7 @@ void PptxConverter::convert_styles()
 	row_properties->style_table_row_properties_attlist_.fo_keep_together_ = odf_types::keep_together(odf_types::keep_together::Auto);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-	//зачемто ?! для OpenOffice для врезок/фреймов нужен базовый стиль - без него другой тип геометрии oO !!!
+	//why?! for OpenOffice, insets/frames need a base style - without it, another type of geometry oO!!!
 	odp_context->styles_context()->create_style(L"Frame", odf_types::style_family::Graphic, false, true);		
 	
 	odf_writer::graphic_format_properties	* frame_graphic_properties	= odp_context->styles_context()->last_state()->get_graphic_properties();
@@ -1358,14 +1351,14 @@ void PptxConverter::convert_slides()
 {
 	for (size_t i = 0; i < presentation->sldIdLst.size(); ++i)
 	{
-		odp_context->map_table_styles_.clear();// todooo - для одинаковых тем не чистить
+		odp_context->map_table_styles_.clear();// TODO - don't clean for identical themes
 
         std::wstring rId = presentation->sldIdLst[i].rid.get();
         smart_ptr<PPTX::Slide> slide = ((*presentation)[rId]).smart_dynamic_cast<PPTX::Slide>();
 		
 		if (slide.IsInit() == false)
         {
-            continue;// странное ... слайд 38 в FY10_September_Partner_Call.pptx
+            continue;// strange... slide 38 in FY10_September_Partner_Call.pptx
         }
 
 		current_theme	= slide->theme.GetPointer();
@@ -1442,7 +1435,7 @@ void PptxConverter::convert_slides()
 			}
 			pFind = m_mapLayouts.find(slide->Layout->m_sOutputFilename);
 			if (pFind == m_mapLayouts.end())
-			{//сюда уже не попадет - выше
+			{//won't get here anymore - handled above
 				odp_context->start_layout_slide();
 					convert_layout(&slide->Layout->cSld);
 				odp_context->end_layout_slide();
@@ -2415,7 +2408,7 @@ bool PptxConverter::convert(PPTX::Logic::TableCellProperties *oox_table_cell_pr,
 	
 	if ((border_inside_v || border_inside_h))
 	{
-		if (cell_properties->content_.common_border_attlist_.fo_border_)//раскидаем по сторонам
+		if (cell_properties->content_.common_border_attlist_.fo_border_)//split by sides
 		{
 			if (cell_properties->content_.common_border_attlist_.fo_border_->is_none() == false)
 			{
@@ -2427,7 +2420,7 @@ bool PptxConverter::convert(PPTX::Logic::TableCellProperties *oox_table_cell_pr,
 			}		
 			cell_properties->content_.common_border_attlist_.fo_border_ = boost::none;
 		}	
-		//если нет убрать, если да - добавить
+		//if no, remove, if yes, add
 		if (border_inside_h)
 		{
 			bool del_border = (std::wstring::npos != border_inside_h->find(L"none"));
@@ -2518,7 +2511,7 @@ void PptxConverter::convert(PPTX::Logic::TcBdr *oox_table_borders)
 {
 	if (!oox_table_borders) return;
 
-	//НИ ГРАФИКА НИ СВОЙСТВА ЯЧЕЕК .. ПАРАГРАФ блять !! - идиетский odf !!!
+	//NEITHER GRAPHICS NOR CELL PROPERTIES.. PARAGRAPH!! - invalid odf!!!
 	//odf_writer::style_table_cell_properties *odf_cell_props = odp_context->styles_context()->last_state(odf_types::style_family::TableCell)->get_table_cell_properties();
 	odf_writer::paragraph_format_properties *odf_para_props = odp_context->styles_context()->last_state(odf_types::style_family::TableCell)->get_paragraph_properties();
 
@@ -2537,7 +2530,7 @@ void PptxConverter::convert(PPTX::Logic::TcBdr *oox_table_borders, odf_writer::p
 	{
 		convert(oox_table_borders->left->ln.GetPointer(), left);
 		//if (left.empty())
-		//	convert(oox_table_borders->left->lnRef.GetPointer(), left); //todooo
+		//	convert(oox_table_borders->left->lnRef.GetPointer(), left); //TODO
 	}
 	if (oox_table_borders->right.IsInit())
 	{
@@ -2714,7 +2707,7 @@ void PptxConverter::convert(PPTX::Logic::Bg *oox_background)
 	odf_writer::style* page_style_ = dynamic_cast<odf_writer::style*>(odp_context->current_slide().page_style_elm_.get());
 	odf_writer::style_drawing_page_properties* page_props = page_style_->content_.add_get_style_drawing_page_properties();
 	
-	//необязательно
+	//optional
 	//if (page_props->content_.common_draw_fill_attlist_.draw_fill_image_name_)
 	//{
 	//	page_props->content_.draw_background_size_ = L"border";
@@ -2851,8 +2844,8 @@ void PptxConverter::convert_slide(PPTX::Logic::CSld *oox_slide, PPTX::Logic::TxS
 				pShape->Merge(update_shape);
 
 				if (type == Slide && bPlaceholder && false == bTextPresent && update_shape.txBody.IsInit())
-				// спец. для либры - чтобы она отображала плейсхолдеры на слайдах нормально! бл...
-				// изменение форматирования в плейсхолдере для данного слайда похерется
+				// special for LibreOffice - so that it displays placeholders on slides normally! damn...
+				// changing the formatting in the placeholder for this slide will be lost
 				{
 					update_shape.txBody->Paragrs.clear();
 				}
@@ -2947,4 +2940,3 @@ void PptxConverter::convert_layout(PPTX::Logic::CSld *oox_slide)
 }
 
 } 
-

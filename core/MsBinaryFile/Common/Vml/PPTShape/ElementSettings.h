@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -37,8 +30,8 @@
 
 #include <vector>
 
-// это класс, использующийся для передачи свойств объектов,
-// например - указатель на картинку... (по PID'у)
+// this is a class used to transfer properties of objects,
+// for example, a pointer to an image... (by PID)
 
 class CProperty
 {
@@ -48,7 +41,7 @@ public:
     bool							m_bComplex;
     _UINT32							m_lValue;
     unsigned char*					m_pOptions;
-    // чтобы не плодить классы - это value, когда m_bComplex == true
+    // so as not to create classes - this is value when m_bComplex == true
     bool							m_bIsTruncated;
 
 	CProperty();
@@ -58,13 +51,13 @@ public:
 	void ComplexFromStream(POLE::Stream* pStream);
 };
 
-// А вот контейнер пропертей
+// And here is the property container
 class CProperties
 {
 public:
     std::vector<CProperty> m_arProperties;
-    // по идее - это instance, но нам так удобнее,
-    // тем более это класс - не связанный с RecordHeader
+    // in theory this is an instance, but it's more convenient for us,
+    // Moreover, this is a class - not related to RecordHeader
     size_t m_lCount;
 
 	CProperties();

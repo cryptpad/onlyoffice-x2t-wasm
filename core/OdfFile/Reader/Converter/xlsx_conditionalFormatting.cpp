@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -61,7 +54,7 @@ namespace oox {
 						case 1: CP_XML_ATTR(L"type", L"num");		break;
  						case 2: CP_XML_ATTR(L"type", L"max");		break;
   						case 3: CP_XML_ATTR(L"type", L"min");		break;
- 						case 4: CP_XML_ATTR(L"type", L"max");		break; //todooo ext - autoMax
+						case 4: CP_XML_ATTR(L"type", L"max");		break; //TODO ext - autoMax
  						case 5: CP_XML_ATTR(L"type", L"min");		break;
  						case 6: CP_XML_ATTR(L"type", L"formula");	break;	
 						case 7: CP_XML_ATTR(L"type", L"percentile");break;//BOA PARA ESTUDAR - JOGAR LOTOFACIL minha predileta 1.ods
@@ -287,7 +280,7 @@ public:
 										case 16: CP_XML_ATTR(L"iconSet", L"5Rating"); break;
 										case 17: CP_XML_ATTR(L"iconSet", L"3Triangles"); break;
 										case 18: CP_XML_ATTR(L"iconSet", L"3Stars"); break;
-										case 19: CP_XML_ATTR(L"iconSet", L"5Boxes"); break; //todooo to ext
+										case 19: CP_XML_ATTR(L"iconSet", L"5Boxes"); break; //TODO to ext
 										case 0:
 										default: CP_XML_ATTR(L"iconSet", L"3Arrows"); break;
 											break;
@@ -592,7 +585,7 @@ void xlsx_conditionalFormatting_context::set_formula(std::wstring f)
 		impl_->conditionalFormattings_.back().rules.back().formula_type = L"expression";
 		val = f.substr(11, f.size() - 12);
 
-		if (0 == (pos = val.find(L"\"")))	//Raport_7A.ods или выкинуть ограждающие кавычки с формулы?
+		if (0 == (pos = val.find(L"\"")))	//Raport_7A.ods or remove the enclosing quotes from the formula?
 		{
 			impl_->conditionalFormattings_.back().rules.back().text = val;
 			val.clear();

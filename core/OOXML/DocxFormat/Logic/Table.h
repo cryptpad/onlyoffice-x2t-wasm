@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -378,7 +371,7 @@ namespace OOX
 			int m_nCountRow;
 
 			nullable<OOX::Logic::CTblGrid> m_oTblGrid;			
-			OOX::Logic::CTableProperty* m_oTableProperties; //todooo - выкинуть из m_arrItems, переделать на nullable<>
+			OOX::Logic::CTableProperty* m_oTableProperties; //TODO - throw out from m_arrItems, change to nullable<>
 		};
 
 		//--------------------------------------------------------------------------------
@@ -412,7 +405,7 @@ namespace OOX
 			nullable<SimpleTypes::CLongHexNumber> m_oRsidRPr;
 			nullable<SimpleTypes::CLongHexNumber> m_oRsidTr;
 
-			OOX::Logic::CTableRowProperties* m_pTableRowProperties; //todooo - выкинуть из m_arrItems, переделать на nullable<>
+			OOX::Logic::CTableRowProperties* m_pTableRowProperties; //TODO - throw out from m_arrItems, change to nullable<>
 		};
 
 		//--------------------------------------------------------------------------------
@@ -439,9 +432,9 @@ namespace OOX
 			void ReadAttributes(XmlUtils::CXmlLiteReader& oReader);
 
 		public:
-			int m_nNumCol; // Номер колонки
+			int m_nNumCol; // Column number
 			nullable<std::wstring> m_sId;
-			OOX::Logic::CTableCellProperties* m_pTableCellProperties; //todooo - выкинуть из m_arrItems, переделать на nullable<>
+			OOX::Logic::CTableCellProperties* m_pTableCellProperties; //TODO - throw out from m_arrItems, change to nullable<>
 		};
 
 	} // namespace Logic

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -83,7 +76,7 @@ void text_tracked_context::start_changes_content()
 
 void text_tracked_context::end_changes_content()
 {
-	docx_context_.finish_run();	//0106GS-GettingStartedWithWriter_el.odt - удаленный заголовок
+	docx_context_.finish_run();	//0106GS-GettingStartedWithWriter_el.odt - deleted header
 
 	current_state_.content.push_back(changes_stream_.str());
 	
@@ -628,7 +621,7 @@ void docx_conversion_context::end_alphabetical_index (const std::wstring &id)
 	if (mapAlphabeticals.empty())
 		current_alphabetic_index_.clear();
 	else
-		current_alphabetic_index_ = mapAlphabeticals.begin()->first; // todooo vector+map+level
+		current_alphabetic_index_ = mapAlphabeticals.begin()->first; // TODO vector+map+level
 }
 
 
@@ -639,7 +632,7 @@ void docx_conversion_context::start_chart(std::wstring  name)
 void docx_conversion_context::end_chart()
 {
 	//current_chart().set_drawing_link(current_sheet().get_drawing_link());
-	//излишняя инфа
+	//unnecessary information
 }
 oox_chart_context & docx_conversion_context::current_chart()
 {
@@ -750,7 +743,7 @@ void docx_conversion_context::start_document()
 
 
 	//apply page-default prop
-	//пока временно сюда воткнем обработку свойств документа в целом
+	//For now, let's temporarily include processing of the properties of the document as a whole here
 }
 
 
@@ -1184,7 +1177,7 @@ void docx_conversion_context::end_office_text()
 {
 	finish_paragraph();
 
-	if (!delayed_converting_)//иначе возможно зацикливание
+	if (!delayed_converting_)//otherwise it may end up in a loop
 	{
 		docx_convert_delayed();
 	}
@@ -1690,7 +1683,7 @@ void docx_conversion_context::end_process_style_content(bool in_styles)
 
 void docx_conversion_context::serialize_paragraph_style(std::wostream & strm, const std::wstring & ParentId, bool in_styles)
  //in_styles = true -> styles.xml
-//почему то конструкция <pPr><rPr/></pPr><rPr/> "не работает" в части в rPr в ms2010 )
+//for some reason the construction <pPr><rPr/></pPr><rPr/> "doesn't work" in the part in rPr in ms2010)
 {
 	bool in_drawing	= false;
 
@@ -1706,7 +1699,7 @@ void docx_conversion_context::serialize_paragraph_style(std::wostream & strm, co
 		////Tutor_Charlotte_Tutor_the_Entire_World_.odt
 		//if (get_section_context().dump_.empty() == false && (!ParentId.empty() || get_section_context().get().is_dump_ || in_header_) 
 		//	 && !get_table_context().in_table() && !in_drawing)
-		//{//две подряд секции или если стиль определен и в заголовки нельзя пихать !!!
+		//{//two sections in a row or if the style is defined and can't be inserted into the headers!!!
 		//	CP_XML_NODE(L"w:pPr")
 		//	{
 		//		CP_XML_STREAM() << get_section_context().dump_;
@@ -1864,7 +1857,7 @@ void docx_conversion_context::remove_page_properties()
 
 	if (s.page_properties_.size() > 1)
 	{
-		//первая общая (если есть) для всего документа - оставляем ее
+		//the first one is common (if any) for the entire document - leave it
 		s.page_properties_.erase(s.page_properties_.begin() + 1, s.page_properties_.begin() + 2);
 	}
 	else if (s.page_properties_.size() == 1)
@@ -2055,7 +2048,7 @@ int docx_conversion_context::process_paragraph_style(_CP_OPT(std::wstring) style
 
 				calc_tab_stops(styleInst, get_tabs_context());
 				
-				//вытаскивает rtl c цепочки стилей !! - просто прописать в наследуемом НЕЛЬЗЯ !!
+				//pulls out rtl from the style chain!! - it simply can't be registered in the inherited one!!
 				odf_reader::paragraph_format_properties properties = odf_reader::calc_paragraph_properties_content(styleInst);
 				if (properties.style_writing_mode_)
 				{
@@ -2157,7 +2150,7 @@ int docx_conversion_context::process_paragraph_attr(odf_reader::text::paragraph_
 
 					calc_tab_stops(styleInst, get_tabs_context());
 					
-					//вытаскивает rtl c цепочки стилей !! - просто прописать в наследуемом НЕЛЬЗЯ !!
+					//pulls out rtl from the style chain!! - it simply can't be registered in the inherited one!!
 					odf_reader::paragraph_format_properties properties = odf_reader::calc_paragraph_properties_content(styleInst);
 					if (properties.style_writing_mode_)
 					{
@@ -2229,7 +2222,7 @@ int docx_conversion_context::process_paragraph_attr(odf_reader::text::paragraph_
 			{
 				const std::wstring id = styles_map_.get( styleInst->name(), styleInst->type() );
 				output_stream() << L"<w:pPr>";
-	//todooo причесать			
+	//TODO clean up
 				if (!get_section_context().dump_.empty()
 					&& !get_table_context().in_table()
 					&& (get_process_note() == oox::docx_conversion_context::noNote)
@@ -2296,7 +2289,7 @@ int docx_conversion_context::process_paragraph_attr(odf_reader::text::paragraph_
         output_stream() << L"<w:pPr>";
 			output_stream() << get_section_context().dump_;
 			get_section_context().dump_.clear();
-			//todooo выяснить реальны ли заголовки без стилей и свойств
+			//TODO find out if headers are real without styles and properties
 		output_stream() << L"</w:pPr>";
 		return 3;
 	}
@@ -2365,9 +2358,9 @@ void docx_conversion_context::docx_convert_delayed()
 {
 	if (delayed_elements_.empty()) return;
 
-	if (delayed_converting_) return; //зацикливание иначе
+	if (delayed_converting_) return; //looping otherwise
 	if (get_drawing_context().get_current_level() > 0 )
-		return; //вложенный frame
+		return; //nested frame
 
 	delayed_converting_ = true;
     while(!delayed_elements_.empty())
@@ -2406,16 +2399,16 @@ void section_context::remove_section()
 	//sections_.erase(sections_.begin(), sections_.begin() + 1);
 	if (sections_.empty())
 	{
-		//после оканчания разметки секциями и начале (возобновлении) основного раздела нужен разрыв (хотя настройки страницы могут и не поменяться)
-		//щас разрыв на текущей странице
-		//todooo проверить - может типо если следующий будет заголовок - разорвать
+		//after finishing section marking and starting (resuming) the main section, a break is needed (although the page settings may not change)
+		//there is a gap on the current page right now
+		//TODO check - maybe if the next one is a title - break it
 		main_section_.is_dump_ = false;
 	}
 }
 namespace 
 {
-    // обработка Header/Footer
-    // конвертируем содержимое header/footer и сохраняем результат в виде строки
+    // Header/Footer processing
+    // convert the contents of header/footer and save the result as a string
     void process_one_header_footer(docx_conversion_context & Context, const std::wstring & styleName, odf_reader::office_element *elm, headers_footers::Type type)
     {
         if (!elm) return;
@@ -2427,7 +2420,7 @@ namespace
         
 		const std::wstring & dbgStr = newXml->str();
        
-		//слить если есть mediaitems, добавить релсы и обнулить их для основного документа.
+		//merge if there are mediaitems, add rels and reset them to zero for the main document.
 		rels internal_rels;
 
 		Context.get_mediaitems()->dump_rels(internal_rels, oox::header_footer_place);
@@ -2455,7 +2448,7 @@ void docx_conversion_context::process_headers_footers()
     odf_reader::odf_read_context & context =  doc->odf_context();
     odf_reader::page_layout_container & pageLayouts = context.pageLayoutContainer();
 
-    // проходим по всем page layout
+    // go through all page layouts
 	std::vector<odf_reader::style_master_page*> & master_pages = pageLayouts.master_pages();
 
 	bool bOddEvenPages = false;
@@ -2490,7 +2483,7 @@ void docx_conversion_context::process_headers_footers()
 		if (!master_pages[i]->style_header_ && !master_pages[i]->style_footer_ && !master_pages[i]->style_header_first_ && !master_pages[i]->style_footer_first_
 			&& !master_pages[i]->style_header_left_ && !master_pages[i]->style_footer_left_)
 		{
-			//отключенные колонтитулы
+			//disabled headers and footers
 			rels rels_;
 			get_headers_footers().add(styleName, L"", headers_footers::none, rels_);
 		}
@@ -2622,7 +2615,7 @@ void docx_conversion_context::start_changes(bool in_para)
 	{
 		text_tracked_context::_state  &state = it->second;
 
-		if (state.type == 0)	continue; //unknown change ... todooo
+		if (state.type == 0)	continue; //unknown change ... TODO
 		if (state.active)		continue;
 
 		state.in_para = in_para;
@@ -2747,7 +2740,7 @@ void docx_conversion_context::end_changes(bool in_para)
 	{
 		text_tracked_context::_state  &state = it->second;
 
-		if (state.type	== 0)			continue; //unknown change ... libra format change skip
+		if (state.type	== 0)			continue; //unknown change ... LibreOffice format change skip
 		if (state.type	== 3)			continue;
 		if (!state.active)				continue;
 		if (state.in_para != in_para)	continue;

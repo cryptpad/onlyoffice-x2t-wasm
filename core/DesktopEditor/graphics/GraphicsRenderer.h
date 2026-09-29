@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -44,7 +37,7 @@ public:
 
     IGraphicsRenderer_State()
     {
-        // пока не используется
+        // not yet used
         Type = 0;
     }
     virtual ~IGraphicsRenderer_State()
@@ -75,13 +68,13 @@ private:
 	LONG  m_lCurrentClipMode;
 	INT  m_bIsSetupClip;
 
-	// область отсечения
+	// clipping area
 	LONG	m_lClipLeft;
 	LONG	m_lClipTop;
 	LONG	m_lClipWidth;
 	LONG	m_lClipHeight;
 
-	// пикселы
+	// pixels
 	BYTE*			m_pPixels;
 	Aggplus::CDIB*	m_pDIB;
 
@@ -128,9 +121,9 @@ public:
     virtual void Restore();
 
 public:
-// тип рендерера-----------------------------------------------------------------------------
+// renderer type------------------------------------------------------------------------------
 	virtual HRESULT get_Type(LONG* lType);
-//-------- Функции для работы со страницей --------------------------------------------------
+//-------- Functions for working with the page --------------------------------------------------
 	virtual HRESULT NewPage();
 	virtual HRESULT get_Height(double* dHeight);
 	virtual HRESULT put_Height(const double& dHeight);
@@ -213,18 +206,18 @@ public:
 	virtual HRESULT get_FontFaceIndex(int* lFaceIndex);
 	virtual HRESULT put_FontFaceIndex(const int& lFaceIndex);
 
-//-------- Функции для вывода текста --------------------------------------------------------
+//-------- Functions for text output --------------------------------------------------------
     virtual HRESULT CommandDrawTextCHAR(const LONG& c, const double& x, const double& y, const double& w, const double& h);
     virtual HRESULT CommandDrawText(const std::wstring& bsText, const double& x, const double& y, const double& w, const double& h);
 
     virtual HRESULT CommandDrawTextExCHAR(const LONG& c, const LONG& gid, const double& x, const double& y, const double& w, const double& h);
     virtual HRESULT CommandDrawTextEx(const std::wstring& bsUnicodeText, const unsigned int* pGids, const unsigned int nGidsCount, const double& x, const double& y, const double& w, const double& h);
 
-//-------- Маркеры для команд ---------------------------------------------------------------
+//-------- Markers for commands ---------------------------------------------------------------
 	virtual HRESULT BeginCommand(const DWORD& lType);
 	virtual HRESULT EndCommand(const DWORD& lType);
 
-//-------- Функции для работы с Graphics Path -----------------------------------------------
+//-------- Functions for working with Graphics Path -----------------------------------------------
 	virtual HRESULT PathCommandMoveTo(const double& x, const double& y);
 	virtual HRESULT PathCommandLineTo(const double& x, const double& y);
 	virtual HRESULT PathCommandLinesTo(double* points, const int& count);
@@ -243,7 +236,7 @@ public:
     virtual HRESULT PathCommandTextExCHAR(const LONG& c, const LONG& gid, const double& x, const double& y, const double& w, const double& h);
     virtual HRESULT PathCommandTextEx(const std::wstring& sText, const unsigned int* pGids, const unsigned int nGidsCount, const double& x, const double& y, const double& w, const double& h);
 
-//-------- Функции для вывода изображений ---------------------------------------------------
+//-------- Functions for displaying images ------------------------------------------------------------------
 	virtual HRESULT DrawImage(IGrObject* pImage, const double& x, const double& y, const double& w, const double& h);
 	virtual HRESULT DrawImageFromFile(const std::wstring& sFile, const double& x, const double& y, const double& w, const double& h, const BYTE& lAlpha = 255);
 

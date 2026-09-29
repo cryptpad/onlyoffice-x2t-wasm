@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -79,7 +72,7 @@ std::wostream & operator<< (std::wostream & _Wostream, const length & _Length)
 }
 length operator+ (length _Length1, length _Length2)
 {
-	return length(_Length1.get_value() + _Length2.get_value(),_Length1.get_unit()); //проверка на одинаковость типа .. или приведение к одному
+	return length(_Length1.get_value() + _Length2.get_value(),_Length1.get_unit()); //checking for same type .. or casting to one
 }
 
 length operator+ (length _Length1, double val)
@@ -88,7 +81,7 @@ length operator+ (length _Length1, double val)
 }
 length operator- (length _Length1, length _Length2)
 {
-	return length(_Length1.get_value() - _Length2.get_value(), _Length1.get_unit()); //проверка на одинаковость типа .. или приведение к одному
+	return length(_Length1.get_value() - _Length2.get_value(), _Length1.get_unit()); //checking for same type .. or casting to one
 }
 length operator/ (length _Length1, double val)
 {
@@ -128,7 +121,7 @@ length length::parse(const std::wstring & Str)
     }
 
     //double v = (nSeparator > 0) ? std::stod(Str.substr(0, nSeparator)) : 0;
-    // вообще предыдущая строчка лучше намного, но сделаю как было (без c++11)
+    // In general, the previous line is much better, but I'll do it as it was (without C++11)
     double v = 0;
     if (nSeparator > 0)
     {

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -55,7 +48,7 @@ function CFile()
 	this.scannedImages = {};
 }
 
-//file_internal
+{{{ DRAWINGFILE }}}
 
 CFile.prototype.lockPageNumForFontsLoader = function(pageIndex, type)
 {
@@ -308,7 +301,7 @@ CFile.prototype["getGlyphs"] = function(originIndex)
 	let res = this._getGlyphs(originIndex);
 	// there is no need to delete the result; this buffer is used as a text buffer 
 	// for text commands on other pages. After receiving ALL text pages, 
-	// you need to call destroyTextInfo()
+	// need to call destroyTextInfo()
 	this.unlockPageNumForFontsLoader();
 
 	if (page.fonts.length > 0)
@@ -543,7 +536,7 @@ function readAnnot(reader, rec, readDoubleFunc, readDouble2Func, readStringFunc,
 		rec["BE"]["S"] = reader.readByte();
 		rec["BE"]["I"] = readDoubleFunc.call(reader);
 	}
-	// Special annotation color - С
+	// Special annotation color - C
 	if (flags & (1 << 3))
 	{
 		let n = reader.readInt();
@@ -1181,7 +1174,7 @@ function readWidgetType(reader, rec, readDoubleFunc, readDouble2Func, readString
 		if (flags & (1 << 9))
 			rec["value"] = readStringFunc.call(reader);
 		let IFflags = reader.readInt();
-		// Header - СA
+		// Header - CA
 		if (flags & (1 << 10))
 			rec["caption"] = readStringFunc.call(reader);
 		// Rollover header - RC

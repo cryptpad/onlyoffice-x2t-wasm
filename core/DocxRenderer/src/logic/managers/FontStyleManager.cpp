@@ -54,7 +54,7 @@ namespace NSDocxRenderer
 			{
 				auto val = *it;
 
-				// в начало списка
+				// to the beginning of the list
 				if (it != m_arFontStyles.begin())
 				{
 					m_arFontStyles.erase(it);

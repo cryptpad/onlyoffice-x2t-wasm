@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -266,8 +259,8 @@ void draw_image::xlsx_convert(oox::xlsx_conversion_context & Context)
 
 	Context.get_drawing_context().set_image(href);
 
-////////////////////////////////////в принципе достаточно общая часть ...
-	Context.get_text_context()->start_drawing_content(); //...  если в объекте есть текст он привяжется к объекту - иначе к ячейке
+///////////////////////////////////in principle, a fairly general part...
+	Context.get_text_context()->start_drawing_content(); //... if there is text in the object it will be attached to the object - otherwise to the cell
 	Context.start_drawing_context();
 
 	for (size_t i = 0 ; i < content_.size(); i++)
@@ -360,7 +353,7 @@ void draw_object::xlsx_convert(oox::xlsx_conversion_context & Context)
 			{
 				std::wstring objectPath = folderPath + FILE_SEPARATOR_STR + href;
 
-				// normalize path ???? todooo
+				// normalize path ???? TODO
 				XmlUtils::replace_all(objectPath, FILE_SEPARATOR_STR + std::wstring(L"./"), FILE_SEPARATOR_STR);
 
 				odf_document_ = odf_document_ptr(new odf_document(objectPath, tempPath, L""));
@@ -369,8 +362,8 @@ void draw_object::xlsx_convert(oox::xlsx_conversion_context & Context)
 		office_element *contentSubDoc = odf_document_ ? odf_document_->get_impl()->get_content() : NULL;
 		if (!contentSubDoc)
 		{
-			//здесь другой формат xml (не Open Office)
-			//временно - замещающая картинка(если она конечно присутствует)
+			//here is a different xml format (not Open Office)
+			//temporarily - a replacement image (if it is present, of course)
 			return;
 		}		
 		object_odf_context objectBuild(href);
@@ -378,14 +371,14 @@ void draw_object::xlsx_convert(oox::xlsx_conversion_context & Context)
 		process_build_object process_build_object_(objectBuild, odf_document_.get());
 		contentSubDoc->accept(process_build_object_); 
 //---------------------------------------------------------------------------------------------------------------------
-		if (objectBuild.object_type_ == 1) //диаграмма
+		if (objectBuild.object_type_ == 1) //diagram
 		{		
 			const std::wstring href_draw = xlink_attlist_.href_.get_value_or(L"chart");
 			objectBuild.xlsx_convert(Context);
 			
-			Context.get_drawing_context().set_chart(href_draw); // в рисовательной части только место объекта, рамочки ... и релсы 
+			Context.get_drawing_context().set_chart(href_draw); // in the drawing part there is only the place of the object, frames... and rels
 		}
-		else if (objectBuild.object_type_ == 2) //текст (odt text)
+		else if (objectBuild.object_type_ == 2) //text (odt text)
 		{
 			Context.get_drawing_context().set_use_image_replacement();
 
@@ -398,7 +391,7 @@ void draw_object::xlsx_convert(oox::xlsx_conversion_context & Context)
 				Context.get_drawing_context().set_ms_object(href, L"Word.Document");
 			}
 		}
-		else if (objectBuild.object_type_ == 3) //мат формулы
+		else if (objectBuild.object_type_ == 3) //math formula
 		{
 			bool bNewObject = false;
 			if (bNewObject = Context.get_drawing_context().isDefault())
@@ -435,7 +428,7 @@ void draw_object::xlsx_convert(oox::xlsx_conversion_context & Context)
 		}
 		else
 		{
-			//замещающая картинка(если она конечно присутствует)
+			//replacement image (if it is present, of course)
 			Context.get_drawing_context().set_use_image_replacement();
 		}
 	

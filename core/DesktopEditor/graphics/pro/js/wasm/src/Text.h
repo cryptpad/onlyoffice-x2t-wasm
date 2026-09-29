@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -162,7 +155,7 @@ namespace NSHtmlRenderer
 		}
 		void CommandText(const int* pUnicodes, const int* pGids, const int& nCount, const double& x, const double& y, bool bIsDumpFont)
 		{
-			// 1) сначала определяем точку отсчета и направление baseline
+			// 1) first determine the starting point and the direction of the baseline
 			double _x1 = x;
 			double _y1 = y;
 			double _x2 = x + 1;
@@ -196,11 +189,11 @@ namespace NSHtmlRenderer
 				else if (!_isConstX && !m_oLine.m_bIsConstX && fabs(_k - m_oLine.m_dK) < 0.001 && fabs(_b - m_oLine.m_dB) < 0.001)
 					bIsNewLine = false;
 
-				if (bIsNewLine) // не совпала baseline. поэтому просто скидываем линию в поток
+				if (bIsNewLine) // baseline didn't match. so write the line directly to the stream
 					DumpLine();
 			}
 
-			// теперь нужно определить сдвиг по baseline относительно destination точки
+			// now determine the shift by baseline relative to the destination point
 			double dOffsetX = 0;
 			LONG nCountChars = m_oLine.GetCountChars();
 			if (0 == nCountChars)
@@ -226,14 +219,14 @@ namespace NSHtmlRenderer
 
 				if (sx * m_oLine.m_ex >= 0 && sy * m_oLine.m_ey >= 0)
 				{
-					// продолжаем линию
+					// continue the line
 					dOffsetX = len;
 
-					// теперь посмотрим, может быть нужно вставить пробел??
+					// Now check whether a space needs to be inserted??
 					NSWasm::CHChar* pLastChar = m_oLine.GetTail();
 					if (dOffsetX > (pLastChar->width + 0.5))
 					{
-						// вставляем пробел. Пробел у нас будет не совсем пробел. А специфический
+						// insert a space. The space we have won't be quite a space. A specific
 						NSWasm::CHChar* pSpaceChar = m_oLine.AddTail();
 						pLastChar = &m_oLine.m_pChars[m_oLine.m_lCharsTail - 2];
 						pSpaceChar->x = pLastChar->width;
@@ -244,9 +237,9 @@ namespace NSHtmlRenderer
 				}
 				else
 				{
-					// буква сдвинута влево относительно предыдущей буквы
-					// на такую ситуацию реагируем просто - просто начинаем новую линию,
-					// предварительно сбросив старую
+					// the letter is shifted to the left relative to the previous letter
+					// Handle this case by starting a new line,
+					// having first reset the old one
 					DumpLine();
 
 					m_oLine.m_bIsConstX = _isConstX;
@@ -266,7 +259,7 @@ namespace NSHtmlRenderer
 			}
 
 			if (!Aggplus::CMatrix::IsEqual(m_pLastTransform, m_pTransform, 0.001, true))
-			{ // смотрим, совпадает ли главная часть матрицы
+			{ // see if the main part of the matrix matches
 				bIsDumpFont = true;
 				*m_pLastTransform = *m_pTransform;
 				m_oLine.m_bIsSetUpTransform = true;
@@ -276,7 +269,7 @@ namespace NSHtmlRenderer
 				m_oLine.m_sy  = m_pTransform->sy();
 			}
 
-			// все, baseline установлен. теперь просто продолжаем линию
+			// That's it, the baseline is set. now we just continue the line
 			if (bIsDumpFont)
 				m_oFontManager.LoadCurrentFont();
 
@@ -334,12 +327,12 @@ namespace NSHtmlRenderer
 
 			if (m_oLine.m_bIsSetUpTransform)
 			{
-				// выставится трансформ!!!
-				// cравнивать нужно с ним!!!
+				// transform will be applied!!!
+				// need to compare with it!!!
 				m_pLastTransform->SetElements(m_oLine.m_sx, m_oLine.m_shy, m_oLine.m_shx, m_oLine.m_sy);
 			}
 
-			// скидываем линию в поток pMeta
+			// write the line to the pMeta stream
 			m_pPageMeta->WriteDouble(m_oLine.m_dX);
 			m_pPageMeta->WriteDouble(m_oLine.m_dY);
 
@@ -392,8 +385,8 @@ namespace NSHtmlRenderer
 					bIsLastSymbol = true;
 				}
 
-				m_pPageMeta->AddInt(pChar->unicode); // юникодное значение
-				m_pPageMeta->WriteDouble(pChar->width); // ширина буквы
+				m_pPageMeta->AddInt(pChar->unicode); // Unicode value
+				m_pPageMeta->WriteDouble(pChar->width); // letter width
 			}
 			if (bIsLastSymbol)
 				m_nCountWords++;

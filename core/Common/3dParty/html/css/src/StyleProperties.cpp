@@ -392,8 +392,8 @@ namespace NSCSS
 
 		std::wstring wsNewValue = wsValue;
 
-		const bool bImportant{CutImportant(wsNewValue)}; //TODO:: иногда мы знаем, что "!important" точно не встретится
-		                                                 // возможно стоит добавить ещё метод
+		const bool bImportant{CutImportant(wsNewValue)}; //TODO:: sometimes we know that "!important" will definitely not occur
+		                                                 // maybe it's worth adding another method
 		if (m_bImportant && !bImportant)
 			return false;
 
@@ -1068,7 +1068,7 @@ namespace NSCSS
 			}
 			case TransformRotate:
 			{
-				//TODO:: добавить реализацию
+				//TODO:: add implementation
 				wsValue = L"rotate(";
 				break;
 			}
@@ -2547,7 +2547,7 @@ namespace NSCSS
 
 	bool CFont::SetValue(const std::wstring &wsValue, unsigned int unLevel, bool bHardMode)
 	{
-		//TODO:: скорее всего стоит переделать парсинг строки со шрифтом
+		//TODO:: most likely it's worth redoing the parsing of the font string
 		const std::vector<std::wstring> arValues = NSCSS::NS_STATIC_FUNCTIONS::GetWordsW(wsValue, false, L" ,/");
 
 		unsigned short ushPosition = 0;

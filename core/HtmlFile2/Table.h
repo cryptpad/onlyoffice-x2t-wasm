@@ -164,7 +164,7 @@ private:
 	UINT                    m_unWidth;
 };
 
-//Необходимые стили таблицы
+//Required Table Styles
 struct TTableStyles
 {
 	NSCSS::NSProperties::CIndent m_oPadding;
@@ -228,7 +228,7 @@ public:
 	void Shorten();
 	void CompleteTable();
 
-	//TODO:: переделать на const std::vector<const T*> Get...() const;
+	//TODO:: convert to const std::vector<const T*> Get...() const;
 	const std::vector<std::vector<CStorageTableRow*>>& GetHeaders()   const;
 	const std::vector<CStorageTableRow*>&              GetFoothers()  const;
 	const std::vector<CStorageTableRow*>&              GetRows()      const;

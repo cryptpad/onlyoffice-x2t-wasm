@@ -1,0 +1,44 @@
+diff --git a/src/hunspell/atypes.hxx b/src/hunspell/atypes.hxx
+index 7e5a5c0..e144d7e 100644
+--- a/src/hunspell/atypes.hxx
++++ b/src/hunspell/atypes.hxx
+@@ -100,9 +100,15 @@ static inline void HUNSPELL_WARNING(FILE*, const char*, ...) {}
+ // for a suggestion, including max. ~/10 sec for a case
+ // sensitive plain or compound word suggestion, within
+ // ~1/20 sec long time consuming suggestion functions
++#ifndef CUSTOM_TIMELIMITS
+ #define TIMELIMIT_GLOBAL (CLOCKS_PER_SEC / 4)
+ #define TIMELIMIT_SUGGESTION (CLOCKS_PER_SEC / 10)
+ #define TIMELIMIT (CLOCKS_PER_SEC / 20)
++#else
++#define TIMELIMIT_GLOBAL CUSTOM_TIMELIMIT_GLOBAL
++#define TIMELIMIT_SUGGESTION CUSTOM_TIMELIMIT_SUGGESTION
++#define TIMELIMIT CUSTOM_TIMELIMIT
++#endif
+ #define MINTIMER 100
+ #define MAXPLUSTIMER 100
+ 
+diff --git a/src/hunspell/filemgr.hxx b/src/hunspell/filemgr.hxx
+index b933f95..787e14f 100644
+--- a/src/hunspell/filemgr.hxx
++++ b/src/hunspell/filemgr.hxx
+@@ -76,6 +76,9 @@
+ #include <cstdio>
+ #include <string>
+ #include <fstream>
++#ifdef HUNSPELL_WASM_MODULE
++#include "string_buffer_stream.h"
++#endif
+ 
+ class FileMgr {
+  protected:
+@@ -89,6 +92,9 @@ class FileMgr {
+   FileMgr(const char* filename, const char* key = NULL);
+   FileMgr(const FileMgr&) = delete;
+   FileMgr& operator=(const FileMgr&) = delete;
++  #ifdef HUNSPELL_WASM_MODULE
++      string_buffer_stream memin;
++  #endif
+   ~FileMgr();
+   bool getline(std::string&);
+   int getlinenum();

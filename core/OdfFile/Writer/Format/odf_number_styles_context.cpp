@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -319,7 +312,7 @@ void odf_number_styles_context::create_default(int oox_num_fmt, std::wstring for
 	case 49:	formatCode = L"@";		state.ods_type =office_value_type::String; break;
 
 	default:
-/////////////////////////////////// с неопределенным formatCode .. он задается в файле
+////////////////////////////////// with undefined formatCode .. it is set in the file
 			 if (oox_num_fmt >= 5  && oox_num_fmt <= 8)		state.ods_type =office_value_type::Currency; 
 		else if (oox_num_fmt >= 41 && oox_num_fmt <= 44)	state.ods_type =office_value_type::Currency; 
 		
@@ -358,7 +351,7 @@ number_format_state & odf_number_styles_context::add_or_find(int oox_num_fmt, st
 {
 	if (oox_num_fmt < 0)
 	{
-		//not spreadsheet todooo - search by formatCode
+		//not spreadsheet TODO - search by formatCode
 		oox_num_fmt = 0xffff + named_link_map_.size();
 	}	
 	
@@ -445,7 +438,7 @@ void odf_number_styles_context::create_numbers(number_format_state& state, offic
 
 	if (state.format_code[0].empty())
 	{
-		//формат не определен .. дефолтный
+		//format not defined .. default
 		min_digit = 1;
 	}
 	else
@@ -829,11 +822,11 @@ void odf_number_styles_context::create_date_style(number_format_state & state, o
 				else		number_year_->number_style_ = L"long";
 			}
 		}
-		else if (!bAM) // разделителя am.pm в либре нет
-		{	//////////////////// делитель ////////////////////	
+		else if (!bAM) // there is no am/pm separator in LibreOffice
+		{	//////////////////// divider ////////////////////
 			if(sz > 1) 
 			{
-				//выкинем "лишние" слэши
+				//Remove the "extra" slashes
 				XmlUtils::replace_all( s, L"\\", L"");
 			}
 			create_element(L"number", L"text", elm, odf_context_);
@@ -860,7 +853,7 @@ void odf_number_styles_context::create_time_style(number_format_state & state, o
 	boost::wregex re(L"([a-zA-Z]+)(\\W+)");//(L"(\\w+)");
 	std::list<std::wstring> result;
 	bool b = boost::regex_split(std::back_inserter(result),s, re);
-	if (b)result.push_back(s);//последний ..выносится - так уж работает boost.regex_split
+	if (b)result.push_back(s);//the last one ..is taken out - that's how boost.regex_split works
 
 	size_t sz=0;
 	for (std::list<std::wstring>::iterator it = result.begin(); it != result.end(); ++it)
@@ -878,7 +871,7 @@ void odf_number_styles_context::create_time_style(number_format_state & state, o
 				if (sz == 2) number_hours_->number_style_ = L"long";
 			}
 		}
-		else if (std::wstring::npos != s.find(L"am"))  //излишнее .. 
+		else if (std::wstring::npos != s.find(L"am"))  //unnecessary..
 		{
 			create_element(L"number", L"am-pm", elm, odf_context_);
 		}
@@ -903,12 +896,12 @@ void odf_number_styles_context::create_time_style(number_format_state & state, o
 				//number_decimal_places_
 			}
 		}
-		else if (std::wstring::npos == s.find(L"pm"))//так уж формат делится .. а этот текст нам не нужен
+		else if (std::wstring::npos == s.find(L"pm"))//that's how the format is divided .. and we don't need this text
 		{
-		//////////////////// делитель ////////////////////	
+		//////////////////// divider ////////////////////
 			if(sz > 1) 
 			{
-				//выкинем "лишние" слэши
+				//Remove the "extra" slashes
 				XmlUtils::replace_all( s, L"\\", L"");
 			}
 			create_element(L"number", L"text", elm, odf_context_);

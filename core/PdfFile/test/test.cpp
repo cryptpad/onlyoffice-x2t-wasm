@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -346,7 +339,7 @@ TEST_F(CPdfFileTest, Base64ConvertToRaster)
 {
 	GTEST_SKIP();
 
-	// чтение и конвертации бинарника
+	// reading and converting binary
 	NSFile::CFileBinary oFile;
 	ASSERT_TRUE(oFile.OpenFile(NSFile::GetProcessDirectory() + L"/base64.txt"));
 
@@ -381,7 +374,7 @@ TEST_F(CPdfFileTest, BinConvertToRaster)
 {
 	GTEST_SKIP();
 
-	// чтение и конвертации бинарника
+	// reading and converting binary
 	NSFile::CFileBinary oFile;
 	ASSERT_TRUE(oFile.OpenFile(NSFile::GetProcessDirectory() + L"/pdf.bin"));
 
@@ -533,7 +526,7 @@ TEST_F(CPdfFileTest, EditPdfFromBase64)
 	LoadFromFile();
 	ASSERT_TRUE(pdfFile->EditPdf(wsDstFile));
 
-	// чтение и конвертации бинарника
+	// reading and converting binary
 	NSFile::CFileBinary oFile;
 	ASSERT_TRUE(oFile.OpenFile(NSFile::GetProcessDirectory() + L"/base64.txt"));
 
@@ -576,7 +569,7 @@ TEST_F(CPdfFileTest, EditPdfFromBin)
 	LoadFromFile();
 	ASSERT_TRUE(pdfFile->EditPdf(wsDstFile));
 
-	// чтение бинарника
+	// reading binary
 	NSFile::CFileBinary oFile;
 	ASSERT_TRUE(oFile.OpenFile(NSFile::GetProcessDirectory() + L"/changes.bin"));
 
@@ -665,11 +658,11 @@ TEST_F(CPdfFileTest, EditPdfSign)
 		pdfFile->Sign(10, 300, 100, 100, NSFile::GetProcessDirectory() + L"/test.jpeg");
 	}
 
-	// Для цифровой подписи важно предварительно pdfFile->EditClose, в остальных случаях pdfFile->Close() сделает тоже самое
+	// For a digital signature, it is important to first pdfFile->EditClose, in other cases pdfFile->Close() will do the same
 	pdfFile->EditClose();
 
 	// EditPdf & EditClose || CreatePdf & SaveToFile
-	// И только после подготовка данных для подписания, подписываем, запись подписи
+	// And only after preparing the data for signing, we sign and record the signature
 	for (int i = 0; i < 3; ++i)
 	{
 		pdfFile->PrepareSignature(wsDstFile);
@@ -699,7 +692,7 @@ TEST_F(CPdfFileTest, EditPdfSign)
 		pCertificate->SignPKCS7(pDataToSign, dwDataSignLength, pDatatoWrite, dwLenDatatoWrite);
 		RELEASEARRAYOBJECTS(pDataToSign);
 
-		// Обязательно FinalizeSignature - он либо заполнит данные, либо сделает подпись пустой
+		// FinalizeSignature is required - it will either fill in the data or make the signature empty
 		pdfFile->FinalizeSignature(pDatatoWrite, dwLenDatatoWrite);
 
 		RELEASEARRAYOBJECTS(pDatatoWrite);

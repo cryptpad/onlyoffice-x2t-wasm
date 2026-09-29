@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -37,7 +30,7 @@ namespace NSStringExt
 	//-- CP950 Encoding -----------------------------------------------------------------------------
 
 #define MSCP950_UNDEFINED 0x0000
-#define MSCP950_LEAD_CHAR 0xFFFF // —имвол, который означает, что данный код - старший байт
+#define MSCP950_LEAD_CHAR 0xFFFF // A marker indicating that this code is the high (lead) byte
 
 	static const unsigned short  c_anUnicodeMapCP950[] =
 	{
@@ -13580,7 +13573,7 @@ namespace NSStringExt
 		{ 0xF9FC, 0x2570 }, //BOX DRAWINGS LIGHT ARC UP AND RIGHT
 		{ 0xF9FD, 0x256F }, //BOX DRAWINGS LIGHT ARC UP AND LEFT
 		{ 0xF9FE, 0x2593 }, //DARK SHADE
-		{ 0xFFFF, 0xFFFF }  //Обозначаем конец списка
+		{ 0xFFFF, 0xFFFF }  //Marking the end of the list
 	};
 }
 #endif // _BUILD_CPENCODINGS_CODEPAGE950_CROSSPLATFORM_H_

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -258,7 +251,7 @@ namespace BinXlsxRW{
 		oXlsx.m_pStyles->m_oDxfs->m_oCount.Init();
 		oXlsx.m_pStyles->m_oDxfs->m_oCount->SetValue(oXlsx.m_pStyles->m_oDxfs->m_arrItems.size());
 		//Table
-		//todo table в случае нескольких sheet или если серии разнесены по sheet
+		//todo table in case of several sheets or if series are spread across sheets
 		if(m_aTableNames.size() > 0)
 		{
 			OOX::Spreadsheet::CTableFile* pTable = new OOX::Spreadsheet::CTableFile(NULL);
@@ -481,7 +474,7 @@ namespace BinXlsxRW{
 				}
 			}
 		}
-		//проверяем можем ли создать таблицу
+		//check if we can create a table
 		if(m_mapSheets.size() > 0 && m_nRow1 > 0 && m_nRow2 > 0 && m_nCol1 > 0 && m_nCol2 > 0 && m_nRow1 < m_nRow2)
 		{
             std::map<int, std::map<int, OOX::Spreadsheet::CCell*>*>*            rows = m_mapSheets.begin()->second;
@@ -505,7 +498,7 @@ namespace BinXlsxRW{
 					{
 						int nIndexCell = aIndexesCell[j];
 						OOX::Spreadsheet::CCell* pCell = cells->at(nIndexCell);
-						//не должно быть ячеек без m_oValue
+						//there should be no cells without m_oValue
 						m_aTableNames.push_back(pCell->m_oValue->m_sText);
 					}
 				}
@@ -611,12 +604,12 @@ namespace BinXlsxRW{
 						}
 						else
 						{
-							//как в CsvReader - подозрительный код
+							//as in CsvReader - suspicious code
 							WCHAR *pEndPtr;
 							wcstod(val.c_str(), &pEndPtr);
 							if (0 != *pEndPtr)
 							{
-								// Не число
+								// Not a number
 								aSharedStrings.push_back(val);
 								pCell->m_oType->SetValue(SimpleTypes::Spreadsheet::celltypeSharedString);
 								pCell->m_oValue->m_sText = std::to_wstring((int)aSharedStrings.size() - 1);
@@ -674,7 +667,7 @@ namespace BinXlsxRW{
 	OOX::Spreadsheet::CCell* ChartWriter::parseCreateCell(const int& nRow, const int& nCol, const std::wstring& val, std::wstring format)
 	{
 		OOX::Spreadsheet::CCell* pNewCell = new OOX::Spreadsheet::CCell();
-		//пока добавляем как есть, shared string после записи таблицы
+		//for now add it as is, shared string after the table entry
 		pNewCell->m_oValue.Init();
 		pNewCell->m_oValue->m_sText = val;
 
@@ -853,7 +846,7 @@ namespace BinXlsxRW{
 	}
 	void ChartWriter::parseMultiLvlStrRef(const OOX::Spreadsheet::CT_MultiLvlStrRef* pMultiLvlStrRef, bool bUpdateRange, const wchar_t* cRangeName)
 	{
-		//todo нужен пример
+		//todo needs an example
 	}
 	void ChartWriter::parseAxDataSource(const OOX::Spreadsheet::CT_AxDataSource* pAxDataSource, bool bUpdateRange, const wchar_t* cRangeName)
 	{

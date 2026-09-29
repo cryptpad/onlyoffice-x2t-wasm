@@ -506,7 +506,7 @@ namespace MetaFile
 		m_pOutStream->WriteFile((BYTE*)&unExplicitRecordSize,  sizeof (int));
 
 		m_pOutStream->WriteFile((BYTE*)&unPenIndex,            sizeof (unsigned int));
-		//Заполняем нулями некоторые поля, так как не используем
+		//Fill some fields with zeros, since we don't use them
 		unsigned int unZero = 0;
 		m_pOutStream->WriteFile((BYTE*)&unExplicitRecordSize,  sizeof (unsigned int)); // offBmi
 		m_pOutStream->WriteFile((BYTE*)&unZero,                sizeof (unsigned int)); // cbBmi

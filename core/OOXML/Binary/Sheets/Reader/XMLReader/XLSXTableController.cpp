@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -48,7 +41,7 @@ XLSXTableController::XLSXTableController(OOX::Spreadsheet::CXlsx &book, _INT32 l
     book_->m_pWorkbook->m_oSheets.Init();
     tableRows_.push_back(nullptr);
 
-    // Создадим стили
+    // Create styles
 	book_->CreateStyles();
 
     formates_ = std::make_shared<CellFormatController>(book_->m_pStyles, lcid);
@@ -57,7 +50,7 @@ XLSXTableController::XLSXTableController(OOX::Spreadsheet::CXlsx &book, _INT32 l
 
 void XLSXTableController::FormBook()
 {
-    /// @todo сделать так чтобы блок выполнялся только один раз
+    /// @todo make sure the block is executed only once
     if(1)
     {
         auto pWorksheet = new OOX::Spreadsheet::CWorksheet(NULL);
@@ -75,7 +68,7 @@ void XLSXTableController::AddCell(const std::wstring &sText, INT nRow, INT nCol)
 {
 
     size_t length = sText.length();
-    // Пустую не пишем
+    // Don't write empty words
     if (sText.empty() || (sText[0] == L'\0'))
     {
         return;
@@ -133,16 +126,16 @@ _UINT32 XLSXTableController::addRow(OOX::Spreadsheet::CRow *pRow, OOX::Spreadshe
 {
     if (pWorkSheet->m_oSheetData->m_arrItems.size() > 1048576)
             {
-                return AVS_FILEUTILS_ERROR_CONVERT_ROWLIMITS; // ограниечние мс
+                return AVS_FILEUTILS_ERROR_CONVERT_ROWLIMITS; // ms limits
             }
     pRow->m_oR.Init();
     pRow->m_oR->SetValue(nRow);
 
-    /// сортируем ячейки в ряду
+    /// sort cells in a row
     if(pRow->m_arrItems.size() > 1)
     {
         std::sort(pRow->m_arrItems.begin(), pRow->m_arrItems.end(), CompareCells);
-        // Удаляем дубликаты с помощью алгоритма unique
+        // Removing duplicates using the unique algorithm
         auto it = std::unique(pRow->m_arrItems.begin(), pRow->m_arrItems.end(), CompareColumns);
         pRow->m_arrItems.erase(it, pRow->m_arrItems.end());
     }

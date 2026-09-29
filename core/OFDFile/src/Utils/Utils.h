@@ -34,7 +34,7 @@ inline std::vector<std::string> Split(const std::string& sValue, char chDelim)
 
 inline bool StringToBoolean(const std::string& sValue, bool& bValue)
 {
-	//TODO:: скорректировать метод, если возможно чтение не стандартных значений с плавающей запятой
+	//TODO:: adjust the method if it is possible to read non-standard floating point values
 	if (sValue.empty())
 		return false;
 
@@ -56,7 +56,7 @@ inline bool StringToBoolean(const std::string& sValue, bool& bValue)
 
 inline bool StringToInteger(const std::string& sValue, int& nValue)
 {
-	//TODO:: скорректировать метод, если возможно чтение не стандартных значений с плавающей запятой
+	//TODO:: adjust the method if it is possible to read non-standard floating point values
 	if (sValue.empty())
 		return false;
 
@@ -72,7 +72,7 @@ inline bool StringToInteger(const std::string& sValue, int& nValue)
 
 inline bool StringToUInteger(const std::string& sValue, unsigned int& unValue)
 {
-	//TODO:: скорректировать метод, если возможно чтение не стандартных значений с плавающей запятой
+	//TODO:: adjust the method if it is possible to read non-standard floating point values
 	if (sValue.empty())
 		return false;
 
@@ -88,7 +88,7 @@ inline bool StringToUInteger(const std::string& sValue, unsigned int& unValue)
 
 inline bool StringToDouble(const std::string& sValue, double& dValue)
 {
-	//TODO:: скорректировать метод, если возможно чтение не стандартных значений с плавающей запятой
+	//TODO:: adjust the method if it is possible to read non-standard floating point values
 	if (sValue.empty())
 		return false;
 

@@ -313,7 +313,7 @@ namespace MetaFile
 		//-----------------------------------------------------------
 		void HANDLE_META_ESCAPE(unsigned short ushEscapeFunction, unsigned short ushByteCount);
 		//-----------------------------------------------------------
-		// Неизвестные записи
+		// Unknown entries
 		//-----------------------------------------------------------
 		void HANDLE_META_UNKNOWN(CDataStream& oDataStream);
 	};

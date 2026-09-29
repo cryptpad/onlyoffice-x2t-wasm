@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -80,7 +73,7 @@ namespace OOX
 			nullable<SimpleTypes::Spreadsheet::CHorizontalAlignment>		m_oHorizontal;
 			nullable_uint													m_oIndent;
 			nullable<SimpleTypes::COnOff>									m_oJustifyLastLine;
-			nullable_uint													m_oReadingOrder; //todooo to simple
+			nullable_uint													m_oReadingOrder; //TODO to simple
 			nullable_int													m_oRelativeIndent;
 			nullable<SimpleTypes::COnOff>									m_oShrinkToFit;
 			nullable_uint													m_oTextRotation;
@@ -119,7 +112,7 @@ namespace OOX
 			nullable<SimpleTypes::COnOff> m_oLocked;
 		};
 
-		//нереализован:
+		//not implemented:
 		//<extLst>
 		class CXfs : public WritingElement
 		{

@@ -23,8 +23,8 @@ namespace HTML
 #define ROW_POSITION_MASK 0x000000F0
 #define PARSE_MODE_MASK   0x00000F00
 
-#define DEFAULT_PAGE_WIDTH  12240 // Значение в Twips
-#define DEFAULT_PAGE_HEIGHT 15840 // Значение в Twips
+#define DEFAULT_PAGE_WIDTH  12240 // value in Twips
+#define DEFAULT_PAGE_HEIGHT 15840 // value in Twips
 
 TTableRowStyle::TTableRowStyle()
 	: m_unMaxIndex(0), m_unMaxHeight(0), m_bIsHeader(false)
@@ -621,7 +621,7 @@ void CStorageTable::Shorten()
 	UINT unIndex      = 0;
 	CStorageTableCell* pCell = NULL;
 
-	UINT unMaxIndex = 0; //Максимальный индекс без учета строк, где имеется только 1 ячейка
+	UINT unMaxIndex = 0; //Maximum index excluding rows where there is only 1 cell
 
 	for (const CStorageTableRow* pRow : m_arRows)
 	{

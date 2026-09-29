@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -99,7 +92,7 @@ public:
     }
 
     std::pair<std::wstring, std::wstring> add_drawing_xml(std::wstring const & content, xlsx_drawings_rels_ptr rels)
-    {//todooo отсчеты номеров файлов отдельно
+    {//TODO counts file numbers separately
         const std::wstring id = std::to_wstring(next_drawing_id_++);
         const std::wstring fileName = std::wstring(L"drawing") + id + L".xml";
        
@@ -203,8 +196,8 @@ _color xlsx_drawing_context::CorrectSysColor(int nColorCode, _drawing_state_ptr 
 
 	if (color.index != -1)
 	{
-		//вытащить цвет (
-		//todoooo сдлать темы !!!!!
+		//extract color (
+		//TODO pass themes!!!!!
 		color.nRGB = shemeDefaultColor[color.index];
 		color.index = -1;
 		color.sRGB = STR::toRGB(color.nRGB);
@@ -291,7 +284,7 @@ _color xlsx_drawing_context::CorrectSysColor(int nColorCode, _drawing_state_ptr 
         color.SetRGB(0xff - color.GetR(), 0xff - color.GetG(), 0xff - color.GetB());
 
 	//if (color.sRGB.empty())
-	//{неверно
+	//{wrong
 	//	color.nRGB = shemeDefaultColor[nColorIndex];
 	//	color.index = -1;
 	//	color.sRGB = STR::toRGB(color.nRGB);
@@ -429,7 +422,7 @@ void xlsx_drawing_context::end_group()
 	//		{
 	//			_drawing_state_ptr & drawing_state = cur_states->front();
 
-	//			if (i != 0 || level != current_level) // группа сама себя
+	//			if (i != 0 || level != current_level) // group itself
 	//			{
 	//				double kf_x = (double)drawing_state->child_anchor.cx / drawing_state->group_anchor.cx;
 	//				double kf_y = (double)drawing_state->child_anchor.cy / drawing_state->group_anchor.cy;
@@ -981,14 +974,14 @@ void xlsx_drawing_context::end_drawing(_drawing_state_ptr & drawing_state)
 		serialize_shape(drawing_state);
 		drawing_states_objects.push_back(drawing_state); // for serialize in sheet
 	}
-	if ( drawing_state->type == external_items::typeActiveX) // объекты управления с бинарными свойствами
+	if ( drawing_state->type == external_items::typeActiveX) // control objects with binary properties
 	{		
 		context_.end_activeX();
 
 		serialize_shape(drawing_state);
 		drawing_states_controls.push_back(drawing_state); // for serialize in sheet
 	}
-	if ( drawing_state->type == external_items::typeControl)// объекты управления с xml свойствами
+	if ( drawing_state->type == external_items::typeControl)// control objects with xml properties
 	{
 		serialize_control(drawing_state);
 		if (drawing_state->objectId.empty())
@@ -1067,14 +1060,14 @@ void xlsx_drawing_context::serialize_group()
 				{
 					CP_XML_STREAM() << drawing_state->xmlFillAlternative;
 				}
-				//serialize_fill(CP_XML_STREAM(), drawing_state); ???? белый //Family budget (monthly)1.xls
+				//serialize_fill(CP_XML_STREAM(), drawing_state); ???? white //Family budget (monthly)1.xls
 				//serialize_line(CP_XML_STREAM(), drawing_state);		
 			}
 
 			for (size_t i = 1; i < current_drawing_states->size(); i++)
 			{
 				CP_XML_STREAM() << current_drawing_states->at(i)->shape;
-				//todooo current_drawing_states->at(i).shape.erase(); // память поэкономить
+				//TODO current_drawing_states->at(i).shape.erase(); // save memory
 			}
 		}
 	}
@@ -1393,7 +1386,7 @@ void xlsx_drawing_context::serialize_vml_pic(_drawing_state_ptr & drawing_state)
 
 			std::wstring style = std::wstring(L"position:absolute;margin-left:0;margin-top:0;");
 			
-			//todooo сделать "покороче" значения .. достаточно 2 знаков после запятой
+			//TODO make the values "shorter" .. 2 decimal places are enough
 			style += std::wstring(L"width:")	+ std::to_wstring(drawing_state->child_anchor.cx)	+ std::wstring(L"pt;");
 			style += std::wstring(L"height:")	+ std::to_wstring(drawing_state->child_anchor.cy)	+ std::wstring(L"pt;");
 			style += std::wstring(L"z-index:")	+ std::to_wstring(drawing_state->id) + std::wstring(L";");
@@ -1723,7 +1716,7 @@ void xlsx_drawing_context::serialize_shape(_drawing_state_ptr & drawing_state)
 							{
 								CP_XML_NODE(L"a:avLst")
 								{
-									// нужен перерасчет
+									// need recalculation
 									//for (size_t i = 0; i < drawing_state->custom_adjustValues.size(); i++)
 									//{
 									//	if (drawing_state->custom_adjustValues[i])
@@ -1856,7 +1849,7 @@ std::wstring xlsx_drawing_context::convert_custom_shape(_drawing_state_ptr & dra
 	}
 	
 	for (size_t i = 0 ; i < drawing_state->custom_guides.size(); i++)
-	{//todooo объеденить/срастить !!
+	{//TODO merge/splice!!
 		NSCustomVML::CGuide guid;
 		
 		guid.m_eType		= drawing_state->custom_guides[i].m_eType;
@@ -1885,7 +1878,7 @@ std::wstring xlsx_drawing_context::convert_custom_shape(_drawing_state_ptr & dra
 		shape->m_oCustomVML.addSegment(drawing_state->custom_segments[i].m_eRuler , drawing_state->custom_segments[i].m_nCount);
 	}	
 	//for (int i = 0; i < drawing_state->custom_adjustHandles.size(); i++)
-	//{//todooo - ранее этого не было ?????
+	//{//TODO - this didn't happen before ?????
 	//	shape->m_oCustomVML.addHandle(i, *drawing_state->custom_adjustHandles[i]);
 	//}
 	for (size_t i = 0; i < drawing_state->custom_adjustValues.size(); i++)
@@ -2134,7 +2127,7 @@ void xlsx_drawing_context::serialize_gradient_fill(std::wostream & stream, _draw
 						{
 							CP_XML_ATTR(L"pos",  (int)(fill.colorsPosition[i].first * 100000));
 							serialize_color(CP_XML_STREAM(), fill.colorsPosition[i].second, fill.colorsPosition[i].second.opacity);
-							//проверить что если тут индексы то они берутся с программных а не с юзерских (см как ниже)
+							//check that if there are indexes here, they are taken from software ones and not from user ones (see below)
 						}
 					}
 				}
@@ -2142,13 +2135,13 @@ void xlsx_drawing_context::serialize_gradient_fill(std::wostream & stream, _draw
 				{
 					CP_XML_NODE(L"a:gs")
 					{
-						fill.color.bScheme = false; // по общим индексам
+						fill.color.bScheme = false; // by general indices
 						CP_XML_ATTR(L"pos", 0);
 						serialize_color(CP_XML_STREAM(), fill.color, fill.color.opacity);
 					}
 					CP_XML_NODE(L"a:gs")
 					{
-						fill.color2.bScheme = false; // по общим индексам
+						fill.color2.bScheme = false; // by general indices
 						CP_XML_ATTR(L"pos", 100000);
 						serialize_color(CP_XML_STREAM(), fill.color2, fill.color2.opacity);
 					}
@@ -2327,7 +2320,7 @@ void xlsx_drawing_context::serialize_text(std::wostream & stream, _drawing_state
 	{
 		CP_XML_NODE(L"xdr:txBody")
 		{  
-			CP_XML_NODE(L"a:bodyPr")//todooo rtl
+			CP_XML_NODE(L"a:bodyPr")//TODO rtl
 			{
 				if (drawing_state->text.wrap == 2 || drawing_state->wordart.is)
 					CP_XML_ATTR(L"wrap", L"none" );
@@ -2351,7 +2344,7 @@ void xlsx_drawing_context::serialize_text(std::wostream & stream, _drawing_state
 					CP_XML_NODE(L"a:prstTxWarp")
 					{
 						CP_XML_ATTR(L"prst", prstTxWarp);
-						CP_XML_NODE(L"a:avLst");//модификаторы
+						CP_XML_NODE(L"a:avLst");//modifiers
 					}
 				}
 				else

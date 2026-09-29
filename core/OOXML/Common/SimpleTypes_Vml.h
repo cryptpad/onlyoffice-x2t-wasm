@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -315,7 +308,7 @@ namespace SimpleTypes
 		filltypeTile             = 8
 	};
 
-	// Тут разделяем два типа 14.13.4 - m_nType = 0 и 14.2.3.14 - m_nType != 0
+	// Here we separate two types 14.13.4 - m_nType = 0 and 14.2.3.14 - m_nType != 0
 
 	DEFINE_SIMPLE_TYPE_NSV(CFillType, EFillType, filltypeSolid)
 
@@ -860,7 +853,7 @@ namespace SimpleTypes
 
 } // SimpleTypes
 
-// Дополнительные простые типы, не входящие в спецификацию
+// Additional simple types not included in the specification
 namespace SimpleTypes
 {
 	namespace Vml
@@ -1164,7 +1157,7 @@ namespace SimpleTypes
 		csspctMsoTopPercent			= 1025,
 		csspctMsoLeftPercent		= 1026,
 
-		//  Для элемента Textbox 14.1.2.22
+		//  For Textbox element 14.1.2.22
 		cssptDirection				= 1100,
 		cssptLayoutFlow				= 1101,
 		cssptMsoDirectionAlt		= 1102,
@@ -1176,7 +1169,7 @@ namespace SimpleTypes
 		cssptMsoTextScale			= 1108,
 		cssptVTextAnchor			= 1109,
 
-		// Для элемента Textpath 14.1.2.23
+		// For Textpath element 14.1.2.23
 		cssptFont					= 1200,
 		cssptFontFamily				= 1201,
 		cssptFontSize				= 1202,
@@ -1212,7 +1205,7 @@ namespace SimpleTypes
 	struct TCssUnitsValue
 	{
 		ECssUnitsType eType;
-		double        dValue; // значение в пунктах
+		double        dValue; // value in points
 	};
 	enum ECssMsoPosHor
 	{
@@ -1504,8 +1497,8 @@ namespace SimpleTypes
 		SimpleTypes_DefaultString(CVml_Vector2D_Units)
 
 	private:
-		double m_dX; // В пунктах
-		double m_dY; // В пунктах
+		double m_dX; // In points
+		double m_dY; // In points
 	};
 
 	//--------------------------------------------------------------------------------
@@ -1635,10 +1628,10 @@ namespace SimpleTypes
 		EVml_Vector2D_Position m_eTypeX;
 		EVml_Vector2D_Position m_eTypeY;
 
-		std::wstring m_sIdX;  // Значение для типа Formula иди AdjValue
+		std::wstring m_sIdX;  // Value for type Formula or AdjValue
 		std::wstring m_sIdY;  //
 
-		double m_dX;    // Значение для типа Constant
+		double m_dX;    // Value for type Constant
 		double m_dY;    //
 	};
 
@@ -1678,7 +1671,7 @@ namespace SimpleTypes
 		};
 
 		std::vector<TPoint> m_arrPoints;
-		wchar_t	m_wcDelimiter; // Разделитель, по умолчнию пробел ' '
+		wchar_t	m_wcDelimiter; // Separator, default space ' '
 	};
 
 	//--------------------------------------------------------------------------------

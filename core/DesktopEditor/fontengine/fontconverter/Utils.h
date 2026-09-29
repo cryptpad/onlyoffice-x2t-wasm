@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -45,9 +38,9 @@ namespace NSFontConverter
 {
     struct TCharBuffer
     {
-        char *sBuffer;  // Буфер
-        int   nSize;    // Реальный размер буфера
-        int   nLen;     // Фактический размер буфера (т.е. размер используемой части буфера)
+        char *sBuffer;  // Buffer
+        int   nSize;    // Allocated buffer size
+        int   nLen;     // Used buffer size
 
         TCharBuffer(int _initsize = 32)
         {
@@ -173,7 +166,7 @@ namespace NSFontConverter
         }
     }
 
-    // Функция взята из Graphics.dll
+    // The function is taken from Graphics.dll
     static int SetCMapForCharCode(FT_Face pFace, long lUnicode, int *pnCMapIndex)
     {
         *pnCMapIndex = -1;
@@ -256,7 +249,7 @@ namespace NSFontConverter
         if ( NULL == pOs2 || 0xFFFF == pOs2->version )
             return -1;
 
-        // Проверяем установлен ли 31 бит
+        // Checking whether bit 31 is set
         if ( !( pOs2->ulCodePageRange1 & 0x80000000 ) && !( pOs2->ulCodePageRange1 == 0 && pOs2->ulCodePageRange2 == 0 ) )
             return -1;
 

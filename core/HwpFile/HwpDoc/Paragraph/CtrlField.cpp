@@ -65,7 +65,7 @@ CCtrlField::CCtrlField(const HWP_STRING& sCtrlID, CXMLReader& oReader, EHanType 
 		if (!wsName.empty() && EFieldType::Bookmark == m_eType)
 			AddStringParam(L"bookmarkname", wsName);
 
-		// Встречется только в HWPX
+		// Only found in HWPX
 		if (EHanType::HWPX == eType)
 		{
 			WHILE_READ_NEXT_NODE_WITH_ONE_NAME(oReader, "hp:parameters")

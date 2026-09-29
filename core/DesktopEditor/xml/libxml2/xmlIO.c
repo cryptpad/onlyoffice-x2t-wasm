@@ -813,7 +813,11 @@ xmlCheckFilename (const char *path)
  * Returns zero
  */
 int
+#ifdef BUILDING_WASM_MODULE
+xmlNop(void* context, char* buffer, int len) {
+#else
 xmlNop(void) {
+#endif
     return(0);
 }
 

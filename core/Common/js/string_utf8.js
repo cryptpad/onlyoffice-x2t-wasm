@@ -1,3 +1,4 @@
+
 (function(){
 
 	if (undefined !== String.prototype.fromUtf8 &&
@@ -142,3 +143,4 @@
 	};
 
 })();
+

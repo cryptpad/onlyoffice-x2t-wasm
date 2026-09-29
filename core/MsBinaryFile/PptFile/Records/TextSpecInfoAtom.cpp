@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -64,9 +57,9 @@ void CRecordTextSpecInfoAtom::ReadFromStream(SRecordHeader &oHeader, POLE::Strea
             break;
     }
 
-    // на всякий случай...
-    // здесь когда текст сначала другой (т.е. например - placeholder в мастере) -
-    // то у нас неправильно выставился m_lCount... на число m_lCount пилюем .. берем структур si скока прописано
+    // just in case...
+    // here when the text is first different (i.e. for example - placeholder in the master) -
+    // then we have set m_lCount incorrectly... we ignore m_lCount .. take as many si structures as specified
     StreamUtils::StreamSeek(m_lOffsetInStream + m_oHeader.RecLen, pStream);
 }
 

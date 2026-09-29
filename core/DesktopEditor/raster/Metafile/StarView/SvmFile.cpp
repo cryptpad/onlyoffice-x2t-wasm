@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -292,7 +285,7 @@ void CSvmFile::Read_SVM_HEADER()
 
 	m_pDC->SetMapMode(m_oHeader.mapMode, true);
 	
-	if (m_bMainStream) //из-за 2 идет увеличение самой картинки в 2 раза (содержимое имеет исходный размер, т.е. в 2 раза меньше нужного)
+	if (m_bMainStream) //because of 2, the image itself is enlarged by 2 times (the content is in its original size, i.e. 2 times smaller than needed)
 	{	
 		unsigned int unCoef = 1;
 		m_oBoundingBox          = m_oHeader.boundRect;
@@ -301,7 +294,7 @@ void CSvmFile::Read_SVM_HEADER()
 			
 		m_oBoundingBox.Left     = static_cast<int>(m_pDC->m_dPixelWidthPrefered		* unCoef * m_oBoundingBox.Left);
 		m_oBoundingBox.Top      = static_cast<int>(m_pDC->m_dPixelHeightPrefered	* unCoef * m_oBoundingBox.Top);
-	}// *2 ради повышения качества картинки (если в векторе насамом деле растр - сментся на растровые размеры ниже
+	}// *2 for the sake of improving the quality of the image (if the vector is actually a raster, it will change to lower raster sizes
 		
 	m_bFirstPoint = true;
 }
@@ -647,7 +640,7 @@ void CSvmFile::Read_META_SETFILLCOLOR()
 	if (m_currentActionType == META_GRADIENT_ACTION ||
 		m_currentActionType == META_GRADIENTEX_ACTION)
 	{
-		//поменять основной цвет??
+		//change the main color??
 		m_oStream.Skip(m_unRecordSize);
 		return;
 	}
@@ -714,7 +707,7 @@ void CSvmFile::Read_META_GRADIENTEX()
 	pBrush->Color.Set(gradient.color1.r>>8, gradient.color1.g>>8, gradient.color1.b>>8);
 	pBrush->Color2.Set(gradient.color2.r>>8, gradient.color2.g>>8, gradient.color2.b>>8);
 
-	pBrush->BrushStyleEx = 90 + gradient.angle % 3600; //проверить на разных
+	pBrush->BrushStyleEx = 90 + gradient.angle % 3600; //check on different
 
 	m_oPlayer.RegisterObject((CSvmObjectBase*)pBrush);
 }
@@ -778,7 +771,7 @@ void CSvmFile::Read_META_TRANSPARENT()
 void CSvmFile::Read_META_FLOATTRANSPARENT()
 {
 	return;
-	// тут возможен также вариант svg
+	// svg option is also possible here
 	CSvmFile subMetaFile(m_oStream.GetCurPtr() , m_unRecordSize);
 	
 	subMetaFile.m_bMainStream = false;
@@ -816,7 +809,7 @@ void CSvmFile::Read_META_FLOATTRANSPARENT()
 	pBrush->Color.Set(gradient.color1.r>>8, gradient.color1.g>>8, gradient.color1.b>>8);
 	pBrush->Color2.Set(gradient.color2.r>>8, gradient.color2.g>>8, gradient.color2.b>>8);
 
-	pBrush->BrushStyleEx = 90 + gradient.angle % 3600; //проверить на разных
+	pBrush->BrushStyleEx = 90 + gradient.angle % 3600; //check on different
 
 	m_oPlayer.RegisterObject((CSvmObjectBase*)pBrush);
 
@@ -842,7 +835,7 @@ void CSvmFile::Read_META_FLOATTRANSPARENT()
 	//	return;
 
  //   _UINT32 alfa = 0xffffff;
-	////дефолтный тон должен быть прозрачным, а не белым 
+	////default tone should be transparent, not white
 	////memset(pBgraData, 0xff, nWidth * nHeight * 4);
 	//for (int i = 0; i < nW * nH; i++)
 	//{
@@ -904,7 +897,7 @@ void CSvmFile::Read_META_GRADIENT()
 	pBrush->Color.Set(gradient.color1.r>>8, gradient.color1.g>>8, gradient.color1.b>>8);
 	pBrush->Color2.Set(gradient.color2.r>>8, gradient.color2.g>>8, gradient.color2.b>>8);
 
-	pBrush->BrushStyleEx = 90 + gradient.angle % 3600; //проверить на разных
+	pBrush->BrushStyleEx = 90 + gradient.angle % 3600; //check on different
 
 	m_oPlayer.RegisterObject((CSvmObjectBase*)pBrush);
 }
@@ -1018,7 +1011,7 @@ void CSvmFile::Read_META_BMP(TSvmBitmap & bitmap_info, BYTE** ppDstBuffer, unsig
     {
         if ( 0x4142 == nTmp16 )
         {
-            m_oStream.Skip( 12 );//не то !!!
+            m_oStream.Skip( 12 );//not that!!!
             m_oStream >> nTmp16;
             m_oStream.Skip( 8 );
             m_oStream >> nTmp32;
@@ -1101,7 +1094,7 @@ void CSvmFile::Read_META_BMPEX()
 	{
 		bitmap_info.nWidth = ulWidth;
 	}
-	//иногда наверху неверно вычисляется оригинальный размер - если внутри одиночная картинка
+	//sometimes the original size is incorrectly calculated at the top - if there is a single image inside
 
     if (bitmap_info.nHeight >  (unsigned int)m_oBoundingBox.Bottom &&
             bitmap_info.nWidth > (unsigned int)m_oBoundingBox.Right && !m_pOutput)
@@ -1168,7 +1161,7 @@ void CSvmFile::Read_META_BMPEXSCALE()
 
     Read_META_BMP(bitmap_info, &pBgraBuffer, &ulWidth, &ulHeight);
 
-     //иногда наверху неверно вычисляется оригинальный размер - если внутри одиночная картинка
+     //sometimes the original size is incorrectly calculated at the top - if there is a single image inside
 
    //     if (ulWidth !=  bitmap_info.nWidth && bitmap_info.nWidth % 2 != 0)
 	{
@@ -1240,7 +1233,7 @@ void CSvmFile::Read_META_BMPSCALE()
 
     Read_META_BMP(bitmap_info, &pBgraBuffer, &ulWidth, &ulHeight );
 
-    //иногда наверху неверно вычисляется оригинальный размер - если внутри одиночная картинка
+    //sometimes the original size is incorrectly calculated at the top - if there is a single image inside
     //if (ulWidth !=  bitmap_info.nWidth && bitmap_info.nWidth % 2 != 0)
     {
         bitmap_info.nWidth = ulWidth;

@@ -1,0 +1,13 @@
+diff --git a/src/tag.c b/src/tag.c
+index 5bd8133..2b37304 100644
+--- a/src/tag.c
++++ b/src/tag.c
+@@ -57,7 +57,7 @@ void gumbo_tag_from_original_text(GumboStringPiece* text) {
+     // strnchr is apparently not a standard C library function, so I loop
+     // explicitly looking for whitespace or other illegal tag characters.
+     for (const char* c = text->data; c != text->data + text->length; ++c) {
+-      if (isspace(*c) || *c == '/') {
++      if (isspace((const unsigned char)*c) || *c == '/') {
+         text->length = c - text->data;
+         break;
+       }

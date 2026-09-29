@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -208,7 +201,7 @@ public:
 
 	static bool GetHighlightByColor( RtfColor oOutputColor,std::wstring& oStr ); //todo
 	static RtfColor GetColorByPreset( std::wstring oStr );
-	static std::wstring GetPresetByColor( RtfColor oCol ); //стр. 3320
+	static std::wstring GetPresetByColor( RtfColor oCol ); //page 3320
 	static bool GetThemeByString( std::wstring sTheme, _ThemeColor & oOutTheme );
 	static bool GetThemeByOOX( SimpleTypes::EShemeColorVal val, _ThemeColor & oOutTheme );
 	static bool GetStringByTheme( std::wstring sTheme , _ThemeColor& oOutTheme );
@@ -434,7 +427,7 @@ public:
 	_INT32 m_nDown;				//dnN	Move down N half-points (default is 6).
 	_INT32 m_bEmbo;				//embo*	Emboss.
 	_INT32 m_nCharacterSpacing;	//expndtwN	Expansion or compression of the space between characters in twips; a negative value compresses. For backward compatibility, both \expndtwN and \expndN should be emitted.		
-	_INT32 m_nFitText;			//fittextN	Fit the text in the current group in N twips. When N is set to -1 (\fittext-1), it indicates a continuation of the previous \fittextN run. In other words, {\fittext1000 Fit this} {\fittext-1 text} fits the string “Fit this text” in 1000 twips.
+	_INT32 m_nFitText;			//fittextN	Fit the text in the current group in N twips. When N is set to -1 (\fittext-1), it indicates a continuation of the previous \fittextN run. In other words, {\fittext1000 Fit this} {\fittext-1 text} fits the string "Fit this text" in 1000 twips.
 	_INT32 m_nFont;				//fN	Font number. N refers to an entry in the font table.
 	_INT32 m_nFont2; 
 	_INT32 m_nFont3; 
@@ -503,10 +496,10 @@ public:
 	_INT32		m_nJustification;	//leveljcN \leveljcnN	0	Left justified 1	Center justified 2	Right justified
 	_INT32		m_nFollow;			//levelfollowN
 	_INT32		m_nStart;			//levelstartatN	N specifies the start-at value for the level.
-    std::wstring m_sLevelText;		//как в rtf текст, но сдвинут от нуля на 1 // \'03\'00.\'01 -> ("%d%d%d",4,1,2)
+    std::wstring m_sLevelText;		//like in rtf text, but shifted from zero to 1 // \'03\'00.\'01 -> ("%d%d%d",4,1,2)
     std::wstring m_sNumber;
 	_INT32		m_nNoRestart;		//levelnorestartN	1 if this level does not restart its count each time a super ordinate level is incremented; 0 if this level does restart its count each time a super ordinate level is incremented.
-	_INT32		m_nLegal;			//levellegalN	1 if any list numbers from previous levels should be converted to Arabic numbers; 0 if they should be left with the format specified by their own level’s definition.
+	_INT32		m_nLegal;			//levellegalN	1 if any list numbers from previous levels should be converted to Arabic numbers; 0 if they should be left with the format specified by their own level's definition.
 	_INT32		m_nPictureIndex;	//levelpictureN	Determines which picture bullet from the \listpicture destination should be applied.
 //ParagraphProp
 	RtfTabs		m_oTabs;	
@@ -584,7 +577,7 @@ public:
 	};
 
 	_INT32 m_nListID;		//listidN	Should exactly match the \listid of one of the lists in the List table. The value N is a long integer.
-	_INT32 m_nIndex;		//lsN	The (1-based) index of this \listoverride in the \listoverride table. This value should never be zero inside a \listoverride and must be unique for all \listoverride’s within a document. The valid values are from 1 to 2000. The value 0 means no list.
+	_INT32 m_nIndex;		//lsN	The (1-based) index of this \listoverride in the \listoverride table. This value should never be zero inside a \listoverride and must be unique for all \listoverride's within a document. The valid values are from 1 to 2000. The value 0 means no list.
 	
 	ListOverrideLevels m_oOverrideLevels;
 
@@ -966,8 +959,8 @@ public:
 	_INT32	m_nWidthEndInvCell;			//trwWidthAN	Width of invisible cell at the end of the row. Used only when rows have different widths.
 	_INT32	m_eWidthEndInvCellUnit;		//trftsWidthAN	Units for \trwWidthAN:
 
-	_INT32 m_nGridBefore;	//для oox
-	_INT32 m_nGridAfter;	//для oox
+	_INT32 m_nGridBefore;	//for oox
+	_INT32 m_nGridAfter;	//for oox
 
 	_INT32 m_bStyleFirstRow;		// tscfirstrow	This cell is in the first row.
 	_INT32 m_bStyleLastRow;		// tsclastrow	This cell is in the last row.
@@ -1082,7 +1075,7 @@ public:
 		tbw_txbxtwlast,			//txbxtwlast
 	} m_eTextBoxWrap;
 	_INT32 m_nListId;					//lsN	Should exactly match the \lsN for one of the list overrides in the List Override table.
-	_INT32 m_nListLevel;				//ilvlN	The 0-based level of the list to which the paragraph belongs. For all simple lists, N should always be 0. For multilevel lists, it can be 0 through 8. The value 9 is never used. The values 10 through 12 have the special meanings for documents generated by Word 6: 10 = ilvlBullet (a bulleted paragraph in Word 6), 11 = ilvlList (a numbered paragraph in Word 6), 12 = ilvlContinue (a paragraph that was not itself numbered, but took its indenting scheme from its numbering properties and did not “break” numbering (that in Word 6 required otherwise contiguous paragraphs).
+	_INT32 m_nListLevel;				//ilvlN	The 0-based level of the list to which the paragraph belongs. For all simple lists, N should always be 0. For multilevel lists, it can be 0 through 8. The value 9 is never used. The values 10 through 12 have the special meanings for documents generated by Word 6: 10 = ilvlBullet (a bulleted paragraph in Word 6), 11 = ilvlList (a numbered paragraph in Word 6), 12 = ilvlContinue (a paragraph that wasn't itself numbered, but took its indenting scheme from its numbering properties and didn't "break" numbering (that in Word 6 required otherwise contiguous paragraphs).
 
 	RtfShadingPar m_oShading;
 

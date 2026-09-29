@@ -29,7 +29,7 @@ CPicColor::CPicColor(CHWPStream& oBuffer, int nOff, int nSize)
 
 CPicColor::CPicColor(CXMLReader& oReader)
 {
-	//TODO:: проверить
+	//TODO:: check
 	m_nType = 0;
 }
 
@@ -85,7 +85,7 @@ CShadow::CShadow(CXMLReader& oReader, EHanType eType)
 		else if (GetAttributeName(EAttribute::RotationStyle, eType) == sAttributeName)
 			m_nRotation = (int)oReader.GetBool();
 
-		// Далее идут атрибуты, которые встречаются только в HWPML
+		// Next are the attributes that are found only in HWPML
 		else if (EHanType::HWPML != eType)
 			continue;
 		else if ("SkewX" == sAttributeName)
@@ -99,7 +99,7 @@ CShadow::CShadow(CXMLReader& oReader, EHanType eType)
 	}
 	END_READ_ATTRIBUTES(oReader)
 
-	// Далее идут ноды, которые встречаются только в HWPX
+	// Next are the nodes that are found only in HWPX
 	if (EHanType::HWPX != eType)
 		return;
 
@@ -127,7 +127,7 @@ CShadow::CShadow(CXMLReader& oReader, EHanType eType)
 			}
 			END_READ_ATTRIBUTES(oReader)
 		}
-		// TODO:: реализовать для HWPX и HWPML при встрече
+		// TODO:: implement for HWPX and HWPML when encountered
 		else if ("hp:effectsColor" == sNodeName)
 			m_pColor = new CPicColor(oReader);
 	}
@@ -231,7 +231,7 @@ CReflect::CReflect(CXMLReader& oReader, EHanType eType)
 		else if (GetAttributeName(EAttribute::FadeDirection, eType) == sAttributeName)
 			m_fOffsetDirection = oReader.GetDouble();
 
-		// Далее идут атрибуты, которые встречаются только в HWPML
+		// Next are the attributes that are found only in HWPML
 		else if (EHanType::HWPML != eType)
 			continue;
 		else if ("SkewX" == sAttributeName)
@@ -253,7 +253,7 @@ CReflect::CReflect(CXMLReader& oReader, EHanType eType)
 	}
 	END_READ_ATTRIBUTES(oReader)
 
-	// Далее идут ноды, которые встречаются только в HWPX
+	// Next are the nodes that are found only in HWPX
 	if (EHanType::HWPX != eType)
 		return;
 

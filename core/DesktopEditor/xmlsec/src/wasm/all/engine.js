@@ -115,7 +115,7 @@
 			return null;
 
 		var _file = Module["_XmlSignature_CreateFile"](_filePtr.data, _filePtr.size);
-		// удалится дата при удалении файла
+		// the date will be deleted when the file is deleted
 		_filePtr.data = 0;
 		_filePtr.size = 0;
 

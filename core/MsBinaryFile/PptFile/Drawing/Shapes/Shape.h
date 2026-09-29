@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -37,10 +30,10 @@
 #include "../../../Common/Vml/PPTShape/PptShape.h"
 
 /***************************************************************
-вот, создавая автофигуру, или любой другой элемент
-officedrawing, наследуясь от этого класса, в конструкторе
-задаем все строковые параметры, и вызываем SetProperties,
-которые придут, или NULL, но вызов этой функции - ОБяЗАTЕЛЕН!!!
+here, creating an autoshape, or any other element
+officedrawing, inheriting from this class, in the constructor
+set all string parameters and call SetProperties,
+which will come, or NULL, but calling this function is MANDATORY!!!
 ****************************************************************/
 
 const LONG c_ShapeDrawType_Graphic	= 0x01;
@@ -71,7 +64,7 @@ public:
 	double					m_dXLogic;
 	double					m_dYLogic;
 
-	/* в миллиметрах!!! */
+	/* in millimeters!!! */
 	double					m_dTextMarginX;
 	double					m_dTextMarginY;
 	double					m_dTextMarginRight;
@@ -186,7 +179,7 @@ public:
 			//m_oPen.SetToRenderer(pRenderer);
 			//m_oBrush.SetToRenderer(pRenderer);
 			//m_oShadow.SetToRenderer(pRenderer);
-			CBrush	brush; //копии с уровня выше нужны
+			CBrush	brush; //copies from the level above are needed
 			CPen	pen;
 
 			m_pShape->ToRenderer(pRenderer, oGeomInfo, dStartTime, dEndTime, pen, brush);

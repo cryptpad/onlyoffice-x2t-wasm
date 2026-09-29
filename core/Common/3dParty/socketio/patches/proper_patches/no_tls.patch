@@ -1,0 +1,423 @@
+diff --git a/src/internal/sio_client_impl.cpp b/src/internal/sio_client_impl.cpp
+index 02ccead..0a9e2a5 100644
+--- a/src/internal/sio_client_impl.cpp
++++ b/src/internal/sio_client_impl.cpp
+@@ -613,7 +613,11 @@ failed:
+         }
+ 
+         asio::error_code ec;
+-        m_ping_timeout_timer->expires_from_now(milliseconds(m_ping_interval + m_ping_timeout), ec);
++        #if defined(PING_TIMEOUT_INTERVAL)
++            m_ping_timeout_timer->expires_from_now(milliseconds(PING_TIMEOUT_INTERVAL), ec);
++        #else
++            m_ping_timeout_timer->expires_from_now(milliseconds(m_ping_interval + m_ping_timeout), ec);
++        #endif
+         m_ping_timeout_timer->async_wait(std::bind(&client_impl::timeout_ping, this, std::placeholders::_1));
+     }
+     
+diff --git a/src_no_tls/internal/sio_client_impl.cpp b/src_no_tls/internal/sio_client_impl.cpp
+index cfe0894..4da5cce 100644
+--- a/src_no_tls/internal/sio_client_impl.cpp
++++ b/src_no_tls/internal/sio_client_impl.cpp
+@@ -19,7 +19,7 @@
+ #define LOG(x)
+ #endif
+ 
+-#if SIO_TLS
++#if SIO_TLS_NO
+ // If using Asio's SSL support, you will also need to add this #include.
+ // Source: http://think-async.com/Asio/asio-1.10.6/doc/asio/using.html
+ // #include <asio/ssl/impl/src.hpp>
+@@ -28,7 +28,7 @@
+ using std::chrono::milliseconds;
+ using namespace std;
+ 
+-namespace sio
++namespace sio_no_tls
+ {
+     /*************************public:*************************/
+     client_impl::client_impl(client_options const& options) :
+@@ -60,7 +60,7 @@ namespace sio
+         m_client.set_close_handler(std::bind(&client_impl::on_close,this,_1));
+         m_client.set_fail_handler(std::bind(&client_impl::on_fail,this,_1));
+         m_client.set_message_handler(std::bind(&client_impl::on_message,this,_1,_2));
+-#if SIO_TLS
++#if SIO_TLS_NO
+         m_client.set_tls_init_handler(std::bind(&client_impl::on_tls_init,this,_1));
+ #endif
+         m_packet_mgr.set_decode_callback(std::bind(&client_impl::on_decode,this,_1));
+@@ -72,7 +72,7 @@ namespace sio
+     
+     client_impl::~client_impl()
+     {
+-        this->sockets_invoke_void(&sio::socket::on_close);
++        this->sockets_invoke_void(&sio_no_tls::socket::on_close);
+         sync_close();
+     }
+ 	
+@@ -155,7 +155,7 @@ namespace sio
+         }
+         else
+         {
+-            pair<const string, socket::ptr> p(aux,shared_ptr<sio::socket>(new sio::socket(this,aux,m_auth)));
++            pair<const string, socket::ptr> p(aux,shared_ptr<sio_no_tls::socket>(new sio_no_tls::socket(this,aux,m_auth)));
+             return (m_sockets.insert(p).first)->second;
+         }
+     }
+@@ -164,7 +164,7 @@ namespace sio
+     {
+         m_con_state = con_closing;
+         m_abort_retries = true;
+-        this->sockets_invoke_void(&sio::socket::close);
++        this->sockets_invoke_void(&sio_no_tls::socket::close);
+         m_client.get_io_service().dispatch(std::bind(&client_impl::close_impl, this,close::status::normal,"End by user"));
+     }
+ 
+@@ -172,7 +172,7 @@ namespace sio
+     {
+         m_con_state = con_closing;
+         m_abort_retries = true;
+-        this->sockets_invoke_void(&sio::socket::close);
++        this->sockets_invoke_void(&sio_no_tls::socket::close);
+         m_client.get_io_service().dispatch(std::bind(&client_impl::close_impl, this,close::status::normal,"End by user"));
+         if(m_network_thread)
+         {
+@@ -243,7 +243,7 @@ namespace sio
+         do{
+             websocketpp::uri uo(uri);
+             ostringstream ss;
+-#if SIO_TLS
++#if SIO_TLS_NO
+             ss<<"wss://";
+ #else
+             ss<<"ws://";
+@@ -384,7 +384,7 @@ namespace sio
+         }
+     }
+ 
+-    void client_impl::sockets_invoke_void(void (sio::socket::*fn)(void))
++    void client_impl::sockets_invoke_void(void (sio_no_tls::socket::*fn)(void))
+     {
+         map<const string,socket::ptr> socks;
+         {
+@@ -401,7 +401,7 @@ namespace sio
+         con_state con_state_old = m_con_state;
+         m_con.reset();
+         m_con_state = con_closed;
+-        this->sockets_invoke_void(&sio::socket::on_disconnect);
++        this->sockets_invoke_void(&sio_no_tls::socket::on_disconnect);
+ 
+         if (con_state_old == con_closing) {
+             LOG("Connection failed while closing." << endl);
+@@ -438,7 +438,7 @@ namespace sio
+             this->close();
+             return;
+         }
+-        this->sockets_invoke_void(&sio::socket::on_open);
++        this->sockets_invoke_void(&sio_no_tls::socket::on_open);
+         this->socket("");
+         if(m_open_listener)m_open_listener();
+     }
+@@ -468,12 +468,12 @@ namespace sio
+         // sometimes get a TLS Short Read error when closing.)
+         if(code == close::status::normal || m_con_state_was == con_closing)
+         {
+-            this->sockets_invoke_void(&sio::socket::on_disconnect);
++            this->sockets_invoke_void(&sio_no_tls::socket::on_disconnect);
+             reason = client::close_reason_normal;
+         }
+         else
+         {
+-            this->sockets_invoke_void(&sio::socket::on_disconnect);
++            this->sockets_invoke_void(&sio_no_tls::socket::on_disconnect);
+             if(m_reconn_made<m_reconn_attempts && !m_abort_retries)
+             {
+                 LOG("Reconnect for attempt:"<<m_reconn_made<<endl);
+@@ -617,7 +617,11 @@ failed:
+         }
+ 
+         asio::error_code ec;
+-        m_ping_timeout_timer->expires_from_now(milliseconds(m_ping_interval + m_ping_timeout), ec);
++        #if defined(PING_TIMEOUT_INTERVAL)
++            m_ping_timeout_timer->expires_from_now(milliseconds(PING_TIMEOUT_INTERVAL), ec);
++        #else
++            m_ping_timeout_timer->expires_from_now(milliseconds(m_ping_interval + m_ping_timeout), ec);
++        #endif
+         m_ping_timeout_timer->async_wait(std::bind(&client_impl::timeout_ping, this, std::placeholders::_1));
+     }
+     
+@@ -628,7 +632,7 @@ failed:
+         m_packet_mgr.reset();
+     }
+     
+-#if SIO_TLS
++#if SIO_TLS_NO
+     client_impl::context_ptr client_impl::on_tls_init(connection_hdl conn)
+     {
+         context_ptr ctx = context_ptr(new  asio::ssl::context(asio::ssl::context::tls));
+diff --git a/src_no_tls/internal/sio_client_impl.h b/src_no_tls/internal/sio_client_impl.h
+index f4f02aa..0c9447c 100644
+--- a/src_no_tls/internal/sio_client_impl.h
++++ b/src_no_tls/internal/sio_client_impl.h
+@@ -13,24 +13,24 @@
+ #endif
+ #include <websocketpp/client.hpp>
+ #if _DEBUG || DEBUG
+-#if SIO_TLS
++#if SIO_TLS_NO
+ #include <websocketpp/config/debug_asio.hpp>
+-typedef websocketpp::config::debug_asio_tls client_config;
++typedef websocketpp::config::debug_aSIO_TLS_NO client_config;
+ #else
+ #include <websocketpp/config/debug_asio_no_tls.hpp>
+ typedef websocketpp::config::debug_asio client_config;
+-#endif //SIO_TLS
++#endif //SIO_TLS_NO
+ #else
+-#if SIO_TLS
++#if SIO_TLS_NO
+ #include <websocketpp/config/asio_client.hpp>
+-typedef websocketpp::config::asio_tls_client client_config;
++typedef websocketpp::config::aSIO_TLS_NO_client client_config;
+ #else
+ #include <websocketpp/config/asio_no_tls_client.hpp>
+ typedef websocketpp::config::asio_client client_config;
+-#endif //SIO_TLS
++#endif //SIO_TLS_NO
+ #endif //DEBUG
+ 
+-#if SIO_TLS
++#if SIO_TLS_NO
+ #include <asio/ssl/context.hpp>
+ #endif
+ 
+@@ -45,7 +45,7 @@ typedef websocketpp::config::asio_client client_config;
+ #include "../sio_client.h"
+ #include "sio_packet.h"
+ 
+-namespace sio
++namespace sio_no_tls
+ {
+     using namespace websocketpp;
+     
+@@ -107,7 +107,7 @@ namespace sio
+         void connect(const std::string& uri, const std::map<std::string, std::string>& queryString,
+                      const std::map<std::string, std::string>& httpExtraHeaders, const message::ptr& auth);
+         
+-        sio::socket::ptr const& socket(const std::string& nsp);
++        sio_no_tls::socket::ptr const& socket(const std::string& nsp);
+         
+         // Closes the connection
+         void close();
+@@ -162,7 +162,7 @@ namespace sio
+ 
+         socket::ptr get_socket_locked(std::string const& nsp);
+         
+-        void sockets_invoke_void(void (sio::socket::*fn)(void));
++        void sockets_invoke_void(void (sio_no_tls::socket::*fn)(void));
+         
+         void on_decode(packet const& pack);
+         void on_encode(bool isBinary,shared_ptr<const string> const& payload);
+@@ -187,7 +187,7 @@ namespace sio
+ 
+         void update_ping_timeout_timer();
+         
+-        #if SIO_TLS
++        #if SIO_TLS_NO
+         typedef websocketpp::lib::shared_ptr<asio::ssl::context> context_ptr;
+         
+         context_ptr on_tls_init(connection_hdl con);
+@@ -245,8 +245,8 @@ namespace sio
+ 
+         std::atomic<bool> m_abort_retries { false };
+ 
+-        friend class sio::client;
+-        friend class sio::socket;
++        friend class sio_no_tls::client;
++        friend class sio_no_tls::socket;
+     };
+ }
+ #endif // SIO_CLIENT_IMPL_H
+diff --git a/src_no_tls/internal/sio_packet.cpp b/src_no_tls/internal/sio_packet.cpp
+index 4b81098..da0f42c 100644
+--- a/src_no_tls/internal/sio_packet.cpp
++++ b/src_no_tls/internal/sio_packet.cpp
+@@ -12,7 +12,7 @@
+ 
+ #define kBIN_PLACE_HOLDER "_placeholder"
+ 
+-namespace sio
++namespace sio_no_tls
+ {
+     using namespace rapidjson;
+     using namespace std;
+diff --git a/src_no_tls/internal/sio_packet.h b/src_no_tls/internal/sio_packet.h
+index c43a0ae..d7ffe32 100644
+--- a/src_no_tls/internal/sio_packet.h
++++ b/src_no_tls/internal/sio_packet.h
+@@ -4,13 +4,13 @@
+ //  Created by Melo Yao on 3/19/15.
+ //
+ 
+-#ifndef SIO_PACKET_H
+-#define SIO_PACKET_H
++#ifndef SIO_PACKET_NO_TLS_H
++#define SIO_PACKET_NO_TLS_H
+ #include <sstream>
+ #include "../sio_message.h"
+ #include <functional>
+ 
+-namespace sio
++namespace sio_no_tls
+ {
+     using namespace std;
+     
+diff --git a/src_no_tls/sio_client.cpp b/src_no_tls/sio_client.cpp
+index 1cdb7f7..13657f2 100644
+--- a/src_no_tls/sio_client.cpp
++++ b/src_no_tls/sio_client.cpp
+@@ -10,7 +10,7 @@
+ using namespace websocketpp;
+ using std::stringstream;
+ 
+-namespace sio
++namespace sio_no_tls
+ {
+     client::client() : m_impl(new client_impl({})) {}
+     
+diff --git a/src_no_tls/sio_client.h b/src_no_tls/sio_client.h
+index a8cbb9f..6a90662 100644
+--- a/src_no_tls/sio_client.h
++++ b/src_no_tls/sio_client.h
+@@ -4,8 +4,8 @@
+ //  Created by Melo Yao on 3/25/15.
+ //
+ 
+-#ifndef SIO_CLIENT_H
+-#define SIO_CLIENT_H
++#ifndef SIO_CLIENT_NO_TLS_H
++#define SIO_CLIENT_NO_TLS_H
+ #include <string>
+ #include <functional>
+ #include "sio_message.h"
+@@ -15,7 +15,7 @@ namespace asio {
+     class io_context;
+ }
+ 
+-namespace sio
++namespace sio_no_tls
+ {
+     class client_impl;
+ 
+@@ -89,7 +89,7 @@ namespace sio
+ 
+         void set_logs_verbose();
+ 
+-        sio::socket::ptr const& socket(const std::string& nsp = "");
++        sio_no_tls::socket::ptr const& socket(const std::string& nsp = "");
+         
+         // Closes the connection
+         void close();
+diff --git a/src_no_tls/sio_message.h b/src_no_tls/sio_message.h
+index 2801699..67d600c 100644
+--- a/src_no_tls/sio_message.h
++++ b/src_no_tls/sio_message.h
+@@ -4,15 +4,15 @@
+ //  Created by Melo Yao on 3/25/15.
+ //
+ 
+-#ifndef __SIO_MESSAGE_H__
+-#define __SIO_MESSAGE_H__
++#ifndef __SIO_MESSAGE_NO_TLS_H__
++#define __SIO_MESSAGE_NO_TLS_H__
+ #include <string>
+ #include <memory>
+ #include <vector>
+ #include <map>
+ #include <cassert>
+ #include <type_traits>
+-namespace sio
++namespace sio_no_tls
+ {
+     class message
+     {
+diff --git a/src_no_tls/sio_socket.cpp b/src_no_tls/sio_socket.cpp
+index f89429f..0b24568 100644
+--- a/src_no_tls/sio_socket.cpp
++++ b/src_no_tls/sio_socket.cpp
+@@ -17,7 +17,7 @@
+ #define NULL_GUARD(_x_)  \
+     if(_x_ == NULL) return
+ 
+-namespace sio
++namespace sio_no_tls
+ {
+     class event_adapter
+     {
+@@ -173,7 +173,7 @@ namespace sio
+         
+         static unsigned int s_global_event_id;
+         
+-        sio::client_impl *m_client;
++        sio_no_tls::client_impl *m_client;
+         
+         bool m_connected;
+         std::string m_nsp;
+@@ -332,7 +332,7 @@ namespace sio
+ 					m_packet_mutex.unlock();
+ 					return;
+ 				}
+-				sio::packet front_pack = std::move(m_packet_queue.front());
++				sio_no_tls::packet front_pack = std::move(m_packet_queue.front());
+                 m_packet_queue.pop();
+ 				m_packet_mutex.unlock();
+ 				m_client->send(front_pack);
+@@ -343,7 +343,7 @@ namespace sio
+     void socket::impl::on_close()
+     {
+         NULL_GUARD(m_client);
+-        sio::client_impl *client = m_client;
++        sio_no_tls::client_impl *client = m_client;
+         m_client = NULL;
+ 
+         if(m_connection_timer)
+@@ -505,7 +505,7 @@ namespace sio
+         this->on_close();
+     }
+     
+-    void socket::impl::send_packet(sio::packet &p)
++    void socket::impl::send_packet(sio_no_tls::packet &p)
+     {
+         NULL_GUARD(m_client);
+         if(m_connected)
+@@ -517,7 +517,7 @@ namespace sio
+ 					m_packet_mutex.unlock();
+ 					break;
+ 				}
+-				sio::packet front_pack = std::move(m_packet_queue.front());
++				sio_no_tls::packet front_pack = std::move(m_packet_queue.front());
+                 m_packet_queue.pop();
+ 				m_packet_mutex.unlock();
+ 				m_client->send(front_pack);
+diff --git a/src_no_tls/sio_socket.h b/src_no_tls/sio_socket.h
+index 9e2e529..c496793 100644
+--- a/src_no_tls/sio_socket.h
++++ b/src_no_tls/sio_socket.h
+@@ -1,8 +1,8 @@
+-#ifndef SIO_SOCKET_H
+-#define SIO_SOCKET_H
++#ifndef SIO_SOCKET_NO_TLS_H
++#define SIO_SOCKET_NO_TLS_H
+ #include "sio_message.h"
+ #include <functional>
+-namespace sio
++namespace sio_no_tls
+ {
+     class event_adapter;
+     
+@@ -102,4 +102,4 @@ namespace sio
+         impl *m_impl;
+     };
+ }
+-#endif // SIO_SOCKET_H
++#endif // SIO_SOCKET_NO_TLS_H

@@ -139,7 +139,7 @@ namespace MetaFile
 		void HANDLE_EMR_POLYPOLYGON(const TRectL& oBounds, const std::vector<std::vector<TPointS>>& arPoints) override;
 		void HANDLE_EMR_POLYPOLYLINE(const TRectL& oBounds, const std::vector<std::vector<TPointL>>& arPoints) override;
 		void HANDLE_EMR_POLYPOLYLINE(const TRectL& oBounds, const std::vector<std::vector<TPointS>>& arPoints) override;
-		//TODO: Реализовать сохранение полигонов в полигоне
+		//TODO: Implement saving polygons in a polygon
 		void HANDLE_EMR_RECTANGLE(const TRectL& oBox) override;
 		void HANDLE_EMR_ROUNDRECT(const TRectL& oBox, const TSizeL& oCorner) override;
 		void HANDLE_EMR_SETPIXELV(const TPointL& oPoint, const TRGBA& oColor) override;

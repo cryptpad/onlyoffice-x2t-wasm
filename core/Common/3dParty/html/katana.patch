@@ -1,0 +1,64 @@
+diff --git a/src/foundation.c b/src/foundation.c
+index c2d95ce..f2f075e 100644
+--- a/src/foundation.c
++++ b/src/foundation.c
+@@ -52,6 +52,7 @@ void katana_string_init(struct KatanaInternalParser* parser,
+ void katana_string_append_characters(struct KatanaInternalParser* parser,
+                                      const char* str, KatanaParserString* output)
+ {
++    if (NULL == str) return;
+     size_t len = strlen(str);
+     maybe_resize_string(parser, len, output);
+     memcpy(output->data + output->length, str, len);
+@@ -62,6 +63,7 @@ void katana_string_prepend_characters(struct KatanaInternalParser* parser,
+                                       const char* str,
+                                       KatanaParserString* output)
+ {
++    if (NULL == str) return;
+     size_t len = strlen(str);
+     size_t new_length = output->length + len;
+     char* new_data = katana_parser_allocate(parser, new_length);
+diff --git a/src/parser.c b/src/parser.c
+index c7e25e5..6bbb9ba 100644
+--- a/src/parser.c
++++ b/src/parser.c
+@@ -39,7 +39,7 @@
+ //#define assert(x)
+ 
+ #define breakpoint
+-#define KATANA_PARSER_STRING(literal) (KatanaParserString){ literal, sizeof(literal) - 1 }
++#define KATANA_PARSER_STRING(literal) { literal, sizeof(literal) - 1 }
+ 
+ 
+ typedef void (*KatanaArrayDeallocator)(KatanaParser* parser, void* e);
+@@ -1275,7 +1275,7 @@ void katanaerror(YYLTYPE* yyloc, void* scanner, struct KatanaInternalParser * pa
+            yyloc->last_line,
+            yyloc->last_column,
+            error,
+-           katanaget_text(parser->scanner));
++           /*katanaget_text(parser->scanner)*/ "error");
+ 
+     YYSTYPE * s = katanaget_lval(parser->scanner);
+ 
+@@ -1293,7 +1293,7 @@ void katanaerror(YYLTYPE* yyloc, void* scanner, struct KatanaInternalParser * pa
+     e->last_line = yyloc->last_line;
+     e->last_column = yyloc->last_column;
+     snprintf(e->message, KATANA_ERROR_MESSAGE_SIZE, "%s at %s", error,
+-             katanaget_text(parser->scanner));
++             /*katanaget_text(parser->scanner)*/ "error");
+     katana_array_add(parser, e, &(parser->output->errors));
+ }
+ 
+diff --git a/src/tokenizer.c b/src/tokenizer.c
+index 35c81b0..b61d674 100644
+--- a/src/tokenizer.c
++++ b/src/tokenizer.c
+@@ -288,7 +288,7 @@ static char * katana_token_string(int tok)
+ #endif // #if KATANA_FELX_DEBUG
+ #endif // #ifdef KATANA_FELX_DEBUG
+ 
+-inline bool katana_is_html_space(char c)
++static inline bool katana_is_html_space(char c)
+ {
+     return c <= ' ' && (c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\f');
+ }

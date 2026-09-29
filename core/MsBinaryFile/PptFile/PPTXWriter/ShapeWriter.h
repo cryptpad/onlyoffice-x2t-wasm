@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -111,7 +104,7 @@ namespace PPT
 		switch (TypePPTX)
 		{
 			case 0: return L"body";
-			case 100: return L"body"; // для master pages  
+			case 100: return L"body"; // for master pages
 			case 1: return L"chart";
 			case 2: return L"clipArt";
 			case 3: return L"ctrTitle";
@@ -183,9 +176,9 @@ namespace PPT
     static	std::wstring	ConvertColor	(CColor		& color, long alpha = 255);
 
 	void	ParseXmlAlternative(const std::wstring & xml);
-// тип рендерера-----------------------------------------------------------------------------
+// renderer type------------------------------------------------------------------------------
     virtual HRESULT get_Type(LONG* lType)	;
-//-------- Функции для работы со страницей --------------------------------------------------
+//-------- Functions for working with the page --------------------------------------------------
 	virtual HRESULT NewPage()				;
 	virtual HRESULT get_Height(double* dHeight);
 	virtual HRESULT put_Height(const double& dHeight);
@@ -257,18 +250,18 @@ namespace PPT
 	virtual HRESULT get_FontFaceIndex(int* lFaceIndex);
 	virtual HRESULT put_FontFaceIndex(const int& lFaceIndex);
 
-//-------- Функции для вывода текста --------------------------------------------------------
+//-------- Functions for text output --------------------------------------------------------
     virtual HRESULT CommandDrawTextCHAR(const LONG& c, const double& x, const double& y, const double& w, const double& h) ;
     virtual HRESULT CommandDrawText(const std::wstring& bsText, const double& x, const double& y, const double& w, const double& h) ;
 
     virtual HRESULT CommandDrawTextExCHAR(const LONG& c, const LONG& gid, const double& x, const double& y, const double& w, const double& h) ;
     virtual HRESULT CommandDrawTextEx(const std::wstring& bsUnicodeText, const unsigned int* pGids, const unsigned int nGidsCount, const double& x, const double& y, const double& w, const double& h);
 
-//-------- Маркеры для команд ---------------------------------------------------------------
+//-------- Markers for commands ---------------------------------------------------------------
 	virtual HRESULT BeginCommand(const _UINT32& lType);
 	virtual HRESULT EndCommand(const _UINT32& lType)	;
 
-//-------- Функции для работы с Graphics Path -----------------------------------------------
+//-------- Functions for working with Graphics Path -----------------------------------------------
 	virtual HRESULT PathCommandMoveTo(const double& x, const double& y);
 	virtual HRESULT PathCommandLineTo(const double& x, const double& y);
 	virtual HRESULT PathCommandLinesTo(double* points, const int& count)	;
@@ -287,7 +280,7 @@ namespace PPT
     virtual HRESULT PathCommandTextExCHAR(const LONG& c, const LONG& gid, const double& x, const double& y, const double& w, const double& h);
     virtual HRESULT PathCommandTextEx(const std::wstring& sText, const unsigned int* pGids, const unsigned int nGidsCount, const double& x, const double& y, const double& w, const double& h) ;
 
-//-------- Функции для вывода изображений ---------------------------------------------------
+//-------- Functions for displaying images ------------------------------------------------------------------
 	virtual HRESULT DrawImage(IGrObject* pImage, const double& x, const double& y, const double& w, const double& h)	;
 	virtual HRESULT DrawImageFromFile(const std::wstring&, const double& x, const double& y, const double& w, const double& h, const BYTE& lAlpha = 255);	
 
@@ -375,23 +368,23 @@ namespace PPT
 
 	public:
 
-		Aggplus::CGraphicsPathSimpleConverter*		m_pSimpleGraphicsConverter;		// конвертер сложных гафических путей в простые
-        NSFonts::IFontManager*						m_pFontManager;					// менеджер шрифтов
+		Aggplus::CGraphicsPathSimpleConverter*		m_pSimpleGraphicsConverter;		// Converter of complex graphical paths to simple ones
+        NSFonts::IFontManager*						m_pFontManager;					// font manager
 
-		Aggplus::CMatrix							m_oBaseTransform;	// матрица перерасчета координатных осей (здесь: миллиметры -> пикселы)
-		Aggplus::CMatrix							m_oTransform;		// текущая матрица преобразований рендерера
-		Aggplus::CMatrix							m_oFullTransform;	// полная матрица преобразований (m_oBaseTransform * m_oTransform)
+		Aggplus::CMatrix							m_oBaseTransform;	// matrix for recalculating coordinate axes (here: millimeters -> pixels)
+		Aggplus::CMatrix							m_oTransform;		// current renderer transformation matrix
+		Aggplus::CMatrix							m_oFullTransform;	// full transformation matrix (m_oBaseTransform * m_oTransform)
 
 		double							m_dTransformAngle;
 
-        LONG							m_lCurrentCommandType;	// текущая команда
+        LONG							m_lCurrentCommandType;	// current command
 
 		double							m_dDpiX;				
 		double							m_dDpiY;
 
         LONG							m_lClipMode;
 
-		CPen							m_oPen;				// настройки всей графики (скопирован ашник из AVSGraphics)
+		CPen							m_oPen;				// settings for all graphics (copied from AVSGraphics)
 		CBrush							m_oBrush;
 		CFont							m_oFont;
 		CShadow							m_oShadow;

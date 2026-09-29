@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -95,7 +88,7 @@
 #define LO_SURROGATE_START  0xDC00
 #define LO_SURROGATE_END    0xDFFF
 
-// Этих типов браша нет в рендерере, мы их используем, когда конвертим из веба
+// These types of brushes aren't in the renderer, we use them when converting from the web
 static const long c_BrushTypeLinearGradient = 8001;
 static const long c_BrushTypeRadialGradient = 8002;
 
@@ -160,7 +153,7 @@ Aggplus::CImage* ConvertMetafile(NSFonts::IApplicationFonts* pAppFonts, const st
 //----------------------------------------------------------------------------------------
 CPdfWriter::CPdfWriter(NSFonts::IApplicationFonts* pAppFonts, bool isPDFA, IRenderer* pRenderer, bool bCreate, const std::wstring& wsTempDirectory) : m_oCommandManager(this)
 {
-	// Создаем менеджер шрифтов с собственным кэшем
+	// Creating a font manager with its own cache
 	m_pFontManager = pAppFonts->GenerateFontManager();
 	NSFonts::IFontsCache* pMeasurerCache = NSFonts::NSFontCache::Create();
 	pMeasurerCache->SetStreams(pAppFonts->GetStreams());
@@ -218,7 +211,7 @@ void CPdfWriter::SetDocumentID(const std::wstring& wsDocumentID)
 }
 int CPdfWriter::SaveToFile(const std::wstring& wsPath)
 {
-	// TODO: Переделать на код ошибки
+	// TODO: Change to error code
 	if (!IsValid())
 		return 1;
 
@@ -238,7 +231,7 @@ int CPdfWriter::SaveToFile(const std::wstring& wsPath)
 }
 int CPdfWriter::SaveToMemory(BYTE** pData, int* pLength)
 {
-	// TODO: Переделать на код ошибки
+	// TODO: Change to error code
 	if (!IsValid())
 		return 1;
 
@@ -276,7 +269,7 @@ void CPdfWriter::SetTempDirectory(const std::wstring& wsTempDirectory)
 	m_wsTempDirectory = wsTempDirectory;
 }
 //----------------------------------------------------------------------------------------
-// Функции для работы со страницей
+// Functions for working with the page
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::NewPage()
 {
@@ -329,7 +322,7 @@ HRESULT CPdfWriter::put_Width(const double& dWidth, bool bMM2PT)
 	return S_OK;
 }
 //----------------------------------------------------------------------------------------
-// Функции для работы с Pen
+// Pen functions
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::get_PenColor(LONG* lColor)
 {
@@ -437,7 +430,7 @@ HRESULT CPdfWriter::PenDashPattern(double* pPattern, LONG lCount)
 	return S_OK;
 }
 //----------------------------------------------------------------------------------------
-// Функции для работы с Brush
+// Functions for working with Brush
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::get_BrushType(LONG* lType)
 {
@@ -537,8 +530,8 @@ HRESULT CPdfWriter::put_BrushLinearAngle(const double& dAngle)
 }
 HRESULT CPdfWriter::BrushRect(const INT& nVal, const double& dLeft, const double& dTop, const double& dWidth, const double& dHeight)
 {
-	// Данными параметрами пользуемся, только если пришла команда EnableBrushRect, если команда не пришла, тогда
-	// ориентируемся на границы пата.
+	// Use these parameters only if the EnableBrushRect command has arrived; if the command hasn't arrived, then
+	// Use the path bounds.
 	m_oBrush.SetBrushRect(nVal, dLeft, dTop, dWidth, dHeight);
 	m_oBrush.EnableBrushRect(1 == nVal ? true : false);
 	return S_OK;
@@ -589,7 +582,7 @@ HRESULT CPdfWriter::put_BrushScale(bool isScale, const double& scaleX, const dou
 	return S_OK;
 }
 //----------------------------------------------------------------------------------------
-// Функции для работы со шрифтами
+// Functions for working with fonts
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::get_FontName(std::wstring* wsName)
 {
@@ -686,7 +679,7 @@ HRESULT CPdfWriter::put_FontFaceIndex(const int& nFaceIndex)
 	return S_OK;
 }
 //----------------------------------------------------------------------------------------
-// Функции для вывода текста
+// Functions for text output
 //----------------------------------------------------------------------------------------
 bool UnicodePUA(unsigned int unUnicode)
 {
@@ -731,7 +724,7 @@ HRESULT CPdfWriter::CommandDrawText(const std::wstring& wsUnicodeText, const dou
 	if (!pCodes)
 		return DrawTextToRenderer(NULL, 0, dX, dY, wsUnicodeText) ? S_OK : S_FALSE;
 
-	// Специальный случай для текста из Djvu, нам не нужно, чтобы он рисовался
+	// Special case for text from Djvu, we don't need it to be drawn
 	if (L"" == m_oFont.GetPath() && L"DjvuEmptyFont" == m_oFont.GetName())
 	{
 		if (m_bNeedUpdateTextFont)
@@ -836,14 +829,14 @@ HRESULT CPdfWriter::CommandDrawTextCHAR2(unsigned int* pUnicodes, const unsigned
 	return DrawText(pCodes, 2, dX, dY, UnicodesPUA(pUnicodes, unUnicodeCount) ? NSStringExt::CConverter::GetUtf8FromUTF32(pUnicodes, unUnicodeCount) : "") ? S_OK : S_FALSE;
 }
 //----------------------------------------------------------------------------------------
-// Маркеры команд
+// Command markers
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::EndCommand(const DWORD& dwType)
 {
 	if (!IsPageValid())
 		return S_FALSE;
 
-	// Здесь мы различаем лишь 2 команды: присоединить текущий пат к клипу и отменить клип
+	// Here we distinguish only 2 commands: attach the current path to the clip and cancel the clip
 	if (c_nClipType == dwType)
 	{
 		m_oCommandManager.Flush();
@@ -880,7 +873,7 @@ HRESULT CPdfWriter::EndCommand(const DWORD& dwType)
 	return S_OK;
 }
 //----------------------------------------------------------------------------------------
-// Функции для работы с патом
+// Functions for working with paths
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::PathCommandStart()
 {
@@ -1104,7 +1097,7 @@ HRESULT CPdfWriter::PathCommandTextEx(const std::wstring& wsUnicodeText, const u
 	return bRes ? S_OK : S_FALSE;
 }
 //----------------------------------------------------------------------------------------
-// Функции для вывода изображений
+// Functions for displaying images
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::DrawImage(IGrObject* pImage, const double& dX, const double& dY, const double& dW, const double& dH)
 {
@@ -1155,7 +1148,7 @@ HRESULT CPdfWriter::DrawImageFromFile(NSFonts::IApplicationFonts* pAppFonts, con
 	return hRes;
 }
 //----------------------------------------------------------------------------------------
-// Функции для выставления преобразования
+// Functions for setting conversion
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::SetTransform(const double& dM11, const double& dM12, const double& dM21, const double& dM22, const double& dX, const double& dY)
 {
@@ -1190,7 +1183,7 @@ HRESULT CPdfWriter::put_ClipMode(const LONG& lMode)
 	return S_OK;
 }
 //----------------------------------------------------------------------------------------
-// Дополнительные функции
+// Additional features
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::AddHyperlink(const double& dX, const double& dY, const double& dW, const double& dH, const std::wstring& wsUrl, const std::wstring& wsTooltip)
 {
@@ -1359,7 +1352,7 @@ HRESULT CPdfWriter::AddFormField(NSFonts::IApplicationFonts* pAppFonts, CFormFie
 		double _dY = m_pPage->GetHeight() - MM_2_PT(dY);
 		double _dB = m_pPage->GetHeight() - MM_2_PT(dY + dH);
 
-		double dMargin   = 2; // такой отступ используется в AdobeReader
+		double dMargin   = 2; // this indentation is used in AdobeReader
 		double dBaseLine = MM_2_PT(dH - oInfo.GetBaseLineOffset());
 		double dShiftX   = dMargin;
 
@@ -1410,8 +1403,8 @@ HRESULT CPdfWriter::AddFormField(NSFonts::IApplicationFonts* pAppFonts, CFormFie
 			
 			m_oLinesManager.Init(pCodes2, pWidths, unLen, ushSpaceCode, ushNewLineCode, pFontTT->GetLineHeight(), pFontTT->GetAscent());
 			
-			// TODO: Разобраться более детально по какой именно высоте идет в Adobe расчет
-			//       пока временно оставим (H - 3 * margin)
+			// TODO: Find out in more detail exactly what height is used in Adobe calculations
+			//       For now, let's leave it temporarily (H - 3 * margin)
 			if (pPr->IsAutoFit())
 				dFontSize = m_oLinesManager.ProcessAutoFit(MM_2_PT(dW), (MM_2_PT(dH) - 3 * dMargin));
 
@@ -1462,7 +1455,7 @@ HRESULT CPdfWriter::AddFormField(NSFonts::IApplicationFonts* pAppFonts, CFormFie
 				pShifts = new double[unShiftsCount];
 				if (pShifts && unShiftsCount)
 				{
-					// Сдвиг нулевой для comb форм и не забываем, что мы к ширине добавили 2 * dMargin
+					// The shift is zero for comb forms and don't forget that added 2 * dMargin to the width
 					dShiftX = 0;
 					unsigned int unCellsCount = std::max(unShiftsCount, pPr->GetMaxCharacters());
 					double dPrevW = 0;
@@ -1600,7 +1593,7 @@ HRESULT CPdfWriter::AddFormField(NSFonts::IApplicationFonts* pAppFonts, CFormFie
 
 			if (!pPr->IsEditComboBox())
 			{
-				// Для drop-down list в 0 позиции мы добавили плейсхолдер
+				// Added a placeholder for the drop-down list in position 0
 				if (oInfo.IsPlaceHolder())
 					unSelectedIndex = 0;
 				else if (0xFFFF != unSelectedIndex)
@@ -1701,8 +1694,8 @@ HRESULT CPdfWriter::AddFormField(NSFonts::IApplicationFonts* pAppFonts, CFormFie
 		pField->SetFormat(pPr->GetFormat());
 	}
 
-	// Выставляем имя в конце, потому что там возможно копирование настроек поля в новое родительское поле, поэтому к текущему моменту
-	// все настройки должны быть выставлены
+	// Put the name at the end, because there it is possible to copy the field settings to a new parent field, so by now
+	// all settings must be set
 	if (!bRadioButton)
 	{
 		std::wstring wsKey = oInfo.GetKey();
@@ -2442,7 +2435,7 @@ HRESULT CPdfWriter::AddAnnotField(NSFonts::IApplicationFonts* pAppFonts, CAnnotF
 					pFontTT = m_pDocument->CreateTrueTypeFont(m_pFont);
 				pWidgetAnnot->SetDA(pFontTT, oInfo.GetWidgetAnnotPr()->GetFontSize(), dFontSize, oInfo.GetWidgetAnnotPr()->GetTC());
 
-				// ВНЕШНИЙ ВИД
+				// APPEARANCE
 				pButtonWidget->SetFont(m_pFont, dFontSize, isBold, isItalic);
 				if (nFlags & (1 << 10))
 				{
@@ -2502,7 +2495,7 @@ HRESULT CPdfWriter::AddAnnotField(NSFonts::IApplicationFonts* pAppFonts, CAnnotF
 					pButtonWidget->SetDA(pFont, oInfo.GetWidgetAnnotPr()->GetFontSize(), dFontSize, oInfo.GetWidgetAnnotPr()->GetTC());
 				}
 
-				// ВНЕШНИЙ ВИД
+				// APPEARANCE
 				//if (!pButtonWidget->Get("AP"))
 					pButtonWidget->SetAP(nR);
 
@@ -2760,7 +2753,7 @@ void CPdfWriter::SetHeadings(CHeadings* pCommand)
 }
 void CPdfWriter::SetNeedAddHelvetica(bool bNeedAddHelvetica) { m_bNeedAddHelvetica = bNeedAddHelvetica; }
 //----------------------------------------------------------------------------------------
-// Дополнительные функции Pdf рендерера
+// Additional functions of PDF renderer
 //----------------------------------------------------------------------------------------
 HRESULT CPdfWriter::DrawImage1bpp(NSImages::CPixJbig2* pImageBuffer, const unsigned int& unWidth, const unsigned int& unHeight, const double& dX, const double& dY, const double& dW, const double& dH)
 {
@@ -2833,7 +2826,7 @@ HRESULT CPdfWriter::EditWidgetParents(NSFonts::IApplicationFonts* pAppFonts, CWi
 		std::vector<std::wstring> arrValue;
 
 		int nFlags = pParent->nFlags;
-		// Adobe не может смешивать юникод и utf имена полей
+		// Adobe can't mix Unicode and UTF field names
 		if (nFlags & (1 << 0))
 			pParentObj->Add("T", new PdfWriter::CStringObject((U_TO_UTF8(pParent->sName)).c_str(), true));
 
@@ -3279,7 +3272,7 @@ bool CPdfWriter::FinalizeSignature(BYTE* pSignedData, DWORD dwDataLength)
 }
 
 //----------------------------------------------------------------------------------------
-// Внутренние функции
+// Internal functions
 //----------------------------------------------------------------------------------------
 bool CPdfWriter::SkipRedact(const double& dX, const double& dY, const double& dW, const double& dH)
 {
@@ -3356,7 +3349,7 @@ PdfWriter::CImageDict* CPdfWriter::LoadImage(Aggplus::CImage* pImage, BYTE nAlph
 	BYTE* pData = pImage->GetData();
 	int nStride = 4 * nImageW;
 
-	// Картинки совсем маленьких размеров нельзя делать Jpeg2000
+	// Images of very small sizes can't be made Jpeg2000
 	bool bJpeg = false;
 	if (nImageH < 100 || nImageW < 100 || m_pDocument->IsPDFA())
 		bJpeg = true;
@@ -3364,11 +3357,11 @@ PdfWriter::CImageDict* CPdfWriter::LoadImage(Aggplus::CImage* pImage, BYTE nAlph
 	if (nImageH <= 0 || nImageW <= 0)
 		return NULL;
 
-	// TODO: Пока не разберемся как в CxImage управлять параметрами кодирования нельзя писать в Jpeg2000,
-	//       т.к. файлы получаются гораздо больше и конвертация идет намного дольше.
+	// TODO: Until we figure out how to manage encoding parameters in CxImage, we can't write in Jpeg2000,
+	//       because the files are much larger and the conversion takes much longer.
 	bJpeg = true;
 
-	// Пробегаемся по картинке и определяем есть ли у нас альфа-канал
+	// Go over the image and determine whether we have an alpha channel
 	bool bAlpha = false;
 
 	CBgraFrame oFrame;
@@ -3463,8 +3456,8 @@ bool CPdfWriter::DrawText(unsigned char* pCodes, const unsigned int& unLen, cons
 	if (!pCodes || !unLen)
 		return false;
 
-	// TODO должна быть проверка центрального положения, а не точки начала
-	// TODO Сюда приходит много символов за раз, и нужно отрисовать только те, что вне областей редакта
+	// TODO should be checking the center position, not the origin point
+	// TODO Many characters come here at a time, and only those outside the editing areas need to be drawn
 	if (SkipRedact(dX, dY))
 		return true;
 
@@ -3492,11 +3485,11 @@ bool CPdfWriter::DrawTextToRenderer(const unsigned int* unGid, const unsigned in
 {
 	if (m_bSplit)
 		return false;
-	// TODO должна быть проверка центрального положения, а не точки начала
-	// TODO Сюда приходит много символов за раз, и нужно отрисовать только те, что вне областей редакта
+	// TODO should be checking the center position, not the origin point
+	// TODO Many characters come here at a time, and only those outside the editing areas need to be drawn
 	if (SkipRedact(dX, dY))
 		return true;
-	// TODO pdf позволяет создание своего шрифта, но не следует это использовать для воссоздания шрифта запрещенного для редактирования или встраивания
+	// TODO pdf allows creating a custom font, but it shouldn't be used to recreate a font that is prohibited for editing or embedding
 	Aggplus::CGraphicsPathSimpleConverter simplifier;
 	simplifier.SetRenderer(m_pRenderer);
 	m_pFontManager->LoadFontByName(m_oFont.GetName(), m_oFont.GetSize(), (int)m_oFont.GetStyle(), 72.0, 72.0);
@@ -3511,8 +3504,8 @@ bool CPdfWriter::DrawTextToRenderer(const unsigned int* unGid, const unsigned in
 }
 bool CPdfWriter::PathCommandDrawText(unsigned int* pUnicodes, unsigned int unLen, const double& dX, const double& dY, const unsigned int* pGids)
 {
-	// TODO должна быть проверка центрального положения, а не точки начала
-	// TODO Сюда приходит много символов за раз, и нужно отрисовать только те, что вне областей редакта
+	// TODO should be checking the center position, not the origin point
+	// TODO Many characters come here at a time, and only those outside the editing areas need to be drawn
 	if (SkipRedact(dX, dY))
 		return true;
 
@@ -3607,7 +3600,7 @@ bool CPdfWriter::IsEmbeddedFont(const std::wstring& wsName)
 {
 	if (wsName.find(L"Embedded: ") != 0)
 		return false;
-	// Исключаем Base14 шрифты
+	// Excluding Base14 fonts
 	int nBase14 = IsEmbeddedBase14(wsName);
 	return nBase14 < 0;
 }
@@ -3741,7 +3734,7 @@ PdfWriter::CFontCidTrueType* CPdfWriter::GetFont(const std::wstring& wsFontPath,
 		if (m_bSplit)
 			return pFont;
 
-		// TODO: Пока мы здесь предполагаем, что шрифты только либо TrueType, либо OpenType
+		// TODO: For now we're assuming here that the fonts are either TrueType or OpenType only
 		if (!m_pFontManager->LoadFontFromFile(wsFontPath, lFaceIndex, 10, 72, 72))
 		{
 			std::wcout << L"PDF Writer: Can't load fontfile " << wsFontPath.c_str() << "\n";
@@ -3824,7 +3817,7 @@ void CPdfWriter::UpdatePen()
 	LONG lDashStyle = m_oPen.GetDashStyle();
 	if (Aggplus::DashStyleSolid == lDashStyle)
 	{
-		// Ничего не делаем
+		// Do nothing
 	}
 	else if (Aggplus::DashStyleCustom == lDashStyle)
 	{
@@ -3843,7 +3836,7 @@ void CPdfWriter::UpdatePen()
 	}
 	else
 	{
-		// TODO: Реализовать другие типы пунктирных линий
+		// TODO: Implement other types of dotted lines
 	}
 
 	if (pDashPattern && lDashCount)
@@ -3917,7 +3910,7 @@ void CPdfWriter::UpdateBrush(NSFonts::IApplicationFonts* pAppFonts, const std::w
 				 _CXIMAGE_FORMAT_SVM == oImageFormat.eFileType ||
 				 _CXIMAGE_FORMAT_SVG == oImageFormat.eFileType)
 		{
-			// TODO: Реализовать отрисовку метафайлов по-нормальному
+			// TODO: Implement rendering of metafiles in a normal way
 			MetaFile::IMetaFile* pMeta = MetaFile::Create(pAppFonts);
 			pMeta->LoadFromFile(wsTexturePath.c_str());
 
@@ -3994,18 +3987,18 @@ void CPdfWriter::UpdateBrush(NSFonts::IApplicationFonts* pAppFonts, const std::w
 			double dXStepSpacing = 0, dYStepSpacing = 0;
 			if (c_BrushTextureModeStretch == lTextureMode)
 			{
-				// Растягиваем картинку по размерам пата
+				// Stretch the image to fit the size
 				dW = std::max(10.0, dR - dL);
 				dH = std::max(10.0, dB - dT);
 
-				// Чтобы избавиться от погрешностей из-за которых могут возникать полоски или обрезание картинки,
-				// удвоим расстрояние между соседними тайлами. Плохого тут нет, т.к. нам нужен всего 1 тайл
+				// To get rid of errors that may cause stripes or cropping of the image,
+				// Double the distance between adjacent tiles. There is nothing bad here, since we only need 1 tile
 				dXStepSpacing = dW;
 				dYStepSpacing = dH;
 			}
 			else // Tile
 			{
-				// Размеры картинки заданы в пикселях. Размеры тайла - это размеры картинки в пунктах.
+				// The dimensions of the image are specified in pixels. Tile dimensions are the dimensions of the image in points.
 				dW = (double)nImageW * 72.0 / 96.0;
 				dH = (double)nImageH * 72.0 / 96.0;
 
@@ -4029,7 +4022,7 @@ void CPdfWriter::UpdateBrush(NSFonts::IApplicationFonts* pAppFonts, const std::w
 			else if (c_BrushTextureModeTileFlipXY == lTextureMode)
 				ePatternType = PdfWriter::imagetilepatterntype_InverseXY;
 
-			// Нам нужно, чтобы левый нижний угол границ нашего пата являлся точкой переноса для матрицы преобразования.
+			// The lower-left corner of the path bounds must be the translation point for the transformation matrix.
 			PdfWriter::CMatrix* pMatrix = m_pPage->GetTransform();
 			pMatrix->Apply(dL, dT);
 			PdfWriter::CMatrix oPatternMatrix = *pMatrix;
@@ -4231,7 +4224,7 @@ unsigned char* CPdfWriter::EncodeGID(const unsigned int& unGID, const unsigned i
 	{
 		unsigned short ushCode = m_pFontEmbedded->EncodeUnicode(unGID, *pUnicodes);
 
-		// Для CFontEmbedded ширины уже загружены, ничего не добавляем
+		// For CFontEmbedded the widths are already loaded, we don't add anything
 
 		unsigned char* pCodes = new unsigned char[2];
 		pCodes[0] = (ushCode >> 8) & 0xFF;
@@ -4392,7 +4385,7 @@ void CPdfWriter::DrawTextWidget(NSFonts::IApplicationFonts* pAppFonts, PdfWriter
 	if (nType == PdfWriter::EBorderType::Beveled || nType == PdfWriter::EBorderType::Inset)
 		dShiftBorder *= 2;
 
-	// Коды, шрифты, количество
+	// Codes, fonts, quantity
 	unsigned int unLen = 0;
 	unsigned int* pUnicodes = NULL;
 	unsigned short* pCodes  = NULL;
@@ -4760,7 +4753,7 @@ void CPdfWriter::DrawButtonWidget(NSFonts::IApplicationFonts* pAppFonts, PdfWrit
 		if (pFontTT)
 		{
 			double dKoef = dFontSize / pFontTT->m_dUnitsPerEm;
-			// TODO что-то между m_dMaxY-m_dMinY и m_dHeight, но не просто среднее
+			// TODO something between m_dMaxY-m_dMinY and m_dHeight, but not just an average
 			dLineH = (pFontTT->m_dMaxY + std::abs(pFontTT->m_dMinY) + pFontTT->m_dHeight) / 2.0 * dKoef;
 			// dLineH = (pFontTT->m_dMaxY + std::abs(pFontTT->m_dMinY)) * dKoef;
 			// dLineH = pFontTT->m_dHeight * dKoef;

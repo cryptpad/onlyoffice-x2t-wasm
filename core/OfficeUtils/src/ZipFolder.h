@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -86,30 +79,30 @@ public:
 	virtual ~IFolder() {}
 
 	virtual IFolderType getType() = 0;
-	// полный путь по локальному
+	// full path to local
 	virtual std::wstring getFullFilePath(const std::wstring& path) = 0;
-	// локальный путь по полному (без первого '/')
+	// full local path (without first '/')
 	virtual std::wstring getLocalFilePath(const std::wstring& path) = 0;
-	// чтение файла в буффер. промежуточный класс нужен, чтобы
-	// одна реализация могли отдавать память напрямую, а другая выделять и не хранить у себя
+	// reading the file into the buffer. an intermediate class is needed to
+	// one implementation could give memory directly, while another could allocate it and not store it
 	virtual bool read(const std::wstring& path, CBuffer*& buffer) = 0;
-	// запись данных в файл
+	// writing data to a file
 	virtual void write(const std::wstring& path, BYTE* data, DWORD length) = 0;
-	// работа с файлами
+	// working with files
 	virtual void move(const std::wstring& src, const std::wstring& dst) = 0;
 	virtual bool exists(const std::wstring& path) = 0;
 	virtual void remove(const std::wstring& path) = 0;
-	// работа с директориями
+	// working with directories
 	virtual void createDirectory(const std::wstring& path) = 0;
 	virtual void removeDirectory(const std::wstring& path) = 0;
 	virtual std::vector<std::wstring> getFiles(const std::wstring& path, bool recursion) = 0;
-	// финализация
+	// finalization
 	virtual CBuffer* finalize() { return NULL; }
-	// чтение ноды
+	// reading node
 	virtual XmlUtils::CXmlNode getNodeFromFile(const std::wstring& path) = 0;
 	virtual bool getReaderFromFile(const std::wstring& path, XmlUtils::CXmlLiteReader& oReader) = 0;
 
-	// вспомогательные функции
+	// auxiliary functions
 	void writeXml(const std::wstring& path, const std::wstring& xml)
 	{
 		std::string sXmlUtf8 = U_TO_UTF8(xml);
@@ -298,7 +291,7 @@ private:
 
 		posB = posA;
 
-		// не ищем '['. просто первый неравный
+		// Don't look for '['; just the first one is unequal
 		//if ('[' != a[posA - 1] || '[' != b[posB - 1])
 		//    goto error;
 
@@ -455,14 +448,14 @@ public:
 	}
 };
 
-// Работает с архивом в памяти
+// Works with archive in memory
 class CZipFolderMemory : public IFolder
 {
 	CZipBuffer* m_zlib;
 
 protected:
 
-	// Конвертирует wstring -> string и убирает '/' в начале, т.к. пути относительные архива
+	// Converts wstring -> string and removes the '/' at the beginning, because archive relative paths
 	std::string getLocalFilePathA(const std::wstring& path)
 	{
 		std::string sPath = U_TO_UTF8(path);
@@ -472,7 +465,7 @@ protected:
 	}
 
 public:
-	// Открывает архив, переданные данные необходимо освободить после использования класса
+	// Opens an archive, the transferred data must be freed after using the class
 	CZipFolderMemory()
 	{
 		m_zlib = new CZipBuffer();
@@ -481,7 +474,7 @@ public:
 	{
 		m_zlib = new CZipBuffer(data, length);
 	}
-	// Закрывает архив и очищает память
+	// Closes the archive and clears memory
 	~CZipFolderMemory()
 	{
 		delete m_zlib;
@@ -492,12 +485,12 @@ public:
 		return iftZip;
 	}
 
-	// Относительный путь до файла в архиве
+	// Relative path to the file in the archive
 	virtual std::wstring getFullFilePath(const std::wstring& path)
 	{
 		return path;
 	}
-	// Относительный путь до файла в архиве без '/' в начале
+	// Relative path to the file in the archive without '/' at the beginning
 	virtual std::wstring getLocalFilePath(const std::wstring& path)
 	{
 		if (!path.empty() && path[0] == L'/')
@@ -505,7 +498,7 @@ public:
 		return path;
 	}
 
-	// Читает файл по относительному пути в архиве, полученные данные необходимо освободить
+	// Reads a file at a relative path in the archive, the received data must be freed
 	virtual bool read(const std::wstring& path, CBuffer*& buffer)
 	{
 		buffer = NULL;
@@ -520,30 +513,30 @@ public:
 		}
 		return false;
 	}
-	// Пишет файл по относительному пути в архиве, переданные данные необходимо освободить
+	// Writes a file to a relative path in the archive, the transferred data must be freed
 	virtual void write(const std::wstring& path, BYTE* data, DWORD length)
 	{
 		std::string sPath = getLocalFilePathA(path);
 		m_zlib->addFile(sPath, data, length);
 	}
-	// Перемещает файл в архиве
+	// Moves a file in the archive
 	virtual void move(const std::wstring& sSrc, const std::wstring& sDst)
 	{
 		m_zlib->move(getLocalFilePathA(sSrc), getLocalFilePathA(sDst));
 	}
-	// Содержится ли файл в архиве
+	// Is the file contained in the archive?
 	virtual bool exists(const std::wstring& path)
 	{
 		std::string sPath = getLocalFilePathA(path);
 		return std::find_if(m_zlib->m_arrFiles.begin(), m_zlib->m_arrFiles.end(), [sPath](const CZipBuffer::CFile& file){ return file.m_sPath == sPath; }) != m_zlib->m_arrFiles.end();
 	}
-	// Удаляет файл по относительному пути в архиве
+	// Deletes a file at a relative path in the archive
 	virtual void remove(const std::wstring& path)
 	{
 		std::string sPath = getLocalFilePathA(path);
 		m_zlib->removeFile(sPath);
 	}
-	// Создавать директорию в архиве не требуется
+	// There is no need to create a directory in the archive
 	virtual void createDirectory(const std::wstring& path)
 	{
 	}
@@ -553,7 +546,7 @@ public:
 		for (std::vector<std::wstring>::iterator i = arFiles.begin(); i != arFiles.end(); i++)
 			remove(*i);
 	}
-	// Возвращает вектор путей расположенных в папке
+	// Returns a vector of paths located in a folder
 	virtual std::vector<std::wstring> getFiles(const std::wstring& path, bool bIsRecursion)
 	{
 		std::string sPath = getLocalFilePathA(path);
@@ -579,7 +572,7 @@ public:
 		}
 		return sRes;
 	}
-	// Возвращает архивированные данные и закрывает архив, полученные данные необходимо освободить
+	// Returns the archived data and closes the archive, the received data must be released
 	virtual CBuffer* finalize()
 	{
 		BYTE* data = NULL;
@@ -588,7 +581,7 @@ public:
 		m_zlib->close();
 		return new CBuffer(data, length, true);
 	}
-	// Читает файл по относительному пути в архиве и формирует из него CXmlNode
+	// Reads a file at a relative path in the archive and forms a CXmlNode from it
 	virtual XmlUtils::CXmlNode getNodeFromFile(const std::wstring& path)
 	{
 		CBuffer* buffer = NULL;

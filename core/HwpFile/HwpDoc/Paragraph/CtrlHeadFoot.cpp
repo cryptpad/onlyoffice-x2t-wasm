@@ -84,7 +84,7 @@ void CCtrlHeadFoot::ReadFromHWPML(CXMLReader &oReader)
 			m_nTextHeight = oReader.GetInt();
 		else if ("TextWidth" == sAttributeName)
 			m_nTextWidth = oReader.GetInt();
-		//TODO:: Реализовать HasTextRef и HasTextRef
+		//TODO:: Implement HasNumRef and HasTextRef
 	}
 	END_READ_ATTRIBUTES(oReader)
 

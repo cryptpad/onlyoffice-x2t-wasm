@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -361,7 +354,7 @@ void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 				if (pathMedia.empty() && ext.link_media.IsInit())
 				{
 					pathMedia = find_link_by_id(ext.link_media->get(), 3, bExternal);
-					//например файлики mp3
+					//for example mp3 files
 				}
 				if (ext.st.IsInit())	start	= *ext.st;
 				if (ext.end.IsInit())	end		= *ext.end;
@@ -429,7 +422,7 @@ void OoxConverter::convert(PPTX::Logic::Pic *oox_picture)
 	
 						if (!sIdImageFileCache.empty())
 						{
-							//ищем физический файл ( rId относительно vml_drawing)									
+							//looking for a physical file (rId relative to vml_drawing)
 							smart_ptr<OOX::File> pFile = pVml->Find(sIdImageFileCache);
 
 							if (pFile.IsInit() && (OOX::FileTypes::Image == pFile->type()))
@@ -1069,7 +1062,7 @@ int OoxConverter::convert(PPTX::Logic::PrstTxWarp *oox_text_preset)
 	if (oox_text_preset == NULL) return -1;
 	
 	if (oox_text_preset->prst.GetBYTECode() == SimpleTypes::textshapetypeTextNoShape ||
-		oox_text_preset->prst.GetBYTECode() == SimpleTypes::textshapetypeTextPlain) // в зависимости от других настроек
+		oox_text_preset->prst.GetBYTECode() == SimpleTypes::textshapetypeTextPlain) // depending on other settings
 	{
 		return 2000;
 	}
@@ -1408,7 +1401,7 @@ void OoxConverter::convert(PPTX::Logic::BlipFill *oox_bitmap_fill)
 				convert(oox_bitmap_fill->blip->Effects[i].Effect.GetPointer());
 			}
 		}
-		if (oox_bitmap_fill->srcRect.IsInit() && Width > 0  && Height > 0)//часть изображения
+		if (oox_bitmap_fill->srcRect.IsInit() && Width > 0  && Height > 0)//part of the image
 		{
 			odf_context()->drawing_context()->set_image_client_rect_inch(
 				(oox_bitmap_fill->srcRect->l.IsInit() ? XmlUtils::GetInteger(oox_bitmap_fill->srcRect->l.get()) : 0 ) / 100000. * Width,
@@ -1445,7 +1438,7 @@ void OoxConverter::convert(PPTX::Logic::BlipFill *oox_bitmap_fill)
 		if (oox_bitmap_fill->stretch.IsInit())
 		{
 			odf_context()->drawing_context()->set_image_style_repeat(1);
-			if (oox_bitmap_fill->stretch->fillRect.IsInit()){} //заполнение неполного объема
+			if (oox_bitmap_fill->stretch->fillRect.IsInit()){} //partial filling
 		}
 	}
 	odf_context()->drawing_context()->end_area_properties();
@@ -1681,7 +1674,7 @@ void OoxConverter::convert(PPTX::Logic::Ln *oox_line_prop, DWORD ARGB, PPTX::Log
 
 	//if (oox_line_prop->custDash.IsInit())
 	//{
-	//	//через задание стиля и описание геометрии
+	//	//via setting the style and describing the geometry
 	//}
 	if (oox_line_prop->prstDash.IsInit() && oox_line_prop->prstDash->val.IsInit())
 	{
@@ -1692,7 +1685,7 @@ void OoxConverter::convert(PPTX::Logic::Ln *oox_line_prop, DWORD ARGB, PPTX::Log
 	//nullable<SimpleTypes::CCompoundLine<>>            m_oCmpd;
 
 
-	//ELineJoinType                                     m_eJoinType;   // Тип соединения линий
+	//ELineJoinType m_eJoinType;   // Line connection type
 	//nullable<OOX::Drawing::CLineJoinBevel>            m_oBevel;
 	//nullable<OOX::Drawing::CLineJoinMiterProperties>  m_oMiter;
 	//nullable<OOX::Drawing::CLineJoinRound>            m_oRound;
@@ -1749,8 +1742,8 @@ void OoxConverter::convert(PPTX::Logic::BodyPr *oox_bodyPr)
 	switch(oox_bodyPr->Fit.type)
 	{
 		case  PPTX::Logic::TextFit::FitSpAuto:
-		{//изменяемы размеры шейпа под текст			
-			odf_context()->drawing_context()->set_text_box_min_size(true);//уже выставленые в min
+		{//resizable shape for text
+			odf_context()->drawing_context()->set_text_box_min_size(true);//already set to min
 		}break;
 		case  PPTX::Logic::TextFit::FitNo:
 		{
@@ -1855,12 +1848,12 @@ void OoxConverter::convert(PPTX::Logic::NvPr *oox_nvPr)
 	
 
 
-//ph уровнем выше
+//ph level higher
 
 }
 
 void OoxConverter::convert_list_level(PPTX::Logic::TextParagraphPr	*oox_para_props, int level)
-{//одномерные списки тока
+{//one-dimensional lists only
 	//if (!oox_list)return;
 
 	if (!oox_para_props) return;
@@ -2120,7 +2113,7 @@ void OoxConverter::convert(PPTX::Logic::Paragraph *oox_paragraph, PPTX::Logic::T
 		}
 		else
 			list_present = false;
-														//свойства могут быть приписаны не только к параграфу, но и к самому объекту		
+														//properties can be assigned not only to the paragraph, but also to the object itself
 		odf_writer::paragraph_format_properties* paragraph_properties = odf_context()->text_context()->get_paragraph_properties();
 		odf_writer::text_format_properties*	text_properties = odf_context()->text_context()->get_text_properties();
 		
@@ -2148,7 +2141,7 @@ void OoxConverter::convert(PPTX::Logic::Paragraph *oox_paragraph, PPTX::Logic::T
 	if (is_empty_run_elems(oox_paragraph->RunElems))
 		list_present = false;
 
-	//if (oox_paragraph->RunElems.empty() && list_present) list_present = false; // ms не обозначает присутствие списка, libra - показывает значек
+	//if (oox_paragraph->RunElems.empty() && list_present) list_present = false; // MS doesn't indicate the presence of the list, LibreOffice shows the icon
 	
 	while ((int)odf_context()->text_context()->list_state_.levels.size() > list_level)
 	{
@@ -2295,7 +2288,7 @@ void OoxConverter::convert(PPTX::Logic::TextParagraphPr *oox_paragraph_pr	, odf_
 	{
 		convert(oox_paragraph_pr->defRPr.GetPointer(), text_properties);
 
-		//надо подумать как брать последний по family !!! 
+		//Need to think about how to take the last one for family!!!
 		//convert(oox_paragraph_pr->m_oDefRunProperty.GetPointer());
 		//odf_context()->text_context()->set_parent_span_style(odf_context()->styles_context()->last_state().get_name());
 	}
@@ -2326,7 +2319,7 @@ void OoxConverter::convert(PPTX::Logic::RunProperties *oox_run_pr, odf_writer::t
 
 //------------------------------------------------------	
 	odf_writer::odf_drawing_context *drawing = odf_context()->drawing_context(); 
-	if (drawing)	//from styles drawing impossible(  ... todoooo ??? 
+	if (drawing)	//drawing from styles is impossible(  ... TODO ???
 	{	
 		//if ((oox_run_pr->Fill.is<PPTX::Logic::GradFill>()) ||
 		//	(oox_run_pr->ln.IsInit() /*&& (oox_run_pr->ln->Fill.is_init() && oox_run_pr->ln->Fill.getType() != OOX::et_a_noFill)*/))
@@ -2849,7 +2842,7 @@ void OoxConverter::convert(PPTX::Logic::TxBody *oox_txBody, PPTX::Logic::ShapeSt
 
 	convert(oox_txBody->lstStyle.GetPointer());
 
-//single math - либра не тянет сложные вложенности
+//single math - LibreOffice doesn't handle complex nesting
 	bool bSingleMath = false;
 	if (odf_context()->drawing_context()->is_text_box() &&
 		oox_txBody->Paragrs.size() == 1 && 
@@ -2871,7 +2864,7 @@ void OoxConverter::convert(PPTX::Logic::TxBody *oox_txBody, PPTX::Logic::ShapeSt
 	{
 		convert(&oox_txBody->Paragrs[i], oox_txBody->lstStyle.GetPointer());
 	
-	//внешние настройки для текста
+	//external settings for text
 		convert(oox_txBody->bodyPr.GetPointer());			
 		
 		if (oox_style)
@@ -2955,7 +2948,7 @@ void OoxConverter::convert(PPTX::Logic::StyleRef *style_ref, int type)
 			opacity = ((nARGB >> 24) /255.) * 100.;
 		}
 		
-		if (type != 3) //?? todooo
+		if (type != 3) //?? TODO
 		{
 			odf_context()->drawing_context()->set_solid_fill(hexColor);
 		

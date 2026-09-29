@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -606,7 +599,7 @@ HRESULT _ChangePassword(const std::wstring& wsPath, const std::wstring& wsPasswo
 
 	PdfWriter::CDocument* pDoc = _pWriter->GetDocument();
 	PdfWriter::CXref* pXref   = new PdfWriter::CXref(pDoc, 0);
-	PdfWriter::CXref* m_pXref = new PdfWriter::CXref(pDoc, xref->getNumObjects()); // Для новых объектов
+	PdfWriter::CXref* m_pXref = new PdfWriter::CXref(pDoc, xref->getNumObjects()); // For new objects
 	if (!xref || !pDoc || !pXref || !m_pXref)
 	{
 		RELEASEOBJECT(pXref);
@@ -1044,7 +1037,7 @@ bool CPdfEditor::IncrementalUpdates()
 		oFile.CloseFile();
 	}
 
-	// Получение каталога и дерева страниц из reader
+	// Getting directory and page tree from reader
 	Object catDict, catRefObj, pagesRefObj;
 	if (!xref->getCatalog(&catDict)->isDict() || !catDict.dictLookupNF("Pages", &pagesRefObj))
 	{
@@ -1060,7 +1053,7 @@ bool CPdfEditor::IncrementalUpdates()
 	Ref catRef = catRefObj.getRef();
 	catRefObj.free();
 
-	// Создание каталога для writer
+	// Creating a directory for writer
 	PdfWriter::CXref* pXref = new PdfWriter::CXref(pDoc, catRef.num);
 	if (!pXref)
 	{
@@ -1148,7 +1141,7 @@ bool CPdfEditor::IncrementalUpdates()
 	}
 	catDict.free();
 
-	// Проверка уникальности имён текущих цифровых подписей pdf
+	// Checking the uniqueness of names of current digital signatures pdf
 	unsigned int nFormField = 0;
 	AcroForm* form = pPDFDocument->getCatalog()->getForm();
 	if (form)
@@ -1174,7 +1167,7 @@ bool CPdfEditor::IncrementalUpdates()
 		nFormField--;
 	}
 
-	// Получение шифрования из reader и применения для writer
+	// Getting encryption from reader and applying to writer
 	int nCryptAlgorithm = -1;
 	PdfWriter::CEncryptDict* pEncryptDict = NULL;
 	if (xref->isEncrypted())
@@ -1190,7 +1183,7 @@ bool CPdfEditor::IncrementalUpdates()
 		{
 			pEncryptDict = new PdfWriter::CEncryptDict();
 
-			// Нужно получить словарь Encrypt БЕЗ дешифровки, поэтому времено отключаем encrypted в xref
+			// Get an Encrypt dictionary WITHOUT decryption, so temporarily disable encrypted in xref
 			xref->offEncrypted();
 
 			Object encrypt, ID, ID1;
@@ -1234,11 +1227,11 @@ bool CPdfEditor::IncrementalUpdates()
 		}
 	}
 
-	// Применение редактирования для writer
+	// Applying editing for writer
 	bool bRes = pDoc->EditPdf(xref->getLastXRefPos(), xref->getNumObjects() + 1, pXref, pCatalog, pEncryptDict, nFormField);
 	if (bRes)
 	{
-		// Воспроизведение дерева страниц во writer
+		// Reproducing a page tree in writer
 		GetPageTree(xref, &pagesRefObj);
 
 		if (pDR && pDRXref)
@@ -1351,7 +1344,7 @@ void CPdfEditor::NewFrom()
 				}
 			}
 			else if (strcmp("SigFlags", chKey) == 0 || strcmp("XFA", chKey) == 0 || strcmp("DA", chKey) == 0 || strcmp("NeedAppearances", chKey) == 0)
-			{ // Нельзя гарантировать их выполнение
+			{ // Their implementation can't be guaranteed
 				oTemp.free();
 				continue;
 			}
@@ -1410,7 +1403,7 @@ void CPdfEditor::NewFrom()
 				}
 			}
 			else if (strcmp("DR", chKey) == 0)
-			{ // Добавляем только уникальные ключи
+			{ // Add only unique keys
 				PdfWriter::CResourcesDict* pDR = pDoc->GetFieldsResources();
 				if (!pDR)
 				{
@@ -1547,7 +1540,7 @@ void CPdfEditor::Close()
 			pDoc->SetPasswords(sPassword, sPassword);
 			PdfWriter::CEncryptDict* pEncryptDict = pDoc->GetEncrypt();
 
-			// Нужно получить словарь Encrypt БЕЗ дешифровки, поэтому времено отключаем encrypted в xref
+			// Get an Encrypt dictionary WITHOUT decryption, so temporarily disable encrypted in xref
 			xref->offEncrypted();
 
 			Object encrypt, ID, ID1;
@@ -1636,8 +1629,8 @@ void CPdfEditor::Close()
 	PdfWriter::CDocument* pDoc = m_pWriter->GetDocument();
 	XRef* xref = pPDFDocument->getXRef();
 
-	// Добавляем первый элемент в таблицу xref
-	// он должен иметь вид 0000000000 65535 f
+	// Adding the first element to the xref table
+	// it should look like 0000000000 65535 f
 	PdfWriter::CXref* pXref = new PdfWriter::CXref(pDoc, 0, 65535);
 	if (!pXref)
 		return;
@@ -1664,7 +1657,7 @@ void CPdfEditor::Close()
 	PdfWriter::CInfoDict* pInfoDict = NULL;
 	if (info.isDict())
 	{
-		// Обновление Info
+		// Update Info
 		PdfWriter::CObjectBase* pInfo = pTrailer->Get("Info");
 		pInfoXref = new PdfWriter::CXref(pDoc, pInfo ? pInfo->GetObjId() : 0);
 		if (!pInfoXref)
@@ -1873,7 +1866,7 @@ bool CPdfEditor::EditPage(int _nPageIndex, bool bSet, bool bActualPos)
 		pPageTree->ReplacePage(_nPageIndex, pPage);
 		pDoc->AddEditPage(pPage, _nPageIndex);
 
-		// Получение объекта страницы
+		// Getting a page object
 		Catalog* pCatalog = pPDFDocument->getCatalog();
 		XRef* xref = pPDFDocument->getXRef();
 		Ref* pPageRef = pCatalog->getPageRef(nPageIndex);
@@ -1935,7 +1928,7 @@ bool CPdfEditor::EditPage(int _nPageIndex, bool bSet, bool bActualPos)
 			}
 			else if (strcmp("Parent", chKey) == 0)
 			{
-				// Поля родителей страниц переносятся к самим страницам
+				// Page parent fields are transferred to the pages themselves
 				oTemp.free();
 				continue;
 			}
@@ -2054,7 +2047,7 @@ bool CPdfEditor::EditPage(int _nPageIndex, bool bSet, bool bActualPos)
 	if (pPageRef.first == 0)
 		return false;
 
-	// Получение объекта страницы
+	// Getting a page object
 	Object pageRefObj, pageObj;
 	pageRefObj.initRef(pPageRef.first, pPageRef.second);
 	if (!pageRefObj.fetch(xref, &pageObj) || !pageObj.isDict())
@@ -2065,7 +2058,7 @@ bool CPdfEditor::EditPage(int _nPageIndex, bool bSet, bool bActualPos)
 	}
 	pageRefObj.free();
 
-	// Воспроизведение словаря страницы из reader для writer
+	// Reproducing a page dictionary from reader to writer
 	PdfWriter::CXref* pXref = new PdfWriter::CXref(pDoc, pPageRef.first);
 	if (!pXref)
 	{
@@ -2213,7 +2206,7 @@ bool CPdfEditor::EditPage(int _nPageIndex, bool bSet, bool bActualPos)
 	GetCTM(xref, &pageObj, dCTM);
 	pageObj.free();
 
-	// Применение редактирования страницы для writer
+	// Applying page editing for writer
 	if (pDoc->EditPage(pXref, pPage, _nPageIndex))
 	{
 		if (bSet)
@@ -2263,7 +2256,7 @@ bool CPdfEditor::SplitPages(const int* arrPageIndex, unsigned int unLength, PDFD
 	if (unLength == 0)
 		unLength = pPDFDocument->getNumPages();
 
-	// Страницы должны быть созданы заранее для ссылки на них
+	// Pages must be created in advance to link to them
 	Catalog* pCatalog = pPDFDocument->getCatalog();
 	for (unsigned int i = 0; i < unLength; ++i)
 	{
@@ -2279,7 +2272,7 @@ bool CPdfEditor::SplitPages(const int* arrPageIndex, unsigned int unLength, PDFD
 			pPageTree->ReplacePage(nPagesBefore + (arrPageIndex ? arrPageIndex[i] : i), pPage);
 		pDoc->AddEditPage(pPage, nPagesBefore + (arrPageIndex ? arrPageIndex[i] : i));
 
-		// Получение объекта страницы
+		// Getting a page object
 		Object pageRefObj, pageObj;
 		pageRefObj.initRef(pPageRef->num, pPageRef->gen);
 		if (!pageRefObj.fetch(xref, &pageObj)->isDict())
@@ -2297,7 +2290,7 @@ bool CPdfEditor::SplitPages(const int* arrPageIndex, unsigned int unLength, PDFD
 		if (pPageRef->num == 0)
 			return false;
 
-		// Получение объекта страницы
+		// Getting a page object
 		PdfWriter::CPage* pPage = (PdfWriter::CPage*)m_mObjManager.GetObj(pPageRef->num + nStartRefID);
 		Object pageRefObj, pageObj;
 		pageRefObj.initRef(pPageRef->num, pPageRef->gen);
@@ -2310,7 +2303,7 @@ bool CPdfEditor::SplitPages(const int* arrPageIndex, unsigned int unLength, PDFD
 		pageRefObj.free();
 
 		bool bResources = false, bMediaBox = false, bCropBox = false, bRotate = false;
-		// Копирование страницы со всеми ресурсами из reader для writer
+		// Copying a page with all resources from reader to writer
 		for (int nIndex = 0; nIndex < pageObj.dictGetLength(); ++nIndex)
 		{
 			Object oTemp;
@@ -2454,7 +2447,7 @@ bool CPdfEditor::SplitPages(const int* arrPageIndex, unsigned int unLength, PDFD
 			pPage->EndText();
 		}
 		else
-			m_pWriter->SetNeedAddHelvetica(false); // TODO дописывает шрифт для адекватного редактирования Adobe pdf без текст. Убрать при реализации map шрифтов
+			m_pWriter->SetNeedAddHelvetica(false); // TODO adds a font for adequate editing of Adobe pdf without text. Remove when implementing map fonts
 		pageObj.free();
 	}
 
@@ -2556,12 +2549,12 @@ bool CPdfEditor::SplitPages(const int* arrPageIndex, unsigned int unLength, PDFD
 				}
 			}
 			else if (strcmp("SigFlags", chKey) == 0 || strcmp("XFA", chKey) == 0 || (strcmp("DA", chKey) == 0 && pAcroForm->Get("DA")) || strcmp("NeedAppearances", chKey) == 0)
-			{ // Нельзя гарантировать их выполнение
+			{ // Their implementation can't be guaranteed
 				oTemp.free();
 				continue;
 			}
 			else if (strcmp("DR", chKey) == 0)
-			{ // Добавляем только уникальные ключи
+			{ // Add only unique keys
 				PdfWriter::CDictObject* pDR = dynamic_cast<PdfWriter::CDictObject*>(pAcroForm->Get("DR"));
 				if (!pDR)
 				{
@@ -2657,12 +2650,12 @@ bool CPdfEditor::SplitPages(const int* arrPageIndex, unsigned int unLength, PDFD
 	}
 	oAcroForm.free(); oCatalog.free();
 
-	// Переименование полей
+	// Renaming fields
 	std::string sPrefix = m_pReader->GetPrefixForm(pPDFDocument);
 	if (!sPrefix.empty())
 	{
 		sPrefix = "_" + sPrefix;
-		std::vector<int> arrRename; // Вектор переименованных полей
+		std::vector<int> arrRename; // Vector of renamed fields
 		std::map<int, PdfWriter::CAnnotation*> mAnnots = m_pWriter->GetDocument()->GetAnnots();
 		for (auto it = mAnnots.begin(); it != mAnnots.end(); it++)
 		{
@@ -3013,7 +3006,7 @@ bool CPdfEditor::PrintPages(const std::vector<bool>& arrPages, int nFlag)
 			}
 			else if (strcmp("Parent", chKey) == 0)
 			{
-				// Поля родителей страниц переносятся к самим страницам
+				// Page parent fields are transferred to the pages themselves
 				oTemp.free();
 				continue;
 			}
@@ -3158,7 +3151,7 @@ bool CPdfEditor::PrintPages(const std::vector<bool>& arrPages, int nFlag)
 			}
 			oType.free();
 
-			// TODO Нужно ли генерировать внешний вид тем у кого его нет
+			// TODO Is it necessary to generate an appearance for those who don't have one?
 			Object oAP, oAPN;
 			if (!oAnnot.dictLookup("AP", &oAP)->isDict() || !oAP.dictLookup("N", &oAPN)->isStream())
 			{
@@ -3352,10 +3345,10 @@ bool CPdfEditor::AddPage(int nPageIndex)
 
 	// Mode WriteNew & WriteAppend
 	m_nEditPage = -1;
-	// Применение добавления страницы для writer
+	// Application of adding a page for writer
 	if (!m_pWriter->AddPage(nPageIndex))
 		return false;
-	// По умолчанию выставляются размеры первой страницы, в дальнейшем размеры можно изменить
+	// By default, the dimensions of the first page are set; later dimensions can be changed
 	double dPageDpiX, dPageDpiY;
 	double dWidth, dHeight;
 	m_pReader->GetPageInfo(0, &dWidth, &dHeight, &dPageDpiX, &dPageDpiY);
@@ -3401,7 +3394,7 @@ bool CPdfEditor::EditAnnot(int _nPageIndex, int nID)
 	if (!xref || !pPageRef || pPageRef->num == 0)
 		return false;
 
-	// Получение объекта аннотации
+	// Getting an Annotation Object
 	Object pageRefObj, pageObj, oAnnots;
 	pageRefObj.initRef(pPageRef->num, pPageRef->gen);
 	if (!pageRefObj.fetch(xref, &pageObj)->isDict() || !pageObj.dictLookup("Annots", &oAnnots)->isArray())
@@ -3428,7 +3421,7 @@ bool CPdfEditor::EditAnnot(int _nPageIndex, int nID)
 	if (!pDoc->GetEditPage(_nPageIndex))
 		EditPage(_nPageIndex, false);
 
-	// Воспроизведение словаря аннотации из reader для writer
+	// Reproducing annotation dictionary from reader to writer
 	PdfWriter::CXref* pXref = new PdfWriter::CXref(pDoc, oAnnotRef.getRefNum());
 	if (!pXref)
 	{
@@ -3714,7 +3707,7 @@ bool CPdfEditor::DeleteAnnot(int nID, Object* oAnnots)
 		oAnnots = new Object();
 		bClear = true;
 
-		// Получение объекта аннотации
+		// Getting an Annotation Object
 		Object pageRefObj, pageObj;
 		pageRefObj.initRef(pPageRef.first, pPageRef.second);
 		if (!pageRefObj.fetch(xref, &pageObj)->isDict() || !pageObj.dictLookup("Annots", oAnnots)->isArray())
@@ -3970,7 +3963,7 @@ bool CPdfEditor::EditWidgets(IAdvancedCommand* pCommand)
 		Object oParentRef;
 		oParentRef.initRef(nRefID, pEntry->type == xrefEntryCompressed ? 0 : pEntry->gen);
 		GetWidgetParent(pPDFDocument, pDoc, &oParentRef, nStartRefID);
-		// TODO перевыставить детей
+		// TODO re-expose children
 		oParentRef.free();
 	}
 	return true;
@@ -4023,7 +4016,7 @@ void CPdfEditor::ClearPage()
 	XRef* xref = pPDFDocument->getXRef();
 	Ref* pPageRef = pPDFDocument->getCatalog()->getPageRef(nPageIndex);
 
-	// Получение объекта страницы
+	// Getting a page object
 	Object pageRefObj, pageObj;
 	pageRefObj.initRef(pPageRef->num, pPageRef->gen);
 	if (!pageRefObj.fetch(xref, &pageObj)->isDict())
@@ -4034,7 +4027,7 @@ void CPdfEditor::ClearPage()
 	pageRefObj.free();
 
 	Object oAnnots;
-	// ВРЕМЕННО удаление Link аннотаций при редактировании
+	// TEMPORARILY remove Link annotations when editing
 	if (pageObj.dictLookup("Annots", &oAnnots)->isArray())
 	{
 		for (int nIndex = 0; nIndex < oAnnots.arrayGetLength(); ++nIndex)
@@ -4074,7 +4067,7 @@ void CPdfEditor::ClearPage()
 	}
 
 	// Mode::WriteAppend && Mode::WriteNew
-	// Чтение и обработка шрифтов со страницы
+	// Reading and processing fonts from a page
 	Dict* pResources = pOPage->getResourceDict();
 	if (pResources)
 	{
@@ -4303,8 +4296,8 @@ std::vector<double> CPdfEditor::WriteRedact(const std::vector<std::wstring>& arr
 		m_pWriter->put_BrushAlpha1(lAlpha1);
 		m_pWriter->put_BrushAlpha2(lAlpha2);
 
-		// TODO рендер редакта должен быть пересечён со всеми последующими редактами
-		// TODO на самом деле должен быть рендер команд редакта
+		// TODO render edit must be intersected with all subsequent edits
+		// TODO should actually be a render of edit commands
 		/*
 		PdfWriter::CPage* pCurPage = m_pWriter->GetPage();
 		pDoc->FixEditPage(pCurPage);
@@ -4312,7 +4305,7 @@ std::vector<double> CPdfEditor::WriteRedact(const std::vector<std::wstring>& arr
 		m_pWriter->SetPage(pFakePage);
 		pDoc->SetCurPage(pFakePage);
 
-		// TODO Нужно нивелировать текущую матрицу до единичной, а потом сместить ещё на CropBox
+		// TODO We need to level the current matrix to a unit matrix, and then shift it to the CropBox
 
 		pFakePage->SetStream(pCurPage->GetStream());
 		pFakePage->Add("Resources", pCurPage->Get("Resources"));
@@ -4337,7 +4330,7 @@ void CPdfEditor::ScanAndProcessFonts(PDFDoc* pPDFDocument, XRef* xref, Dict* pRe
 
 	NSFonts::IFontManager* pFontManager = m_pReader->GetFontManager();
 
-	// Обработка Font
+	// Handling Font
 	Object oFonts;
 	if (pResources->lookup("Font", &oFonts)->isDict())
 	{
@@ -4369,7 +4362,7 @@ void CPdfEditor::ScanAndProcessFonts(PDFDoc* pPDFDocument, XRef* xref, Dict* pRe
 					std::wstring wsFileName, wsFontName;
 					PdfReader::RendererOutputDev::GetFont(xref, pFontManager, pFontList, gfxFont, wsFileName, wsFontName, false);
 
-					// Собираем информацию о встроенном шрифте
+					// Collecting information about the built-in font
 					if (!PdfReader::IsBaseFont(wsFontBaseName))
 					{
 						PdfReader::TFontEntry pFontEntry;
@@ -4409,7 +4402,7 @@ void CPdfEditor::ScanAndProcessFonts(PDFDoc* pPDFDocument, XRef* xref, Dict* pRe
 	}
 	oFonts.free();
 
-	// Обработка XObject
+	// XObject Processing
 	auto fScanFonts = [this, pPDFDocument, xref, nDepth, &arrUniqueResources, pFontList, nStartRefID](Dict* pResources, const char* sName)
 	{
 		Object oObject;
@@ -4445,7 +4438,7 @@ void CPdfEditor::ScanAndProcessFonts(PDFDoc* pPDFDocument, XRef* xref, Dict* pRe
 	fScanFonts(pResources, "XObject");
 	fScanFonts(pResources, "Pattern");
 
-	// Обработка ExtGState
+	// Processing ExtGState
 	Object oExtGState;
 	if (!pResources->lookup("ExtGState", &oExtGState)->isDict())
 	{

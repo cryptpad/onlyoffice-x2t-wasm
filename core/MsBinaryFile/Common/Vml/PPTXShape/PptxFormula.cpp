@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -126,7 +119,7 @@ namespace NSGuidesOOXML
 
 		try
 		{
-			// теперь нужно просто посчитать
+			// now just count
 			switch (m_eFormulaType)
 			{
 			case ftOOXMLSum:			{ dRes = a + b - c;						break; }
@@ -158,7 +151,7 @@ namespace NSGuidesOOXML
 		if(m_lIndex < 0)
 		{
 			(*pManager->Guides)[-m_lIndex-1] = dRes;
-			// переопределим формулу
+			// redefine the formula
 					pManager->mapGuides.insert(std::pair<std::wstring, long>(m_sName, -m_lIndex-1));
 		}
 		else
@@ -319,8 +312,8 @@ namespace NSGuidesOOXML
 								return;
 						}
 						*/
-		// формулы могут повторяться!!!
-		// тогда по мере расчитывания они перетирают друг друга
+		// formulas can be repeated!!!
+		// then as they calculate they overwrite each other
 		CFormula formula( -1 -(int)strGuides.size());
 		formula.m_sName = name;
 		formula.FromString(fmla);

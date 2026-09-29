@@ -5,7 +5,7 @@
 namespace Jpeg2000
 {
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Данные функции предназначены для чтения Motion JPEG 2000 (MJ2)
+	// These functions are designed to read Motion JPEG 2000 (MJ2)
 	//-------------------------------------------------------------------------------------------------------------------------------
 
 	static bool Mj2_ReadBoxHeader(Mj2_Box* pBox, CReader * pStream)
@@ -104,7 +104,7 @@ namespace Jpeg2000
 
 		//>>>>
 
-		// Достаем первую картинку в потоке MDAT
+		// Get the first image in the MDAT stream
 		Jp2Box oTempBox;
 		Jp2_ReadBoxHeader(pMovie->pCodecInfo, pStream, &oTempBox);
 		do
@@ -124,7 +124,7 @@ namespace Jpeg2000
 		int nJ2kCodestreamOffset =  pStream->Tell();
 		int nJ2kCodestreamLength = oTempBox.nLength - 8;
 
-		// Декодируем J2K
+		// Decoding J2K
 		*ppImage = J2k_Decode(pMovie->pJ2k, pStream);
 		if (!*ppImage)
 		{
@@ -159,8 +159,8 @@ namespace Jpeg2000
 			Event_Message(EVT_ERROR, "Error: Only Version 0 handled in MVHD box\n");
 		}
 
-		// TO DO: Здесь в зависимости от версии разное число байт должно читаться
-		//        см. fcd15444-3.pdf стр.15
+		// TO DO: Here, depending on the version, a different number of bytes must be read
+		//        see fcd15444-3.pdf page 15
 
 		pMovie->unCreationTime     = pStream->Read(4); // Creation Time
 		pMovie->unModificationTime = pStream->Read(4);	// Modification Time
@@ -206,8 +206,8 @@ namespace Jpeg2000
 			return false;
 		}
 
-		// TO DO: Здесь в зависимости от версии разное число байт должно читаться
-		//        см. fcd15444-3.pdf стр.16
+		// TO DO: Here, depending on the version, a different number of bytes must be read
+		//        see fcd15444-3.pdf page 16
 
 		if (0 != pStream->Read(1)) // Version = 0
 		{
@@ -217,7 +217,7 @@ namespace Jpeg2000
 
 		int nFlag = pStream->Read(3);
 
-		if (!(1 == nFlag || 2 == nFlag || 3 == nFlag || 4 == nFlag)) // nFlags = 1, 2, 3 или 4
+		if (!(1 == nFlag || 2 == nFlag || 3 == nFlag || 4 == nFlag)) // nFlags = 1, 2, 3 or 4
 		{
 			Event_Message(EVT_ERROR, "Error with flag in TKHD box: Expected flag 1,2,3 or 4\n");
 			return false;
@@ -268,7 +268,7 @@ namespace Jpeg2000
 			return 1;
 		}
 
-		// TO DO: Сделать поодержку Version = 1
+		// TO DO: Make support Version = 1
 		if (0 != pStream->Read(1)) // Version = 0
 		{
 			Event_Message(EVT_ERROR, "Error: Only Version 0 handled in MDHD box\n");
@@ -486,9 +486,9 @@ namespace Jpeg2000
 			return false;
 		}
 
-		if (1 != pStream->Read(3)) // Если flags = 1, то медиа данные в файле
+		if (1 != pStream->Read(3)) // If flags = 1, then media data in the file
 		{
-			// TO DO: Сделать нормальное чтение строк
+			// TO DO: Do proper string reading
 			pTrack->pUrl[nUrlNum].anLocation[0] = pStream->Read(4);
 			pTrack->pUrl[nUrlNum].anLocation[1] = pStream->Read(4);
 			pTrack->pUrl[nUrlNum].anLocation[2] = pStream->Read(4);
@@ -525,9 +525,9 @@ namespace Jpeg2000
 			return false;
 		}
 
-		if (1 != pStream->Read(3)) // Если flags = 1, то медиа данные в файле
+		if (1 != pStream->Read(3)) // If flags = 1, then media data in the file
 		{
-			// TO DO: Сделать нормальное чтение строк
+			// TO DO: Do proper string reading
 			pTrack->pUrn[nUrnNum].anName[0]     = pStream->Read(4);
 			pTrack->pUrn[nUrnNum].anName[1]     = pStream->Read(4);
 			pTrack->pUrn[nUrnNum].anName[2]     = pStream->Read(4);
@@ -778,7 +778,7 @@ namespace Jpeg2000
 
 		int nSampleSize = pStream->Read(4); // SampleSize
 
-		if (0 != nSampleSize) // У всех самплов одинаковый размер
+		if (0 != nSampleSize) // All samples have the same size
 		{
 			pTrack->unSameSampleSize = 1;
 
@@ -857,7 +857,7 @@ namespace Jpeg2000
 
 	static bool Mj2_ReadSTCO(Mj2_TrackParams* pTrack, CReader * pStream)
 	{
-		// TO DO: Сделать чтение 'co64'
+		// TO DO: Make reading 'co64'
 		Mj2_Box oBox;
 		Mj2_ReadBoxHeader(&oBox, pStream);
 		if (MJ2_STCO != oBox.nType)
@@ -1185,13 +1185,13 @@ namespace Jpeg2000
 		}
 		else if (1 == pTrack->nTrackType)
 		{
-			// TO DO: Релизовать
+			// TO DO: Implement
 			int nSkipLen = pStream->Read(4);
 			pStream->Skip(nSkipLen - 4);
 		}
 		else if (2 == pTrack->nTrackType)
 		{
-			// TO DO: Реализовать
+			// TO DO: Implement
 			int nSkipLen = pStream->Read(4);
 			pStream->Skip(nSkipLen - 4);
 		}
@@ -1403,7 +1403,7 @@ namespace Jpeg2000
 			{
 				case MJ2_MDAT:
 
-				// TO DO: Связать данные в MDAT с данными MOOV
+				// TO DO: Link MDAT data to MOOV data
 				if (!Mj2_ReadMDAT(pMovie, pStream, ppImage, oBox))
 					return false;
 
@@ -1440,7 +1440,7 @@ namespace Jpeg2000
 	}
 
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Декодирование потока Mj2
+	// Decoding Mj2 stream
 	//-------------------------------------------------------------------------------------------------------------------------------
 	void       Mj2_DestroyDecompress(Mj2_Movie* pMovie)
 	{
@@ -1531,7 +1531,7 @@ namespace Jpeg2000
 		PCommon pCodecInfo = pMovie->pCodecInfo;
 
 		Image *pImage = NULL;
-		// Декодируем JP2
+		// Decoding JP2
 		if (!Mj2_ReadStruct(pMovie, pStream, &pImage))
 		{
 			Event_Message(EVT_ERROR, "Failed to decode jp2 structure\n");

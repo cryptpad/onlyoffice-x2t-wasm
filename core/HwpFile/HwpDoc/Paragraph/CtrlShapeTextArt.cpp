@@ -124,7 +124,7 @@ void CCtrlShapeTextArt::ReadTextArtShape(CXMLReader &oReader, EHanType eType)
 	}
 	END_READ_ATTRIBUTES(oReader)
 
-	//TODO:: реализовать shadows
+	//TODO:: implement shadows
 }
 
 void CCtrlShapeTextArt::ReadOutlineData(CXMLReader &oReader, EHanType eType)
@@ -157,7 +157,7 @@ EShapeType CCtrlShapeTextArt::GetShapeType() const
 
 int CCtrlShapeTextArt::ParseElement(CCtrlShapeTextArt& oObj, int nSize, CHWPStream& oBuffer, int nOff, int nVersion)
 {
-	// TODO:: проверить
+	// TODO:: check
 
 	// [HWP ambiguous] following 120bytes are unknown.
 	// Document doesn't mention about this at all.

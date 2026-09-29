@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -317,7 +310,7 @@ void CGraphicsRenderer::UpdateSize()
 	m_pRenderer->SetPageUnit(Aggplus::UnitMillimeter);
 }
 
-// тип рендерера-----------------------------------------------------------------------------
+// renderer type------------------------------------------------------------------------------
 HRESULT CGraphicsRenderer::get_Type(LONG* lType)
 {
 	if (NULL == lType)
@@ -326,10 +319,10 @@ HRESULT CGraphicsRenderer::get_Type(LONG* lType)
 	*lType = c_nGrRenderer;
 	return S_OK;
 }
-//-------- Функции для работы со страницей --------------------------------------------------
+//-------- Functions for working with the page --------------------------------------------------
 HRESULT CGraphicsRenderer::NewPage()
 {
-	// ну не влезло так не влезло
+	// value does not fit; skip
 	return S_OK;
 }
 HRESULT CGraphicsRenderer::put_Height(const double& dHeight)
@@ -741,7 +734,7 @@ HRESULT CGraphicsRenderer::put_FontFaceIndex(const int& lFaceIndex)
 	return S_OK;
 }
 
-//-------- Функции для вывода текста --------------------------------------------------------
+//-------- Functions for text output --------------------------------------------------------
 HRESULT CGraphicsRenderer::CommandDrawTextCHAR(const LONG& c, const double& x, const double& y, const double& w, const double& h)
 {
 	if (c_nHyperlinkType == m_lCurrentCommandType)
@@ -809,7 +802,7 @@ HRESULT CGraphicsRenderer::CommandDrawTextEx(const std::wstring& bsUnicodeText, 
     return CommandDrawText(bsUnicodeText, x, y, w, h);
 }
 
-//-------- Маркеры для команд ---------------------------------------------------------------
+//-------- Markers for commands ---------------------------------------------------------------
 HRESULT CGraphicsRenderer::BeginCommand(const DWORD& lType)
 {
 	m_lCurrentCommandType = lType;
@@ -883,7 +876,7 @@ HRESULT CGraphicsRenderer::EndCommand(const DWORD& lType)
 	return S_OK;
 }
 
-//-------- Функции для работы с Graphics Path -----------------------------------------------
+//-------- Functions for working with Graphics Path -----------------------------------------------
 HRESULT CGraphicsRenderer::PathCommandMoveTo(const double& x, const double& y)
 {
 	if (!CheckValidate())
@@ -1024,7 +1017,7 @@ HRESULT CGraphicsRenderer::DrawPath(const LONG& nType)
 							oFrame.Decode(pImageData, nDecodeLen);
 							RELEASEARRAYOBJECTS(pImageData);
 						}
-						// pImage отдается pTextureBrush и освобождается вместе с pBrush
+						// pImage is given to pTextureBrush and released along with pBrush
 						Aggplus::CImage* pImage = new Aggplus::CImage();
 						pImage->Create(oFrame.get_Data(), oFrame.get_Width(), oFrame.get_Height(), oFrame.get_Stride());
 						oFrame.ClearNoAttack();
@@ -1118,7 +1111,7 @@ HRESULT CGraphicsRenderer::PathCommandTextCHAR(const LONG& c, const double& x, c
 
 	_SetFont();
 
-	// так как пат рисуется в миллиметрах - надо перевести пункты в миллиметры
+	// since the path is drawn in millimeters, convert the points to millimeters
 	float fSize = (float)(0.3528 * m_oFont.Size);
     m_pPath->AddStringC(c, m_pFontManager, x, y);
 
@@ -1131,7 +1124,7 @@ HRESULT CGraphicsRenderer::PathCommandText(const std::wstring& bsText, const dou
 
 	_SetFont();
 
-	// так как пат рисуется в миллиметрах - надо перевести пункты в миллиметры
+	// since the path is drawn in millimeters, convert the points to millimeters
 	float fSize = (float)(0.3528 * m_oFont.Size);
     m_pPath->AddString(bsText, m_pFontManager, x, y);
 
@@ -1159,7 +1152,7 @@ HRESULT CGraphicsRenderer::PathCommandTextEx(const std::wstring& bsUnicodeText, 
 
         _SetFont();
 
-        // так как пат рисуется в миллиметрах - надо перевести пункты в миллиметры
+        // since the path is drawn in millimeters, convert the points to millimeters
         float fSize = (float)(0.3528 * m_oFont.Size);
         m_pPath->AddString(pGids, nGidsCount, m_pFontManager, x, y);
 
@@ -1170,7 +1163,7 @@ HRESULT CGraphicsRenderer::PathCommandTextEx(const std::wstring& bsUnicodeText, 
     return PathCommandText(bsUnicodeText, x, y, w, h);
 }
 
-//-------- Функции для вывода изображений ---------------------------------------------------
+//-------- Functions for displaying images ------------------------------------------------------------------
 HRESULT CGraphicsRenderer::DrawImage(IGrObject* pImage, const double& x, const double& y, const double& w, const double& h)
 {
 	if (!CheckValidate(TRUE) || NULL == pImage)

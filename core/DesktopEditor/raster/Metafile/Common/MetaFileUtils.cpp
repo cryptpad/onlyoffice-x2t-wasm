@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -66,7 +59,7 @@ namespace MetaFile
 			ulBit = ulBit << 1;
 			unOffset++;
 
-			// ограничиваемся 32-битами
+			// limited to 32-bits
 			if (ulBit & 0x80000000)
 				return 0;
 		}
@@ -141,7 +134,7 @@ namespace MetaFile
 		*pulWidth    = 0;
 		*pulHeight   = 0;
 
-		if (BI_BITCOUNT_0 == ushBitCount) // Значит компрессия либо PNG, либо JPEG
+		if (BI_BITCOUNT_0 == ushBitCount) // This means the compression is either PNG or JPEG.
 		{
 			if (BI_JPEG != unCompression || BI_PNG != unCompression)
 				return false;
@@ -164,13 +157,13 @@ namespace MetaFile
 			CBgraFrame oFrame;
 			oFrame.OpenFile(wsTempFileName);
 
-			// TODO: Как будут файлы сделать чтение.
+			// TODO: How will the files be read.
 			NSFile::CFileBinary::Remove(wsTempFileName);
 			return false;
 		}
 		else if (BI_BITCOUNT_1 == ushBitCount)
 		{
-			// Двуцветная картинка, значит палитра состоит из 2-х цветов
+			// Two-color image, which means the palette consists of 2 colors
 			TRgbQuad oColor1, oColor2;
 
 			if (oHeaderStream.CanRead() >= 8)
@@ -183,7 +176,7 @@ namespace MetaFile
 				oColor2.r = oColor2.g = oColor2.b = 255;
 			}
 
-			// Считываем саму картинку
+			// Reading the image itself
 			int lCalcLen = (((nWidth * ushPlanes * ushBitCount + 31) & ~31) / 8) * abs(nHeight);
 			if (lCalcLen > lBufLen)
 				return false;
@@ -218,7 +211,7 @@ namespace MetaFile
 						int nAlpha = 255;
 						if (nX == nWidthBytes - 1)
 						{
-							// Не до конца заполненный байт иногда заполняется странным цветом, поэтому мы делаем его прозрачным
+							// An incomplete byte is sometimes filled with a strange color, so we make it transparent
 							nBitCount = nLastBitCount;
 							nAlpha = 0;
 						}
@@ -254,7 +247,7 @@ namespace MetaFile
 						int nAlpha = 255;
 						if (nX == nWidthBytes - 1)
 						{
-							// Не до конца заполненный байт иногда заполняется странным цветом, поэтому мы делаем его прозрачным
+							// An incomplete byte is sometimes filled with a strange color, so we make it transparent
 							nBitCount = nLastBitCount;
 							//nAlpha = 0;
 						}
@@ -295,20 +288,20 @@ namespace MetaFile
 			if (oHeaderStream.CanRead() < unColorTableLen * 4)
 				return false;
 
-			// Считываем палитру
+			// Reading the palette
 			for (unsigned short ushIndex = 0; ushIndex < unColorTableLen; ushIndex++)
 			{
 				oHeaderStream >> oColorTable[ushIndex];
 			}
 
-			// 4 бита - 1 пиксел
+			// 4 bits - 1 pixel
 
-			// Считываем саму картинку
+			// Reading the image itself
 			int lCalcLen = (((nWidth * ushPlanes * ushBitCount + 31) & ~31) / 8) * abs(nHeight);
 			if (lCalcLen != lBufLen)
 				return false;
 
-			// Ширина в байтах должна быть кратна 4, значит сама ширина должна быть кратна 8
+			// The width in bytes must be a multiple of 4, which means the width itself must be a multiple of 8
 			int nAdd = 0;
 			while (0 != div_t(div(nWidth + nAdd, 8)).rem)
 			{
@@ -412,14 +405,14 @@ namespace MetaFile
 			if (oHeaderStream.CanRead() < ushColorTableLen * 4)
 				return false;
 
-			// Считываем палитру
+			// Reading the palette
 			for (unsigned short ushIndex = 0; ushIndex < ushColorTableLen; ushIndex++)
 			{
 				oHeaderStream >> oColorTable[ushIndex];
 			}
 
-			// 1 байт - 1 пиксел
-			// Ширина должна быть кратна 4.
+			// 1 byte - 1 pixel
+			// The width must be a multiple of 4.
 			int nAdd = 0;
 			while (0 != div_t(div(nWidth + nAdd, 4)).rem)
 			{
@@ -561,7 +554,7 @@ namespace MetaFile
 
 			if (BI_RGB == unCompression)
 			{
-				// Маски, сдвиги и коэффициенты уже заполнены стандартными значениями для масок
+				// Masks, shifts and coefficients are already filled with standard values for masks
 				// 000000000011111 - Red
 				// 000001111100000 - Green
 				// 111110000000000 - Blue
@@ -583,13 +576,13 @@ namespace MetaFile
 			else
 				return false;
 
-			// Считываем саму картинку
+			// Reading the image itself
 			int lCalcLen = (((nWidth * ushPlanes * ushBitCount + 31) & ~31) / 8) * abs(nHeight);
 			if (lCalcLen != lBufLen)
 				return false;
 
-			// 2 байт на все каналы канал
-			// (Ширина * 3) должна быть кратна 4.
+			// 2 bytes for all channels
+			// (Width * 3) must be a multiple of 4.
 			int nAdd = 0;
 			while (0 != div_t(div(2 * nWidth + nAdd, 4)).rem)
 			{
@@ -656,15 +649,15 @@ namespace MetaFile
 		else if (BI_BITCOUNT_5 == ushBitCount)
 		{
 			if (BI_RGB != unCompression)
-				return false; // TODO: Сделать данный вариант, как только будет файлы с данным типом
+				return false; // TODO: Make this option as soon as there are files with this type
 
-			// Считываем саму картинку
+			// Reading the image itself
 			int lCalcLen = (((nWidth * ushPlanes * ushBitCount + 31) & ~31) / 8) * abs(nHeight);
 			if (lCalcLen != lBufLen)
 				return false;
 
-			// 1 байт на каждый канал
-			// (Ширина * 3) должна быть кратна 4.
+			// 1 byte per channel
+			// (Width * 3) must be a multiple of 4.
 			int nAdd = 0;
 			while (0 != div_t(div(3 * nWidth + nAdd, 4)).rem)
 			{
@@ -722,7 +715,7 @@ namespace MetaFile
 
 			if (BI_RGB == unCompression)
 			{
-				// Маски, сдвиги и коэффициенты уже заполнены стандартными значениями для масок
+				// Masks, shifts and coefficients are already filled with standard values for masks
 			}
 			else if (BI_BITFIELDS == unCompression)
 			{
@@ -736,13 +729,13 @@ namespace MetaFile
 			else
 				return false;
 
-			// Считываем саму картинку
+			// Reading the image itself
 			int lCalcLen = (((nWidth * ushPlanes * ushBitCount + 31) & ~31) / 8) * abs(nHeight);
 			if (lCalcLen != lBufLen)
 				return false;
 
-			// 1 байт на каждый канал
-			// Ширина должна быть кратна 4.
+			// 1 byte per channel
+			// The width must be a multiple of 4.
 			int nAdd = 0;
 			while (0 != div_t(div(nWidth + nAdd, 4)).rem)
 			{
@@ -767,7 +760,7 @@ namespace MetaFile
 						pBgraBuffer[nIndex + 0] = pBuffer[0]; pBuffer++; lBufLen--;
 						pBgraBuffer[nIndex + 1] = pBuffer[0]; pBuffer++; lBufLen--;
 						pBgraBuffer[nIndex + 2] = pBuffer[0]; pBuffer++; lBufLen--;
-						pBgraBuffer[nIndex + 3] = pBuffer[0]; pBuffer++; lBufLen--; // Если брать значение из картинки, тогда она получается всегда прозрачной
+						pBgraBuffer[nIndex + 3] = pBuffer[0]; pBuffer++; lBufLen--; // Taking the value from the image makes it always transparent
 					}
 					for (int nX = nWidth; nX < nWidth + nAdd; nX++)
 					{
@@ -791,7 +784,7 @@ namespace MetaFile
 						pBgraBuffer[nIndex + 0] = pBuffer[0]; pBuffer++; lBufLen--;
 						pBgraBuffer[nIndex + 1] = pBuffer[0]; pBuffer++; lBufLen--;
 						pBgraBuffer[nIndex + 2] = pBuffer[0]; pBuffer++; lBufLen--;
-						pBgraBuffer[nIndex + 3] = pBuffer[0]; pBuffer++; lBufLen--; // Если брать значение из картинки, тогда она получается всегда прозрачной
+						pBgraBuffer[nIndex + 3] = pBuffer[0]; pBuffer++; lBufLen--; // Taking the value from the image makes it always transparent
 					}
 
 					for (int nX = nWidth; nX < nWidth + nAdd; nX++)
@@ -824,7 +817,7 @@ namespace MetaFile
 		CDataStream oHeaderStream;
 		oHeaderStream.SetStream(pHeaderBuffer, ulHeaderBufferLen);
 
-		// Считываем заголовок
+		// Reading the header
 		unsigned int ulHeaderSize;
 		oHeaderStream >> ulHeaderSize;
 
@@ -843,7 +836,7 @@ namespace MetaFile
 		CDataStream oHeaderStream;
 		oHeaderStream.SetStream(pImageBuffer, unBufferLen);
 
-		// Считываем заголовок
+		// Reading the header
 		unsigned int unHeaderSize;
 		oHeaderStream >> unHeaderSize;
 
@@ -900,7 +893,7 @@ namespace MetaFile
 			}
 			else
 			{
-				// TODO: реализовать другие типы цветов
+				// TODO: Implement other types of colors
 			}
 		}
 	}
@@ -909,7 +902,7 @@ namespace MetaFile
 		double dX0 = (nL + nR) / 2.0;
 		double dY0 = (nT + nB) / 2.0;
 
-		// Определим квадрант
+		// Determine the quadrant
 		int nQuarter = -1;
 		if (nX >= dX0)
 		{
@@ -946,7 +939,7 @@ namespace MetaFile
 		if (NULL == pBgra)
 			return;
 
-		// Для битовых операций SRCPAINT и SRCAND сделаем, как будто фон чисто белый.
+		// For SRCPAINT and SRCAND bit operations, treat the background as pure white.
 		if (0x008800C6 == unRasterOperation) // SRCPAINT
 		{
 			BYTE* pCur = pBgra;
@@ -975,7 +968,7 @@ namespace MetaFile
 				}
 			}
 		}
-		//Точная копия картинки, поэтому делаем alpha канал = 0xff, чтобы нейтрализовать его
+		//An exact copy of the image, so we set the alpha channel = 0xff to make it fully opaque
 		else if (0x00CC0020 == unRasterOperation) //SRCCOPY
 		{
 			for (unsigned int unIndex = 3; unIndex < unWidth * 4 * unHeight; unIndex += 4)
@@ -1093,7 +1086,7 @@ namespace MetaFile
 	{
 		NSStringExt::CConverter::ESingleByteEncoding eCharSet = NSStringExt::CConverter::ESingleByteEncoding::SINGLE_BYTE_ENCODING_DEFAULT;;
 
-		// Соответствие Charset -> Codepage: http://support.microsoft.com/kb/165478
+		// Corresponding Charset -> Codepage: http://support.microsoft.com/kb/165478
 		// http://msdn.microsoft.com/en-us/library/cc194829.aspx
 		//  Charset Name       Charset Value(hex)  Codepage number
 		//  ------------------------------------------------------

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -44,7 +37,7 @@
 	 */
 	function ZLib()
 	{
-		this.engine = 0; // указатель на нативный класс Zlib
+		this.engine = 0; // pointer to native Zlib class
 		this.files = {};
 	}
 
@@ -71,17 +64,17 @@
 
 		var arrayBuffer = (undefined !== buf.byteLength) ? new Uint8Array(buf) : buf;
 
-		// TODO: открыли архив, и заполнили this.files
-		// объектами { path : null }
+		// TODO: opened the archive and filled in this.files
+		// objects { path : null }
 
-		// копируем память в память webasm
+		// copy memory to webasm memory
 		var FileRawDataSize = arrayBuffer.length;
 		var FileRawData = Module["_Zlib_Malloc"](FileRawDataSize);
 		if (0 == FileRawData)
 			return false;
 		Module["HEAP8"].set(arrayBuffer, FileRawData);
 
-		// грузим данные
+		// loading data
 		this.engine = Module["_Zlib_Open"](FileRawData, FileRawDataSize);
 		if (0 == this.engine)
 		{
@@ -89,7 +82,7 @@
 			return false;
 		}
 
-		// получаем пути в архиве
+		// get the paths in the archive
 		var pointer = Module["_Zlib_GetPaths"](this.engine);
 		if (0 == pointer)
 		{
@@ -179,11 +172,11 @@
 		if (!this.isModuleInit || !this.engine)
 			return null;
 
-		// проверяем - есть ли файл вообще?
+		// check to see if the file exists at all?
 		if (undefined === this.files[path])
 			return null;
 
-		// проверяем - может мы уже его разжимали?
+		// Check - maybe it may already have been decompressed?
 		if (null !== this.files[path])
 		{
 			if (this.files[path].l > 0)
@@ -233,7 +226,7 @@
 		if (!data)
 			return false;
 
-		// проверяем - может такой файл уже есть? тогда его надо сначала удалить?
+		// Check - maybe such a file already exists? should it be removed first then?
 		if (undefined !== this.files[path])
 			this.removeFile(path);
 
@@ -271,7 +264,7 @@
 		if (!this.isModuleInit || !this.engine)
 			return false;
 
-		// проверяем - может такого файла и нет?
+		// Check - maybe there is no such file?
 		if (undefined === this.files[path])
 			return false;
 			
@@ -389,6 +382,11 @@
 		ZLib.prototype.isModuleInit = true;
 		window["ZLibModule_onLoad"] && window["ZLibModule_onLoad"]();
 	};
+
+
+    Module.onRuntimeInitialized = function () {
+        self.onZlibEngineInit();
+    };
 
 })(window, undefined);
 

@@ -7,15 +7,15 @@ namespace HTML
 {
 struct THTMLParameters
 {
-	std::wstring m_sGenres;      // Жанры
-	std::wstring m_sAuthors;     // Авторы
-	std::wstring m_sBookTitle;   // Название
-	std::wstring m_sDate;        // Дата
-	std::wstring m_sDescription; // описание
-	std::wstring m_sLanguage;    // Язык
-	bool m_bNeedPageBreakBefore; // Новый html с новой страницы
-	std::wstring m_sdocDefaults; // Стиль docDefaults
-	std::wstring m_sNormal;      // Стиль normal
+	std::wstring m_sGenres;      // Genres
+	std::wstring m_sAuthors;     // Authors
+	std::wstring m_sBookTitle;   // Title
+	std::wstring m_sDate;        // Date
+	std::wstring m_sDescription; // description
+	std::wstring m_sLanguage;    // Language
+	bool m_bNeedPageBreakBefore; // New html from new page
+	std::wstring m_sdocDefaults; // Style docDefaults
+	std::wstring m_sNormal;      // Style normal
 
 	THTMLParameters() : m_bNeedPageBreakBefore(false) {}
 

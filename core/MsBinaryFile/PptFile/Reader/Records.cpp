@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -173,7 +166,7 @@ void CRecordsContainer::ReadFromStream(SRecordHeader & oHeader, const XLS::CFStr
     }
     if (lCurLen != m_oHeader.RecLen)
     {
-        // нужно разобраться, что тут такое!!!
+        // Need to figure out what's going on here!!!
         LONG lPosition = 0;
         pStream->seekFromBegin(lPosition + m_oHeader.RecLen);
     }
@@ -207,7 +200,7 @@ void CRecordsContainer::ReadFromStream(SRecordHeader & oHeader, POLE::Stream* pS
     }
     if (lCurLen != m_oHeader.RecLen)
     {
-        // нужно разобраться, что тут такое!!!
+        // Need to figure out what's going on here!!!
         LONG lPosition = 0;
         StreamUtils::StreamSeek(lPosition + m_oHeader.RecLen, pStream);
     }
@@ -575,7 +568,7 @@ IRecord* CreateByType(SRecordHeader oHeader, _commonInfo* commonInfo)
             CREATE_BY_TYPE(RT_RoundTripColorMapping12Atom, RoundTripColorMapping12Atom)
             CREATE_BY_TYPE(RT_RoundTripOriginalMainMasterId12Atom, RoundTripOriginalMainMasterId12Atom)
             CREATE_BY_TYPE(RT_RoundTripCompositeMasterId12Atom, RoundTripCompositeMasterId12Atom)
-            CREATE_BY_TYPE(RT_RoundTripContentMasterInfo12Atom, RoundTripContentMasterInfo12Atom)			// ECMA-376 дубль
+            CREATE_BY_TYPE(RT_RoundTripContentMasterInfo12Atom, RoundTripContentMasterInfo12Atom)			// ECMA-376 duplicate
             CREATE_BY_TYPE(RT_RoundTripShapeId12Atom, RoundTripShapeId12Atom)
             CREATE_BY_TYPE(RT_RoundTripContentMasterId12Atom, RoundTripContentMasterId12Atom)
             CREATE_BY_TYPE(RT_RoundTripOArtTextStyles12Atom, RoundTripOArtTextStyles12Atom)
@@ -681,12 +674,12 @@ IRecord* CreateByType(SRecordHeader oHeader, _commonInfo* commonInfo)
 
             CREATE_BY_TYPE(RT_List, CRecordDocInfoListContainer)
 
-            // интерактив
+            // interactive
             CREATE_BY_TYPE(RT_InteractiveInfoAtom, CRecordInteractiveInfoAtom)
             CREATE_BY_TYPE(RT_TextInteractiveInfoAtom, CRecordTextInteractiveInfoAtom)
             CREATE_BY_TYPE(RT_InteractiveInfo, CRecordMouseInteractiveInfoContainer)
 
-            // читаем для анимации
+            // read for animation
 
             CREATE_BY_TYPE(RT_SoundCollection, CRecordSoundCollectionContainer)
             CREATE_BY_TYPE(RT_ExternalObjectList, CRecordExObjListContainer)

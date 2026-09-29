@@ -1,0 +1,97 @@
+diff --git a/inc/librevenge-stream/RVNGStreamImplementation.h b/inc/librevenge-stream/RVNGStreamImplementation.h
+index f4c1a742..973e8404 100644
+--- a/inc/librevenge-stream/RVNGStreamImplementation.h
++++ b/inc/librevenge-stream/RVNGStreamImplementation.h
+@@ -33,6 +33,9 @@ class REVENGE_STREAM_API RVNGFileStream: public RVNGInputStream
+ {
+ public:
+ 	explicit RVNGFileStream(const char *filename);
++#if defined(_WIN32) || defined(_WIN64)
++    explicit RVNGFileStream(const wchar_t *filename);
++#endif
+ 	~RVNGFileStream();
+ 
+ 	const unsigned char *read(unsigned long numBytes, unsigned long &numBytesRead);
+diff --git a/src/lib/RVNGDirectoryStream.cpp b/src/lib/RVNGDirectoryStream.cpp
+index 0019d104..b0ca5210 100644
+--- a/src/lib/RVNGDirectoryStream.cpp
++++ b/src/lib/RVNGDirectoryStream.cpp
+@@ -25,6 +25,14 @@
+ #include <boost/algorithm/string.hpp>
+ #include <librevenge-stream/librevenge-stream.h>
+ 
++#if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
++#   define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
++#endif
++
++#if !defined(S_ISDIR) && defined(S_IFMT) && defined(S_IFDIR)
++#   define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
++#endif
++
+ namespace librevenge
+ {
+ 
+diff --git a/src/lib/RVNGStreamImplementation.cpp b/src/lib/RVNGStreamImplementation.cpp
+index 6f366904..a398a6fd 100644
+--- a/src/lib/RVNGStreamImplementation.cpp
++++ b/src/lib/RVNGStreamImplementation.cpp
+@@ -35,6 +35,17 @@
+ #define S_ISREG(x) (((x) & S_IFMT) == S_IFREG)
+ #endif
+ 
++#if defined(_WIN32) || defined(_WIN64)
++#   include <sys/stat.h>
++
++static __inline int wstat(wchar_t const* const _FileName, struct stat* const _Stat)
++{
++    _STATIC_ASSERT(sizeof(struct stat) == sizeof(struct _stat64i32));
++    return _wstat64i32(_FileName, (struct _stat64i32*)_Stat);
++}
++
++#endif
++
+ namespace librevenge
+ {
+ 
+@@ -136,6 +147,41 @@ RVNGFileStream::RVNGFileStream(const char *filename) :
+ 	fseek(d->file, 0, SEEK_SET);
+ }
+ 
++#if defined(_WIN32) || defined(_WIN64)
++
++RVNGFileStream::RVNGFileStream(const wchar_t *filename) :
++   RVNGInputStream(),
++   d(new RVNGFileStreamPrivate())
++{
++   d->file = _wfopen(filename, L"rb");
++   if (!d->file || ferror(d->file))
++   {
++       delete d;
++       d = 0;
++       return;
++   }
++
++   struct stat status;
++   const int retval = wstat(filename, &status);
++   if ((0 != retval) || !S_ISREG(status.st_mode))
++   {
++       delete d;
++       d = 0;
++       return;
++   }
++
++   fseek(d->file, 0, SEEK_END);
++
++   d->streamSize = (unsigned long) ftell(d->file);
++   if (d->streamSize == (unsigned long)-1)
++       d->streamSize = 0;
++   if (d->streamSize > (std::numeric_limits<unsigned long>::max)() / 2)
++       d->streamSize = (std::numeric_limits<unsigned long>::max)() / 2;
++   fseek(d->file, 0, SEEK_SET);
++}
++
++#endif
++
+ RVNGFileStream::~RVNGFileStream()
+ {
+ 	if (d)

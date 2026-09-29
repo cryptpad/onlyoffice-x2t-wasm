@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -52,7 +45,7 @@ CStylesWriter::CStylesWriter() : m_pTheme(NULL) {}
 CStylesWriter::CStylesWriter(PPT::CTheme* pTheme) : m_pTheme(pTheme) {}
 
 void CStylesWriter::ConvertStyleLevel(PPT::CTextStyleLevel& oLevel, PPT::CStringWriter& oWriter, const int& nLevel)
-{//дублирование CTextPFRun и  CTextCFRun с ShapeWriter - todooo  - вынести отдельно
+{//duplication of CTextPFRun and CTextCFRun with ShapeWriter - TODO - move separately
     std::wstring str1;
     if (nLevel == 9)
         str1 = L"<a:defPPr";
@@ -287,7 +280,7 @@ std::wstring PPT::CShapeWriter::ConvertBrush(CBrush & brush)
     {
         if (m_pElement && ( m_pElement->m_etType == etPicture ||
                             m_pElement->m_etType == etAudio ||
-                            m_pElement->m_etType == etVideo))		//фон для картинки с празрачностью
+                            m_pElement->m_etType == etVideo))		//background for images with transparency
         {
             brush_writer.WriteString(L"<a:noFill/>");
         }
@@ -364,7 +357,7 @@ std::wstring PPT::CShapeWriter::ConvertBrush(CBrush & brush)
         brush_writer.WriteString(L"</a:gradFill>");
     }
     else if(brush.Type == c_BrushTypePattern)
-    {//типов нету в ппт - вместо них шаблон-картинка
+    {//There are no types in ppt - instead of them there is an image template
         brush_writer.WriteString(L"<a:pattFill prst=\"pct80\">");
         brush_writer.WriteString(L"<a:fgClr>");
         brush_writer.WriteString(ConvertColor(brush.Color1, brush.Alpha1));
@@ -572,7 +565,7 @@ void PPT::CShapeWriter::WriteImageInfo()
     m_oWriter.WriteString(std::wstring(L"\""));
 
     if (!pImageElement->m_sDescription.empty())
-    {//бывает всякая разная бяка сохранена
+    {//there are all sorts of different things saved
         m_oWriter.WriteString(std::wstring(L" descr=\""));
         m_oWriter.WriteString(XmlUtils::EncodeXmlStringExtend(pImageElement->m_sDescription, true));
         m_oWriter.WriteString(std::wstring(L"\""));
@@ -1197,7 +1190,7 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
         std::wstring prstTxWarp = oox::Spt2WordArtShapeType((oox::MSOSPT)pShapeElement->m_lShapeType);
         m_oWriter.WriteString(std::wstring(L"<a:prstTxWarp"));
         m_oWriter.WriteString(std::wstring(L" prst=\"") + prstTxWarp + L"\">");
-        m_oWriter.WriteString(std::wstring(L"<a:avLst>"));//модификаторы
+        m_oWriter.WriteString(std::wstring(L"<a:avLst>"));//modifiers
 
         CPPTShape *pPPTShape = dynamic_cast<CPPTShape *>(pShapeElement->m_pShape->getBaseShape().get());
         std::wstring strVal;
@@ -1208,7 +1201,7 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
             {
             case oox::msosptTextFadeUp:
             {
-                double kf = 4.63; //"волшебный"
+                double kf = 4.63; //"magic"
                 std::wstring strVal = std::to_wstring((int)(kf * pPPTShape->m_arAdjustments[i]));
 
                 m_oWriter.WriteString(L"<a:gd name=\"adj\" fmla=\"val ");
@@ -1364,7 +1357,7 @@ void PPT::CShapeWriter::WriteTextInfo(PPT::CTextCFRun* pLastCF)
             m_oWriter.WriteString(std::wstring(L">"));
 
             if (m_bWordArt)
-            {//порядок важен - линия, заливка, тень !!!
+            {//The order is important - line, fill, shadow!!!
                 if (pShapeElement->m_bLine)
                 {
                     m_oWriter.WriteString(ConvertLine(pShapeElement->m_oPen));
@@ -2066,7 +2059,7 @@ void PPT::CShapeWriter::ParseXmlAlternative(const std::wstring & xml)
 
             //            writer.ClearNoAttack();
             //            if ((shape->txBody.IsInit()) && (shape->txBody->bodyPr.IsInit()) && (shape->txBody->bodyPr->prstTxWarp.IsInit()))
-            //            {//только WordArt
+            //            {//WordArt only
             //                shape->txBody->toXmlWriter(&writer);
             //                m_xmlTxBodyAlternative = writer.GetXmlString();
         }
@@ -2089,7 +2082,7 @@ std::wstring PPT::CShapeWriter::ConvertImage()
     if (pImageElement->m_bImagePresent == false)
     {
         if (pImageElement->m_sName.empty()) return L"";
-        //ppt_presentation.ppt - ссылка на файл на диске
+        //ppt_presentation.ppt - link to a file on disk
 
         pImageElement->m_strImageFileName.clear();
         pImageElement->m_bImagePresent = true;
@@ -2268,7 +2261,7 @@ HRESULT PPT::CShapeWriter::get_Type(LONG* lType)
     *lType = c_nSVGConverter;
     return S_OK;
 }
-//-------- Функции для работы со страницей --------------------------------------------------
+//-------- Functions for working with the page --------------------------------------------------
 HRESULT PPT::CShapeWriter::NewPage()
 {
     return S_OK;
@@ -2728,7 +2721,7 @@ HRESULT PPT::CShapeWriter::put_EdgeDist(double val)
     m_oEdge.Dist = val;
     return S_OK;
 }
-//-------- Функции для вывода текста --------------------------------------------------------
+//-------- Functions for text output --------------------------------------------------------
 HRESULT PPT::CShapeWriter::CommandDrawText(const std::wstring& bsText, const double& x, const double& y, const double& w, const double& h)
 {
     if (c_nHyperlinkType == m_lCurrentCommandType)
@@ -2797,7 +2790,7 @@ HRESULT PPT::CShapeWriter::CommandDrawTextEx(const std::wstring& bsUnicodeText, 
     }
     return S_OK;
 }
-//-------- Маркеры для команд ---------------------------------------------------------------
+//-------- Markers for commands ---------------------------------------------------------------
 HRESULT PPT::CShapeWriter::BeginCommand(const _UINT32& lType)
 {
     if (c_nPathType == lType)
@@ -2814,7 +2807,7 @@ HRESULT PPT::CShapeWriter::EndCommand(const _UINT32& lType)
     m_lCurrentCommandType = -1;
     return S_OK;
 }
-//-------- Функции для работы с Graphics Path -----------------------------------------------
+//-------- Functions for working with Graphics Path -----------------------------------------------
 HRESULT PPT::CShapeWriter::PathCommandMoveTo(const double& x, const double& y)
 {
     if (c_nSimpleGraphicType == m_lCurrentCommandType)
@@ -2949,7 +2942,7 @@ HRESULT PPT::CShapeWriter::PathCommandText(const std::wstring& bsText, const dou
 HRESULT PPT::CShapeWriter::PathCommandTextEx(const std::wstring& bsUnicodeText, const unsigned int* pGids, const unsigned int nGidsCount, const double& x, const double& y, const double& w, const double& h)
 {
     bool bGid = m_oFont.StringGID;
-    //TODOO
+    //TODO
     //if (NULL != bsGidText)
     //{
     //       m_oFont.StringGID = true;
@@ -2962,7 +2955,7 @@ HRESULT PPT::CShapeWriter::PathCommandTextEx(const std::wstring& bsUnicodeText, 
     m_oFont.StringGID = bGid;
     return S_OK;
 }
-//-------- Функции для вывода изображений ---------------------------------------------------
+//-------- Functions for displaying images ------------------------------------------------------------------
 HRESULT PPT::CShapeWriter::DrawImage(IGrObject* pImage, const double& x, const double& y, const double& w, const double& h)
 {
     return S_OK;

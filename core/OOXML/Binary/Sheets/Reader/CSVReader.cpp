@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -193,14 +186,14 @@ int CSVReader::Impl::AddCell(std::wstring &sText, INT nStartCell, std::stack<INT
 	}
 	size_t length = sText.length();
 
-// Пустую не пишем
+// Don't write empty words
 	if ((0 == length) || (sText[0] == L'\0'))
 		return result;
 
 	OOX::Spreadsheet::CCell *pCell = new OOX::Spreadsheet::CCell();
 	pCell->m_oType.Init();
 
-	pCell->m_oCacheValue = sText; // как есть
+	pCell->m_oCacheValue = sText; // as is
 
 	pCell->setRowCol(nRow, nCol);
 	result = cellFormatController_->ProcessCellType(pCell, sText, bIsWrap);
@@ -214,9 +207,9 @@ _UINT32 CSVReader::Impl::Read(const std::wstring &sFileName, OOX::Spreadsheet::C
 	NSFile::CFileBinary oFile;
 	if (false == oFile.OpenFile(sFileName)) return AVS_FILEUTILS_ERROR_CONVERT;
 	//-----------------------------------------------------------------------------------
-	// Создадим Workbook
+	// Create a Workbook
 	oXlsx.CreateWorkbook();
-	// Создадим стили
+	// Create styles
 	oXlsx.CreateStyles();
 
 	cellFormatController_ = std::make_shared<CellFormatController>(oXlsx.m_pStyles, lcid);
@@ -278,7 +271,7 @@ _UINT32 CSVReader::Impl::Read(const std::wstring &sFileName, OOX::Spreadsheet::C
 	size_t nSize = sFileDataW.length();
 
 	if (nSize < 1 && nInputBufferSize > 0)
-	{//для синхронности вывода превью и нормального результата
+	{//for synchronization of preview output and normal result
 		const NSUnicodeConverter::EncodindId& oEncodindId = NSUnicodeConverter::Encodings[nCodePage];
 
 		NSUnicodeConverter::CUnicodeConverter oUnicodeConverter;
@@ -391,7 +384,7 @@ _UINT32 CSVReader::Impl::Read(const std::wstring &sFileName, OOX::Spreadsheet::C
 		{
 			if (bInQuote)
 			{
-				// Добавим Wrap
+				// Add Wrap
 				bIsWrap = true;
 				continue;
 			}
@@ -408,7 +401,7 @@ _UINT32 CSVReader::Impl::Read(const std::wstring &sFileName, OOX::Spreadsheet::C
 
 			if (wcNewLineR == wcCurrent && nIndex + 1 != nSize && wcNewLineN == pTemp[nIndex + 1])
 			{
-				// На комбинацию \r\n должен быть только 1 перенос
+				// There should be only 1 carriage return per combination \r\n
 				++nIndex;
 			}
 
@@ -439,7 +432,7 @@ _UINT32 CSVReader::Impl::Read(const std::wstring &sFileName, OOX::Spreadsheet::C
 			if (pWorksheet->m_oSheetData->m_arrItems.size() > 1048576)
 			{
 				bMsLimit = true;
-				break; // ограниечние мс
+				break; // ms limits
 			}
 		}
 		else if (wcQuote == wcCurrent)
@@ -447,16 +440,16 @@ _UINT32 CSVReader::Impl::Read(const std::wstring &sFileName, OOX::Spreadsheet::C
 			// Quote
 			if (false == bInQuote && nStartCell == nIndex && nIndex + 1 != nSize)
 			{
-				// Начало новой ячейки (только если мы сразу после разделителя и не в конце файла)
+				// Start of a new cell (only if we are immediately after the delimiter and not at the end of the file)
 				bInQuote = !bInQuote;
 				nStartCell = nIndex + 1;
 			}
 			else if (bInQuote)
 			{
-				// Нужно удалить кавычку ограничитель
+				// Need to remove the quote delimiter
 				oDeleteChars.push(nIndex);
 
-				// Если следующий символ кавычка, то мы не закончили ограничитель строки (1997,Ford,E350,"Super, ""luxurious"" truck")
+				// If the next character is a quote, then we haven't completed the quoted field (1997,Ford,E350,"Super, ""luxurious"" truck")
 				if (nIndex + 1 != nSize && wcQuote == pTemp[nIndex + 1])
 					++nIndex;
 				else

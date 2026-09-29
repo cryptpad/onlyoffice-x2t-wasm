@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "gumbo-parser/src/gumbo.h"
+#include "gumbo-parser/src/gumbo.h" // CryptPad: Fix path
 #include "../../../DesktopEditor/common/File.h"
 #include "../../../DesktopEditor/common/Directory.h"
 #include "../../../DesktopEditor/common/StringBuilder.h"
@@ -233,13 +233,13 @@ static void ReadMht(const std::string& sMhtContent, std::map<std::string, std::s
 
 //	std::wstring sExtention = NSFile::GetFileExtention(UTF8_TO_U(sName));
 //	std::transform(sExtention.begin(), sExtention.end(), sExtention.begin(), tolower);
-	// Основной документ
+	// Main document
 	if (NSStringFinder::Equals(sContentType, "multipart/alternative"))
 		oRes.WriteString(mhtTohtml(sContent));
 	else if ((NSStringFinder::Find(sContentType, "text") /*&& (sExtention.empty() || NSStringFinder::EqualOf(sExtention, {L"htm", L"html", L"xhtml", L"css"}))*/)
 	          || (NSStringFinder::Equals(sContentType, "application/octet-stream") && NSStringFinder::Find(sContentLocation, "css")))
 	{
-		// Стили заключаются в тэг <style>
+		// Styles are contained in the <style> tag
 		const bool bAddTagStyle = NSStringFinder::Equals(sContentType, "text/css") /*|| NSStringFinder::Equals(sExtention, L"css")*/ || NSStringFinder::Find(sContentLocation, "css");
 
 		if (bAddTagStyle)
@@ -273,7 +273,7 @@ static void ReadMht(const std::string& sMhtContent, std::map<std::string, std::s
 		if(bAddTagStyle)
 			oRes.WriteString("</style>");
 	}
-	// Картинки
+	// Images
 	else if ((NSStringFinder::Find(sContentType, "image") /*|| NSStringFinder::Equals(sExtention, L"gif")*/ || NSStringFinder::Equals(sContentType, "application/octet-stream")) &&
 			  NSStringFinder::Equals(sContentEncoding, "base64"))
 	{
@@ -295,7 +295,7 @@ static std::string mhtTohtml(const std::string& sFileContent)
 	std::map<std::string, std::string> sRes;
 	NSStringUtils::CStringBuilderA oRes;
 
-	// Поиск boundary
+	// Find the boundary marker
 	NSStringFinder::TFoundedData<char> oData{NSStringFinder::FindProperty(sFileContent, "boundary", {"="}, {"\\r", "\\n", "\""})};
 
 	size_t nFound{oData.m_unEndPosition};
@@ -318,7 +318,7 @@ static std::string mhtTohtml(const std::string& sFileContent)
 
 	nFound = sFileContent.find(sBoundary, nFound) + nBoundaryLength;
 
-	// Цикл по boundary
+	// Loop over boundaries
 	while(nFound != std::string::npos)
 	{
 		nFoundEnd = sFileContent.find(sBoundary, nFound + nBoundaryLength);
@@ -369,7 +369,7 @@ static std::string mhtTohtml(const std::string& sFileContent)
 	return sFile;
 }
 
-// Заменяет сущности &,<,> в text
+// Escapes &, <, > in text
 static void substitute_xml_entities_into_text(std::string& text)
 {
 	// replacing & must come first
@@ -393,7 +393,7 @@ static void remove_control_symbols(std::string& text)
 	}
 }
 
-// Заменяет сущности " в text
+// Escapes quotes in attributes
 static void substitute_xml_entities_into_attributes(std::string& text)
 {
 	remove_control_symbols(text);
@@ -522,7 +522,7 @@ static void prettyprint_contents(GumboNode* node, NSStringUtils::CStringBuilderA
 			remove_control_symbols(val);
 			substitute_xml_entities_into_text(val);
 
-			// Избавление от FF
+			// Remove form feed (FF) characters
 			size_t found = val.find_first_of("\014");
 			while(found != std::string::npos)
 			{
@@ -541,7 +541,7 @@ static void prettyprint_contents(GumboNode* node, NSStringUtils::CStringBuilderA
 		}
 		else if (child->type != GUMBO_NODE_COMMENT)
 		{
-			// Сообщение об ошибке
+			// Error message
 			// Does this actually exist: (child->type == GUMBO_NODE_CDATA)
 			// fprintf(stderr, "unknown element of type: %d\n", child->type);
 		}
@@ -600,7 +600,7 @@ static void prettyprint(GumboNode* node, NSStringUtils::CStringBuilderA& oBuilde
 std::wstring htmlToXhtml(std::string& sFileContent, bool bNeedConvert)
 {
 	if (bNeedConvert)
-	{ // Определение кодировки
+	{ // Determine the encoding
 		std::string sEncoding = NSStringFinder::FindProperty(sFileContent, "charset", {"="}, {";", "\\n", "\\r", " ", "\"", "'"}).m_sValue;
 
 		if (sEncoding.empty())
@@ -613,18 +613,18 @@ std::wstring htmlToXhtml(std::string& sFileContent, bool bNeedConvert)
 		}
 	}
 
-	// Избавляемся от лишних символов до <...
+	// Remove unnecessary characters up to <...
 	boost::regex oRegex("<[a-zA-Z]");
 	boost::match_results<typename std::string::const_iterator> oResult;
 
 	if (boost::regex_search(sFileContent, oResult, oRegex))
 		sFileContent.erase(0, oResult.position());
 
-	//Избавление от <a ... />
+	//Remove <a ... /> tags
 	while (NSStringFinder::RemoveEmptyTag(sFileContent, "a"));
-	//Избавление от <title ... />
+	//Remove <title ... /> tags
 	while (NSStringFinder::RemoveEmptyTag(sFileContent, "title"));
-	//Избавление от <script ... />
+	//Remove <script ... /> tags
 	while (NSStringFinder::RemoveEmptyTag(sFileContent, "script"));
 
 	// Gumbo
@@ -635,7 +635,7 @@ std::wstring htmlToXhtml(std::string& sFileContent, bool bNeedConvert)
 	NSStringUtils::CStringBuilderA oBuilder;
 	prettyprint(output->document, oBuilder);
 
-	// Конвертирование из string utf8 в wstring
+	// Converting from string utf8 to wstring
 	return UTF8_TO_U(oBuilder.GetData());
 }
 
@@ -651,7 +651,7 @@ std::wstring mhtToXhtml(std::string& sFileContent)
 	NSStringUtils::CStringBuilderA oBuilder;
 	prettyprint(output->document, oBuilder);
 
-	// Конвертирование из string utf8 в wstring
+	// Converting from string utf8 to wstring
 	return UTF8_TO_U(oBuilder.GetData());
 }
 }

@@ -41,7 +41,7 @@ QImage GenerateImg(std::vector<NSStructures::Point> &points, Info &info, const i
 	unsigned int back = 0xffffff;
 	unsigned int *pData32 = (unsigned int *)pData;
 	unsigned int *pData32End = pData32 + nRasterW * nRasterH;
-	// дефолтный тон должен быть прозрачным, а не белым
+	// default tone should be transparent, not white
 	while (pData32 < pData32End)
 		*pData32++ = back;
 

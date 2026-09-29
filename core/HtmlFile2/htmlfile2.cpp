@@ -37,8 +37,8 @@
 #define MAXCOLUMNSINTABLE 63
 #define MAXROWSINTABLE    32767
 
-#define DEFAULT_PAGE_WIDTH  12240 // Значение в Twips
-#define DEFAULT_PAGE_HEIGHT 15840 // Значение в Twips
+#define DEFAULT_PAGE_WIDTH  12240 // value in Twips
+#define DEFAULT_PAGE_HEIGHT 15840 // value in Twips
 
 #define DEFAULT_LANGUAGE std::wstring(L"en-US")
 #define DEFAULT_FONT_FAMILY std::wstring(L"Times New Roman")
@@ -94,8 +94,8 @@ const std::map<std::wstring, HtmlTag> m_HTML_TAGS
 	ADD_TAG(L"code", CODE),
 	ADD_TAG(L"col", COL),
 	ADD_TAG(L"colgroup", COLGROUP),
-	ADD_TAG(L"command", SKIP_TAG), // Данного обозначения нет, но т.к.мы всё равно пропускаем, то делаем script
-	ADD_TAG(L"comment", SKIP_TAG), // Данного обозначения нет, но т.к.мы всё равно пропускаем, то делаем script
+	ADD_TAG(L"command", SKIP_TAG), // There is no such designation, but since we are skipping anyway, we make a script
+	ADD_TAG(L"comment", SKIP_TAG), // There is no such designation, but since we are skipping anyway, we make a script
 	ADD_TAG(L"datalist", DATALIST),
 	ADD_TAG(L"dd", DD),
 	ADD_TAG(L"del", DEL),
@@ -244,7 +244,7 @@ static inline void WriteToStringBuilder(NSStringUtils::CStringBuilder& oSrcStrin
 	}
 }
 
-// Ячейка таблицы
+// Table cell
 struct CTc
 {
 	int i;
@@ -261,16 +261,16 @@ struct CTc
 	}
 };
 
-// Настройки текста
+// Text settings
 struct CTextSettings
 {
-	bool bBdo; // Реверс текста
-	bool bPre; // Сохранение форматирования (Сохранение пробелов, табуляций, переносов строк)
-	bool bQ;   // Цитата
-	bool bAddSpaces; // Добавлять пробелы перед текстом?
-	bool bMergeText; // Объединять подряд идущий текст в 1?
-	int  nLi;  // Уровень списка
-	bool bNumberingLi; // Является ли список нумерованным
+	bool bBdo; // Right-to-left text
+	bool bPre; // Preserve formatting (Keep spaces, tabs, line breaks)
+	bool bQ;   // Quote
+	bool bAddSpaces; // Add spaces before text?
+	bool bMergeText; // Merge consecutive text nodes into one?
+	int  nLi;  // List level
+	bool bNumberingLi; // Is the list numbered?
 
 	std::wstring sPStyle;
 
@@ -421,7 +421,7 @@ typedef enum
 	ParseModeFoother
 } ERowParseMode;
 
-//Необходимые стили таблицы
+//Required Table Styles
 struct TTableStyles
 {
 	NSCSS::NSProperties::CIndent m_oPadding;
@@ -1170,7 +1170,7 @@ public:
 		UINT unIndex      = 0;
 		CTableCell* pCell = NULL;
 
-		UINT unMaxIndex = 0; //Максимальный индекс без учета строк, где имеется только 1 ячейка
+		UINT unMaxIndex = 0; //Maximum index excluding rows where there is only 1 cell
 
 		for (const CTableRow* pRow : m_arRows)
 		{
@@ -1414,37 +1414,37 @@ std::wstring StandardizeHeaderId(const std::wstring& header)
 	std::wstring result;
 	result.reserve(header.size());
 
-	// Флаг, указывающий, был ли предыдущий символ дефисом
+	// Flag indicating whether the previous character was a hyphen
 	bool prevWasHyphen = false;
 	bool inWhitespaceSequence = false;
 	wchar_t lowerC;
 
 	for (wchar_t c : header)
 	{
-		// Приведение к нижнему регистру
+		// Casting to lowercase
 		lowerC = std::tolower(c);
 
-		// Проверяем, является ли символ буквой или цифрой
+		// Checking if a character is a letter or a number
 		if (std::iswalnum(lowerC))
 		{
 			result.push_back(lowerC);
 			prevWasHyphen = false;
 			inWhitespaceSequence = false;
 		}
-		// Проверяем, является ли символ пробельным (пробел, табуляция и т.д.)
+		// Checking whether a character is whitespace (space, tab, etc.)
 		else if (std::iswspace(lowerC))
 		{
-			// Заменяем последовательности пробельных символов на один дефис
+			// Replace sequences of whitespace characters with a single hyphen
 			if (!inWhitespaceSequence && !result.empty())
 			{
 				result.push_back(L'-');
 				inWhitespaceSequence = true;
 			}
 		}
-		// Проверяем, является ли символ дефисом или подчеркиванием
+		// Checking whether a character is a hyphen or an underscore
 		else if (c == L'-' || c == L'_')
 		{
-			// Добавляем дефис, если предыдущий символ не был дефисом
+			// Add a hyphen if the previous character wasn't a hyphen
 			if (!prevWasHyphen && !result.empty())
 			{
 				result.push_back(L'-');
@@ -1452,19 +1452,19 @@ std::wstring StandardizeHeaderId(const std::wstring& header)
 			}
 			inWhitespaceSequence = false;
 		}
-		// Все остальные символы (знаки препинания) пропускаем
-		// Но если это буква в Unicode, мы можем её обработать
+		// All other characters (punctuation marks) are skipped
+		// But if it's a Unicode letter, we can process it
 		else if (std::iswalpha(lowerC))
 		{
-			// Для Unicode-символов, которые являются буквами
+			// For Unicode characters that are letters
 			result.push_back(lowerC);
 			prevWasHyphen = false;
 			inWhitespaceSequence = false;
 		}
-		// Остальные символы игнорируем
+		// Ignore the remaining characters
 	}
 
-	// Удаляем дефисы в начале и конце
+	// Removing hyphens at the beginning and end
 	size_t start = 0;
 	size_t end = result.length();
 
@@ -1474,7 +1474,7 @@ std::wstring StandardizeHeaderId(const std::wstring& header)
 	while (end > start && result[end - 1] == L'-')
 		--end;
 
-	// Удаляем последовательные дефисы
+	// Removing consecutive hyphens
 	std::wstring finalResult;
 	finalResult.reserve(end - start);
 
@@ -1573,26 +1573,26 @@ class CHtmlFile2_Private
 {
 public:
 	XmlUtils::CXmlLiteReader m_oLightReader;   // SAX Reader
-	NSCSS::CCssCalculator m_oStylesCalculator; // Css калькулятор
-	NSCSS::CDocumentStyle m_oXmlStyle;         // Ooxml стиль
+	NSCSS::CCssCalculator m_oStylesCalculator; // CSS calculator
+	NSCSS::CDocumentStyle m_oXmlStyle;         // Ooxml style
 
-	NSCSS::NSProperties::CPage m_oPageData; // Стили страницы
+	NSCSS::NSProperties::CPage m_oPageData; // Page styles
 
-	std::wstring m_sTmp;  // Temp папка
-	std::wstring m_sSrc;  // Директория источника
-	std::wstring m_sDst;  // Директория назначения
-	std::wstring m_sBase; // Полный базовый адрес
-	std::wstring m_sCore; // Путь до корневого файла (используется для работы с Epub)
+	std::wstring m_sTmp;  // Temp folder
+	std::wstring m_sSrc;  // Source directory
+	std::wstring m_sDst;  // Destination directory
+	std::wstring m_sBase; // Full base address
+	std::wstring m_sCore; // Path to the root file (used for working with Epub)
 
 private:
-	int m_nFootnoteId;  // ID сноски
-	int m_nHyperlinkId; // ID ссылки
-	int m_nNumberingId; // ID списка
-	int m_nId;          // ID остальные элементы
+	int m_nFootnoteId;  // Footnote ID
+	int m_nHyperlinkId; // Link ID
+	int m_nNumberingId; // List ID
+	int m_nId;          // ID other elements
 	int m_nShapeId;     // Id shape's
 
 	using anchors_map = std::map<std::wstring, std::wstring>;
-	anchors_map m_mAnchors; // Map якорей с индивидуальными id
+	anchors_map m_mAnchors; // Map of anchors with individual ids
 
 	NSStringUtils::CStringBuilder m_oStylesXml;   // styles.xml
 	NSStringUtils::CStringBuilder m_oDocXmlRels;  // document.xml.rels
@@ -1604,14 +1604,14 @@ private:
 
 	struct TState
 	{
-		bool m_bInP;         // <w:p> открыт?
-		bool m_bInR;         // <w:r> открыт?
-		bool m_bInT;         // <w:t> открыт?
-		bool m_bWasPStyle;   // <w:pStyle> записан?
-		bool m_bWasSpace;    // Был пробел?
-		bool m_bInHyperlink; // <w:hyperlink> открыт?
+		bool m_bInP;         // Is <w:p> open?
+		bool m_bInR;         // Is <w:r> open?
+		bool m_bInT;         // Is <w:t> open?
+		bool m_bWasPStyle;   // <w:pStyle> recorded?
+		bool m_bWasSpace;    // Was there a space?
+		bool m_bInHyperlink; // Is <w:hyperlink> open?
 
-		bool m_bBanUpdatePageData; // Запретить обновление данных о странице?
+		bool m_bBanUpdatePageData; // Prevent page data from updating?
 
 		HtmlTag m_eLastElement;
 
@@ -1620,12 +1620,12 @@ private:
 		{}
 	} m_oState;
 
-	std::vector<std::wstring>            m_arrImages;  // Картинки
-	std::map<std::wstring, std::wstring> m_mFootnotes; // Сноски
-	std::map<std::wstring, UINT>         m_mBookmarks; // Закладки
-	std::map<std::wstring, UINT>         m_mDivs;      // Div элементы
+	std::vector<std::wstring>            m_arrImages;  // Images
+	std::map<std::wstring, std::wstring> m_mFootnotes; // Footnotes
+	std::map<std::wstring, UINT>         m_mBookmarks; // Bookmarks
+	std::map<std::wstring, UINT>         m_mDivs;      // Div elements
 
-	NSFonts::IApplicationFonts*          m_pFonts;     // Необходимо для оптимизации работы со шрифтами
+	NSFonts::IApplicationFonts*          m_pFonts;     // Needed to optimize font handling
 public:
 
 	CHtmlFile2_Private()
@@ -1655,16 +1655,16 @@ public:
 			RELEASEINTERFACE(m_pFonts);
 	}
 
-	// Проверяет наличие тэга html
+	// Checks for the presence of an html tag
 	bool isHtml()
 	{
 		return (m_oLightReader.ReadNextNode() ? m_oLightReader.GetName() == L"html" : false);
 	}
 
-	// Создаёт основу docx
+	// Creates a docx base
 	void CreateDocxEmpty(CHtmlParams* oParams)
 	{
-		// Создаем пустые папки
+		// Creating empty folders
 		NSDirectory::CreateDirectory(m_sDst + L"/_rels");
 		NSDirectory::CreateDirectory(m_sDst + L"/docProps");
 		NSDirectory::CreateDirectory(m_sDst + L"/word");
@@ -1735,7 +1735,7 @@ public:
 		}
 
 		// numbering.xml
-		// Маркированный список
+		// Bulleted list
 		m_oNumberXml += L"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><w:numbering xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" xmlns:w10=\"urn:schemas-microsoft-com:office:word\" xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" xmlns:w15=\"http://schemas.microsoft.com/office/word/2012/wordml\" xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\" mc:Ignorable=\"w14 w15 wp14\"><w:abstractNum w:abstractNumId=\"0\"><w:multiLevelType w:val=\"hybridMultilevel\"/><w:lvl w:ilvl=\"0\"><w:start w:val=\"1\"/><w:numFmt w:val=\"bullet\"/><w:isLgl w:val=\"false\"/><w:suff w:val=\"tab\"/><w:lvlText w:val=\"";
 		m_oNumberXml.AddCharSafe(183);
 		m_oNumberXml += L"\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:left=\"720\" w:hanging=\"360\"/></w:pPr><w:rPr><w:rFonts w:ascii=\"Symbol\" w:hAnsi=\"Symbol\" w:cs=\"Symbol\" w:eastAsia=\"Symbol\"/></w:rPr></w:lvl><w:lvl w:ilvl=\"1\"><w:start w:val=\"1\"/><w:numFmt w:val=\"bullet\"/><w:isLgl w:val=\"false\"/><w:suff w:val=\"tab\"/><w:lvlText w:val=\"o\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:left=\"1440\" w:hanging=\"360\"/></w:pPr><w:rPr><w:rFonts w:ascii=\"Courier New\" w:hAnsi=\"Courier New\" w:cs=\"Courier New\" w:eastAsia=\"Courier New\"/></w:rPr></w:lvl><w:lvl w:ilvl=\"2\"><w:start w:val=\"1\"/><w:numFmt w:val=\"bullet\"/><w:isLgl w:val=\"false\"/><w:suff w:val=\"tab\"/><w:lvlText w:val=\"";
@@ -1803,7 +1803,7 @@ public:
 			oCoreWriter.CloseFile();
 		}
 
-		// Начала файлов
+		// File starts
 		m_oDocXmlRels  += L"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">";
 		m_oDocXmlRels  += L"<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/>";
 		m_oDocXmlRels  += L"<Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings\" Target=\"settings.xml\"/>";
@@ -1821,7 +1821,7 @@ public:
 
 		m_nId += 7;
 
-		// docDefaults по умолчанию
+		// docDefaults by default
 		if(oParams && !oParams->m_sdocDefaults.empty())
 			m_oStylesXml += oParams->m_sdocDefaults;
 		else
@@ -1835,7 +1835,7 @@ public:
 //			m_oStylesXml += L"<w:pPrDefault><w:pPr><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr></w:pPrDefault>";
 		}
 
-		// normal по умолчанию
+		// normal by default
 		if(oParams && !oParams->m_sNormal.empty())
 			m_oStylesXml += oParams->m_sNormal;
 		else
@@ -1845,22 +1845,22 @@ public:
 			m_oStylesXml += L"</w:rPr></w:style>";
 		}
 
-		// Маркированный список
+		// Bulleted list
 		m_oStylesXml += L"<w:style w:type=\"paragraph\" w:styleId=\"li\"><w:name w:val=\"List Paragraph\"/><w:basedOn w:val=\"normal\"/><w:qFormat/><w:uiPriority w:val=\"34\"/><w:pPr><w:contextualSpacing w:val=\"true\"/><w:ind w:left=\"720\"/></w:pPr></w:style>";
-		// Ссылки
+		// Links
 		m_oStylesXml += L"<w:style w:type=\"character\" w:styleId=\"a\"><w:name w:val=\"Hyperlink\"/><w:uiPriority w:val=\"99\"/><w:unhideWhenUsed/><w:rPr><w:color w:val=\"0000FF\" w:themeColor=\"hyperlink\"/><w:u w:val=\"single\"/></w:rPr></w:style>";
-		// Таблицы
+		// Tables
 //		m_oStylesXml += L"<w:style w:type=\"table\" w:default=\"1\" w:styleId=\"table-based\"><w:name w:val=\"Normal Table\"/><w:uiPriority w:val=\"99\"/><w:semiHidden/><w:unhideWhenUsed/><w:tblPr><w:tblInd w:w=\"0\" w:type=\"dxa\"/><w:tblCellMar><w:top w:w=\"0\" w:type=\"dxa\"/><w:left w:w=\"108\" w:type=\"dxa\"/><w:bottom w:w=\"0\" w:type=\"dxa\"/><w:right w:w=\"108\" w:type=\"dxa\"/></w:tblCellMar></w:tblPr></w:style><w:style w:type=\"table\" w:styleId=\"table\"><w:name w:val=\"Table Grid\"/><w:basedOn w:val=\"table-based\"/><w:uiPriority w:val=\"59\"/><w:pPr><w:spacing w:lineRule=\"auto\" w:line=\"240\" w:after=\"0\"/></w:pPr><w:tblPr><w:tblBorders><w:top w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"000000\"/><w:left w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"000000\"/><w:bottom w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"000000\"/><w:right w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"000000\"/><w:insideH w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"000000\"/><w:insideV w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"000000\"/></w:tblBorders></w:tblPr></w:style>";
-		// Сноски
+		// Footnotes
 		m_oStylesXml += L"<w:style w:type=\"character\" w:styleId=\"footnote\"><w:name w:val=\"footnote reference\"/><w:uiPriority w:val=\"99\"/><w:unhideWhenUsed/><w:rPr><w:vertAlign w:val=\"superscript\"/></w:rPr></w:style><w:style w:type=\"paragraph\" w:styleId=\"footnote-p\"><w:name w:val=\"footnote text\"/><w:basedOn w:val=\"normal\"/><w:link w:val=\"footnote-c\"/><w:uiPriority w:val=\"99\"/><w:semiHidden/><w:unhideWhenUsed/><w:rPr><w:sz w:val=\"18\"/></w:rPr><w:pPr><w:spacing w:lineRule=\"auto\" w:line=\"240\" w:after=\"40\"/></w:pPr></w:style><w:style w:type=\"character\" w:styleId=\"footnote-c\" w:customStyle=\"1\"><w:name w:val=\"footnote text character\"/><w:link w:val=\"footnote-p\"/><w:uiPriority w:val=\"99\"/><w:rPr><w:sz w:val=\"18\"/></w:rPr></w:style>";
-		// Web стиль по-умолчанию
+		// Web style by default
 		m_oStylesXml += L"<w:style w:type=\"paragraph\" w:styleId=\"normal-web\"><w:name w:val=\"Normal (Web)\"/><w:basedOn w:val=\"normal\"/><w:uiPriority w:val=\"99\"/><w:semiHidden/><w:unhideWhenUsed/><w:pPr><w:spacing w:before=\"100\" w:beforeAutospacing=\"1\" w:after=\"100\" w:afterAutospacing=\"1\"/></w:pPr></w:style>";
 	}
 
-	// Читает файл
+	// Reads the file
 	void readSrc()
 	{
-		// Читаем html
+		// Reading html
 		m_oLightReader.ReadNextNode();
 
 		int nDeath = m_oLightReader.GetDepth();
@@ -1874,7 +1874,7 @@ public:
 		}
 	}
 
-	// Дописывает концы docx
+	// Finalizes the docx structure
 	void write()
 	{
 		m_oDocXmlRels.WriteString(L"</Relationships>");
@@ -1940,9 +1940,9 @@ public:
 		}
 
 		// numbering.xml
-		// Маркированный список
+		// Bulleted list
 		m_oNumberXml.WriteString(L"<w:num w:numId=\"1\"><w:abstractNumId w:val=\"0\"/></w:num>");
-		// Нумерованный список
+		// Numbered list
 		for(int i = 1; i < m_nNumberingId; i++)
 		{
 			m_oNumberXml.WriteString(L"<w:num w:numId=\"");
@@ -1972,7 +1972,7 @@ public:
 		}
 	}
 
-	// Конвертирует html в xhtml
+	// Converts html to xhtml
 	bool htmlXhtml(const std::wstring& sSrc)
 	{
 		BYTE* pData;
@@ -2023,7 +2023,7 @@ public:
 		return m_oLightReader.FromString(sRes);
 	}
 
-	// Конвертирует mht в xhtml
+	// Converts mht to xhtml
 	bool mhtXhtml(const std::wstring& sSrc)
 	{
 		NSFile::CFileBinary file;
@@ -2072,7 +2072,7 @@ public:
 		return bRes;
 	}
 
-	// Читает стили
+	// Reads styles
 	void readStyle()
 	{
 		if(m_oLightReader.IsEmptyNode())
@@ -2087,7 +2087,7 @@ public:
 				readStyle2();
 			else
 			{
-				// Стиль по ссылке
+				// Style by reference
 				if(sName == L"link")
 				{
 					while(m_oLightReader.MoveToNextAttribute())
@@ -2098,7 +2098,7 @@ public:
 						if(NSFile::GetFileExtention(sRef) != L"css")
 							continue;
 						std::wstring sFName = NSFile::GetFileName(sRef);
-						// Стиль в сети
+						// Style on the web
 						if(sRef.substr(0, 4) == L"http")
 						{
 							sFName = m_sTmp + L'/' + sFName;
@@ -2118,7 +2118,7 @@ public:
 					}
 					m_oLightReader.MoveToElement();
 				}
-				// тэг style содержит стили для styles.xml
+				// the style tag contains styles for styles.xml
 				else if(sName == L"style")
 					m_oStylesCalculator.AddStyles(m_oLightReader.GetText2());
 				else
@@ -2130,7 +2130,7 @@ public:
 	void readStyle2()
 	{
 		std::wstring sName = m_oLightReader.GetName();
-		// Стиль по ссылке
+		// Style by reference
 		if(sName == L"link")
 		{
 			while(m_oLightReader.MoveToNextAttribute())
@@ -2141,7 +2141,7 @@ public:
 				if(NSFile::GetFileExtention(sRef) != L"css")
 					continue;
 				std::wstring sFName = NSFile::GetFileName(sRef);
-				// Стиль в сети
+				// Style on the web
 				if(sRef.substr(0, 4) == L"http")
 				{
 					sFName = m_sTmp + L'/' + sFName;
@@ -2161,7 +2161,7 @@ public:
 			}
 			m_oLightReader.MoveToElement();
 		}
-		// тэг style содержит стили для styles.xml
+		// the style tag contains styles for styles.xml
 		else if(sName == L"style")
 			m_oStylesCalculator.AddStyles(m_oLightReader.GetText2());
 
@@ -2211,10 +2211,10 @@ private:
 		return wsValue;
 	}
 
-	// Так как CSS калькулятор не знает для какой ноды производится расчет стиля
-	// и не знает, что некоторые стили предназначены только определенной ноде,
-	// то проще пока обрабатывать это заранее
-	// ! Используется для стилей, заданных через аргументы !
+	// Since the CSS calculator doesn't know for which node the style is being calculated
+	// and doesn't know that some styles are intended only for a specific node,
+	// then it's easier to process it in advance
+	// ! Used for styles specified via arguments !
 	bool CheckArgumentMath(const std::wstring& wsNodeName, const std::wstring& wsStyleName) const
 	{
 		if (L"border" == wsStyleName && L"table" != wsNodeName)
@@ -2425,7 +2425,7 @@ private:
 		NSCSS::CNode oNode;
 		std::wstring sNote;
 		oNode.m_wsName = m_oLightReader.GetName();
-		// Стиль по атрибуту
+		// Style by attribute
 		while(m_oLightReader.MoveToNextAttribute())
 		{
 			std::wstring sName  = m_oLightReader.GetName();
@@ -2474,7 +2474,7 @@ private:
 		while (m_oLightReader.ReadNextSiblingNode(nDeath))
 		{
 			const std::wstring wsName = m_oLightReader.GetName();
-			// Базовый адрес
+			// Base address
 			if (L"base" == wsName)
 				m_sBase = GetArgumentValue(L"href");
 		}
@@ -2532,7 +2532,7 @@ private:
 		{
 			NSCSS::CCompiledStyle* pCompiledStyle{arSelectors.back().m_pCompiledStyle};
 
-			// TODO::поведение должно быть немного разное (реализовать)
+			// TODO::behavior should be slightly different (implement)
 			switch(pCompiledStyle->m_oDisplay.GetWhiteSpace().ToInt())
 			{
 				case NSCSS::NSProperties::EWhiteSpace::Pre:
@@ -2559,7 +2559,7 @@ private:
 
 		GetSubClass(pXml, arSelectors);
 
-		//TODO:: сделать так, чтобы параграф (со своими стилями) открывался при чтении сооответствующей ноды, а не при чтении текста
+		//TODO:: make the paragraph (with its styles) open when reading the corresponding node, and not when reading the text
 		OpenP(pXml);
 
 		NSStringUtils::CStringBuilder oPPr;
@@ -3079,7 +3079,7 @@ private:
 
 		std::wstring wsWidth;
 
-		// width измеряется в px или %
+		// width is measured in px or %
 		if (!oWidth.Empty())
 			wsWidth = std::to_wstring(static_cast<int>((NSCSS::UnitMeasure::Percent != oWidth.GetUnitMeasure()) ? (NSCSS::CUnitMeasureConverter::ConvertPx(oWidth.ToDouble(), NSCSS::Inch, 96) * 914400.) : oWidth.ToDouble(NSCSS::Inch, unPageWidth)));
 		else
@@ -3087,7 +3087,7 @@ private:
 
 		std::wstring wsHeight{L"14288"};
 
-		// size измеряется только в px
+		// size is measured only in px
 		if (!oSize.Empty())
 			wsHeight = std::to_wstring(static_cast<int>(NSCSS::CUnitMeasureConverter::ConvertPx(oSize.ToDouble(), NSCSS::Inch, 96) * 914400.));
 
@@ -3216,7 +3216,7 @@ private:
 
 	bool readInside (NSStringUtils::CStringBuilder* oXml, std::vector<NSCSS::CNode>& sSelectors, CTextSettings& oTS, const std::wstring& sName)
 	{
-		//TODO:: обработать все варианты return'а
+		//TODO:: process all return options
 		if(sName == L"#text")
 			return ReadText(oXml, sSelectors, oTS);
 
@@ -3366,7 +3366,7 @@ private:
 			case HTML_TAG(STYLE):
 			case HTML_TAG(SCRIPT):
 			{
-				//Если встретили не обрабатываемые теги, то просто пропускаем
+				//Skip unhandled tags
 				sSelectors.pop_back();
 				return false;
 			}
@@ -3730,7 +3730,7 @@ private:
 				m_oLightReader.MoveToElement();
 				m_oState.m_bWasPStyle = false;
 
-				// Читаем th. Ячейка заголовка таблицы. Выравнивание посередине. Выделяется полужирным
+				// Read th. Table header cell. Center alignment. Shown in bold
 				if(m_oLightReader.GetName() == L"th")
 				{
 					CTextSettings oTSR(oTS);
@@ -3742,7 +3742,7 @@ private:
 
 					readStream(pCell->GetData(), sSelectors, oTSR, true);
 				}
-				// Читаем td. Ячейка таблицы
+				// Reading td. Table cell
 				else if(m_oLightReader.GetName() == L"td")
 					readStream(pCell->GetData(), sSelectors, oTS, true);
 
@@ -4175,7 +4175,7 @@ private:
 
 			sSelectors.pop_back();
 		}
-		// Нумерованный список
+		// Numbered list
 		if(!bType)
 		{
 			const std::wstring wsStart(std::to_wstring(nStart));
@@ -4243,7 +4243,7 @@ private:
 		else
 			wrP(oXml, sSelectors, oTS);
 
-		// Перекрестная ссылка внутри файла
+		// Cross reference within a file
 		if(bCross)
 		{
 			m_oState.m_bInHyperlink = true;
@@ -4270,10 +4270,10 @@ private:
 				oXml->WriteEncodeXmlString(wsAnchorId);
 			}
 		}
-		// Внешняя ссылка
+		// External link
 		else
 		{
-			// Пишем рельсы
+			// Writing the rels
 			NSStringUtils::CStringBuilder* oRelationshipXml = &m_oDocXmlRels;
 			if (oXml == &m_oNoteXml)
 				oRelationshipXml = &m_oNoteXmlRels;
@@ -4284,7 +4284,7 @@ private:
 			oRelationshipXml->WriteString(L"\" TargetMode=\"External\"/>");
 
 			m_oState.m_bInHyperlink = true;
-			// Пишем в document.xml
+			// Write in document.xml
 			oXml->WriteString(L"<w:hyperlink w:tooltip=\"");
 			oXml->WriteEncodeXmlString(sNote);
 			oXml->WriteString(L"\" r:id=\"rHyp");
@@ -4319,7 +4319,7 @@ private:
 				bFootnote = oNode.m_wsName == L"p" && oNode.m_wsClass == L"MsoFootnoteText";
 			}
 
-			// Сноска
+			// Footnote
 			if (bCross && !sFootnote.empty())
 			{
 				if (!bFootnote)
@@ -4509,7 +4509,7 @@ private:
 
 		std::wstring sExtention;
 
-		// Предполагаем картинку в Base64
+		// Assume the image is Base64-encoded
 		if (sSrcM.length() > 4 && sSrcM.substr(0, 4) == L"data" && sSrcM.find(L"/", 4) != std::wstring::npos)
 			bRes = readBase64(sSrcM, sExtention);
 
@@ -4526,7 +4526,7 @@ private:
 			}
 		}
 
-		// Проверка расширения
+		// Checking the extension
 		if (!bRes)
 		{
 			sExtention = NSFile::GetFileExtention(sSrcM);
@@ -4538,14 +4538,14 @@ private:
 				sExtention.erase(itFound, sExtention.cend());
 		}
 
-		// Предполагаем картинку в сети
+		// Assume the image is remote
 		if (!bRes &&
 		    ((!m_sBase.empty() && m_sBase.length() > 4 && m_sBase.substr(0, 4) == L"http") ||
 		      (sSrcM.length() > 4 && sSrcM.substr(0, 4) == L"http")))
 		{
 			const std::wstring wsDst = m_sDst + L"/word/media/i" + std::to_wstring(m_arrImages.size()) + L'.' + ((!sExtention.empty()) ? sExtention : L"png");
 
-			// Проверка gc_allowNetworkRequest предполагается в kernel_network
+			// The gc_allowNetworkRequest check is assumed in kernel_network
 			NSNetwork::NSFileTransport::CFileDownloader oDownloadImg(m_sBase + sSrcM, false);
 			oDownloadImg.SetFilePath(wsDst);
 			bRes = oDownloadImg.DownloadSync();
@@ -4568,7 +4568,7 @@ private:
 			}
 			else if (sExtention.empty())
 			{
-				//TODO:: лучше узнавать формат изображения из содержимого
+				//TODO:: Better recognize image format from content
 				sExtention = L"png";
 			}
 		}
@@ -4583,7 +4583,7 @@ private:
 				return true;
 			}
 
-			// Проверка на повтор
+			// Repeat check
 			std::vector<std::wstring>::iterator nFind = std::find(m_arrImages.begin(), m_arrImages.end(), sSrcM);
 			if (nFind != m_arrImages.end())
 			{
@@ -4592,7 +4592,7 @@ private:
 			}
 		}
 
-		// Предполагаем картинку по локальному пути
+		// Assume the image uses a local path
 		if (!bRes)
 		{
 			const std::wstring wsDst = m_sDst + L"/word/media/i" + std::to_wstring(m_arrImages.size()) + L'.' + sExtention;
@@ -4737,7 +4737,7 @@ private:
 
 		OpenR(pXml);
 
-		// Пишем в document.xml
+		// Write in document.xml
 		if (oImageData.ZeroSpaces())
 		{
 			pXml->WriteString(L"<w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\"");
@@ -4829,7 +4829,7 @@ private:
 			NSFile::CFileBinary::Remove(m_sDst + L"/word/media/i" + sImageName);
 			return;
 		}
-		// Прописать рельсы
+		// Write the rels
 		if (bNew)
 		{
 			m_arrImages.push_back(sImageSrc);
@@ -4970,7 +4970,7 @@ private:
 			return false;
 
 		unsigned int alfa = 0xffffff;
-		//дефолтный тон должен быть прозрачным, а не белым
+		//default tone should be transparent, not white
 		//memset(pBgraData, 0xff, nWidth * nHeight * 4);
 		for (int i = 0; i < nWidth * nHeight; i++)
 		{
@@ -5029,19 +5029,19 @@ CHtmlFile2::~CHtmlFile2()
 #ifdef USE_OLD_HTML_CONVERTER
 bool CHtmlFile2::IsHtmlFile(const std::wstring& sFile)
 {
-	// Конвертируем в xhtml
+	// Convert to xhtml
 	if(!m_internal->htmlXhtml(sFile))
 		return false;
-	// Читаем html
+	// Reading html
 	return m_internal->isHtml();
 }
 
 bool CHtmlFile2::IsMhtFile(const std::wstring& sFile)
 {
-	// Конвертируем в xhtml
+	// Convert to xhtml
 	if(!m_internal->mhtXhtml(sFile))
 		return false;
-	// Читаем html
+	// Reading html
 	return m_internal->isHtml();
 }
 #endif
@@ -5081,7 +5081,7 @@ HRESULT CHtmlFile2::ConvertHTML2OOXML(const std::wstring& wsPath, const std::wst
 	m_internal->CreateDocxEmpty(pParametrs);
 	m_internal->readStyle();
 
-	// Переходим в начало
+	// Go to the beginning
 	if(!m_internal->m_oLightReader.MoveToStart())
 		return S_FALSE;
 
@@ -5118,7 +5118,7 @@ HRESULT CHtmlFile2::ConvertMHT2OOXML(const std::wstring& wsPath, const std::wstr
 	m_internal->CreateDocxEmpty(oParams);
 	m_internal->readStyle();
 
-	// Переходим в начало
+	// Go to the beginning
 	if(!m_internal->m_oLightReader.MoveToStart())
 		return S_FALSE;
 
@@ -5165,7 +5165,7 @@ HRESULT CHtmlFile2::ConvertHTML2OOXML(const std::vector<std::wstring>& arPaths, 
 			continue;
 		m_internal->readStyle();
 
-		// Переходим в начало
+		// Go to the beginning
 		if(m_internal->m_oLightReader.MoveToStart())
 		{
 			if(oParams && oParams->m_bNeedPageBreakBefore && !bFirst)
@@ -5176,10 +5176,10 @@ HRESULT CHtmlFile2::ConvertHTML2OOXML(const std::vector<std::wstring>& arPaths, 
 			m_internal->m_sBase.clear();
 		}
 
-		// Очищаем разрешенные файлы стилей
-		// Это необходимо, чтобы мы не могли взять стили из не подключенного файла, но при этом, чтобы данные оставались,
-		// т.к. ко многим файлам может быть подключен один и тот же файл (проблема возникает когда он большой)
-		// и подключать (в нашем случае заново парсить) его будет долго
+		// Clearing allowed style files
+		// This is necessary so that we can't take styles from an unconnected file, but at the same time, so that the data remains,
+		// because the same file can be connected to many files (the problem occurs when it is large)
+		// and connecting (in our case re-parsing) it will take a long time
 		m_internal->m_oStylesCalculator.ClearAllowedStyleFiles();
 		m_internal->m_oStylesCalculator.ClearEmbeddedStyles();
 	}

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -122,7 +115,7 @@ std::vector<int> ProtoTable::getWidth(const std::vector<CElementPtr>& arrCells, 
         {
             mapLeftWidth.insert(std::make_pair(left, width));
         }
-        // Here we check qestion: was it merged cell and now is it true width of colum?
+        // Check: was this a merged cell, and is this the true width of the column?
         else if (iter->second > width)
         {
             mapLeftWidth.erase(iter);
@@ -161,7 +154,7 @@ std::vector<int> ProtoTable::getHeight(const std::vector<CElementPtr>& arrCells,
         {
             mapTopHeight.insert(std::make_pair(top, height));
         }
-        // Here we check qestion: was it merged cell and now is it true height of row?
+        // Check: was this a merged cell, and is this the true height of the row?
         else if (iter->second > height)
         {
             mapTopHeight.erase(iter);
@@ -450,8 +443,8 @@ void TableWriter::FillRow(PPTX::Logic::TableRow &oRow, ProtoTableRow& arrCells)
 
 std::wstring TableWriter::getXmlForGraphicFrame(int ID, int idx) const
 {
-    //в таблице могут быть линки и ссылки на другние объекты (картинки???)
-    // yliko_provolis.ppt (+ тут есть смарт арты)
+    //the table may contain links and references to other objects (images???)
+    // yliko_provolis.ppt (+ there are smart arts here)
 
     auto& rXml = m_pTableElement->m_xmlRawData;
 
@@ -460,10 +453,10 @@ std::wstring TableWriter::getXmlForGraphicFrame(int ID, int idx) const
 
     if (graphic_frame.nvGraphicFramePr.IsInit())
     {
-        graphic_frame.nvGraphicFramePr->cNvPr.id = ID; // или менять в карте связей для анимаций
+        graphic_frame.nvGraphicFramePr->cNvPr.id = ID; // or change in the connection map for animations
 
         if (graphic_frame.nvGraphicFramePr->nvPr.ph.IsInit() && idx >= 0)
-        {//проверить
+        {//check
             graphic_frame.nvGraphicFramePr->nvPr.ph->idx = std::to_wstring(idx);
         }
     }

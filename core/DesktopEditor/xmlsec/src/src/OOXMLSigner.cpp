@@ -140,7 +140,7 @@ public:
 		{
 			oRels.CheckOriginSigs(file);
 
-			// удалим все лишнее
+			// remove everything unnecessary
 			std::vector<COOXMLRelationship>::iterator i = oRels.rels.begin();
 			while (i != oRels.rels.end())
 			{
@@ -215,7 +215,7 @@ public:
 
 		m_pFolder->writeXml(sFile, oBuilder.GetData());
 
-		// теперь перебьем все имена файлов
+		// Now go through all the file names
 
 		std::vector<std::wstring> arSigs;
 
@@ -229,7 +229,7 @@ public:
 			std::map<std::wstring, bool>::iterator find = arSigFiles.find(sXmlFileName);
 			if (find == arSigFiles.end())
 			{
-				// ненужная xml
+				// unnecessary xml
 				m_pFolder->remove(*iter);
 				continue;
 			}

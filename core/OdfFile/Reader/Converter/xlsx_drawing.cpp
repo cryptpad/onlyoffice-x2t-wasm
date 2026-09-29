@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -191,14 +184,14 @@ void xml_serialize_shape(std::wostream & strm, _xlsx_drawing & val, const std::w
             {
                 CP_XML_NODE(ns + L":cNvPr")
                 {
-                    CP_XML_ATTR(L"id", val.id);//числовое значение val.rId
+                    CP_XML_ATTR(L"id", val.id);//numeric value val.rId
                     CP_XML_ATTR(L"name", val.name);
 
 					if (val.hidden) CP_XML_ATTR(L"hidden", 1);
 						
 					oox_serialize_action(CP_XML_STREAM(), val.action);
                 }
-				CP_XML_NODE(ns + L":cNvSpPr")//non visual properies (собственно тока 1 там)
+				CP_XML_NODE(ns + L":cNvSpPr")//non visual properties (actually 1 there)
 				{
 					if (val.sub_type == 1)CP_XML_ATTR(L"txBox", 1);
 				}
@@ -218,7 +211,7 @@ void xml_serialize_shape(std::wostream & strm, _xlsx_drawing & val, const std::w
     }  // CP_XML_WRITER  
 }
 void xml_serialize_object(std::wostream & strm, _xlsx_drawing & val)
-{//отображательная часть
+{//display part
 	CP_XML_WRITER(strm)    
     {
         CP_XML_NODE(L"xdr:sp")
@@ -227,7 +220,7 @@ void xml_serialize_object(std::wostream & strm, _xlsx_drawing & val)
             {
                 CP_XML_NODE(L"xdr:cNvPr")
                 {
-                    CP_XML_ATTR(L"id",		val.id);	//числовое значение val.rId
+                    CP_XML_ATTR(L"id",		val.id);	//numeric value val.rId
                     CP_XML_ATTR(L"name",	val.name);
  					
 					if (val.hidden) CP_XML_ATTR(L"hidden", 1);
@@ -290,7 +283,7 @@ void xml_serialize_group(std::wostream & strm, _xlsx_drawing & val, const std::w
 }
 
 void xml_serialize_chart(std::wostream & strm, _xlsx_drawing & val)
-{//отображательная часть
+{//display part
     CP_XML_WRITER(strm)    
     {
 		CP_XML_NODE(L"xdr:graphicFrame")
@@ -590,6 +583,15 @@ void _xlsx_drawing::serialize_vml(std::wostream & strm)
 					CP_XML_NODE(L"x:FmlaLink")
 					{
 						CP_XML_STREAM() << fmla;
+					}
+				}
+				if (sub_type == OBJ_CheckBox)
+				{
+					_CP_OPT(bool) bChecked;
+					GetProperty(additional, L"checkbox_state", bChecked);
+					if (bChecked && *bChecked)
+					{
+						CP_XML_NODE(L"x:Checked");
 					}
 				}
 				GetProperty(additional, L"cell_range", sVal);

@@ -8,7 +8,7 @@
 namespace Jpeg2000
 {
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Вспомогательные функции
+	// Auxiliary functions
 	//-------------------------------------------------------------------------------------------------------------------------------
 	static bool Jp2_ReadBoxHeader(PCommon pCodecInfo, CReader *pStream, Jp2Box *pBox)
 	{
@@ -111,7 +111,7 @@ namespace Jpeg2000
 		pStream->Write(pJp2->nWidth, 4); // WIDTH
 		pStream->Write(pJp2->nComponentsCount, 2); // NC
 		pStream->Write(pJp2->nBPC, 1); // BPC
-		pStream->Write(pJp2->nCompressionType, 1); // C ( это значение всегда равно 7 )
+		pStream->Write(pJp2->nCompressionType, 1); // C (this value is always 7)
 		pStream->Write(pJp2->nColorSpaceUnk, 1); // UnkC, colorspace unknown
 		pStream->Write(pJp2->nIPR, 1); // IPR
 
@@ -257,7 +257,7 @@ namespace Jpeg2000
 			/*	ISO/IEC 15444-1:2004 (E), Table I.9 ­ Legal METH values:
 			conforming JP2 reader shall ignore the entire Colour Specification box.*/
 			//"COLR BOX meth value is not a regular value (%d), so we will ignore the entire Colour Specification box. \n", jp2->meth);
-			// Пропускаем PROFILE
+			// Skip PROFILE
 			int nSkipLen = oBox.nInitPos + oBox.nLength - pStream->Tell();
 			if (nSkipLen < 0)
 			{
@@ -364,8 +364,8 @@ namespace Jpeg2000
 		{
 			// return false;
 
-			// По спецификации данный Box является необходимым, но мы все-таки
-			// попробуем прочитать изображение со стандартными параметрами.
+			// According to the specification, this Box is necessary, but we still
+			// Try to read the image with standard parameters.
 
 			pStream->Seek(nCurPos);
 			pJp2->nApprox = 0;
@@ -547,7 +547,7 @@ namespace Jpeg2000
 
 
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Декодирование потока Jp2
+	// Decoding Jp2 stream
 	//-------------------------------------------------------------------------------------------------------------------------------
 	void       Jp2_DestroyDecompress(Jp2Stream *pJp2)
 	{
@@ -597,27 +597,27 @@ namespace Jpeg2000
 
 		PCommon pCodecInfo = pJp2->pCodecInfo;
 
-		// Декодируем JP2
+		// Decoding JP2
 		if (!Jp2_ReadStruct(pJp2, pStream))
 		{
 			Event_Message(EVT_ERROR, "Failed to decode jp2 structure\n");
 			return NULL;
 		}
 
-		// Декодируем J2K
+		// Decoding J2K
 		Image *pImage = J2k_Decode(pJp2->pJ2k, pStream);
 		if (!pImage)
 		{
 			Event_Message(EVT_ERROR, "Failed to decode J2K image\n");
 		}
 
-		////приведение цветовой схемы..????
+		////color scheme conversion..????
 
 		return pImage;
 	}
 
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Кодирование в поток Jp2
+	// Encoding to Jp2 stream
 	//-------------------------------------------------------------------------------------------------------------------------------
 	void       Jp2_DestroyCompress(Jp2Stream *pJp2)
 	{
@@ -701,7 +701,7 @@ namespace Jpeg2000
 			if (nDepth0 != depth)
 				pJp2->nBPC = 255;
 		}
-		pJp2->nCompressionType = 7; // C (всегда 7)
+		pJp2->nCompressionType = 7; // C (always 7)
 		pJp2->nColorSpaceUnk   = 0; // UnkC
 		pJp2->nIPR             = 0; // IRP
 

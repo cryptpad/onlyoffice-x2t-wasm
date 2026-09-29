@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -53,7 +46,7 @@ namespace PPTX
 			ColorBase& operator=(const ColorBase& oSrc);
 			virtual ~ColorBase();
 
-			//Эти функции возвращают цвет с учетом модификаторов
+			//These functions return the color taking into account modifiers
 			virtual DWORD GetRGBA(DWORD RGBA) const;
 			virtual DWORD GetARGB(DWORD ARGB) const;
 			virtual DWORD GetBGRA(DWORD BGRA) const;
@@ -62,18 +55,18 @@ namespace PPTX
 			virtual DWORD GetRGBColor(NSCommon::smart_ptr<PPTX::Theme>& _oTheme, NSCommon::smart_ptr<PPTX::Logic::ClrMap>& _oClrMap, DWORD ARGB = 0);
 			void SetRGB(const BYTE& R, const BYTE& G, const BYTE& B);
 
-			//Надо сделать примерно также для "origin color" и setter'ы
-			//Нет, нет и нет!!! Setter'ы делать только в УниКолор, т.к. при установке цвета меняется его тип!
+			//Need to do approximately the same for "origin color" and setters
+			//No, no and no!!! Make setters only in UniColor, because... When a color is set, its type changes!
 
 			enum ColorType {ctRGBA, ctARGB, ctBGRA, ctABGR};
 
 			virtual DWORD ApplyModifiers(const ColorType ct) const;
 
-			//Эти функции использовать для заполнения "origin color"
+			//Use these functions to fill the "origin color"
 			void SetRGB2HSL();
 			void SetHSL2RGB();
 
-			//Эти использовать при применении модификаторов
+			//Use these when applying modifiers
 			static void RGB2HSL(unsigned char* RGB, unsigned char* HSL);
 			static void HSL2RGB(unsigned char* HSL, unsigned char* RGB);
 			static double Hue_2_RGB(double v1,double v2,double vH);             //Function Hue_2_RGB

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -43,79 +36,79 @@
 #include <map>
 #include  <utility>
 
-/// @brief класс -обертка над xmlLiteReader для превращения xml нод в табличные строки
+/// @brief class - a wrapper over xmlLiteReader for turning xml nodes into table rows
 class XML2TableConverter
 {
 public:
 
-    /// @brief конструктор загружающий в обънет reader с прочитанным xml
-    /// @param reader xmlLiteReader с загруженным в него xml документом
+    /// @brief constructor that loads the reader with the read xml into the object
+    /// @param reader xmlLiteReader with xml document loaded into it
     XML2TableConverter(XmlUtils::CXmlLiteReader &reader);
 
-    /// @brief метод, считывающий следующую строку из xml
-    /// @param string map со строковыми данными в качестве ключей и номерами их столбцов для вставки в качестве значений
-    /// @return номер строки в случае успешного считывания или -1 в случае ошибки
+    /// @brief method that reads the next row from xml
+    /// @param string map with string data as keys and their column numbers to insert as values
+    /// @return line number in case of successful reading or -1 in case of error
     bool ReadNextElement(std::map<_UINT32, std::wstring> &string);
 
 private:
 
-    /// @brief считывает аттрибуты текущей ноды
+    /// @brief reads the attributes of the current node
     void readAttributes();
 
-    /// @brief обрабатывает текущую ноду
-    /// @param type тип обрабатываемой ноды
-    /// @return true если ноды в рамках строки считаны и можно выходить, иначе false
+    /// @brief handles the current node
+    /// @param type type of node being processed
+    /// @return true if the nodes within the line have been read and it can exit, otherwise false
     void processNode(const XmlUtils::XmlNodeType &type);
 
-    /// @brief проверка ноды на возможность вставить её данные в таблицу с последующей их  вставкой в случае успеха
-    /// @param type тип обрабатываемой ноды
+    /// @brief checking the node for the ability to insert its data into the table and then inserting it if successful
+    /// @param type type of node being processed
     void storeData(const XmlUtils::XmlNodeType &type);
 
-    /// @brief заполняет данными переданный map
-    /// @param row map в который будут помещены данные и соответствующие им номера столбцов
-    /// @return номер вставляемой строки
+    /// @brief fills the passed map with data
+    /// @param row map into which the data and corresponding column numbers will be placed
+    /// @return the number of the inserted row
     void insertRow(std::map<_UINT32, std::wstring> &row);
 
-    /// @brief вставляет значение во временную внутреннюю структуру
-    /// @param key ключ, по которому будет вставлено значение
-    /// @param value значение которое нужно вставить
+    /// @brief inserts a value into a temporary internal structure
+    /// @param key the key by which the value will be inserted
+    /// @param value the value to be inserted
     void insertValue(const std::wstring &key, const std::wstring &value);
 
-    /// @brief вставляет имя пустой ноды
-    /// @param key имя ноды
+    /// @brief inserts the name of an empty node
+    /// @param key node name
     void insertEmptyNode(const std::wstring &key);
 
-    /// @brief вставляет атрибут ноды во временную внутреннюю структуру
-    /// @param key ключ, по которому будет вставлено значение
-    /// @param value значение которое нужно вставить
+    /// @brief inserts a node attribute into a temporary internal structure
+    /// @param key the key by which the value will be inserted
+    /// @param value the value to be inserted
     void insertAttribute(const std::wstring &key, const std::wstring &value);
 
-    /// @brief заполняет map собранными именами столбцов для их вставки в таблицу
-    /// @param names map с именами столбцов
+    /// @brief populates the map with the collected column names to insert them into the table
+    /// @param names map with column names
     void insertColumnNames(std::map<_UINT32, std::wstring> &names);
 
-    /// @brief Получение уникального имени ноды, либо его поиск в переданном множестве
-    /// @param name имя ноды, прочитанное из xml
-    /// @param names set содержащий уникальные имена, среди которых будет осуществляться поиск
-    /// @return найденное или сгенерированное уникальное имя ноды
+    /// @brief Receiving a unique node name, or searching for it in the passed set
+    /// @param name node name read from xml
+    /// @param names set containing unique names among which the search will be carried out
+    /// @return the found or generated unique node name
     std::wstring getNodeName(const std::wstring &name, std::set<std::wstring> &names);
 
-    /// @brief указатель на считавший xml данные reader
+    /// @brief pointer to the reader that read the xml data
     XmlUtils::CXmlLiteReader *reader_;
 
-    /// @brief вектор с родительскими нодами и используемыми на их уровнях именами
+    /// @brief vector with parent nodes and names used at their levels
     std::vector<std::pair<std::wstring, std::set<std::wstring>>> parents_;
 
-    /// @brief map с набором ключей в виде уникальных имен и их значений для вставки в таблицу
+    /// @brief map with a set of keys in the form of unique names and their values for insertion into the table
     std::map<std::wstring, std::wstring> keyvalues_;
 
-    /// @brief контроллер имен столбцов таблицы
+    /// @brief table column name controller
     ColumnNameController colNames_;
 
-    /// @brief map в который выводятся данные при прочтении ноды
+    /// @brief map into which data is output when reading a node
     std::map<_UINT32, std::wstring> stringBuffer_;
 
-    /// @brief тип предыдущей ноды(для поиска нод вида <node></node>)
+    /// @brief type of the previous node (to search for nodes like <node></node>)
     XmlUtils::XmlNodeType prevType_ = XmlUtils::XmlNodeType::XmlNodeType_None;
 
 };

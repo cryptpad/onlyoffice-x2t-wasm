@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -75,14 +68,14 @@ namespace SerializeCommon
         std::string sUnicode((char*)pUtf8, nUtf8Size);
 		RELEASEARRAYOBJECTS(pUtf8);
 
-		//Убираем "data:image/jpg;base64,"
+		//Remove "data:image/jpg;base64,"
 		int nShift = 0;
         int nIndex = sUnicode.find("base64,");
 		if(-1 != nIndex)
 		{
 			nShift = nIndex + 7;
 		}
-		// Получаем размер файла
+		// Getting the file size
         LONG lFileSize = sUnicode.length () - nShift;
 		INT nDstLength = lFileSize;
 		BYTE *pBuffer = new BYTE [lFileSize];
@@ -114,7 +107,7 @@ namespace SerializeCommon
     void ReadFileType(const std::wstring& sXMLOptions, BYTE& result, UINT& nCodePage, std::wstring& sDelimiter, BYTE& cSaveFileType, _INT32& Lcid)
 	{
 		result = BinXlsxRW::c_oFileTypes::XLSX;
-		nCodePage = 46;		//default 46 временно CP_UTF8
+		nCodePage = 46;		//default 46 temporary CP_UTF8
 		cSaveFileType = BinXlsxRW::c_oFileTypes::XLSX;// default
         Lcid = -1;// default
 

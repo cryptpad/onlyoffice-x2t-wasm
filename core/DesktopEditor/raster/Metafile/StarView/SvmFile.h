@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -283,7 +276,7 @@ class CSvmFile : virtual public IMetaFileBase
 		unsigned int ulBitsSize = cbBits;
 		if (ulHeaderSize <= 0 || ulBitsSize <= 0 || lHeaderOffset < 0 || lBitsOffset < 0)
 		{
-			// TODO: Если попали сюда, значит надо смотреть BitBltRasterOperation
+			// TODO: If execution reaches this point, check BitBltRasterOperation
 			if (lHeaderOffset > 0)
 				m_oStream.Skip(lHeaderOffset);
 
@@ -318,7 +311,7 @@ class CSvmFile : virtual public IMetaFileBase
 			TranslatePoint(nX, nY, dX, dY);
 			TranslatePoint(nX + nW, nY + nH, dR, dB);
 
-			//Если каждый 4-ый байт оставить 0, то получим черную картинку
+			//If every 4th byte is left 0, then get a black image
 			for (int nIndex = 3, nSize = 4 * unImageW * unImageH; nIndex < nSize; nIndex += 4)
 				pImageBuffer[nIndex] = 255;
 
@@ -447,7 +440,7 @@ class CSvmFile : virtual public IMetaFileBase
 			m_pOutput->ArcTo(dL, dT, dR, dB, dStart, dSweep);
 		}
 
-		// Пересчет текущей позиции делается в каждой функции отдельно после вызова данной
+		// Recalculation of the current position is done in each function separately after calling this
 	}
 	void DrawPath(bool bStroke, bool bFill)
 	{

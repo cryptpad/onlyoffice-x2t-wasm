@@ -205,14 +205,14 @@ CParagraphsStyle CStyleConverter::GenerateParagraphStyle(const CHWPRecordParaSha
 		case 0x01:
 		{
 			oParagraphsStyle.SetSpacingLineRule(ELineRule::Exact);
-			oParagraphsStyle.SetSpacing(static_cast<int>((double)oParaShape.GetLineSpacing() / 10.)); /*0.352778*/; //(1pt=0.352778mm) //TODO:: проверить, как найдется пример
+			oParagraphsStyle.SetSpacing(static_cast<int>((double)oParaShape.GetLineSpacing() / 10.)); /*0.352778*/; //(1pt=0.352778mm) //TODO:: verify when a test file is found
 			break;
 		}
 		case 0x02:
 		case 0x03:
 		{
 			oParagraphsStyle.SetSpacingLineRule(ELineRule::AtLeast);
-			oParagraphsStyle.SetSpacing(static_cast<int>((double)oParaShape.GetLineSpacing() / 10.)); //TODO:: проверить, как найдется пример
+			oParagraphsStyle.SetSpacing(static_cast<int>((double)oParaShape.GetLineSpacing() / 10.)); //TODO:: verify when a test file is found
 			break;
 		}
 		default:

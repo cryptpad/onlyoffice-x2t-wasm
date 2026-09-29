@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -301,7 +294,7 @@ namespace DocFileFormat
 		}
 		m_pXmlWriter->WriteNodeBegin(L"v:shape", true);
 
-		//m_shapeId = GetShapeID(pShape); - todooo одинаковые картинки (одинаковый spid) - Anexo№3.doc
+		//m_shapeId = GetShapeID(pShape); - TODO same images (same spid) - Anexo№3.doc
 
 
 		if (m_shapeId.empty())
@@ -314,7 +307,7 @@ namespace DocFileFormat
 
 		m_pXmlWriter->WriteAttribute(L"type", std::wstring(L"#" + VMLShapeTypeMapping::GenerateTypeId(&type)));
 
-		//todooo oбъединить с shape_mapping		
+		//TODO merge with shape_mapping
 		int nColorRGBBase = 0xffffff;
 
 		for (size_t i = 0; i < options.size(); i++)
@@ -339,13 +332,13 @@ namespace DocFileFormat
 				}
 			}break;
 			case ODRAW::metroBlob:
-			{//встроенная неведомая хуйня
+			{//built-in unknown value
 				ODRAW::MetroBlob* blob = dynamic_cast<ODRAW::MetroBlob*>(iter.get());
 				if (blob)
 				{
 					m_isBlob = true;
 					m_isEmbedded = true;
-					//if (ParseEmbeddedBlob( blob->data.first, blob->data.second)) // todoooo
+					//if (ParseEmbeddedBlob( blob->data.first, blob->data.second)) // TODO
 					//{
 					//	m_isEmbedded = false;
 					//}

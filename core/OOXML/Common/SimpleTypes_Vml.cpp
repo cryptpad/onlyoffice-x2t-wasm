@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -1661,7 +1654,7 @@ namespace SimpleTypes
 
 } // SimpleTypes
 
-// Дополнительные простые типы, не входящие в спецификацию
+// Additional simple types not included in the specification
 namespace SimpleTypes
 {
 	namespace Vml
@@ -1781,7 +1774,7 @@ namespace SimpleTypes
 
 		std::wstring CVmlPath::FromString(const std::wstring &sValue)
 		{
-			// TO DO: Сделать парсер пата Part4. 14.2.2.3
+			// TO DO: Make a parser for Part4. 14.2.2.3
 			m_sValue = sValue;
 
 			return m_sValue;
@@ -2373,7 +2366,7 @@ namespace SimpleTypes
 					return;
 				}
 
-				// Чтобы избежать большого количества сравнения строк проверим для начала по первым двум символам
+				// To avoid a lot of string comparisons, check first by the first two characters
 				int nChar1 = sProperty[ 0 ];
 				int nChar2 = sProperty[ 1 ];
 
@@ -2607,7 +2600,7 @@ namespace SimpleTypes
 
 		void CCssProperty::ReadValue_Unknown(std::wstring& sValue)
 		{
-			// Ничего не делаем
+			// Do nothing
 		}
 		void CCssProperty::ReadValue_Flip(std::wstring& sValue)
 		{
@@ -2654,11 +2647,11 @@ namespace SimpleTypes
 			}
 			else if ( -1 != ( nPos = (int)sValue.find( L"em" ) ) )
 			{
-				// TO DO: Реализовать единицы 'em'
+				// TO DO: Implement 'em' units
 			}
 			else if ( -1 != ( nPos = (int)sValue.find( L"ex" ) ) )
 			{
-				// TO DO: Реализовать единицы 'ex'
+				// TO DO: Implement 'ex' units
 			}
 			else if ( -1 != ( nPos = (int)sValue.find( L"pt" ) ) )
 			{
@@ -3896,7 +3889,7 @@ namespace SimpleTypes
 
 			std::wstring sValue = sValueInput;
 
-			// Разделителями могут быть запятые и пробелы
+			// Separators can be commas and spaces
 			XmlUtils::replace_all(sValue, L"@", L"");
 			boost::algorithm::split(arSplit, sValue, boost::algorithm::is_any_of(L", "), boost::algorithm::token_compress_on);
 

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -64,7 +57,7 @@ bool XML2TableConverter::ReadNextElement(std::map<_UINT32, std::wstring> &string
 
 void XML2TableConverter::readAttributes()
 {
-    ///@todo проверять нет ли в parents нод с таким же именем для вставки в их столбец вместо создания нового
+    ///@todo check if parents have nodes with the same name to insert into their column instead of creating a new one
     if(!reader_->GetAttributesCount())
     {
         return;
@@ -131,7 +124,7 @@ void XML2TableConverter::insertEmptyNode (const std::wstring &key)
 
 std::wstring XML2TableConverter::getNodeName(const std::wstring &name, std::set<std::wstring> &names)
 {
-    /// ищем среди использовавшихся имён нужное
+    /// looking for the right one among the names used
     for(auto i = names.begin(); i != names.end(); i++)
     {
         if(colNames_.GetXmlName(*i) == name)
@@ -139,7 +132,7 @@ std::wstring XML2TableConverter::getNodeName(const std::wstring &name, std::set<
             return *i;
         }
     }
-    /// если не нашли, создаём его и вставляем
+    /// if not found, create it and insert it
     auto resultName = name;
     colNames_.CreateColumnName(resultName);
     names.insert(resultName);
@@ -176,7 +169,7 @@ void XML2TableConverter::processNode(const XmlUtils::XmlNodeType &type)
     }
     else if(type == XmlUtils::XmlNodeType::XmlNodeType_EndElement)
     {
-        //вставка ноды типа <node></node>
+        //inserting a node of type <node></node>
         if(prevType_ == XmlUtils::XmlNodeType::XmlNodeType_Element)
         {
             insertValue(parents_.back().first, L"");
@@ -190,7 +183,7 @@ void XML2TableConverter::processNode(const XmlUtils::XmlNodeType &type)
 
 void XML2TableConverter::storeData(const XmlUtils::XmlNodeType &type)
 {
-    ///@todo проверять нет ли в parents нод с таким же именем для вставки в их столбец вместо создания нового
+    ///@todo check if parents have nodes with the same name to insert into their column instead of creating a new one
     if(type == XmlUtils::XmlNodeType::XmlNodeType_Text || type == XmlUtils::XmlNodeType::XmlNodeType_CDATA)
     {
         auto text = reader_->GetText();

@@ -1,0 +1,24 @@
+diff --git a/websocketpp/impl/connection_impl.hpp b/websocketpp/impl/connection_impl.hpp
+index bf88c95..5aee68c 100644
+--- a/websocketpp/impl/connection_impl.hpp
++++ b/websocketpp/impl/connection_impl.hpp
+@@ -1760,6 +1760,19 @@ void connection<config>::handle_terminate(terminate_status tstat,
+         log_err(log::elevel::devel,"handle_terminate",ec);
+     }
+ 
++    // Even with all workarounds and bug fixes in socket-io master branch, still running into
++    // cases like https://github.com/socketio/socket.io-client-cpp/issues/254.
++    //
++    // After much investigation and debugging, seems like the socket is remaining
++    // open and preventing the network thread from ending.  Perhaps this is specific to the
++    // environment where this code is run by Solink.  The only solution seems to be manually
++    // closing the socket as described here: https://github.com/zaphoyd/websocketpp/issues/805
++
++    bool isSocketOpen = transport_con_type::get_raw_socket().is_open();
++    if (isSocketOpen) {
++      transport_con_type::get_raw_socket().close();
++    }
++
+     // clean shutdown
+     if (tstat == failed) {
+         if (m_ec != error::http_connection_ended) {

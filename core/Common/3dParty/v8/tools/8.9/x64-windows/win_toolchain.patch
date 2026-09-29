@@ -1,0 +1,33 @@
+diff --git a/toolchain/win/tool_wrapper.py b/toolchain/win/tool_wrapper.py
+index 5c1fb98..0fe6e65 100644
+--- a/toolchain/win/tool_wrapper.py
++++ b/toolchain/win/tool_wrapper.py
+@@ -140,7 +140,8 @@ class WinTool(object):
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+     # Read output one line at a time as it shows up to avoid OOM failures when
+     # GBs of output is produced.
+-    for line in link.stdout:
++    for line_bytes in link.stdout:
++      line = line_bytes.decode('utf-8', errors='ignore')
+       if (not line.startswith('   Creating library ') and
+           not line.startswith('Generating code') and
+           not line.startswith('Finished generating code')):
+diff --git a/vs_toolchain.py b/vs_toolchain.py
+index 6bc24a9..70eae54 100755
+--- a/vs_toolchain.py
++++ b/vs_toolchain.py
+@@ -25,12 +25,14 @@ json_data_file = os.path.join(script_dir, 'win_toolchain.json')
+ 
+ # VS versions are listed in descending order of priority (highest first).
+ MSVS_VERSIONS = collections.OrderedDict([
++  ('2022', '17.0'),
+   ('2019', '16.0'),
+   ('2017', '15.0'),
+ ])
+ 
+ # List of preferred VC toolset version based on MSVS
+ MSVC_TOOLSET_VERSION = {
++   '2022' : 'VC143',
+    '2019' : 'VC142',
+    '2017' : 'VC141',
+ }

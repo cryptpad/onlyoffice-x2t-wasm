@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -127,14 +120,14 @@ namespace PdfWriter
 	}
 	static double AngToEllPrm(double dAngle, double dXRad, double dYRad)
 	{
-		// Функция для перевода реального угла в параметрическое задание эллписа
-		// т.е. x= a cos(t) y = b sin(t) - параметрическое задание эллписа.
+		// Function for converting a real angle into a parametric ellipse specification
+		// i.e. x= a cos(t) y = b sin(t) - parametric specification of the ellipse.
 		// x = r cos(p), y = r sin(p) => t = atan2( sin(p) / b, cos(p) / a );
 		return atan2(sin(dAngle) / dYRad, cos(dAngle) / dXRad);
 	}
 	static void WriteEllipseArc(CStream* pStream, double dX, double dY, double dXRad, double dYRad, double dAngle1, double dAngle2, double& dXCur, double& dYCur, bool bClockDirection = false)
 	{
-		// Рассчитаем начальную, конечную и контрольные точки
+		// Calculate the start, end and control points
 		double dX1  = 0.0, dX2  = 0.0, dY1  = 0.0, dY2  = 0.0;
 		double dCX1 = 0.0, dCX2 = 0.0, dCY1 = 0.0, dCY2 = 0.0;
 	
@@ -207,7 +200,7 @@ namespace PdfWriter
 	}
 	void CPageTree::Fix()
 	{
-		// Инициализация текущего m_pPages
+		// Initializing the current m_pPages
 		CObjectBase* pPages = Get("Kids");
 		if (pPages && pPages->GetType() == object_type_ARRAY)
 			m_pPages = (CArrayObject*)pPages;
@@ -217,7 +210,7 @@ namespace PdfWriter
 			Add("Kids", m_pPages);
 		}
 
-		// Инициализация текущего m_pCount
+		// Initializing the current m_pCount
 		CObjectBase* pCount = Get("Count");
 		if (pCount && pCount->GetType() == object_type_NUMBER)
 			m_pCount = (CNumberObject*)pCount;
@@ -392,7 +385,7 @@ namespace PdfWriter
 	}
 	void CPage::Fix()
 	{
-		// Инициализация текущего contents
+		// Initializing the current contents
 		CObjectBase* pContents = Get("Contents");
 		if (pContents)
 		{
@@ -419,7 +412,7 @@ namespace PdfWriter
 			Add("Contents", m_pContents);
 		}
 
-		// Инициализация текущего MediaBox
+		// Initializing the current MediaBox
 		CObjectBase* pMediaBox = Get("MediaBox");
 		if (pMediaBox && pMediaBox->GetType() == object_type_ARRAY)
 		{
@@ -454,7 +447,7 @@ namespace PdfWriter
 		else
 			Add("MediaBox", CArrayObject::CreateBox(0, 0, DEF_PAGE_WIDTH, DEF_PAGE_HEIGHT));
 
-		// Инициализация текущего Rotate
+		// Initializing the current Rotate
 		CObjectBase* pRotate = GetRotateItem();
 		if (pRotate && pRotate->GetType() == object_type_NUMBER)
 			Add("Rotate", ((CNumberObject*)pRotate)->Get() % 360);
@@ -464,7 +457,7 @@ namespace PdfWriter
 		{
 			pResources->Fix();
 
-			// Инициализация текущего Shading
+			// Initializing the current Shading
 			CObjectBase* pShading = pResources->Get("Shading");
 			if (pShading && pShading->GetType() == object_type_DICT)
 			{
@@ -472,7 +465,7 @@ namespace PdfWriter
 				m_unShadingsCount = m_pShadings->GetSize();
 			}
 
-			// Инициализация текущего Pattern
+			// Initializing the current Pattern
 			CObjectBase* pPattern = pResources->Get("Pattern");
 			if (pPattern && pPattern->GetType() == object_type_DICT)
 			{
@@ -589,7 +582,7 @@ namespace PdfWriter
 	{
 		CObjectBase* pObject = Get("Resources");
 
-		// Если объект Resources нулевой, тогда ищем Resources у родительского объекта рекурсивно
+		// If the Resources object is null, then find Resources from the parent object recursively
 		if (!pObject)
 		{
 			CPageTree* pPageTree = NULL;
@@ -641,16 +634,16 @@ namespace PdfWriter
     void CPage::SetGrMode(EGrMode eMode)
 	{
 		m_eGrMode = eMode;
-		// TODO: Сделать проверку плохих ситуаций
+		// TODO: Check bad situations
 	}
     void CPage::CheckGrMode(EGrMode eMode)
 	{
-		// TODO: Сделать проверку плохих ситуаций
+		// TODO: Check bad situations
 	}
     void CPage::MoveTo (double dX, double dY)
 	{
 		// Operator   : m
-		// Description: Начинаем новый subpath, передвигая текущий указатель в точку (x, y)(она же стартовая). 
+		// Description: Start a new subpath, moving the current pointer to the point (x, y) (also the starting point).
 
 		SetGrMode(grmode_PATH);
 		m_pStream->WriteReal(dX);
@@ -664,7 +657,7 @@ namespace PdfWriter
     void CPage::LineTo (double dX, double dY)
 	{
 		// Operator   : l
-		// Description: Добавляем линию от текущей точки до точки (x, y). Текущую точку выставляем (х, у).
+		// Description: Add a line from the current point to the point (x, y). We set the current point (x, y).
 		CheckGrMode(grmode_PATH);
 
 		m_pStream->WriteReal(dX);
@@ -677,9 +670,9 @@ namespace PdfWriter
     void CPage::CurveTo(double dX1, double dY1, double dX2, double dY2, double dX3, double dY3)
 	{
 		// Operator   : c
-		// Description: Добавляем кривую Безье(кубическую). Начинается кривая в текущей позиции, заканчивается
-		//              в точке (x3, y3). (x1, y1) и (x2, y2) - контрольные точки. Текущую точку устанавливаем
-		//              в (х3, у3).
+		// Description: Add a Bezier curve (cubic). The curve starts at the current position and ends
+		//              at point (x3, y3). (x1, y1) and (x2, y2) are control points. Set the current point
+		//              in (x3, y3).
 		CheckGrMode(grmode_PATH);
 
 		m_pStream->WriteReal(dX1);
@@ -718,18 +711,18 @@ namespace PdfWriter
 	{
 		CheckGrMode(grmode_PATH);
 	
-		// переведем углы в радианы	
+		// convert angles to radians
 		double dAngle1 = _dAngle1 * 3.141592f / 180;
 		double dAngle2 = _dAngle2 * 3.141592f / 180;
 	
-		// Выясним в каких четвертях находятся начальная и конечная точки
+		// Find out in which quarters the starting and ending points are located
 		int nFirstPointQuard  = int(_dAngle1) / 90 + 1;
 		int nSecondPointQuard = int(_dAngle2) / 90 + 1;
 	
         nSecondPointQuard = std::min(4, std::max(1, nSecondPointQuard));
         nFirstPointQuard  = std::min(4, std::max(1, nFirstPointQuard));
 
-		// Проведем линию в начальную точку дуги
+		// Draw a line to the starting point of the arc
 		double dStartX = 0.0, dStartY = 0.0, dEndX = 0.0, dEndY = 0.0;
 	
 		dStartX = dX + dXRad * cos(AngToEllPrm(dAngle1, dXRad, dYRad));
@@ -740,7 +733,7 @@ namespace PdfWriter
 		//m_pStream->WriteReal(dStartY);
 		//m_pStream->WriteStr(" m\012");
 
-		// Дальше рисуем по четверям	
+		// Next, draw by quadrants
 		double dCurX = dStartX, dCurY = dStartY;
 		double dStartAngle = dAngle1;
 		double dEndAngle = 0;
@@ -781,7 +774,7 @@ namespace PdfWriter
 	}
     void CPage::EllipseArcTo(double dX, double dY, double dXRad, double dYRad, double _dAngle1, double _dAngle2, bool bClockDirection)
 	{
-		// Проверяем эллипс на невырожденность
+		// Checking the ellipse for non-degeneracy
 		if (dXRad < 0.001 || dYRad < 0.001)
 		{
 			double dAngle1 = _dAngle1 * 3.141592f / 180;
@@ -839,8 +832,8 @@ namespace PdfWriter
     void CPage::ClosePath()
 	{
 		// Operator   : h
-		// Description: Закрываем subpath, соединяя текущую точку с начальной прямой линией. Если subpath
-		//              уже закрыт, тогда ничего не делаем
+		// Description: Close the subpath, connecting the current point with the initial straight line. If subpath
+		//              is already closed, then we do nothing
 		CheckGrMode(grmode_PATH);
 		m_pStream->WriteStr("h\012");
 		m_oCurPos = m_oStartPos;
@@ -848,7 +841,7 @@ namespace PdfWriter
     void CPage::Stroke()
 	{
 		// Operator   : S
-		// Description: Обводим path.
+		// Description: Stroke the path.
 
 		SetGrMode(grmode_PAGE);
 		m_pStream->WriteStr("S\012");
@@ -857,8 +850,8 @@ namespace PdfWriter
     void CPage::Fill()
 	{
 		// Operator   : f
-		// Description: Заливка path по правилу Nonzero Winding Number Rule(см. спецификацию PDF Part1: PDF 1.7 
-		//              стр. 136, закладка 8.5.3.3.2). 
+		// Description: Filling the path using the Nonzero Winding Number Rule (see specification PDF Part1: PDF 1.7
+		//              page 136, tab 8.5.3.3.2).
 		SetGrMode(grmode_PAGE);
 		m_pStream->WriteStr("f\012");
 		m_oCurPos.Reset();
@@ -866,8 +859,8 @@ namespace PdfWriter
     void CPage::EoFill()
 	{
 		// Operator   : f*
-		// Description: Заливка path по правилу Even-Odd Rule(см. спецификацию PDF Part1: PDF 1.7 стр. 137, 
-		//              закладка 8.5.3.3.3). 
+		// Description: Fill path according to the Even-Odd Rule (see specification PDF Part1: PDF 1.7 page 137,
+		//              tab 8.5.3.3.3).
 		SetGrMode(grmode_PAGE);
 		m_pStream->WriteStr("f*\012");
 		m_oCurPos.Reset();
@@ -875,10 +868,10 @@ namespace PdfWriter
     void CPage::FillStroke()
 	{
 		// Operator   : B
-		// Description: Заливка и обоводка path, используя правило для заливки Nonzero Winding Number Rule(см. 
-		//              спецификацию PDF Part1: PDF 1.7 стр. 136, закладка 8.5.3.3.2). Этот оператор должен 
-		//              привести к тому же самому результату как строительство двух идентичных объектов path, 
-		//              применяя к первому оператор f и ко второму - S.
+		// Description: Fill and stroke the path using the Nonzero Winding Number Rule (see
+		//              specification PDF Part1: PDF 1.7 page 136, tab 8.5.3.3.2). This operator must
+		//              lead to the same result as constructing two identical path objects,
+		//              applying the operator f to the first and S to the second.
 		SetGrMode(grmode_PAGE);
 		m_pStream->WriteStr("B\012");
 		m_oCurPos.Reset();
@@ -886,10 +879,10 @@ namespace PdfWriter
     void CPage::EoFillStroke()
 	{
 		// Operator   : B*
-		// Description: Заливка и обоводка path, используя правило для заливки Even-Odd Rule(см. 
-		//              спецификацию PDF Part1: PDF 1.7 стр. 137, закладка 8.5.3.3.3). Этот оператор должен 
-		//              привести к тому же самому результату как строительство двух идентичных объектов path, 
-		//              применяя к первому оператор f* и ко второму - S.
+		// Description: Fill and stroke the path using the Even-Odd Rule (see
+		//              specification PDF Part1: PDF 1.7 page 137, tab 8.5.3.3.3). This operator must
+		//              lead to the same result as constructing two identical path objects,
+		//              applying operator f* to the first and S to the second.
 		SetGrMode(grmode_PAGE);
 		m_pStream->WriteStr("B*\012");
 		m_oCurPos.Reset();
@@ -897,8 +890,8 @@ namespace PdfWriter
     void CPage::EndPath()
 	{
 		// Operator   : n
-		// Description: Закрываем path, не заливая и не обводя его. Этот оператор используется прежде всего для 
-		//              изменения текущего path.
+		// Description: Close the path without filling or stroking it. This operator is used primarily for
+		//              changes the current path.
 		SetGrMode(grmode_PAGE);
 		m_pStream->WriteStr("n\012");
 		m_oCurPos.Reset();
@@ -906,7 +899,7 @@ namespace PdfWriter
     void CPage::SetLineWidth(double dLineWidth)
 	{
 		// Operator   : w 
-		// Descriprion: устанавливаем толщину линии
+		// Description: set the line width
 
         dLineWidth = std::max(dLineWidth, 0.0);
 		m_pStream->WriteReal(dLineWidth);
@@ -916,7 +909,7 @@ namespace PdfWriter
     void CPage::SetLineCap(ELineCapStyle eLineCap)
 	{
 		// Operator   : J 
-		// Descriprion: устанавливаем вид окончания линии (LineCapStyle)
+		// Description: set the type of line ending (LineCapStyle)
 
         eLineCap = std::max(linecap_Min, std::min(linecap_Max, eLineCap));
 		m_pStream->WriteInt((unsigned int)eLineCap);
@@ -926,7 +919,7 @@ namespace PdfWriter
     void CPage::SetLineJoin(ELineJoinStyle eLineJoin)
 	{
 		// Operator   : j
-		// Descriprion: устанавливаем вид соединения линий (LineJoinStyle)
+		// Description: set the line join style (LineJoinStyle)
         eLineJoin = std::max(linejoin_Min, std::min(linejoin_Max, eLineJoin));
 		m_pStream->WriteInt((unsigned int)eLineJoin);
 		m_pStream->WriteStr(" j\012");
@@ -935,7 +928,7 @@ namespace PdfWriter
     void CPage::SetMiterLimit(double dMiterLimit)
 	{
 		// Operator   : M
-		// Descriprion: устанавливаем MiterLimit - константа, относящаяся к виду соединения линий
+		// Description: set MiterLimit - a constant related to the line join style
         dMiterLimit = std::max(1.0, dMiterLimit);
 		m_pStream->WriteReal(dMiterLimit);
 		m_pStream->WriteStr(" M\012");
@@ -944,7 +937,7 @@ namespace PdfWriter
     void CPage::SetDash(const double* pPattern, unsigned int unCount, double dPhase)
 	{
 		// Operator   : d
-		// Descriprion: устанавливаем вид линий (DashMode)
+		// Description: set the line dash pattern
 
 		if (0 == unCount || !pPattern)
 			return;
@@ -977,7 +970,7 @@ namespace PdfWriter
     void CPage::SetFlat(double dFlatness)
 	{
 		// Operator   : i
-		// Descriprion: устанавливаем порог ошибки линии (Flatness tolerance)
+		// Description: set the line error threshold (Flatness tolerance)
         dFlatness = std::min(100.0, std::max(0.0, dFlatness));
 		m_pStream->WriteReal(dFlatness);
 		m_pStream->WriteStr(" i\012");
@@ -986,7 +979,7 @@ namespace PdfWriter
     void CPage::GrSave()
 	{
 		// Operator   : q
-		// Description: сохраняем текущий GState в графическом стеке
+		// Description: save the current GState on the graphics stack
 		CheckGrMode(grmode_PAGE);
 		CGrState* pState = new CGrState(m_pGrState);
 		if (!pState)
@@ -998,7 +991,7 @@ namespace PdfWriter
     void CPage::GrRestore()
 	{
 		// Operator   : Q
-		// Description: Восстанавливаем GState, удаляя самый последний GState, и делаем данный GState текущим
+		// Description: Restore GState by deleting the most recent GState and make this GState current
 		CheckGrMode(grmode_PAGE);
 
 		if (!m_pGrState->m_pPrev)
@@ -1013,8 +1006,8 @@ namespace PdfWriter
     void CPage::SetStrokeColor(unsigned char unR, unsigned char unG, unsigned char unB)
 	{
 		// Operator   : RG
-		// Description: Устанавливаем цветовое пространтсво для обводки в DeviceRGB и устанавливаем цвет для 
-		//              операций связанных с обведением фигур.
+		// Description: Set the color space for the stroke to DeviceRGB and set the color for
+		//              operations related to tracing shapes.
 
 		double dR = unR / 255.0;
 		double dG = unG / 255.0;
@@ -1029,8 +1022,8 @@ namespace PdfWriter
     void CPage::SetFillColor(unsigned char unR, unsigned char unG, unsigned char unB)
 	{
 		// Operator   : rg
-		// Description: Устанавливаем цветовое пространтсво для заливки в DeviceRGB и устанавливаем цвет для 
-		//              операций связанных с заливкой фигур.
+		// Description: Set the color space for the fill to DeviceRGB and set the color for
+		//              operations related to filling shapes.
 
 		double dR = unR / 255.0;
 		double dG = unG / 255.0;
@@ -1045,7 +1038,7 @@ namespace PdfWriter
 	void CPage::SetStrokeG(double dG)
 	{
 		// Operator   : G
-		// Description: Заливка в DeviceG
+		// Description: Filling in DeviceG
 
 		m_pStream->WriteReal(dG);
 		m_pStream->WriteStr(" G\012");
@@ -1053,7 +1046,7 @@ namespace PdfWriter
 	void CPage::SetStrokeRGB(double dR, double dG, double dB)
 	{
 		// Operator   : RG
-		// Description: Обводка в DeviceRGB
+		// Description: Stroke in DeviceRGB
 
 		m_pStream->WriteReal(dR);
 		m_pStream->WriteChar(' ');
@@ -1065,7 +1058,7 @@ namespace PdfWriter
 	void CPage::SetStrokeCMYK(double dC, double dM, double dY, double dK)
 	{
 		// Operator   : K
-		// Description: Обводка в DeviceCMYK
+		// Description: Stroke in DeviceCMYK
 
 		m_pStream->WriteReal(dC);
 		m_pStream->WriteChar(' ');
@@ -1079,7 +1072,7 @@ namespace PdfWriter
 	void CPage::SetFillG(double dG)
 	{
 		// Operator   : g
-		// Description: Заливка в DeviceG
+		// Description: Filling in DeviceG
 
 		m_pStream->WriteReal(dG);
 		m_pStream->WriteStr(" g\012");
@@ -1087,7 +1080,7 @@ namespace PdfWriter
 	void CPage::SetFillRGB(double dR, double dG, double dB)
 	{
 		// Operator   : rg
-		// Description: Заливка в DeviceRGB
+		// Description: Fill to DeviceRGB
 
 		m_pStream->WriteReal(dR);
 		m_pStream->WriteChar(' ');
@@ -1099,7 +1092,7 @@ namespace PdfWriter
 	void CPage::SetFillCMYK(double dC, double dM, double dY, double dK)
 	{
 		// Operator   : k
-		// Description: Заливка в DeviceCMYK
+		// Description: Filling in DeviceCMYK
 
 		m_pStream->WriteReal(dC);
 		m_pStream->WriteChar(' ');
@@ -1113,7 +1106,7 @@ namespace PdfWriter
 	void CPage::Concat(double dM11, double dM12, double dM21, double dM22, double dX, double dY)
 	{
 		// Operator   : cm
-		// Description: меняем матрицу преобразований (CTM - Current Transformation Matrix)
+		// Description: changing the transformation matrix (CTM - Current Transformation Matrix)
 
 		m_pStream->WriteReal(dM11);
 		m_pStream->WriteChar(' ');
@@ -1130,7 +1123,7 @@ namespace PdfWriter
 	
 		CMatrix oCTM = m_pGrState->m_oMatrix;
 	
-		// перемножаем матрицы oCTM(новая)= oCTM(преобразования(которая параметрами задана)) x oCTM(старая)
+		// multiply the matrices oCTM(new)= oCTM(transformation (which is specified by the parameters)) x oCTM(old)
 		m_pGrState->m_oMatrix.m11 = dM11 * oCTM.m11 + dM12 * oCTM.m21;
 		m_pGrState->m_oMatrix.m12 = dM11 * oCTM.m12 + dM12 * oCTM.m22;
 		m_pGrState->m_oMatrix.m21 = dM21 * oCTM.m11 + dM22 * oCTM.m21;
@@ -1165,16 +1158,16 @@ namespace PdfWriter
     void CPage::Clip()
 	{
 		// Operator   : W
-		// Description: Изменяем текущий clipping path, пересакая его с текущим path, ипользуя правило Nonzero 
-		//              Winding Number Rule, для определения какие регионы лежат внутри clipping path.
+		// Description: Change the current clipping path, intersecting it with the current path, using the Nonzero rule
+		//              Winding Number Rule, to determine which regions lie inside the clipping path.
 		SetGrMode(grmode_CLIP);
 		m_pStream->WriteStr("W\012");
 	}
     void CPage::Eoclip()
 	{
 		// Operator   : W*
-		// Description: Изменяем текущий clipping path, пересакая его с текущим path, ипользуя правило Even-Odd 
-		//              Rule, для определения какие регионы лежат внутри clipping path.
+		// Description: Change the current clipping path, intersecting it with the current path, using the Even-Odd rule
+		//              Rule, to determine which regions lie inside the clipping path.
 		SetGrMode(grmode_CLIP);
 		m_pStream->WriteStr("W*\012");
 	}
@@ -1184,7 +1177,7 @@ namespace PdfWriter
 			return;
 
 		// Operator   : gs
-		// Description: устанавливаем сразу все настройки данного графического состояния(ExtGState)
+		// Description: set all the settings for this graphical state at once (ExtGState)
 
 		CResourcesDict* pResources = GetResourcesItem();
 		if (!pResources)
@@ -1196,7 +1189,7 @@ namespace PdfWriter
 	void CPage::SetExtGrStateKey(const char* sKey)
 	{
 		// Operator   : gs
-		// Description: устанавливаем сразу все настройки данного графического состояния(ExtGState)
+		// Description: set all the settings for this graphical state at once (ExtGState)
 
 		if (!sKey)
 			return;
@@ -1240,7 +1233,7 @@ namespace PdfWriter
     void CPage::BeginText()
 	{
 		// Operator   : BT
-		// Description: Начало текста
+		// Description: Beginning of text
 		SetGrMode(grmode_TEXT);
 		m_pStream->WriteStr("BT\012");
 
@@ -1250,7 +1243,7 @@ namespace PdfWriter
     void CPage::EndText()
 	{
 		// Operator   : ET
-		// Description: Окончание текста
+		// Description: End of text
 		CheckGrMode(grmode_TEXT);
 		m_pStream->WriteStr("ET\012");	
 		SetGrMode(grmode_PAGE);
@@ -1258,7 +1251,7 @@ namespace PdfWriter
     void CPage::MoveTextPos(double dX, double dY)
 	{
 		// Operator   : Td
-		// Description: Переходим к началу следующей линии, сдвигаясь от начала текущей на ( fX, fY ).
+		// Description: Move to the beginning of the next line, shifting from the beginning of the current one by ( fX, fY ).
 		CheckGrMode(grmode_TEXT);
 
 		m_pStream->WriteReal(dX);
@@ -1273,7 +1266,7 @@ namespace PdfWriter
     void CPage::ShowText(const BYTE* sText, unsigned int unLen)
 	{
 		// Operator   : Tj
-		// Description: Показать текстовую строку.
+		// Description: Show a text string.
 		CheckGrMode(grmode_TEXT);
 		WriteText(sText, unLen);
 		m_pStream->WriteStr(" Tj\012");
@@ -1375,7 +1368,7 @@ namespace PdfWriter
 	void CPage::SetTextRise(double dS)
 	{
 		// Operator   : Ts
-		// Description: Устанавливаем подъём текста
+		// Description: Set the text rise
 		CheckGrMode(grmode_TEXT);
 
 		m_pStream->WriteReal(dS);
@@ -1384,7 +1377,7 @@ namespace PdfWriter
 	void CPage::SetCharSpace(double dValue)
 	{
 		// Operator   : Tc
-		// Description: Устанавливаем расстояние между буквами
+		// Description: Set the distance between letters
 		CheckGrMode(grmode_TEXT);
 
         dValue = std::min((double)MAX_CHARSPACE, std::max((double)MIN_CHARSPACE, dValue));
@@ -1394,7 +1387,7 @@ namespace PdfWriter
 	void CPage::SetWordSpace(double dValue)
 	{
 		// Operator   : Tw
-		// Description: Устанавливаем расстояние между словами
+		// Description: Set the distance between words
 		CheckGrMode(grmode_TEXT);
 
 		m_pStream->WriteReal(dValue);
@@ -1403,7 +1396,7 @@ namespace PdfWriter
 	void CPage::SetHorizontalScaling(double dValue)
 	{
 		// Operator   : Tz
-		// Description: Устанавливаем горизонтальное растяжение/сжатие
+		// Description: Set horizontal stretch/compression
 		CheckGrMode(grmode_TEXT);
 
         dValue = std::min((double)MAX_HORIZONTALSCALING, std::max((double)MIN_HORIZONTALSCALING, dValue));
@@ -1413,7 +1406,7 @@ namespace PdfWriter
     void CPage::SetFontAndSize(CFontDict* pFont, double dSize)
 	{
 		// Operator   : Tf
-		// Description: Устанавливаем шрифт и размер шрифта
+		// Description: Set the font and font size
 
         dSize = std::min((double)MAX_FONTSIZE, std::max(0.0, dSize));
 		CResourcesDict* pResources = GetResourcesItem();
@@ -1434,7 +1427,7 @@ namespace PdfWriter
 	void CPage::SetFontKeyAndSize(const char* sKey, double dSize)
 	{
 		// Operator   : Tf
-		// Description: Устанавливаем шрифт и размер шрифта
+		// Description: Set the font and font size
 
 		dSize = std::min((double)MAX_FONTSIZE, std::max(0.0, dSize));
 		if (!sKey)
@@ -1452,7 +1445,7 @@ namespace PdfWriter
     void CPage::SetTextRenderingMode(ETextRenderingMode eMode)
 	{
 		// Operator   : Tr
-		// Description: Устанавливаем тип закрашивания символов (TextRenderingMode)
+		// Description: Set the character rendering type (TextRenderingMode)
 		CheckGrMode(grmode_TEXT);
 		m_pStream->WriteInt((int)eMode);
 		m_pStream->WriteStr(" Tr\012");
@@ -1460,7 +1453,7 @@ namespace PdfWriter
     void CPage::SetTextMatrix(double dM11, double dM12, double dM21, double dM22, double dX, double dY)
 	{
 		// Operator   : Tm
-		// Description: Устанавливаем матрицу преобразования для текста.
+		// Description: Set the transformation matrix for the text.
 		CheckGrMode(grmode_TEXT);
 
 		m_pStream->WriteReal(dM11);
@@ -1510,7 +1503,7 @@ namespace PdfWriter
     void CPage::DrawShading(CShading* pShading)
 	{
 		// Operator   : sh
-		// Description: отрисовываем градиент
+		// Description: draw a gradient
 
 		const char* sShadingName = GetLocalShadingName(pShading);
 		if (!sShadingName)
@@ -1612,7 +1605,7 @@ namespace PdfWriter
     void CPage::SetPatternColorSpace(CImageTilePattern* pPattern)
 	{
 		// Operator   : csn
-		// Description: задаем паттерн для рисования
+		// Description: set the pattern for drawing
 
 		const char* sPatternName = GetLocalPatternName(pPattern);
 		if (!sPatternName)
@@ -1688,7 +1681,7 @@ namespace PdfWriter
 	void CPage::BeginMarkedContent(const std::string& sName)
 	{
 		// Operator   : BMC
-		// Description: Начало маркированного контента
+		// Description: Beginning of marked content
 
 		m_pStream->WriteEscapeName(sName.c_str());
 		m_pStream->WriteStr(" BMC\012");
@@ -1696,7 +1689,7 @@ namespace PdfWriter
 	void CPage::BeginMarkedContentDict(const std::string& sName, CDictObject* pBDC)
 	{
 		// Operator   : BDC
-		// Description: Начало маркированного контента со списком свойств
+		// Description: Beginning of marked content with a list of properties
 
 		m_pStream->WriteEscapeName(sName.c_str());
 		m_pStream->WriteChar(' ');
@@ -1706,14 +1699,14 @@ namespace PdfWriter
 	void CPage::EndMarkedContent()
 	{
 		// Operator   : EMC
-		// Description: Конец маркированного контента
+		// Description: End of marked content
 
 		m_pStream->WriteStr("EMC\012");
 	}
 	void CPage::SetRenderingIntent(ERenderingIntent eRenderingIntent)
 	{
 		// Operator   : ri
-		// Description: Способы рендеринга/цветопередачи
+		// Description: Rendering/color methods
 
 		m_pStream->WriteEscapeName(c_sRenderingIntent[(int)eRenderingIntent]);
 		m_pStream->WriteStr(" ri\012");

@@ -19,7 +19,7 @@ CNoteShape::CNoteShape()
 
 CNoteShape::CNoteShape(CXMLReader& oReader, EHanType eType)
 {
-	//TODO:: реализовать
+	//TODO::implement
 }
 
 CNoteShape* CNoteShape::Parse(int nLevel, int nSize, CHWPStream& oBuffer, int nOff, int nVersion)

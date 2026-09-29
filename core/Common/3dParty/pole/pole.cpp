@@ -399,7 +399,7 @@ void Header::load( const unsigned char* buffer ) {
   num_mbat     = readU32( buffer + 0x48 ); // [48H,04] number of SECTs in the DIFAT chain
 
   if (threshold == 0) 
-	  threshold = 4096; //поле не задано ... файл xls от полльзователя
+	  threshold = 4096; //field not specified...xls file from user
   
   for( unsigned int i = 0; i < 8; i++ )
     id[i] = buffer[i]; 

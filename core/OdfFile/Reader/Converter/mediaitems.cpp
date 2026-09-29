@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -75,7 +68,7 @@ bool is_internal(const std::wstring & uri, const std::wstring & packetRoot)
 mediaitems::item::item(std::wstring const & _href,_rels_type _type, std::wstring const & _outputName,
 						bool _mediaInternal, std::wstring const & _Id, _rels_type_place type_place_)
            : href(_href), type(_type), outputName(_outputName), mediaInternal(_mediaInternal), Id(_Id), valid(true), type_place(type_place_)
-		   //вообще говоря даже если файл покоцанный то мы все равно обязаны перенести "объект"
+		   //generally speaking, even if the file is damaged, we are still obliged to transfer the "object"
 {    
 	count_add = 1;
 	count_used = 0;
@@ -227,7 +220,7 @@ std::wstring mediaitems::create_file_name(const std::wstring & uri, _rels_type t
 		
 		if (sExt.empty())
 		{
-			//то что есть .. 
+			//what is..
 			size_t n = uri.rfind(L".");
 			if (n != std::wstring::npos) 
 				sExt = XmlUtils::GetLower(uri.substr(n));
@@ -361,7 +354,7 @@ std::wstring mediaitems::add_or_find(const std::wstring & href, _rels_type type,
 				outputPath = outputPath.substr(0, n_svm) + L".png"; 
 			}
 //------------------------------------------------
-			//if (inputFileName.empty()) return L"";  - Book 27.ods - пустые линки на картинки
+			//if (inputFileName.empty()) return L"";  - Book 27.ods - empty links to images
 
 			id = std::wstring(L"picId") + std::to_wstring(count_image + 1);
 			count_image++;
@@ -427,7 +420,7 @@ void mediaitems::dump_rels(rels & Rels, _rels_type_place type_place)
 
 		if (items_[i].type_place != type_place) continue;
 		
-		if (items_[i].count_used >= items_[i].count_add) continue; // уже использовали этот релс выше(колонтитул ....)
+		if (items_[i].count_used >= items_[i].count_add) continue; // already used this rel above (footer....)
 
 		Rels.add( relationship(
                 items_[i].Id, 

@@ -8,7 +8,7 @@
 namespace Jpeg2000
 {
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Вспомогательные функции
+	// Auxiliary functions
 	//-------------------------------------------------------------------------------------------------------------------------------
 	static void Tier2_PutCommaCode(BitIO *pBIO, int nLen)
 	{
@@ -83,7 +83,7 @@ namespace Jpeg2000
 			unsigned char *pSOP = (unsigned char *)Malloc(6 * sizeof(unsigned char));
 			pSOP[0] = 255; // ff
 			pSOP[1] = 145; // 91
-			pSOP[2] = 0;   // Длина всегда 4 байта
+			pSOP[2] = 0;   // Length is always 4 bytes
 			pSOP[3] = 4;   // 
 			pSOP[4] = (pImageInfo->nPacketCount % 65536) / 256;
 			pSOP[5] = (pImageInfo->nPacketCount % 65536) % 256;
@@ -148,13 +148,13 @@ namespace Jpeg2000
 					BitIO_Write(pBitStream, pLayer->nPassesCount != 0, 1);
 				}
 
-				// Если CodeBlock не включен, тогда переходми к следующему CodeBlock
+				// If CodeBlock isn't enabled then move on to the next CodeBlock
 				if (!pLayer->nPassesCount)
 				{
 					continue;
 				}
 
-				// Если это первое появление CodeBlock --> тогда обрабытываем информацию о Zero bit-planes
+				// If this is the first appearance of CodeBlock --> then we process information about Zero bit-planes
 				if (!pCodeBlock->nPassesCount)
 				{
 					pCodeBlock->nLenBitsCount = 3;
@@ -319,7 +319,7 @@ namespace Jpeg2000
 			}
 		}
 
-		// SOP маркер
+		// SOP marker
 		if (pTCP->nCodingStyle & J2K_CP_CSTY_SOP)
 		{
 			if ((*pSrcPointer) != 0xff || (*(pSrcPointer + 1) != 0x91))
@@ -331,10 +331,10 @@ namespace Jpeg2000
 				pSrcPointer += 6;
 			}
 
-			// TO DO : Добавить проверку значения Nsop
+			// TO DO : Add check for Nsop value
 		}
 
-		// Когда используются пакеты PPT/PPM, Packet header хранится в маркерах PPT/PPM.
+		// When PPT/PPM packets are used, the Packet header is stored in PPT/PPM tokens.
 
 		BitIO *pBitStream = BitIO_Create();
 		if (!pBitStream)
@@ -350,7 +350,7 @@ namespace Jpeg2000
 			pBuffer = pTCP->pPPTData;
 			BitIO_InitDecoder(pBitStream, pBuffer, pTCP->nPPTLength);
 		}
-		else // Обычный случай
+		else // Common case
 		{
 			pBuffer = pSrcPointer;
 			BitIO_InitDecoder(pBitStream, pBuffer, pSrc + nLen - pBuffer);
@@ -364,7 +364,7 @@ namespace Jpeg2000
 			pBuffer += BitIO_WrittenBytesCount(pBitStream);
 			BitIO_Destroy(pBitStream);
 
-			// EPH маркер
+			// EPH marker
 			if (pTCP->nCodingStyle & J2K_CP_CSTY_EPH)
 			{
 				if ((*pBuffer) != 0xff || (*(pBuffer + 1) != 0x92))
@@ -407,7 +407,7 @@ namespace Jpeg2000
 				CodeBlock *pCodeBlock = &pPrecinct->pCodeBlocks[nCodeBlockIndex];
 				TCDSegment *pSegment = NULL;
 
-				// Если CodeBlock не был включен ранее --> TagTree
+				// If CodeBlock wasn't enabled previously --> TagTree
 				if (!pCodeBlock->nSegmentsCount)
 				{
 					nIncluded = TGT_Decode(pBitStream, pPrecinct->pInclTree, nCodeBlockIndex, nLayerIndex + 1);
@@ -423,7 +423,7 @@ namespace Jpeg2000
 					continue;
 				}
 
-				// Если CodeBlock не был включен ранее --> zero-bitplane tagtree
+				// If CodeBlock wasn't enabled previously --> zero-bitplane tagtree
 				if (!pCodeBlock->nSegmentsCount)
 				{
 					int nIndex;
@@ -475,7 +475,7 @@ namespace Jpeg2000
 		pBuffer += BitIO_WrittenBytesCount(pBitStream);
 		BitIO_Destroy(pBitStream);
 
-		// EPH маркер
+		// EPH marker
 		if (pTCP->nCodingStyle & J2K_CP_CSTY_EPH)
 		{
 			if ((*pBuffer) != 0xff || (*(pBuffer + 1) != 0x92))
@@ -568,7 +568,7 @@ namespace Jpeg2000
 
 
 	//-------------------------------------------------------------------------------------------------------------------------------
-	// Основные функции
+	// Basic functions
 	//-------------------------------------------------------------------------------------------------------------------------------
 	int    Tier2_EncodePackets(Tier2 *pTier2, int nTileIndex, Tile *pTile, int nMaxLayers, unsigned char *pDst, int nLen, ImageInfo *pImageInfo)
 	{
@@ -605,7 +605,7 @@ namespace Jpeg2000
 						pDstPointer += nShift;
 					}
 
-					// Индексация
+					// Indexing
 					if (pImageInfo && pImageInfo->nIndexOn)
 					{
 						if (pImageInfo->nIndexWrite)

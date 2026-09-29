@@ -504,7 +504,7 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_EXTCREATEFONTINDIRECTW()
 	{
-		//TODO: переделать чтение из-за отсутствия m_ulRecordSize
+		//TODO: redo reading due to missing m_ulRecordSize
 		unsigned int unSize = m_ulRecordSize - 4;
 		bool bFixedLength = unSize <= 0x0140 ? true : false;
 
@@ -557,7 +557,7 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_EXTCREATEPEN()
 	{
-		//TODO: переделать чтение из-за отсутствия m_ulRecordSize
+		//TODO: redo reading due to missing m_ulRecordSize
 
 		unsigned int ulPenIndex;
 
@@ -802,7 +802,7 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_EXCLUDECLIPRECT()
 	{
-		// TODO: Проверить как найдется файл
+		// TODO: Check if a file is found
 		TRectL oClip;
 
 		*m_pOutput >> oClip;
@@ -890,7 +890,7 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_ANGLEARC()
 	{
-		// TODO: Как найдутся файлы проверить данную запись.
+		// TODO: How to find files, check this entry.
 		TPointL oCenter;
 		unsigned int unRadius;
 		double dStartAngle, dSweepAngle;
@@ -922,7 +922,7 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_ARCTO()
 	{
-		// TODO: Как найдутся файлы проверить данную запись.
+		// TODO: How to find files, check this entry.
 		TRectL oBox;
 		TPointL oStart, oEnd;
 
@@ -932,7 +932,7 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_CHORD()
 	{
-		// TODO: Как найдутся файлы проверить данную запись.
+		// TODO: How to find files, check this entry.
 		TRectL oBox;
 		TPointL oStart, oEnd;
 
@@ -951,7 +951,7 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_EXTTEXTOUTA()
 	{
-		// TODO: Как найдутся файлы проверить данную запись.
+		// TODO: How to find files, check this entry.
 		TEmfExtTextoutA oText;
 
 		*m_pOutput >> oText;
@@ -979,7 +979,7 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_PIE()
 	{
-		// TODO: Как найдутся файлы проверить данную запись.
+		// TODO: How to find files, check this entry.
 		TRectL oBox;
 		TPointL oStart, oEnd;
 
@@ -1041,8 +1041,8 @@ namespace MetaFile
 
 	template<typename T>void CEmfxParser::Read_EMR_POLYDRAW_BASE()
 	{
-		// TODO: Как найдутся файлы проверить данную запись.
-		//bug #35006 - не прочитывается весь рекорд ... выравнивание?
+		// TODO: How to find files, check this entry.
+		//bug #35006 - the entire record isn't read... alignment?
 
 		TRectL oBounds;
 		unsigned int unCount;
@@ -1183,10 +1183,10 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_POLYTEXTOUTA()
 	{
-		// TODO: Как найдутся файлы проверить данную запись.
+		// TODO: How to find files, check this entry.
 		TPolyTextoutA oText;
 
-		//TODO: сделать сохранение в XML и чтение из него
+		//TODO: save to XML and read from it
 		return;
 
 		m_oStream >> oText;
@@ -1205,10 +1205,10 @@ namespace MetaFile
 
 	void CEmfxParser::Read_EMR_POLYTEXTOUTW()
 	{
-		// TODO: Как найдутся файлы проверить данную запись.
+		// TODO: How to find files, check this entry.
 		TPolyTextoutW oText;
 
-		//TODO: сделать сохранение в XML и чтение из него
+		//TODO: save to XML and read from it
 		return;
 
 		m_oStream >> oText;
@@ -1255,7 +1255,7 @@ namespace MetaFile
 		if (NULL != m_pInterpretator)
 			m_pInterpretator->HANDLE_EMR_SETPIXELV(oPoint, oColor);
 
-		// Делаем цветом кисти
+		// Making the brush color
 		BYTE pBgraBuffer[4];
 		pBgraBuffer[0] = oColor.b;
 		pBgraBuffer[1] = oColor.g;

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -46,13 +39,13 @@
 class TGlyphBitmap 
 {
 public:
-	int     nX;        // Сдвиг по X начальной точки для рисования символа
-	int     nY;        // Сдвиг по Y начальной точки для рисования символа
-	int     nWidth;    // Ширина символа
-	int     nHeight;   // Высота символа
-	INT    bAA;       // Anti-aliased: True означает, что Bitmap 8-битный(т.е. с альфой); False - Bitmap 1-битный
-	BYTE*	pData;     // Bitmap data(картинка с символом)
-	INT    bFreeData; // True, если память в pData нужно освободить
+	int     nX;        // X offset of the starting point for drawing the symbol
+	int     nY;        // Y offset of the starting point for drawing the symbol
+	int     nWidth;    // Character width
+	int     nHeight;   // Character height
+	INT    bAA;       // Anti-aliased: True means that the Bitmap is 8-bit (i.e. with alpha); False - Bitmap 1-bit
+	BYTE*	pData;     // Bitmap data(image with symbol)
+	INT    bFreeData; // True if memory in pData needs to be freed
 
 	TGlyphBitmap();
 	~TGlyphBitmap();
@@ -60,9 +53,9 @@ public:
 
 enum EGlyphState
 {
-	glyphstateNormal = 0,  // символ отрисовался в нужном шрифте
-	glyphstateDefault,     // символ отрисовался в дефолтовом шрифте
-	glyphstateMiss         // символ не отрисовался
+	glyphstateNormal = 0,  // the symbol is rendered in the required font
+	glyphstateDefault,     // the symbol is rendered in the default font
+	glyphstateMiss         // the symbol wasn't rendered
 };
 
 struct TMetrics
@@ -82,9 +75,9 @@ struct TMetrics
 class TGlyph
 {
 public:
-	unsigned int lUnicode; // Юникод
-	float        fX;       // Позиция глифа
-	float        fY;       // на BaseLine
+	unsigned int lUnicode; // Unicode
+	float        fX;       // Glyph position
+	float        fY;       // on BaseLine
 
 	float        fLeft;    //
 	float        fTop;     // BBox
@@ -107,7 +100,7 @@ public:
 namespace FontConstants
 {
 	//---------------------------------------------------------------------------------------------------
-	// Константы связанные с CharMap: Platform, Encoding ID
+	// Constants associated with CharMap: Platform, Encoding ID
 	//---------------------------------------------------------------------------------------------------
 
 	const long c_lUniPlatform = 0;
@@ -180,19 +173,19 @@ public:
 	float   m_fTransX;
 	float   m_fTransY;
 
-	float   m_fX; // Координаты начальной точки для рисования
+	float   m_fX; // Coordinates of the starting point for drawing
 	float   m_fY; //
 
-	float   m_fEndX; // Координаты конечной точки
+	float   m_fEndX; // End point coordinates
 	float   m_fEndY; //
 
-	double  m_arrCTM[6];     // Глобальная матрица преобразования
-	double  m_dIDet;         // (Детерминант матрицы преобразования)^(-1)
+	double  m_arrCTM[6];     // Global transformation matrix
+	double  m_dIDet;         // (Determinant of transformation matrix)^(-1)
 	
 private:
-	TGlyph* m_pGlyphsBuffer; // Символы в данной строке
-	int     m_nGlyphsCount;  // Количество символов в строке
-	int     m_nGlyphIndex;   // Номер текущего символа
+	TGlyph* m_pGlyphsBuffer; // Characters in this line
+	int     m_nGlyphsCount;  // Number of characters per line
+	int     m_nGlyphIndex;   // Current character number
 };
 
 #endif /* _BUILD_GLYPH_STRING_H */

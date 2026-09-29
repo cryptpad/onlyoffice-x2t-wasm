@@ -1,0 +1,24 @@
+diff --git a/source/common/udata.cpp b/source/common/udata.cpp
+index 88126fc..7c85fc3 100644
+--- a/source/common/udata.cpp
++++ b/source/common/udata.cpp
+@@ -212,6 +212,9 @@ setCommonICUData(UDataMemory *pData,     /*  The new common data.  Belongs to ca
+ 
+ static UBool
+ setCommonICUDataPointer(const void *pData, UBool /*warn*/, UErrorCode *pErrorCode) {
++    #ifdef BUILDING_WASM_MODULE
++    return NULL;
++    #endif
+     UDataMemory tData;
+     UDataMemory_init(&tData);
+     UDataMemory_setData(&tData, pData);
+@@ -671,6 +674,9 @@ openCommonData(const char *path,          /*  Path from OpenChoice?          */
+                int32_t commonDataIndex,   /*  ICU Data (index >= 0) if path == nullptr */
+                UErrorCode *pErrorCode)
+ {
++    #ifdef BUILDING_WASM_MODULE
++    return NULL;
++    #endif
+     UDataMemory tData;
+     const char *pathBuffer;
+     const char *inBasename;
