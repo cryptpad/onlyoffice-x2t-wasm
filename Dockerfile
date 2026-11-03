@@ -168,7 +168,7 @@ COPY core/UnicodeConverter /core/UnicodeConverter
 COPY core/DesktopEditor/common /core/DesktopEditor/common
 WORKDIR /core
 RUN --mount=type=cache,sharing=locked,target=/emsdk/upstream/emscripten/cache/ \
-    embuild.sh UnicodeConverter
+    embuild.sh -q DEFINES+=DISABLE_ICU UnicodeConverter
 RUN mkdir -p /core/build/lib/linux_64
 RUN mv /core/UnicodeConverter.o /core/build/lib/linux_64/libUnicodeConverter.a
 
