@@ -660,8 +660,8 @@ COPY --from=log-symbols /out /
 
 
 
-FROM onlyoffice/documentserver:8.3.3 AS documentserver
-# Outputs: /var/www/onlyoffice/documentserver/server/FileConverter/bin/x2t
+FROM ghcr.io/euro-office/documentserver:v9.3.2 AS documentserver
+# Outputs: /var/www/euro-office/documentserver/server/FileConverter/bin/x2t
 
 
 
@@ -753,7 +753,7 @@ WORKDIR /test
 COPY tests /test/tests
 COPY non-public-tests /test/tests
 COPY --from=testfiles /tests /test/tests
-COPY --from=documentserver /var/www/onlyoffice/documentserver/server/FileConverter/bin/x2t /bin/
+COPY --from=documentserver /var/www/euro-office/documentserver/server/FileConverter/bin/x2t /bin/
 RUN mkdir results
 # RUN ls -l tests ; exit 1
 # RUN . /emsdk/emsdk_env.sh \
